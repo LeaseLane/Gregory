@@ -7,7 +7,7 @@ Coquille native [Capacitor](https://capacitorjs.com) autour des portails web exi
 ## Ce qui est déjà fait
 
 - `app.html` — écran de connexion unifié + redirection par rôle
-- `edge-function-whoami.ts` — déterminé le rôle (propriétaire/locataire/travailleur) côté serveur après connexion
+- `supabase/functions/whoami/index.ts` — détermine le rôle (propriétaire/locataire/travailleur) côté serveur après connexion
 - Ce dossier (`package.json`, `capacitor.config.json`, `www/`) — squelette du projet Capacitor
 
 ## Ce qu'il reste à faire (nécessite un Mac + Xcode pour iOS)
