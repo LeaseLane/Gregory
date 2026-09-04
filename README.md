@@ -37,7 +37,7 @@ SaaS de gestion immobilière résidentielle, construit sur Supabase (Postgres + 
 
 - Domaine : `portailgestion.ca`, configuré via le fichier `CNAME` à la racine + GitHub Pages.
 - DNS géré chez Namecheap (courriel transactionnel via Resend, domaine expéditeur `mail.portailgestion.ca`).
-- Sauvegardes de la base de données : voir [`BACKUPS.md`](./BACKUPS.md).
+- Sauvegardes de la base de données : voir [`docs/BACKUPS.md`](./docs/BACKUPS.md).
 
 ## Secrets requis (configurés dans Supabase → Edge Functions → Secrets, jamais commités dans ce repo)
 
@@ -109,7 +109,7 @@ Un audit de sécurité/fonctionnel (2026-08-05) avait identifié plusieurs point
 - **Sécurité (corrigé)** : `flinks-api.ts` action `sync_all` protégée par un secret partagé (`FLINKS_SYNC_SECRET`, lu depuis Supabase Vault, jamais commité) ; les cascades automatiques de réassignation de travailleur (`process_worker_response_timeouts()` et `handle-worker-response.ts`) filtrent maintenant par `worker_verification_status` (RBQ/assurance/actif) ; policy RLS `workers` resserrée (un propriétaire ne voit que les travailleurs déjà assignés à ses unités) ; ajout d'un toggle actif/inactif par travailleur ; **vérification de signature JWT réelle** dans les 13 fonctions admin-authentifiées (voir section ci-dessus, ne dépend plus uniquement du réglage plateforme).
 - **Fonctionnel (corrigé)** : `invoice_number` généré via un compteur atomique (`next_invoice_number()`, upsert avec verrou de ligne) — plus de risque de collision lors de la génération concurrente des factures mensuelles.
 - **Non corrigé** : pas d'interface pour les actions admin destructrices (ex. `delete_owner_completely`) ; 2FA non implémentée pour les comptes admin ; CI/CD et préproduction pas encore en place (déploiement manuel par copier-coller — voir roadmap 🔴).
-- Fonctionnalités ajoutées depuis l'audit : Portail Copilot (Q&A financier), signature électronique des renouvellements de bail (`signer-bail.html` / `handle-lease-signature.ts`), fondation du moteur de règles Automations/Studio (`automation_rules`), SMS Portail Concierge via Twilio (`send-sms.ts`), monitoring minimum (`check_system_health()`, `health-check.ts`), sauvegardes automatiques (voir `BACKUPS.md`).
+- Fonctionnalités ajoutées depuis l'audit : Portail Copilot (Q&A financier), signature électronique des renouvellements de bail (`signer-bail.html` / `handle-lease-signature.ts`), fondation du moteur de règles Automations/Studio (`automation_rules`), SMS Portail Concierge via Twilio (`send-sms.ts`), monitoring minimum (`check_system_health()`, `health-check.ts`), sauvegardes automatiques (voir `docs/BACKUPS.md`).
 - Le domaine d'envoi de courriels (DNS Namecheap/Resend) était en cours de finalisation.
 
 ## Conventions de code à respecter
