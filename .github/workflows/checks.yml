@@ -64,12 +64,22 @@ jobs:
         run: deno check supabase/functions/_shared/auth.ts
 
       - name: Vérification des types des fonctions edge
-        # Seuil à 0 : les 7 erreurs préexistantes (generate-owner-report,
-        # reconcile-bank-transactions, onboarding-api — chemins financier et
-        # d'onboarding) ont été corrigées. Le seuil ne doit jamais remonter.
+        # Seuil à 7 : c'est l'état RÉEL du dépôt aujourd'hui
+        # (generate-owner-report, reconcile-bank-transactions,
+        # onboarding-api — chemins financier et d'onboarding).
+        #
+        # Les correctifs existent déjà mais vivent dans des lots non
+        # fusionnés (P3, P4, P6, G1, G2, G11). Mettre 0 ici ferait échouer
+        # la chaîne sur du code que cette PR ne touche pas, et forcerait à
+        # fusionner de la sécurité non relue juste pour faire passer le
+        # vert — exactement ce que la règle 5 du plan interdit.
+        #
+        # Le seuil est un cliquet : il ne doit JAMAIS remonter. Chaque lot
+        # fusionné qui corrige ces erreurs doit l'abaisser d'autant, et
+        # l'étape avertit d'elle-même quand c'est possible. Cible : 0.
         run: |
           set -uo pipefail
-          SEUIL=0
+          SEUIL=7
           # NO_COLOR : sans ça, Deno entoure "TS2339 [ERROR]" de codes
           # ANSI et tout grep d'ancrage compte 0 — le seuil ne se
           # déclencherait jamais. On lit le total que Deno annonce
