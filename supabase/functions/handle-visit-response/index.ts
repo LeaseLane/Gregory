@@ -1,30 +1,7 @@
-// L'IA ne choisit ni ne confirme jamais une heure de visite (voir la
-// règle stricte dans handle-inquiry.ts) — c'est l'admin qui propose un
-// moment via ops-api.ts (action propose_visit) et le candidat répond
-// ici via un lien à usage unique protégé par token. "send_reminder" est
-// appelé uniquement par le cron send_visit_reminders() (même convention
-// que les autres notifications système du projet). Aucune IA ici.
-// Liste blanche d'origines : évite d'exposer les fonctions à un
-// site tiers qui embarquerait un appel authentifié depuis le
-// navigateur d'un usager (CSRF via fetch). Les appels serveur à
-// serveur (cron, webhooks, autre fonction edge) n'envoient pas
-// d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
-const ALLOWED_ORIGINS = ["https://portailgestion.ca", "https://www.portailgestion.ca"];
-function corsHeadersFor(origin: string | null) {
-  return {
-    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Vary": "Origin",
-    // Durcissement (Lot 7 TWIM) : ces en-têtes ne coûtent rien et
-    // réduisent la surface d'attaque même si le contenu JSON renvoyé
-    // n'est pas du HTML — défense en profondeur, pas une réaction à un
-    // vecteur d'attaque identifié ici.
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-  };
-}
+import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
+import { corsHeadersFor } from "../_shared/auth.ts";
 
-const SITE_BASE_URL = "https://portailgestion.ca";
+
 
 Deno.serve(async (req) => {
   const corsHeaders = corsHeadersFor(req.headers.get("origin"));
@@ -65,7 +42,7 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "Portail <onboarding@mail.portailgestion.ca>",
+          from: EXPEDITEUR,
           to: [visit.prospect_email],
           subject: `Rappel — ta visite de demain`,
           text: `Bonjour ${visit.prospect_name},\n\nPetit rappel pour ta visite prévue :\n${address || ""}, unité ${unit?.unit_number || ""}\n${whenLabel}\n\nUn empêchement ? Avise-nous ici : ${confirmUrl}\n\nL'équipe Portail`,

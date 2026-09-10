@@ -1,35 +1,5 @@
-// Portail Concierge — envoi de SMS via Twilio (fondation).
-// Aucun compte Twilio n'est encore branché au moment où ce code est
-// écrit (2026-08-14) : TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN /
-// TWILIO_FROM_NUMBER ne sont pas encore configurées comme variables
-// d'environnement de la fonction Edge. Décision produit confirmée :
-// livrer le code fonctionnel maintenant plutôt que d'attendre le
-// compte. Tant que ces variables sont absentes, la fonction bascule
-// silencieusement vers un courriel de secours (si fallback_email est
-// fourni) plutôt que d'échouer — dès que le compte Twilio est ajouté,
-// le SMS part automatiquement, sans changement de code.
-// Fonction interne — appelée par d'autres fonctions Edge (pas par un
-// utilisateur final directement), sur le même modèle que
-// handle-payment-reminder.ts.
-// Liste blanche d'origines : évite d'exposer les fonctions à un
-// site tiers qui embarquerait un appel authentifié depuis le
-// navigateur d'un usager (CSRF via fetch). Les appels serveur à
-// serveur (cron, webhooks, autre fonction edge) n'envoient pas
-// d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
-const ALLOWED_ORIGINS = ["https://portailgestion.ca", "https://www.portailgestion.ca"];
-function corsHeadersFor(origin: string | null) {
-  return {
-    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Vary": "Origin",
-    // Durcissement (Lot 7 TWIM) : ces en-têtes ne coûtent rien et
-    // réduisent la surface d'attaque même si le contenu JSON renvoyé
-    // n'est pas du HTML — défense en profondeur, pas une réaction à un
-    // vecteur d'attaque identifié ici.
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-  };
-}
+import { EXPEDITEUR } from "../_shared/branding.ts";
+import { corsHeadersFor } from "../_shared/auth.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = corsHeadersFor(req.headers.get("origin"));
@@ -104,7 +74,7 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "Portail <onboarding@mail.portailgestion.ca>",
+          from: EXPEDITEUR,
           to: [fallback_email],
           subject: fallback_subject || "Message de Portail",
           text: message,
