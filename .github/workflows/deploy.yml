@@ -1,5 +1,13 @@
 name: Déploiement des edge functions
 
+# Lot P1 — la chaîne va désormais en deux temps : préproduction d'abord,
+# production ensuite, avec une vérification entre les deux. Avant, tout
+# poussage sur main partait directement en production sans filet.
+#
+# Le retour arrière est un workflow distinct (rollback.yml) : il n'existe
+# pas de retour arrière natif chez Supabase, revenir en arrière consiste à
+# redéployer les sources d'un commit antérieur.
+
 on:
   push:
     branches: [main]
@@ -9,7 +17,85 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  deploy-functions:
+  # Les tests d'étanchéité bloquent le déploiement (règle non négociable
+  # du plan de phase 1) : repoussés en fin de phase, ils ne servent plus
+  # à rien. Ils tournent AVANT le déploiement, et `needs:` empêche celui-ci
+  # de démarrer si l'un échoue.
+  etancheite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Tests d'étanchéité
+        env:
+          TEST_OWNER_A_EMAIL: ${{ secrets.TEST_OWNER_A_EMAIL }}
+          TEST_OWNER_A_PASSWORD: ${{ secrets.TEST_OWNER_A_PASSWORD }}
+          TEST_OWNER_B_EMAIL: ${{ secrets.TEST_OWNER_B_EMAIL }}
+          TEST_OWNER_B_PASSWORD: ${{ secrets.TEST_OWNER_B_PASSWORD }}
+          # Passer à "true" dès que les deux comptes propriétaires de test
+          # existent : un test ignoré deviendra alors un échec.
+          REQUIRE_ALL_CHECKS: ${{ vars.REQUIRE_ALL_CHECKS }}
+        run: node scripts/security-check.mjs
+
+  # Préproduction. Tant que le secret SUPABASE_STAGING_REF n'existe pas
+  # (branche Supabase non créée — décision de coût côté client), l'étape
+  # s'annonce ignorée au lieu d'échouer : la chaîne reste utilisable, et
+  # l'absence de filet est visible dans le résumé plutôt que silencieuse.
+  preproduction:
+    needs: etancheite
+    runs-on: ubuntu-latest
+    outputs:
+      deploye: ${{ steps.deploiement.outputs.deploye }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Déployer en préproduction
+        id: deploiement
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          STAGING_REF: ${{ secrets.SUPABASE_STAGING_REF }}
+        run: |
+          set -euo pipefail
+          if [ -z "${STAGING_REF:-}" ]; then
+            echo "deploye=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SUPABASE_STAGING_REF absent — aucune préproduction. Le déploiement ira directement en production, sans validation préalable (lot P1 incomplet)."
+            echo "### ⚠️ Préproduction ignorée" >> "$GITHUB_STEP_SUMMARY"
+            echo "Le secret \`SUPABASE_STAGING_REF\` n'est pas configuré : rien ne valide ce code avant la production." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          supabase functions deploy --project-ref "$STAGING_REF"
+          echo "deploye=true" >> "$GITHUB_OUTPUT"
+
+      - name: Vérifier que la préproduction répond
+        # Un déploiement « réussi » qui laisse les fonctions inopérantes est
+        # exactement le genre de faux succès que la phase 1 doit éliminer :
+        # on interroge donc health-check avant d'autoriser la production.
+        if: steps.deploiement.outputs.deploye == 'true'
+        env:
+          STAGING_REF: ${{ secrets.SUPABASE_STAGING_REF }}
+          ANON: ${{ secrets.SUPABASE_STAGING_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          url="https://${STAGING_REF}.supabase.co/functions/v1/health-check"
+          code=$(curl -s -o /tmp/h.json -w '%{http_code}' --max-time 30 "$url" -H "apikey: ${ANON:-}")
+          echo "health-check préproduction : HTTP $code"
+          cat /tmp/h.json || true
+          # 200 = sain, 503 = joignable mais anomalies présentes (attendu sur
+          # une préproduction sans tâches cron ni secrets). Tout le reste
+          # signifie que la fonction ne répond pas du tout.
+          case "$code" in
+            200|503) echo "Fonctions déployées et joignables." ;;
+            *) echo "::error::health-check en préproduction a répondu HTTP $code — déploiement non validé."; exit 1 ;;
+          esac
+
+  production:
+    needs: preproduction
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +104,7 @@ jobs:
         with:
           version: latest
 
-      - name: Déployer toutes les fonctions vers la production
+      - name: Déployer en production
         # Les sources vivent dans supabase/functions/<nom>/index.ts —
         # la structure attendue nativement par la CLI Supabase, donc
         # aucune étape de copie n'est nécessaire.
@@ -27,3 +113,20 @@ jobs:
         run: |
           set -euo pipefail
           supabase functions deploy --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+
+      - name: Consigner le commit déployé
+        # Le retour arrière consiste à redéployer un commit antérieur : il
+        # faut donc pouvoir retrouver lequel était en production, et quand.
+        if: always()
+        run: |
+          {
+            echo "### Production"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Commit | \`${{ github.sha }}\` |"
+            echo "| Préproduction validée | ${{ needs.preproduction.outputs.deploye }} |"
+            echo "| Résultat | ${{ job.status }} |"
+            echo ""
+            echo "Retour arrière : workflow « Retour arrière des edge functions », commit \`${{ github.sha }}\`."
+          } >> "$GITHUB_STEP_SUMMARY"
