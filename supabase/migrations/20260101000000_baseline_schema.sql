@@ -60,7 +60,18 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 
+-- pg_cron doit être créée AVANT que le search_path soit vidé par le
+-- SELECT set_config(...) ci-dessus, et hors de la transaction du
+-- lanceur de migrations. Constaté le 2026-09-10 : la première branche
+-- Supabase s'est arrêtée ici en MIGRATIONS_FAILED, extension absente et
+-- zéro table créée, alors que les cinq autres extensions passaient.
+--
+-- La garde ci-dessous rétablit le search_path le temps de la création
+-- puis le remet à vide, pour que la suite du dump s'exécute dans les
+-- mêmes conditions qu'à l'export.
+SELECT pg_catalog.set_config('search_path', 'pg_catalog', false);
 CREATE EXTENSION IF NOT EXISTS "pg_cron" WITH SCHEMA "pg_catalog";
+SELECT pg_catalog.set_config('search_path', '', false);
 
 
 
