@@ -1,0 +1,126 @@
+name: Retour arrière des edge functions
+
+# Lot P1 — critère d'acceptation : « un déploiement complet a été exécuté
+# par la chaîne et un retour arrière a été testé ».
+#
+# IL N'Y A PAS DE RETOUR ARRIÈRE NATIF. `supabase functions` expose list,
+# delete, download, deploy, new — rien d'autre. La plateforme ne conserve
+# pas de versions déployées qu'on pourrait réactiver.
+#
+# Le magasin de versions est donc git : revenir en arrière = redéployer les
+# sources d'un commit antérieur connu bon. C'est pour cette raison que la
+# règle « rien ne va en production hors de la chaîne » est structurante —
+# une fonction déployée à la main depuis un poste n'existe dans aucun
+# commit, et n'est alors PAS récupérable par ce workflow.
+#
+# Déclenchement manuel uniquement : un retour arrière est une décision,
+# jamais un automatisme.
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "SHA du commit à redéployer (complet ou court). Doit exister sur origin."
+        required: true
+      cible:
+        description: "Environnement"
+        required: true
+        default: "staging"
+        type: choice
+        options: [staging, production]
+      fonctions:
+        description: "Fonctions à redéployer, séparées par des espaces. Vide = toutes."
+        required: false
+        default: ""
+      confirmation:
+        description: "Pour la production, écrire exactement : RETOUR ARRIERE PRODUCTION"
+        required: false
+        default: ""
+
+jobs:
+  retour-arriere:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier la confirmation pour la production
+        # Un retour arrière en production redéploie du code plus ancien sur
+        # des données réelles : la confirmation explicite évite le clic de
+        # trop dans le mauvais environnement.
+        if: inputs.cible == 'production'
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.confirmation }}" != "RETOUR ARRIERE PRODUCTION" ]; then
+            echo "::error::Confirmation absente ou incorrecte. Écrire exactement : RETOUR ARRIERE PRODUCTION"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          # Historique complet : le commit visé est probablement ancien, et
+          # un clone superficiel ne le contiendrait pas.
+          fetch-depth: 0
+
+      - name: Résoudre et afficher le commit visé
+        id: cible
+        run: |
+          set -euo pipefail
+          sha=$(git rev-parse --verify "${{ inputs.commit }}^{commit}") || {
+            echo "::error::Commit « ${{ inputs.commit }} » introuvable dans ce dépôt."
+            exit 1
+          }
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "### Retour arrière vers \`${sha:0:8}\`" >> "$GITHUB_STEP_SUMMARY"
+          git --no-pager log -1 --format='%h %an %ad%n%s' --date=short "$sha" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Se placer sur le commit visé
+        run: git checkout --detach "${{ steps.cible.outputs.sha }}"
+
+      - name: Vérifier que les fonctions demandées existent à ce commit
+        # Une faute de frappe dans la liste ferait un retour arrière
+        # silencieusement partiel : mieux vaut échouer avant de déployer.
+        run: |
+          set -euo pipefail
+          liste="${{ inputs.fonctions }}"
+          if [ -z "$liste" ]; then
+            n=$(find supabase/functions -mindepth 1 -maxdepth 1 -type d -not -name '_*' | wc -l | tr -d ' ')
+            echo "Toutes les fonctions seront redéployées ($n)."
+            exit 0
+          fi
+          manquantes=""
+          for f in $liste; do
+            [ -f "supabase/functions/$f/index.ts" ] || manquantes="$manquantes $f"
+          done
+          if [ -n "$manquantes" ]; then
+            echo "::error::Fonction(s) absente(s) au commit ${{ steps.cible.outputs.sha }} :$manquantes"
+            exit 1
+          fi
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Redéployer
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          REF: ${{ inputs.cible == 'production' && secrets.SUPABASE_PROJECT_REF || secrets.SUPABASE_STAGING_REF }}
+        run: |
+          set -euo pipefail
+          if [ -z "${REF:-}" ]; then
+            echo "::error::Référence de projet absente. Configurer le secret SUPABASE_STAGING_REF (préproduction) ou SUPABASE_PROJECT_REF (production)."
+            exit 1
+          fi
+          # shellcheck disable=SC2086
+          supabase functions deploy ${{ inputs.fonctions }} --project-ref "$REF"
+
+      - name: Consigner le retour arrière
+        if: always()
+        run: |
+          {
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Cible | ${{ inputs.cible }} |"
+            echo "| Commit | \`${{ steps.cible.outputs.sha }}\` |"
+            echo "| Fonctions | ${{ inputs.fonctions || 'toutes' }} |"
+            echo "| Déclenché par | ${{ github.actor }} |"
+            echo "| Résultat | ${{ job.status }} |"
+          } >> "$GITHUB_STEP_SUMMARY"

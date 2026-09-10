@@ -11,8 +11,29 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
-      - name: Installer pg_dump
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      # Le paquet `postgresql-client` d'Ubuntu installe la version 16.
+      # La base Supabase tourne en 17, et pg_dump refuse de vider un
+      # serveur plus récent que lui :
+      #
+      #   pg_dump: error: aborting because of server version mismatch
+      #   server version: 17.6; pg_dump version: 16.15
+      #
+      # C'est pourquoi AUCUNE sauvegarde n'a jamais été produite. On
+      # installe donc explicitement le client 17 depuis le dépôt APT de
+      # PostgreSQL. La version est épinglée : une mise à niveau du serveur
+      # Supabase doit casser ce fichier bruyamment plutôt que de refaire
+      # échouer les sauvegardes en silence.
+      - name: Installer pg_dump 17
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+          pg_dump --version
 
       - name: Créer la sauvegarde
         env:
@@ -20,10 +41,29 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${DATABASE_URL:-}" ]; then
-            echo "::error::Le secret SUPABASE_DB_URL n'est pas configuré — voir BACKUPS.md."
+            echo "::error::Le secret SUPABASE_DB_URL n'est pas configuré — voir docs/BACKUPS.md."
             exit 1
           fi
           pg_dump "$DATABASE_URL" --no-owner --no-privileges --format=custom --file=portail-backup.dump
+
+          # Une sauvegarde qui ne se relit pas n'est pas une sauvegarde.
+          # pg_restore --list échoue si le fichier est tronqué ou corrompu,
+          # et le compte de tables détecte le cas d'un dump techniquement
+          # valide mais vide — les deux passeraient autrement pour un
+          # succès jusqu'au jour où on en aurait besoin.
+          taille=$(stat -c %s portail-backup.dump)
+          tables=$(pg_restore --list portail-backup.dump | grep -c 'TABLE DATA' || true)
+          echo "Sauvegarde : ${taille} octets, ${tables} tables avec données."
+          if [ "$tables" -lt 1 ]; then
+            echo "::error::La sauvegarde ne contient aucune donnée de table — voir docs/BACKUPS.md."
+            exit 1
+          fi
+          {
+            echo "| Sauvegarde | Valeur |"
+            echo "|---|---|"
+            echo "| Taille | ${taille} octets |"
+            echo "| Tables avec données | ${tables} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Téléverser comme artefact (conservé 30 jours)
         uses: actions/upload-artifact@v4

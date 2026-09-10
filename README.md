@@ -5,7 +5,7 @@ SaaS de gestion immobilière résidentielle, construit sur Supabase (Postgres + 
 ## ⚠️ Le plus important à savoir avant de toucher au code
 
 - Les **fichiers `.html`** (les 5 portails + pages publiques) se déploient automatiquement via **GitHub Pages** dès qu'un push atteint `main`.
-- Les **fichiers `edge-function-*.ts`** se déploient maintenant automatiquement aussi, via `.github/workflows/deploy.yml` (voir section CI/CD ci-dessous) — un push sur `main` qui touche un fichier `edge-function-*.ts` les redéploie tous vers Supabase en quelques secondes. **Configuration à faire une seule fois** avant que ça fonctionne (secrets GitHub) — voir CI/CD.
+- Les **fonctions edge** vivent dans `supabase/functions/<nom>/index.ts` et se déploient automatiquement via `.github/workflows/deploy.yml` (voir section CI/CD ci-dessous) — un push sur `main` qui touche `supabase/functions/**` les redéploie toutes vers Supabase en quelques secondes. **Configuration à faire une seule fois** avant que ça fonctionne (secrets GitHub) — voir CI/CD.
 - Le fichier **`schema.sql`** n'est PAS automatisé et ne le sera pas tel quel : c'est un historique cumulatif (beaucoup de `create table`/`create policy` SANS garde `if not exists`), donc le rejouer en entier sur une base déjà provisionnée échoue. Il reste la référence de ce qui a déjà été appliqué. **Toute NOUVELLE modification de schéma doit désormais aller dans `supabase/migrations/`** (un fichier par changement, jamais dans schema.sql) — voir CI/CD pour la procédure.
 
 ## Architecture
@@ -16,7 +16,7 @@ SaaS de gestion immobilière résidentielle, construit sur Supabase (Postgres + 
 - Tables consultées directement par le navigateur (`owners`, `buildings`, `units`, `tenants`, `leases`, `payments`, `work_orders`, etc.) : policies scopées via des fonctions `security definer` (`auth_owner_id()`, `auth_tenant_id()`, `owned_unit_ids()`, `tenant_unit_ids()`, `auth_is_admin()`, définies vers la ligne 555 de `schema.sql`).
 - Tables sensibles (`prospects`, `job_offers`, `worker_ratings`, `financial_anomalies`, `public_submission_log`, `ai_run_log`...) : RLS activé avec **zéro policy** — verrouillées au `service_role` uniquement. Tout accès passe obligatoirement par une edge function.
 
-**Backend** : 39 Supabase Edge Functions (Deno/TypeScript), chacune un fichier `edge-function-<nom>.ts` à la racine — le nom de la fonction déployée sur Supabase est `<nom>` (sans le préfixe `edge-function-` ni le `.ts`). Trois familles :
+**Backend** : 39 Supabase Edge Functions (Deno/TypeScript), chacune dans `supabase/functions/<nom>/index.ts` — le nom du dossier est exactement le nom de la fonction déployée sur Supabase. Trois familles :
 - Fonctions **admin/rôle-authentifiées** (`ops-api`, `onboarding-api`, `admin-api`, `crm-api`, `caller-api`, `worker-api`, `owner-api`, `privacy-api`, `ask-documents`, `ask-finances`, `flinks-api`, `parse-expense-receipt`, `reconcile-bank-transactions`, `handle-lease-renewal-notice`) : vérifient le JWT en code via `verifySupabaseJwt()` (voir section Sécurité ci-dessous — pas le réglage plateforme `verify_jwt`), vérifient `users.is_admin` (ou l'équivalent propriétaire/locataire/travailleur) via une requête `service_role`, puis exécutent l'action demandée (`body.action`).
 - Fonctions **publiques** (`handle-public-inquiry`, `handle-worker-registration`, `handle-mandat-inquiry`, `handle-public-faq`...) : pas de JWT requis, protégées par un honeypot (champ caché `website`) + limite de débit par IP (table `public_submission_log`).
 - Fonctions **système/cron** (`handle-payment-reminder`, `handle-worker-job-assigned`, `generate-owner-report`, `send-onboarding-reminder`, `dispatch-work-order`...) : déclenchées par des `cron.schedule(...)` définis dans `schema.sql` via `pg_net`.
@@ -25,7 +25,7 @@ SaaS de gestion immobilière résidentielle, construit sur Supabase (Postgres + 
 - `portail-admin.html` — interne, accès complet
 - `portail-proprietaire.html`, `portail-locataire.html`, `portail-cold-caller.html`, `portail-travailleur.html` — un portail par rôle, connectés via Supabase Auth (client JS direct + RLS pour la plupart des lectures/écritures)
 - `index.html`, `pro.html`, `formulaires-gestion-immobiliere.html`, `blog.html` — pages publiques
-- `app.html` — point d'entrée unique de l'app mobile (Capacitor, voir `mobile/README.md`) : connexion puis redirection vers le bon portail selon le rôle (`edge-function-whoami.ts`)
+- `app.html` — point d'entrée unique de l'app mobile (Capacitor, voir `mobile/README.md`) : connexion puis redirection vers le bon portail selon le rôle (`supabase/functions/whoami/`)
 - `confirmer-reparation.html`, `confirmer-visite.html`, `reponse-travailleur.html`, `signer-bail.html` — pages de confirmation/signature à token à usage unique (pas de compte requis)
 - `politique-de-confidentialite.html`
 
@@ -37,7 +37,7 @@ SaaS de gestion immobilière résidentielle, construit sur Supabase (Postgres + 
 
 - Domaine : `portailgestion.ca`, configuré via le fichier `CNAME` à la racine + GitHub Pages.
 - DNS géré chez Namecheap (courriel transactionnel via Resend, domaine expéditeur `mail.portailgestion.ca`).
-- Sauvegardes de la base de données : voir [`BACKUPS.md`](./BACKUPS.md).
+- Sauvegardes de la base de données : voir [`docs/BACKUPS.md`](./docs/BACKUPS.md).
 
 ## Secrets requis (configurés dans Supabase → Edge Functions → Secrets, jamais commités dans ce repo)
 
@@ -91,7 +91,7 @@ Fonctions concernées : `admin-api`, `ask-documents`, `ask-finances`, `caller-ap
 
 ## CI/CD et préproduction
 
-**Fonctions edge — automatisé.** `.github/workflows/deploy.yml` déploie toutes les fonctions vers Supabase à chaque push sur `main` qui touche un fichier `edge-function-*.ts`. Les fichiers source restent à la racine (convention inchangée) ; le workflow les copie dans `supabase/functions/<nom>/index.ts` (structure attendue par la CLI Supabase) uniquement le temps du déploiement, jamais commité sous cette forme.
+**Fonctions edge — automatisé.** `.github/workflows/deploy.yml` déploie toutes les fonctions vers Supabase à chaque push sur `main` qui touche `supabase/functions/**`. Les sources sont déjà dans la structure attendue par la CLI Supabase (`supabase/functions/<nom>/index.ts`), donc le workflow appelle directement `supabase functions deploy` sans étape de copie.
 
 **Configuration requise (une seule fois)** — 2 secrets GitHub (repo → Settings → Secrets and variables → Actions) :
 - `SUPABASE_ACCESS_TOKEN` — Supabase Dashboard → ton compte (icône en haut à droite) → Access Tokens → génère-en un nouveau (accès complet à tous tes projets, à garder secret).
@@ -101,7 +101,7 @@ Fonctions concernées : `admin-api`, `ask-documents`, `ask-finances`, `caller-ap
 
 **Schéma SQL — semi-automatisé, en transition.** `schema.sql` reste l'historique figé (référence de lecture, ne plus y ajouter). Toute nouvelle modification de schéma va dans un nouveau fichier sous `supabase/migrations/` (nommage `YYYYMMDDHHMMSS_description.sql`, généré par `supabase migration new <description>` en local). Il n'y a pas encore de workflow automatique pour ces migrations — **étape manuelle unique restante** pour l'activer : quelqu'un avec la CLI Supabase installée en local doit faire un `supabase link --project-ref <ref>` puis `supabase db pull` une fois, pour établir la base "déjà appliquée" avant de brancher `supabase db push` en CI. Tant que ce n'est pas fait, applique les fichiers de `supabase/migrations/` manuellement dans le SQL Editor, comme avant.
 
-**Préproduction.** Pas encore créée — crée un deuxième projet Supabase (gratuit) dédié aux tests, et un deuxième jeu de secrets GitHub (`SUPABASE_ACCESS_TOKEN_PREPROD` peut réutiliser le même token, `SUPABASE_PROJECT_REF_PREPROD` pointe vers ce nouveau projet). Une fois créé, dupliquer `deploy.yml` en `deploy-preprod.yml` déclenché sur push vers une branche `preprod` plutôt que `main` — le même principe de copie `edge-function-*.ts → supabase/functions/` s'applique tel quel.
+**Préproduction.** Pas encore créée — crée un deuxième projet Supabase (gratuit) dédié aux tests, et un deuxième jeu de secrets GitHub (`SUPABASE_ACCESS_TOKEN_PREPROD` peut réutiliser le même token, `SUPABASE_PROJECT_REF_PREPROD` pointe vers ce nouveau projet). Une fois créé, dupliquer `deploy.yml` en `deploy-preprod.yml` déclenché sur push vers une branche `preprod` plutôt que `main` — le workflow s'applique tel quel.
 
 ## État connu du projet (à la dernière session — 2026-08-17)
 
@@ -109,7 +109,7 @@ Un audit de sécurité/fonctionnel (2026-08-05) avait identifié plusieurs point
 - **Sécurité (corrigé)** : `flinks-api.ts` action `sync_all` protégée par un secret partagé (`FLINKS_SYNC_SECRET`, lu depuis Supabase Vault, jamais commité) ; les cascades automatiques de réassignation de travailleur (`process_worker_response_timeouts()` et `handle-worker-response.ts`) filtrent maintenant par `worker_verification_status` (RBQ/assurance/actif) ; policy RLS `workers` resserrée (un propriétaire ne voit que les travailleurs déjà assignés à ses unités) ; ajout d'un toggle actif/inactif par travailleur ; **vérification de signature JWT réelle** dans les 13 fonctions admin-authentifiées (voir section ci-dessus, ne dépend plus uniquement du réglage plateforme).
 - **Fonctionnel (corrigé)** : `invoice_number` généré via un compteur atomique (`next_invoice_number()`, upsert avec verrou de ligne) — plus de risque de collision lors de la génération concurrente des factures mensuelles.
 - **Non corrigé** : pas d'interface pour les actions admin destructrices (ex. `delete_owner_completely`) ; 2FA non implémentée pour les comptes admin ; CI/CD et préproduction pas encore en place (déploiement manuel par copier-coller — voir roadmap 🔴).
-- Fonctionnalités ajoutées depuis l'audit : Portail Copilot (Q&A financier), signature électronique des renouvellements de bail (`signer-bail.html` / `handle-lease-signature.ts`), fondation du moteur de règles Automations/Studio (`automation_rules`), SMS Portail Concierge via Twilio (`send-sms.ts`), monitoring minimum (`check_system_health()`, `health-check.ts`), sauvegardes automatiques (voir `BACKUPS.md`).
+- Fonctionnalités ajoutées depuis l'audit : Portail Copilot (Q&A financier), signature électronique des renouvellements de bail (`signer-bail.html` / `handle-lease-signature.ts`), fondation du moteur de règles Automations/Studio (`automation_rules`), SMS Portail Concierge via Twilio (`send-sms.ts`), monitoring minimum (`check_system_health()`, `health-check.ts`), sauvegardes automatiques (voir `docs/BACKUPS.md`).
 - Le domaine d'envoi de courriels (DNS Namecheap/Resend) était en cours de finalisation.
 
 ## Conventions de code à respecter

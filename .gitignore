@@ -1,1 +1,4 @@
 .claude/
+
+# Documents de travail (non versionnés)
+docs/*.docx

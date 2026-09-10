@@ -1,5 +1,37 @@
 # Sauvegardes et restauration
 
+## ⚠️ Aucune sauvegarde n'a jamais été produite (constaté le 2026-09-10)
+
+Le workflow échouait **chaque nuit depuis sa création**, sur la même
+erreur :
+
+```
+pg_dump: error: aborting because of server version mismatch
+server version: 17.6; pg_dump version: 16.15
+```
+
+Le paquet `postgresql-client` d'Ubuntu installe la version 16, alors que
+la base Supabase tourne en **PostgreSQL 17.6**. `pg_dump` refuse de vider
+un serveur plus récent que lui. Le fichier `backup.yml` installe
+maintenant explicitement `postgresql-client-17`.
+
+Deux leçons intégrées au workflow :
+
+- **La version est épinglée.** Une mise à niveau du serveur Supabase doit
+  casser ce fichier bruyamment plutôt que de refaire échouer les
+  sauvegardes en silence.
+- **Le dump se vérifie lui-même** — `pg_restore --list` plus un compte de
+  tables. Un dump tronqué, corrompu ou vide fait échouer le workflow au
+  lieu de passer pour un succès.
+
+L'échec est resté invisible parce que l'alerte de santé est elle-même
+muette depuis le 2026-08-17 (secret `HEALTH_ALERT_SECRET` désaligné).
+
+**À faire après le correctif :** déclencher le workflow à la main
+(Actions → « Sauvegarde de la base de données » → Run workflow) et
+vérifier que l'artefact existe et contient des tables. Sans ce test, on
+ne sait toujours pas si les sauvegardes fonctionnent.
+
 ## Ce qui est en place
 
 `.github/workflows/backup.yml` — une sauvegarde complète de la base (`pg_dump`, format custom) tous les jours à 8h UTC, plus déclenchable manuellement (onglet **Actions** du repo → "Sauvegarde de la base de données" → "Run workflow"). Le fichier est conservé 30 jours comme artefact GitHub Actions, puis supprimé automatiquement.

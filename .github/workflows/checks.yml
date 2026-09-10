@@ -1,0 +1,100 @@
+name: Vérifications
+
+# Contrôles qui doivent passer AVANT un déploiement (lots P3/P6). Ils
+# tournent sur chaque poussée et chaque PR, et bloquent la fusion : des
+# tests d'étanchéité repoussés en fin de phase ne servent plus à rien.
+#
+# Ne touche pas la production : `deno check` et `deno test` sont
+# hermétiques. Les tests d'étanchéité, eux, appellent la prod — ils
+# restent dans security-check.yml, à déclenchement manuel.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+jobs:
+  typecheck-et-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Règles d'accès — audit statique (lot P6)
+        # Interdit de réintroduire les défauts trouvés à l'audit : policy
+        # UPDATE sans WITH CHECK, table sans RLS, helper sans
+        # security definer / row_security = off.
+        run: node scripts/check-rls-policies.mjs
+
+      - name: Vérifications de logique métier
+        # Un test que la chaîne n'exécute pas ne protège rien. Chacun de
+        # ces fichiers est autonome (assert, aucun réseau) et couvre une
+        # règle dont la rupture ne se voit pas à l'œil :
+        #   onboarding-gaps    — un compteur à 0 n'est pas une lacune
+        #   lease-update       — un bail actif ne perd pas son échéance
+        #   messagerie         — un message appartient à un seul fil
+        #   appel-interne      — comparaison de secret à temps constant
+        #   indicateurs        — « aucune donnée » ne s'affiche pas « 0 $ »
+        run: |
+          set -euo pipefail
+          for f in scripts/check-onboarding-gaps.mjs \
+                   scripts/check-lease-update.mjs \
+                   scripts/check-messagerie.mjs \
+                   scripts/check-appel-interne.mjs \
+                   scripts/check-indicateurs-immeuble.mjs; do
+            echo "→ $f"
+            node "$f"
+          done
+
+      - name: Tests des modules partagés
+        # auth : un jeton falsifié doit être rejeté (critère P3).
+        # branding : aucune URL ni expéditeur écrit en dur, et le domaine
+        # ne peut pas basculer avant que P9 (DNS + Resend) soit fait.
+        run: deno test --allow-env --allow-net supabase/functions/_shared/
+
+      - name: Vérification des types du module partagé
+        # Le module partagé doit rester sans erreur, sans exception.
+        run: deno check supabase/functions/_shared/auth.ts
+
+      - name: Vérification des types des fonctions edge
+        # Seuil à 7 : c'est l'état RÉEL du dépôt aujourd'hui
+        # (generate-owner-report, reconcile-bank-transactions,
+        # onboarding-api — chemins financier et d'onboarding).
+        #
+        # Les correctifs existent déjà mais vivent dans des lots non
+        # fusionnés (P3, P4, P6, G1, G2, G11). Mettre 0 ici ferait échouer
+        # la chaîne sur du code que cette PR ne touche pas, et forcerait à
+        # fusionner de la sécurité non relue juste pour faire passer le
+        # vert — exactement ce que la règle 5 du plan interdit.
+        #
+        # Le seuil est un cliquet : il ne doit JAMAIS remonter. Chaque lot
+        # fusionné qui corrige ces erreurs doit l'abaisser d'autant, et
+        # l'étape avertit d'elle-même quand c'est possible. Cible : 0.
+        run: |
+          set -uo pipefail
+          SEUIL=7
+          # NO_COLOR : sans ça, Deno entoure "TS2339 [ERROR]" de codes
+          # ANSI et tout grep d'ancrage compte 0 — le seuil ne se
+          # déclencherait jamais. On lit le total que Deno annonce
+          # lui-même, et on retombe sur un comptage ligne par ligne.
+          sortie=$(NO_COLOR=1 deno check supabase/functions/*/index.ts 2>&1) || true
+          printf '%s\n' "$sortie"
+          n=$(printf '%s' "$sortie" | sed -nE 's/^Found ([0-9]+) error.*/\1/p' | tail -1)
+          if [ -z "${n:-}" ]; then
+            n=$(printf '%s' "$sortie" | grep -cE '^TS[0-9]+ \[ERROR\]') || true
+          fi
+          echo "::notice::$n erreur(s) de type, seuil $SEUIL"
+          if [ "$n" -gt "$SEUIL" ]; then
+            echo "::error::$n erreurs de type (seuil $SEUIL) — cette poussée en ajoute."
+            exit 1
+          fi
+          if [ "$n" -lt "$SEUIL" ]; then
+            echo "::warning::$n erreurs seulement — abaisser SEUIL à $n dans ce fichier."
+          fi

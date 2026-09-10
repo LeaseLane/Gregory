@@ -56,7 +56,7 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 
 // L'app mobile "employeur"/admin n'existe pas ici volontairement —
 // seuls propriétaire/locataire/travailleur sont des usages mobile-first
-// (voir edge-function-whoami.ts pour la logique de détection de rôle).
+// (voir supabase/functions/whoami/index.ts pour la logique de détection de rôle).
 const PORTAL_BY_ROLE = {
   owner: 'portail-proprietaire.html',
   tenant: 'portail-locataire.html',
