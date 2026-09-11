@@ -10,26 +10,27 @@
 // Tout passe désormais par ici. Le changement de marque devient une
 // modification de DOMAINE et de MARQUE, deux lignes.
 //
-// ─── ÉTAT DU RENOMMAGE, À LIRE AVANT DE BASCULER ───────────────────
+// ─── BASCULE DU 2026-09-11 (lot P9) ────────────────────────────────
 //
-// Vérifié le 2026-09-07 : leaselane.ca est enregistré mais STATIONNÉ chez
-// Namecheap (A -> 162.255.119.80, www -> parkingpage.namecheap.com). Il ne
-// sert aucun site, et surtout mail.leaselane.ca N'EXISTE PAS (NXDOMAIN).
+// ⚠️  CETTE BRANCHE NE DOIT PAS ÊTRE FUSIONNÉE AVANT QUE :
+//   1. leaselane.ca pointe vers GitHub Pages (4 enregistrements A sur @,
+//      CNAME www -> gregpic006.github.io), et
+//   2. mail.leaselane.ca affiche « Verified » dans Resend.
 //
-// Basculer DOMAINE maintenant casserait deux choses d'un coup :
-//   1. tous les liens envoyés par courriel (visites, signatures, offres de
-//      mandat, confirmations) pointeraient vers une page stationnée;
-//   2. les 31 envois via Resend partiraient d'un domaine non vérifié, donc
-//      seraient refusés — le lot P9 couvre précisément la vérification du
-//      domaine et le réchauffement de la délivrabilité.
+// Fusionner avant casserait tout d'un coup : les liens des courriels
+// mèneraient à la page stationnée Namecheap, et les envois seraient
+// refusés faute de SPF/DKIM.
 //
-// L'ordre correct est : P9 d'abord (DNS, domaine vérifié chez Resend,
-// délivrabilité), puis basculer DOMAINE ici, puis CNAME et sitemap.xml.
-// Tant que P9 n'est pas fait, ce module conserve le domaine en service.
+// POURQUOI BASCULER MAINTENANT plutôt que de vérifier l'ancien domaine.
+// Constaté le 2026-09-11 dans audit_log : Resend refuse TOUS les envois
+// avec « The mail.portailgestion.ca domain is not verified ». Aucun
+// courriel n'est donc jamais parti — ni alertes, ni rappels de loyer, ni
+// mandats travailleur. Vérifier mail.portailgestion.ca aurait été du
+// travail jetable puisque le produit s'appelle Lease Lane.
 // ───────────────────────────────────────────────────────────────────
 
 // Le seul endroit à changer le jour de la bascule.
-export const DOMAINE = "portailgestion.ca";
+export const DOMAINE = "leaselane.ca";
 
 // Nom affiché dans les courriels et les pages. Bascule AVANT le domaine :
 // renommer la marque visible ne dépend d'aucun DNS.

@@ -1,8 +1,8 @@
 // Vérification exécutable du module partagé : `deno test --allow-env
 // supabase/functions/_shared/auth_test.ts`. Le fetch global est remplacé
 // par un faux, donc aucun appel réseau ni projet Supabase n'est requis.
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { corsHeadersFor, requireUser, requireUserWithMfa, verifySupabaseJwt } from "./auth.ts";
+import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { ALLOWED_ORIGINS, corsHeadersFor, requireUser, requireUserWithMfa, verifySupabaseJwt } from "./auth.ts";
 
 const realFetch = globalThis.fetch;
 function stubFetch(status: number, body: unknown) {
@@ -13,14 +13,28 @@ const req = (auth?: string) =>
   new Request("https://example.test", { headers: auth ? { Authorization: auth } : {} });
 
 Deno.test("origine non autorisée retombe sur l'origine canonique", () => {
-  assertEquals(corsHeadersFor("https://evil.test")["Access-Control-Allow-Origin"], "https://portailgestion.ca");
-  assertEquals(corsHeadersFor(null)["Access-Control-Allow-Origin"], "https://portailgestion.ca");
+  // L'origine canonique se DÉDUIT de la liste plutôt que d'être écrite en
+  // dur : ce test figeait « portailgestion.ca » et a échoué à la bascule
+  // du 2026-09-11, alors que le comportement testé n'avait pas changé.
+  const canonique = ALLOWED_ORIGINS[0];
+  assertEquals(corsHeadersFor("https://evil.test")["Access-Control-Allow-Origin"], canonique);
+  assertEquals(corsHeadersFor(null)["Access-Control-Allow-Origin"], canonique);
 });
 
 Deno.test("origine autorisée est reflétée, avec Vary: Origin", () => {
-  const h = corsHeadersFor("https://www.portailgestion.ca");
-  assertEquals(h["Access-Control-Allow-Origin"], "https://www.portailgestion.ca");
-  assertEquals(h["Vary"], "Origin");
+  for (const origine of ALLOWED_ORIGINS) {
+    const h = corsHeadersFor(origine);
+    assertEquals(h["Access-Control-Allow-Origin"], origine, `${origine} devrait être reflétée`);
+    assertEquals(h["Vary"], "Origin");
+  }
+});
+
+Deno.test("l'ancien domaine reste accepté pendant la transition", () => {
+  // Les liens déjà envoyés par courriel pointent encore vers
+  // portailgestion.ca. Les retirer de la liste ferait échouer les appels
+  // des pages atteintes par un ancien lien, sans message compréhensible.
+  assert(ALLOWED_ORIGINS.includes("https://portailgestion.ca"));
+  assert(ALLOWED_ORIGINS.includes("https://leaselane.ca"));
 });
 
 Deno.test("jeton falsifié est rejeté (critère d'acceptation P3)", async () => {

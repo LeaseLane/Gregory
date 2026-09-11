@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://portailgestion.ca/</loc>
+    <loc>https://leaselane.ca/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://portailgestion.ca/pro.html</loc>
+    <loc>https://leaselane.ca/pro.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://portailgestion.ca/formulaires-gestion-immobiliere.html</loc>
+    <loc>https://leaselane.ca/formulaires-gestion-immobiliere.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://portailgestion.ca/blog.html</loc>
+    <loc>https://leaselane.ca/blog.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://portailgestion.ca/politique-de-confidentialite.html</loc>
+    <loc>https://leaselane.ca/politique-de-confidentialite.html</loc>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>

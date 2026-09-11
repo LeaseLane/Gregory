@@ -1,28 +1,11 @@
-import { EXPEDITEUR } from "../_shared/branding.ts";
+import { EXPEDITEUR, PORTAILS } from "../_shared/branding.ts";
+import { corsHeadersFor } from "../_shared/auth.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
 // navigateur d'un usager (CSRF via fetch). Les appels serveur à
 // serveur (cron, webhooks, autre fonction edge) n'envoient pas
 // d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
-const ALLOWED_ORIGINS = ["https://portailgestion.ca", "https://www.portailgestion.ca"];
-function corsHeadersFor(origin: string | null) {
-  return {
-    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Vary": "Origin",
-    // Durcissement (Lot 7 TWIM) : ces en-têtes ne coûtent rien et
-    // réduisent la surface d'attaque même si le contenu JSON renvoyé
-    // n'est pas du HTML — défense en profondeur, pas une réaction à un
-    // vecteur d'attaque identifié ici.
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-  };
-}
 
-const OWNER_PORTAL_URL = "https://portailgestion.ca/portail-proprietaire.html";
-const TENANT_PORTAL_URL = "https://portailgestion.ca/portail-locataire.html";
-const CALLER_PORTAL_URL = "https://portailgestion.ca/portail-cold-caller.html";
-const WORKER_PORTAL_URL = "https://portailgestion.ca/portail-travailleur.html";
 
 function randomPassword() {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 14);
@@ -474,7 +457,7 @@ Deno.serve(async (req) => {
       const [owner] = await ownerRes.json();
 
       await sendEmail(email, "Bienvenue sur Lease Lane — ton accès propriétaire",
-        `Bonjour ${full_name},\n\nTon compte propriétaire Lease Lane est prêt.\n\nPortail : ${OWNER_PORTAL_URL}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi puis change ton mot de passe si tu le souhaites (lien "Mot de passe oublié" sur la page de connexion).\n\nL'équipe Lease Lane`);
+        `Bonjour ${full_name},\n\nTon compte propriétaire Lease Lane est prêt.\n\nPortail : ${PORTAILS.proprietaire}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi puis change ton mot de passe si tu le souhaites (lien "Mot de passe oublié" sur la page de connexion).\n\nL'équipe Lease Lane`);
 
       await logAudit("owner.create", "owners", owner?.id ?? null, { email });
       return new Response(JSON.stringify({ ok: true, owner_id: owner?.id, temp_password: password }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -595,7 +578,7 @@ Deno.serve(async (req) => {
 
       if (email) {
         await sendEmail(email, "Bienvenue sur Portail — ton accès locataire",
-          `Bonjour ${full_name},\n\nTon compte locataire Portail est prêt.\n\nPortail : ${TENANT_PORTAL_URL}\nCourriel : ${email}\nMot de passe temporaire : ${tempPassword}\n\nConnecte-toi pour voir ton bail, tes paiements et faire une demande de service. Tu peux changer ton mot de passe via "Mot de passe oublié" sur la page de connexion.\n\nL'équipe Lease Lane`);
+          `Bonjour ${full_name},\n\nTon compte locataire Portail est prêt.\n\nPortail : ${PORTAILS.locataire}\nCourriel : ${email}\nMot de passe temporaire : ${tempPassword}\n\nConnecte-toi pour voir ton bail, tes paiements et faire une demande de service. Tu peux changer ton mot de passe via "Mot de passe oublié" sur la page de connexion.\n\nL'équipe Lease Lane`);
       }
 
       await logAudit("tenant.create", "tenants", tenant?.id ?? null, { email: email || null, unit_id, has_login: !!authUserId });
@@ -640,7 +623,7 @@ Deno.serve(async (req) => {
       let emailError: string | null = null;
       try {
         const emailRes = await sendEmail(email, "Bienvenue sur Portail — ton accès prospection téléphonique",
-          `Bonjour ${full_name},\n\nTon compte Portail pour la prospection téléphonique est prêt.\n\nPortail : ${CALLER_PORTAL_URL}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi pour voir ta file d'appels et logger tes appels. Tu peux changer ton mot de passe via "Mot de passe oublié" sur la page de connexion.\n\nL'équipe Lease Lane`);
+          `Bonjour ${full_name},\n\nTon compte Portail pour la prospection téléphonique est prêt.\n\nPortail : ${PORTAILS.coldCaller}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi pour voir ta file d'appels et logger tes appels. Tu peux changer ton mot de passe via "Mot de passe oublié" sur la page de connexion.\n\nL'équipe Lease Lane`);
         emailSent = emailRes.ok;
         if (!emailRes.ok) {
           const errData = await emailRes.json().catch(() => ({}));
@@ -861,10 +844,10 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({
           ok: true,
           accounts: [
-            { role: "Propriétaire", email: "demo-proprietaire@portailgestion.ca", temp_password: ownerAuth.password, portal_url: OWNER_PORTAL_URL },
-            { role: "Locataire", email: "demo-locataire@portailgestion.ca", temp_password: tenantAuth.password, portal_url: TENANT_PORTAL_URL },
-            { role: "Prospecteur téléphonique", email: "demo-cold-caller@portailgestion.ca", temp_password: callerAuth.password, portal_url: CALLER_PORTAL_URL },
-            { role: "Travailleur", email: "demo-travailleur@portailgestion.ca", temp_password: workerAuth.password, portal_url: WORKER_PORTAL_URL },
+            { role: "Propriétaire", email: "demo-proprietaire@portailgestion.ca", temp_password: ownerAuth.password, portal_url: PORTAILS.proprietaire },
+            { role: "Locataire", email: "demo-locataire@portailgestion.ca", temp_password: tenantAuth.password, portal_url: PORTAILS.locataire },
+            { role: "Prospecteur téléphonique", email: "demo-cold-caller@portailgestion.ca", temp_password: callerAuth.password, portal_url: PORTAILS.coldCaller },
+            { role: "Travailleur", email: "demo-travailleur@portailgestion.ca", temp_password: workerAuth.password, portal_url: PORTAILS.travailleur },
           ],
         }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (e) {
@@ -878,10 +861,10 @@ Deno.serve(async (req) => {
       // autres tables — sans ça, PostgREST renvoie une erreur 400 en
       // sélectionnant une colonne qui n'existe pas sur "workers".
       const roleConfig: Record<string, { table: string; portalUrl: string; nameColumn: string }> = {
-        owner: { table: "owners", portalUrl: OWNER_PORTAL_URL, nameColumn: "full_name" },
-        tenant: { table: "tenants", portalUrl: TENANT_PORTAL_URL, nameColumn: "full_name" },
-        caller: { table: "cold_callers", portalUrl: CALLER_PORTAL_URL, nameColumn: "full_name" },
-        worker: { table: "workers", portalUrl: WORKER_PORTAL_URL, nameColumn: "name" },
+        owner: { table: "owners", portalUrl: PORTAILS.proprietaire, nameColumn: "full_name" },
+        tenant: { table: "tenants", portalUrl: PORTAILS.locataire, nameColumn: "full_name" },
+        caller: { table: "cold_callers", portalUrl: PORTAILS.coldCaller, nameColumn: "full_name" },
+        worker: { table: "workers", portalUrl: PORTAILS.travailleur, nameColumn: "name" },
       };
       const config = roleConfig[target_role];
       if (!config || !target_id) {
@@ -1083,7 +1066,7 @@ Deno.serve(async (req) => {
             authUserId = authData.id;
             await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${authUserId}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ role: "tenant" }) });
             await sendEmail(row.tenant_email, "Bienvenue sur Portail — ton accès locataire",
-              `Bonjour ${row.tenant_full_name},\n\nTon compte locataire Portail est prêt.\n\nPortail : ${TENANT_PORTAL_URL}\nCourriel : ${row.tenant_email}\nMot de passe temporaire : ${tempPassword}\n\nConnecte-toi pour voir ton bail, tes paiements et faire une demande de service.\n\nL'équipe Lease Lane`);
+              `Bonjour ${row.tenant_full_name},\n\nTon compte locataire Portail est prêt.\n\nPortail : ${PORTAILS.locataire}\nCourriel : ${row.tenant_email}\nMot de passe temporaire : ${tempPassword}\n\nConnecte-toi pour voir ton bail, tes paiements et faire une demande de service.\n\nL'équipe Lease Lane`);
           }
         }
 

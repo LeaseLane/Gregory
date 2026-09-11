@@ -8,7 +8,17 @@
 // usager (CSRF via fetch). Les appels serveur à serveur (cron, webhooks,
 // autre fonction edge) n'envoient pas d'en-tête Origin et ne sont donc
 // pas affectés par ce contrôle.
-export const ALLOWED_ORIGINS = ["https://portailgestion.ca", "https://www.portailgestion.ca"];
+// Origines autorisées pour les portails. Bascule vers leaselane.ca le
+// 2026-09-11 (lot P9). L'ancien domaine est conservé le temps que les
+// liens déjà envoyés par courriel cessent d'être ouverts : les retirer
+// tout de suite ferait échouer les appels des pages atteintes par un
+// ancien lien, sans message compréhensible pour l'usager.
+export const ALLOWED_ORIGINS = [
+  "https://leaselane.ca",
+  "https://www.leaselane.ca",
+  "https://portailgestion.ca",
+  "https://www.portailgestion.ca",
+];
 
 export function corsHeadersFor(origin: string | null) {
   return {
