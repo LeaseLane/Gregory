@@ -91,7 +91,7 @@ Loyer moyen des logements comparables occupés dans le portefeuille (même type)
 RÈGLES STRICTES :
 - N'invente aucun équipement, caractéristique ou detail qui n'est pas explicitement fourni ci-dessus.
 - N'utilise JAMAIS de formulation discriminatoire ou qui pourrait exclure des candidats selon des motifs protégés (race, couleur, sexe, grossesse, orientation sexuelle, état civil, âge, religion, origine ethnique ou nationale, condition sociale, handicap, situation familiale). Exemples à éviter : "idéal pour jeune professionnel", "sans enfants", "couple sans animaux préféré". Décris le logement, jamais le locataire recherché.
-- Adapte "description" pour le site Portail (3-5 phrases) et "description_short" pour une plateforme à format court comme Marketplace (350 caractères maximum, aucune coupure de mot).
+- Adapte "description" pour le site Lease Lane (3-5 phrases) et "description_short" pour une plateforme à format court comme Marketplace (350 caractères maximum, aucune coupure de mot).
 
 Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 {

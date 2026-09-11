@@ -151,7 +151,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
           headers: { "Content-Type": "application/json", apikey: serviceRoleKey ?? "", Authorization: `Bearer ${serviceRoleKey}` },
           body: JSON.stringify({
             to_phone: tenant.phone,
-            message: `Portail : votre loyer de ${payment.amount} $ (échéance ${payment.due_date}) est en retard. Merci de nous contacter si besoin. — Portail`,
+            message: `Lease Lane : votre loyer de ${payment.amount} $ (échéance ${payment.due_date}) est en retard. Merci de nous contacter si besoin. — Lease Lane`,
             entity_type: "payments",
             entity_id: payment_id,
             fallback_email: tenant.email,
