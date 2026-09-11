@@ -2,3 +2,9 @@
 
 # Documents de travail (non versionnés)
 docs/*.docx
+
+# Fichiers temporaires de la CLI Supabase (spécifiques au poste)
+supabase/.temp/
+
+# Documents de travail à la racine
+*.docx
