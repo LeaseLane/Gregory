@@ -349,7 +349,7 @@ Deno.serve(async (req) => {
         if (matchStatus === "unmatched" && tenantNames.length && anthropicKey) {
           const aiStartedAt = Date.now();
           try {
-            const prompt = `Tu es l'assistant de rapprochement bancaire de "Portail". Voici un dépôt bancaire dont l'origine n'est pas claire à partir des règles déterministes (montant, date, nom).
+            const prompt = `Tu es l'assistant de rapprochement bancaire de "Lease Lane". Voici un dépôt bancaire dont l'origine n'est pas claire à partir des règles déterministes (montant, date, nom).
 
 Description bancaire : "${description}"
 Montant : ${amount} $

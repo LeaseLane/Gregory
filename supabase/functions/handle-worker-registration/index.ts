@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
           from: EXPEDITEUR,
           to: [email],
           subject: "Bienvenue sur Portail Pro — ton dossier est en cours de vérification",
-          text: `Bonjour ${full_name},\n\nMerci de t'être inscrit sur Portail Pro. Ton compte est prêt et ton dossier est maintenant en attente de vérification par notre équipe (licence, assurance) — tu recevras des mandats dès qu'il sera approuvé.\n\nPortail : ${WORKER_PORTAL_URL}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi pour compléter ton profil (horaire, assurance, photos) en attendant. Tu peux changer ton mot de passe via "Mot de passe oublié" sur la page de connexion.\n\nL'équipe Portail`,
+          text: `Bonjour ${full_name},\n\nMerci de t'être inscrit sur Portail Pro. Ton compte est prêt et ton dossier est maintenant en attente de vérification par notre équipe (licence, assurance) — tu recevras des mandats dès qu'il sera approuvé.\n\nPortail : ${WORKER_PORTAL_URL}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi pour compléter ton profil (horaire, assurance, photos) en attendant. Tu peux changer ton mot de passe via "Mot de passe oublié" sur la page de connexion.\n\nL'équipe Lease Lane`,
         }),
       });
       const emailData = await emailRes.json().catch(() => ({}));

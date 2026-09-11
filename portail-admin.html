@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portail — Admin</title>
+<title>Lease Lane — Admin</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <meta name="robots" content="noindex, nofollow">
@@ -88,14 +88,14 @@
 
 <div id="login-screen">
   <div class="login-side">
-    <div class="side-brand">Portail</div>
-    <h2>Portail — tableau de bord interne.</h2>
+    <div class="side-brand">Lease Lane</div>
+    <h2>Lease Lane — tableau de bord interne.</h2>
     <p>Gestion des immeubles, propriétaires, locataires et travailleurs, au même endroit.</p>
     <ul><li>Vue d'ensemble opérationnelle</li><li>Approbations et exceptions</li><li>Comptabilité et rapports</li></ul>
   </div>
   <div class="login-box-wrap">
   <div class="login-box">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Admin</div>
     <div class="f"><label for="login-email">Courriel</label><input type="email" id="login-email"></div>
     <div class="f"><label for="login-password">Mot de passe</label><input type="password" id="login-password"></div>
@@ -105,7 +105,7 @@
   </div>
 
   <div class="login-box" id="reset-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Réinitialiser le mot de passe</div>
     <div class="f"><label for="reset-email">Courriel</label><input type="email" id="reset-email"></div>
     <button onclick="sendResetLink()">Envoyer le lien</button>
@@ -115,7 +115,7 @@
   </div>
 
   <div class="login-box" id="newpw-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Choisir un nouveau mot de passe</div>
     <div class="f"><label for="newpw-value">Nouveau mot de passe</label><input type="password" id="newpw-value"></div>
     <button onclick="confirmNewPassword()">Confirmer</button>
@@ -127,7 +127,7 @@
 <div id="app-shell">
   <div class="shell">
     <aside>
-      <div class="brand">Portail</div>
+      <div class="brand">Lease Lane</div>
       <span class="brand-sub">Espace admin</span>
       <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')">Vue d'ensemble</button>
       <div class="nav-group-label">OPÉRATIONS</div>
@@ -238,7 +238,7 @@
       </section>
 
       <section id="service-catalog" class="section">
-    <h1 style="margin-top:40px;font-size:22px;">Catalogue de services (Portail Pro)</h1>
+    <h1 style="margin-top:40px;font-size:22px;">Catalogue de services (Lease Lane Pro)</h1>
     <p class="subtitle" style="margin-bottom:16px;">Tâches standardisées à prix fixe, ou au taux horaire du travailleur, ou nécessitant un diagnostic — utilisé par le moteur de dispatch automatique</p>
     <div style="background:var(--paper-2);border:1px solid var(--line);padding:16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
       <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="sc-category">Catégorie</label><input type="text" id="sc-category" placeholder="plomberie" style="padding:8px;border:1px solid var(--line);width:120px;"></div>
@@ -281,7 +281,7 @@
       </section>
 
       <section id="billing" class="section">
-    <h1 style="margin-top:40px;font-size:22px;">Facturation Portail</h1>
+    <h1 style="margin-top:40px;font-size:22px;">Facturation Lease Lane</h1>
     <p class="subtitle" style="margin-bottom:16px;">Frais de gestion et de coordination facturés à chaque propriétaire — générés automatiquement avec le rapport mensuel. Les taxes ne s'appliquent qu'une fois les numéros de TPS/TVQ renseignés ci-dessous.</p>
     <div style="background:var(--paper-2);border:1px solid var(--line);padding:16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
       <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="cs-legal-name">Nom légal</label>
@@ -353,7 +353,7 @@
 
       <section id="accounting" class="section">
     <h1 style="margin-top:40px;font-size:22px;">Comptabilité — grand livre</h1>
-    <p class="subtitle" style="margin-bottom:16px;">Plan de comptes, écritures à partie double (postées automatiquement pour les loyers perçus, dépenses et factures Portail), et balance de vérification — par propriétaire.</p>
+    <p class="subtitle" style="margin-bottom:16px;">Plan de comptes, écritures à partie double (postées automatiquement pour les loyers perçus, dépenses et factures Lease Lane), et balance de vérification — par propriétaire.</p>
     <div style="background:var(--paper-2);border:1px solid var(--line);padding:16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
       <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="gl-owner">Propriétaire</label>
         <select id="gl-owner" style="padding:8px;border:1px solid var(--line);" onchange="loadGlData()"><option value="">— Choisir —</option></select>
@@ -401,7 +401,7 @@
 
       <section id="flinks" class="section">
     <h1 style="margin-top:40px;font-size:22px;">Connexions bancaires (Flinks)</h1>
-    <p class="subtitle" style="margin-bottom:16px;">Connexion en lecture seule — aucun identifiant bancaire n'est stocké côté Portail. Une fois liée, la synchronisation des transactions est automatique (une fois par jour) et alimente le rapprochement ci-dessous.</p>
+    <p class="subtitle" style="margin-bottom:16px;">Connexion en lecture seule — aucun identifiant bancaire n'est stocké côté Lease Lane. Une fois liée, la synchronisation des transactions est automatique (une fois par jour) et alimente le rapprochement ci-dessous.</p>
     <div style="background:var(--paper-2);border:1px solid var(--line);padding:16px;margin-bottom:16px;">
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:12px;">
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="flinks-owner">Client</label>
@@ -559,7 +559,7 @@
       <div style="margin-bottom:10px;"><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;">Contenu (un paragraphe par ligne vide)</label>
         <textarea id="blog-body" style="width:100%;padding:9px;border:1px solid var(--line);font-size:13.5px;min-height:220px;font-family:'Inter',sans-serif;"></textarea></div>
       <div style="margin-bottom:10px;"><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;">Auteur</label>
-        <input id="blog-author" type="text" value="L'équipe Portail" style="width:280px;padding:9px;border:1px solid var(--line);font-size:13.5px;"></div>
+        <input id="blog-author" type="text" value="L'équipe Lease Lane" style="width:280px;padding:9px;border:1px solid var(--line);font-size:13.5px;"></div>
       <div style="margin-bottom:14px;"><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;">Photo de couverture</label>
         <div id="blog-cover-preview" style="margin-bottom:8px;"></div>
         <input type="file" accept="image/*" id="blog-cover-input" onchange="uploadBlogCover(this)">
@@ -1479,8 +1479,8 @@ const auditActionLabel = {
   'prospect.ai_found_and_assigned': 'Prospect trouvé par l\'IA et assigné',
   'cold_caller.delete': 'Prospecteur téléphonique supprimé', 'admin.impersonate': 'Accès à un portail client généré (admin)',
   'owner.create_by_caller': 'Propriétaire créé par un prospecteur téléphonique',
-  'worker.pro_verified': 'Dossier Portail Pro approuvé', 'worker.pro_rejected': 'Dossier Portail Pro refusé',
-  'worker.self_registered': "Travailleur inscrit lui-même (Portail Pro)",
+  'worker.pro_verified': 'Dossier Lease Lane Pro approuvé', 'worker.pro_rejected': 'Dossier Lease Lane Pro refusé',
+  'worker.self_registered': "Travailleur inscrit lui-même (Lease Lane Pro)",
   'service_catalog.create': 'Entrée de catalogue de services créée',
   'work_order.dispatched': 'Travail diffusé aux travailleurs admissibles', 'work_order.dispatch_escalated_to_admin': 'Dispatch escaladé à l\'admin',
   'work_order.dispatch_no_eligible_workers': 'Aucun travailleur admissible pour la diffusion', 'work_order.auto_dispatch_started': 'Dispatch automatique démarré',
@@ -2157,7 +2157,7 @@ function openBlogForm(post){
   document.getElementById('blog-slug').value = post?.slug || '';
   document.getElementById('blog-excerpt').value = post?.excerpt || '';
   document.getElementById('blog-body').value = post?.body || '';
-  document.getElementById('blog-author').value = post?.author_name || "L'équipe Portail";
+  document.getElementById('blog-author').value = post?.author_name || "L'équipe Lease Lane";
   blogCoverPath = post?.cover_photo_path || null;
   renderBlogCoverPreview();
   document.getElementById('blog-form-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2205,7 +2205,7 @@ async function saveBlogPost(status){
   const slug = document.getElementById('blog-slug').value.trim();
   const excerpt = document.getElementById('blog-excerpt').value.trim();
   const bodyText = document.getElementById('blog-body').value.trim();
-  const author_name = document.getElementById('blog-author').value.trim() || "L'équipe Portail";
+  const author_name = document.getElementById('blog-author').value.trim() || "L'équipe Lease Lane";
   const errEl = document.getElementById('blog-form-error');
   errEl.style.display = 'none';
   if(!title || !slug || !bodyText){
@@ -2275,7 +2275,7 @@ async function loadWorkersAdmin(){
       <span style="font-size:12.5px;color:var(--muted);display:block;margin-bottom:8px;">${esc(w.phone) || '—'} · ${esc(w.email) || '—'} · ${w.completed_jobs_count} travail(aux) complété(s), ${w.declined_jobs_count} refusé(s)${w.ratings_count ? ` · ★ ${w.avg_rating}/5 (${w.ratings_count} avis)` : ' · pas encore d\'avis'} — ${statusBadge}${soonBadge}${proBadge}${w.active === false ? ' <span style="background:var(--rust);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;">DÉSACTIVÉ</span>' : ''}</span>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
         ${w.verification_status === 'pending' ? `
-          <button onclick="verifyWorkerPro('${w.id}','verified')" style="border:1px solid var(--sage);background:none;color:var(--sage);padding:7px 12px;font-size:11.5px;cursor:pointer;">Approuver le dossier Portail Pro</button>
+          <button onclick="verifyWorkerPro('${w.id}','verified')" style="border:1px solid var(--sage);background:none;color:var(--sage);padding:7px 12px;font-size:11.5px;cursor:pointer;">Approuver le dossier Lease Lane Pro</button>
           <button onclick="verifyWorkerPro('${w.id}','rejected')" style="border:1px solid var(--rust);background:none;color:var(--rust);padding:7px 12px;font-size:11.5px;cursor:pointer;">Refuser</button>
         ` : ''}
         ${w.user_id ? `<button data-role="worker" data-target-id="${esc(w.id)}" onclick="impersonateFromButton(this)" style="border:1px solid var(--ink);background:none;padding:7px 12px;font-size:11.5px;cursor:pointer;">Voir son portail</button>` : ''}
@@ -2319,7 +2319,7 @@ async function verifyWorkerPro(worker_id, decision){
 }
 
 async function toggleWorkerActive(worker_id, active){
-  if(!active && !confirm('Désactiver ce travailleur ? Il ne recevra plus aucun nouveau mandat (assignation manuelle, cascade automatique ou dispatch Portail Pro) tant que tu ne le réactives pas.')) return;
+  if(!active && !confirm('Désactiver ce travailleur ? Il ne recevra plus aucun nouveau mandat (assignation manuelle, cascade automatique ou dispatch Lease Lane Pro) tant que tu ne le réactives pas.')) return;
   const res = await callOpsApi({ action: 'toggle_worker_active', worker_id, active });
   if(res?.error){ alert('Erreur : ' + res.error); return; }
   await loadWorkersAdmin();
@@ -2557,7 +2557,7 @@ async function loadServiceRequestsAdmin(){
           <input type="text" id="sr-billing-${sr.id}" placeholder="Ex: net 15 jours" style="padding:8px;border:1px solid var(--line);width:150px;">
         </div>
         <button onclick="assignServiceRequest('${sr.id}', '${sr.unit_id}')" style="background:var(--ink);color:var(--paper);border:none;padding:9px 16px;font-size:12.5px;cursor:pointer;">Assigner</button>
-        <button onclick="dispatchServiceRequestAuto('${sr.id}', '${sr.unit_id}')" title="Sollicite les travailleurs admissibles par ordre de score (Portail Pro), sans choix manuel" style="background:var(--paper);color:var(--ink);border:1px solid var(--ink);padding:9px 16px;font-size:12.5px;cursor:pointer;">Assigner automatiquement</button>
+        <button onclick="dispatchServiceRequestAuto('${sr.id}', '${sr.unit_id}')" title="Sollicite les travailleurs admissibles par ordre de score (Lease Lane Pro), sans choix manuel" style="background:var(--paper);color:var(--ink);border:1px solid var(--ink);padding:9px 16px;font-size:12.5px;cursor:pointer;">Assigner automatiquement</button>
       </div>
     </div>`;
   }).join('');
@@ -2589,7 +2589,7 @@ async function assignServiceRequest(serviceRequestId, unitId){
   if(res?.ok){ await loadOps(); } else { alert(res?.error || 'Échec de l\'assignation.'); }
 }
 
-// Portail Pro : au lieu de choisir un travailleur, on laisse le moteur
+// Lease Lane Pro : au lieu de choisir un travailleur, on laisse le moteur
 // de dispatch (dispatch-work-order.ts, action "dispatch_work_order_auto"
 // de ops-api.ts) solliciter les travailleurs admissibles par paliers de
 // score — le work order reste "open" jusqu'à ce qu'un travailleur
@@ -2966,7 +2966,7 @@ async function seedDemoAccounts(){
     body.innerHTML = `
       <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
         <thead><tr style="text-align:left;border-bottom:1px solid var(--line);">
-          <th style="padding:6px 8px;">Portail</th><th style="padding:6px 8px;">Courriel</th><th style="padding:6px 8px;">Mot de passe</th><th style="padding:6px 8px;"></th>
+          <th style="padding:6px 8px;">Lease Lane</th><th style="padding:6px 8px;">Courriel</th><th style="padding:6px 8px;">Mot de passe</th><th style="padding:6px 8px;"></th>
         </tr></thead>
         <tbody>
           ${res.accounts.map(a => `

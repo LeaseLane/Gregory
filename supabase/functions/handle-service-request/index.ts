@@ -230,7 +230,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
           if (aiMissingInfo) {
             lines.push("", `Pour traiter ta demande plus rapidement, pourrais-tu nous fournir : ${aiMissingInfo} ? Tu peux répondre directement à ce courriel ou ajouter une photo depuis ton portail locataire.`);
           }
-          lines.push("", "L'équipe Portail");
+          lines.push("", "L'équipe Lease Lane");
           await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },

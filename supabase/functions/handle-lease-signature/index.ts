@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
       });
       if (!leasePatchRes.ok) {
         console.error("Failed to apply lease renewal terms", await leasePatchRes.text());
-        return new Response(JSON.stringify({ error: "Signature enregistrée, mais l'application des nouvelles conditions a échoué. Contacte l'équipe Portail." }), { status: 500, headers: corsHeaders });
+        return new Response(JSON.stringify({ error: "Signature enregistrée, mais l'application des nouvelles conditions a échoué. Contacte l'équipe Lease Lane." }), { status: 500, headers: corsHeaders });
       }
 
       await fetch(`${supabaseUrl}/rest/v1/audit_log`, {
@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
             from: EXPEDITEUR,
             to: [lease.tenants.email],
             subject: "Confirmation de signature — renouvellement de bail",
-            text: `Bonjour ${lease.tenants.full_name || ""},\n\nNous confirmons la réception de votre signature électronique concernant le renouvellement de votre bail au ${lease.units?.buildings?.address || ""}, unité ${lease.units?.unit_number || ""}, signée le ${new Date(signedAt).toLocaleString("fr-CA")}.\n\nCeci constitue une confirmation officielle. Conservez ce courriel pour vos dossiers.\n\n— L'équipe Portail`,
+            text: `Bonjour ${lease.tenants.full_name || ""},\n\nNous confirmons la réception de votre signature électronique concernant le renouvellement de votre bail au ${lease.units?.buildings?.address || ""}, unité ${lease.units?.unit_number || ""}, signée le ${new Date(signedAt).toLocaleString("fr-CA")}.\n\nCeci constitue une confirmation officielle. Conservez ce courriel pour vos dossiers.\n\n— L'équipe Lease Lane`,
           }),
         }).catch((e) => console.error("Failed to send signature confirmation email", e));
       }

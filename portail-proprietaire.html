@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portail propriétaire</title>
+<title>Lease Lane propriétaire</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <meta name="robots" content="noindex, nofollow">
@@ -120,14 +120,14 @@
 <!-- ============ ÉCRAN DE CONNEXION ============ -->
 <div id="login-screen">
   <div class="login-side">
-    <div class="side-brand">Portail</div>
+    <div class="side-brand">Lease Lane</div>
     <h2>Votre immeuble, entre bonnes mains.</h2>
     <p>Chaque propriétaire garde un contact direct avec une personne responsable de son immeuble — pas un centre d'appels.</p>
     <ul><li>Gestion complète des locataires et des loyers</li><li>Travaux coordonnés et soumis à votre approbation</li><li>Rapports mensuels détaillés</li></ul>
   </div>
   <div class="login-box-wrap">
   <div class="login-box">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Espace propriétaire</div>
     <div class="config-warning" id="config-warning">
       SUPABASE_URL / SUPABASE_ANON_KEY ne sont pas configurés dans ce fichier — remplace les valeurs en haut du &lt;script&gt; avant de tester la connexion.
@@ -140,7 +140,7 @@
   </div>
 
   <div class="login-box" id="reset-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Réinitialiser le mot de passe</div>
     <div class="f"><label for="reset-email">Courriel</label><input type="email" id="reset-email"></div>
     <button onclick="sendResetLink()">Envoyer le lien</button>
@@ -150,7 +150,7 @@
   </div>
 
   <div class="login-box" id="newpw-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Choisir un nouveau mot de passe</div>
     <div class="f"><label for="newpw-value">Nouveau mot de passe</label><input type="password" id="newpw-value"></div>
     <button onclick="confirmNewPassword()">Confirmer</button>
@@ -163,7 +163,7 @@
 <div id="app-shell">
   <div class="shell">
     <aside>
-      <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+      <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
       <span class="brand-sub">Espace propriétaire</span>
       <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')">Vue d'ensemble</button>
       <button class="tab-btn" data-tab="buildings" onclick="showTab('buildings')">Immeubles</button>
@@ -220,7 +220,7 @@
 
       <section id="payments" class="section">
         <div class="toolbar"><h2>Connexion bancaire</h2></div>
-        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Connecte ton compte bancaire pour que les loyers reçus soient rapprochés automatiquement — en lecture seule, Portail n'a jamais accès à tes identifiants bancaires (tu les entres directement dans la fenêtre sécurisée de Flinks, notre partenaire).</p>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Connecte ton compte bancaire pour que les loyers reçus soient rapprochés automatiquement — en lecture seule, Lease Lane n'a jamais accès à tes identifiants bancaires (tu les entres directement dans la fenêtre sécurisée de Flinks, notre partenaire).</p>
         <div id="bank-connections-body" style="margin-bottom:14px;"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
         <button onclick="startOwnerBankConnect()" id="bank-connect-btn" style="margin-bottom:14px;">Connecter mon compte bancaire</button>
         <div id="bank-connect-widget-wrap" style="display:none;margin-bottom:14px;">
@@ -311,7 +311,7 @@
         <div class="toolbar"><h2>Rapports mensuels</h2></div>
         <div id="reports-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
 
-        <div class="toolbar" style="margin-top:32px;"><h2>Factures — frais de gestion Portail</h2></div>
+        <div class="toolbar" style="margin-top:32px;"><h2>Factures — frais de gestion Lease Lane</h2></div>
         <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Frais de gestion et de coordination des travaux, déjà déduits du montant net qui te revient chaque mois — voici le détail formel pour ta comptabilité.</p>
         <div id="invoices-body-owner"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
       </section>
@@ -679,7 +679,7 @@ async function loadServiceRequests(){
         <span>${esc(sr.description)}</span><br>${aiLine}
       </div>
       <div class="approve-actions">
-        <span class="tag neutral">Transmise à l'équipe Portail</span>
+        <span class="tag neutral">Transmise à l'équipe Lease Lane</span>
       </div>
     </div>`;
   }).join('');
@@ -847,7 +847,7 @@ async function requestAnotherQuote(approvalId){
     sender: 'owner',
     body: `Demande d'une autre soumission pour l'approbation #${approvalId.slice(0,8)} — merci de proposer un autre travailleur ou une autre estimation.`,
   });
-  alert('Ta demande a été envoyée à l\'équipe Portail — consulte l\'onglet Messages pour suivre la réponse.');
+  alert('Ta demande a été envoyée à l\'équipe Lease Lane — consulte l\'onglet Messages pour suivre la réponse.');
   await loadMessages();
 }
 
@@ -859,7 +859,7 @@ async function askApprovalQuestion(approvalId){
     sender: 'owner',
     body: `Question sur l'approbation #${approvalId.slice(0,8)} : ${question}`,
   });
-  alert('Ta question a été envoyée à l\'équipe Portail — consulte l\'onglet Messages pour suivre la réponse.');
+  alert('Ta question a été envoyée à l\'équipe Lease Lane — consulte l\'onglet Messages pour suivre la réponse.');
   await loadMessages();
 }
 
@@ -1011,7 +1011,7 @@ async function loadMessages(){
   body.innerHTML = data.map(m => `
     <div class="approve-row" style="justify-content:flex-start;">
       <div class="desc">
-        <b>${m.sender === 'owner' ? 'Toi' : 'Équipe Portail'} · ${new Date(m.created_at).toLocaleString('fr-CA')}</b>
+        <b>${m.sender === 'owner' ? 'Toi' : 'Équipe Lease Lane'} · ${new Date(m.created_at).toLocaleString('fr-CA')}</b>
         <span>${esc(m.body)}</span>
       </div>
     </div>`).join('');

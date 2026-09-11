@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
     }
 
     const aiStartedAt = Date.now();
-    const prompt = `Tu es l'assistant documentaire de "Portail", une entreprise de gestion immobilière résidentielle au Québec. Voici un document téléversé (type déclaré : "${doc.doc_type || "non spécifié"}", titre : "${doc.title}"). Analyse-le et extrais les informations clés.
+    const prompt = `Tu es l'assistant documentaire de "Lease Lane", une entreprise de gestion immobilière résidentielle au Québec. Voici un document téléversé (type déclaré : "${doc.doc_type || "non spécifié"}", titre : "${doc.title}"). Analyse-le et extrais les informations clés.
 
 Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 {

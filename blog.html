@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portail — Blog</title>
+<title>Lease Lane — Blog</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
-<meta name="description" content="Articles de l'équipe Portail sur la gestion immobilière résidentielle au Québec.">
-<meta property="og:title" content="Portail — Blog">
+<meta name="description" content="Articles de l'équipe Lease Lane sur la gestion immobilière résidentielle au Québec.">
+<meta property="og:title" content="Lease Lane — Blog">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -72,7 +72,7 @@
 
 <header>
   <nav class="wrap">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:34px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:34px;width:auto;display:block;"></a></div>
     <button class="nav-toggle" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="navlinks"><span></span><span></span><span></span></button>
     <div class="navlinks" id="navlinks">
       <a href="index.html">Accueil</a>
@@ -87,7 +87,7 @@
   <div class="page-head">
     <div class="wrap">
       <p class="eyebrow">Blog</p>
-      <h1>Articles de l'équipe Portail</h1>
+      <h1>Articles de l'équipe Lease Lane</h1>
       <p>Gestion immobilière, entretien, droits et obligations des propriétaires et locataires au Québec.</p>
     </div>
   </div>
@@ -110,7 +110,7 @@
 
 <footer>
   <div class="wrap">
-    <span>Portail — gestion immobilière · Grande région de Québec</span>
+    <span>Lease Lane — gestion immobilière · Grande région de Québec</span>
     <span><a href="index.html">Retour à l'accueil</a></span>
   </div>
 </footer>
@@ -151,7 +151,7 @@ async function loadPostsList(){
     card.className = 'post-card';
     card.href = `blog.html?article=${encodeURIComponent(p.slug)}`;
     card.innerHTML = `
-      ${cover ? `<div class="thumb"><img src="${cover}" alt=""></div>` : `<div class="thumb">Portail</div>`}
+      ${cover ? `<div class="thumb"><img src="${cover}" alt=""></div>` : `<div class="thumb">Lease Lane</div>`}
       <div class="body">
         <div class="meta">${p.published_at ? new Date(p.published_at).toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' }) : ''} — ${esc(p.author_name)}</div>
         <h2>${esc(p.title)}</h2>
@@ -178,7 +178,7 @@ async function loadArticle(slug){
     return;
   }
 
-  document.title = `${post.title} — Portail Blog`;
+  document.title = `${post.title} — Lease Lane Blog`;
   document.getElementById('article-meta').textContent = `${post.published_at ? new Date(post.published_at).toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' }) : ''} — ${post.author_name || ''}`;
   document.getElementById('article-title').textContent = post.title;
   const coverEl = document.getElementById('article-cover');

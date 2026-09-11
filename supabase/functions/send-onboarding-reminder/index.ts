@@ -1,3 +1,4 @@
+import { EXPEDITEUR } from "../_shared/branding.ts";
 // Déclenchée par le cron flag_incomplete_onboarding() (ou manuellement
 // par l'admin) — jamais par un utilisateur final, donc pas de JWT à
 // vérifier ici (même convention que handle-payment-reminder). La liste
@@ -79,7 +80,7 @@ Deno.serve(async (req) => {
     const gapsLabel = gaps.map((g) => `- ${g}`).join("\n");
     // Minimisation (Loi 25) : rédiger le rappel n'exige pas le nom du
     // client — le destinataire se sait déjà lui-même.
-    const prompt = `Tu es l'assistant de gestion locative de "Portail". Rédige un courriel amical et bref à un client (propriétaire) pour lui rappeler de compléter son dossier dans le portail. Utilise UNIQUEMENT les éléments manquants listés ci-dessous — n'invente rien d'autre et ne donne aucun conseil hors de cette liste.
+    const prompt = `Tu es l'assistant de gestion locative de "Lease Lane". Rédige un courriel amical et bref à un client (propriétaire) pour lui rappeler de compléter son dossier dans le portail. Utilise UNIQUEMENT les éléments manquants listés ci-dessous — n'invente rien d'autre et ne donne aucun conseil hors de cette liste.
 
 Éléments manquants dans son dossier :
 ${gapsLabel}
@@ -87,7 +88,7 @@ ${gapsLabel}
 Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 {
   "subject": "objet de courriel court et amical en français",
-  "body": "corps du courriel en français (4-6 phrases), ton amical et professionnel, qui liste clairement les éléments manquants ci-dessus et invite le client à se connecter à son portail pour les compléter. Signé 'L'équipe Portail'."
+  "body": "corps du courriel en français (4-6 phrases), ton amical et professionnel, qui liste clairement les éléments manquants ci-dessus et invite le client à se connecter à son portail pour les compléter. Signé 'L'équipe Lease Lane'."
 }`;
 
     const aiStartedAt = Date.now();
@@ -135,7 +136,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
       method: "POST",
       headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "Portail <onboarding@mail.portailgestion.ca>",
+        from: EXPEDITEUR,
         to: [userRow.email],
         subject: parsed.subject,
         text: parsed.body,

@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
       .map((s) => s.doc);
 
     const contentParts: any[] = [
-      { type: "text", text: `Tu es l'assistant documentaire de "Portail". Voici le profil du propriétaire (plafond de dépenses actuel : ${owner.spending_cap} $, taux de gestion : ${owner.management_rate} %).\n\nTu vas recevoir ${selected.length} document(s) source. Réponds à la question EN CITANT le document et la page exacte d'où vient l'information, dans ce style : "Selon le bail de l'unité 4, page 6, le stationnement numéro 12 est inclus." Ne dis jamais une chose comme "il semble que" sans citer sa source. Si l'information n'est dans aucun document fourni, dis-le clairement plutôt que d'inventer une réponse.` },
+      { type: "text", text: `Tu es l'assistant documentaire de "Lease Lane". Voici le profil du propriétaire (plafond de dépenses actuel : ${owner.spending_cap} $, taux de gestion : ${owner.management_rate} %).\n\nTu vas recevoir ${selected.length} document(s) source. Réponds à la question EN CITANT le document et la page exacte d'où vient l'information, dans ce style : "Selon le bail de l'unité 4, page 6, le stationnement numéro 12 est inclus." Ne dis jamais une chose comme "il semble que" sans citer sa source. Si l'information n'est dans aucun document fourni, dis-le clairement plutôt que d'inventer une réponse.` },
     ];
 
     for (const doc of selected) {

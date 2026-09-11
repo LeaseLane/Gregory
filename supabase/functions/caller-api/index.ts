@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Ce prospect ne t'est pas assigné" }), { status: 403, headers: corsHeaders });
       }
 
-      const prompt = `Tu es l'assistant CRM de "Portail". Voici la transcription/notes d'un appel avec un prospect propriétaire. Analyse-la en détail.
+      const prompt = `Tu es l'assistant CRM de "Lease Lane". Voici la transcription/notes d'un appel avec un prospect propriétaire. Analyse-la en détail.
 
 Transcription: "${transcript}"
 
@@ -248,8 +248,8 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
       let emailSent = true;
       let emailError: string | null = null;
       try {
-        const emailRes = await sendEmail(email, "Bienvenue sur Portail — ton accès propriétaire",
-          `Bonjour ${full_name},\n\nTon compte propriétaire Portail est prêt.\n\nPortail : ${OWNER_PORTAL_URL}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi puis change ton mot de passe si tu le souhaites (lien "Mot de passe oublié" sur la page de connexion).\n\nL'équipe Portail`);
+        const emailRes = await sendEmail(email, "Bienvenue sur Lease Lane — ton accès propriétaire",
+          `Bonjour ${full_name},\n\nTon compte propriétaire Lease Lane est prêt.\n\nPortail : ${OWNER_PORTAL_URL}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi puis change ton mot de passe si tu le souhaites (lien "Mot de passe oublié" sur la page de connexion).\n\nL'équipe Lease Lane`);
         const emailData = await emailRes.json().catch(() => ({}));
         if (!emailRes.ok) { emailSent = false; emailError = emailData?.message || "Échec de l'envoi du courriel"; }
       } catch (e) {

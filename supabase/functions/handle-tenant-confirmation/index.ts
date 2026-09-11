@@ -1,3 +1,4 @@
+import { EXPEDITEUR } from "../_shared/branding.ts";
 // Ferme la dernière étape manquante du cycle de réparation : le
 // locataire confirme que le travail est bien réglé avant que le
 // dossier ne se ferme pour de bon. "get"/"confirm"/"reopen" sont
@@ -70,10 +71,10 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "Portail <onboarding@mail.portailgestion.ca>",
+          from: EXPEDITEUR,
           to: [tenant.email],
           subject: `Rappel — confirme que ta réparation est bien réglée`,
-          text: `Bonjour ${tenant.full_name},\n\nOn n'a pas encore eu de nouvelles au sujet de cette réparation (${address || ""}, unité ${unit?.unit_number || ""}) :\n${wo.description}\n\nMerci de confirmer ici que tout est réglé, ou de nous dire si ce n'est pas le cas : ${confirmUrl}\n\nL'équipe Portail`,
+          text: `Bonjour ${tenant.full_name},\n\nOn n'a pas encore eu de nouvelles au sujet de cette réparation (${address || ""}, unité ${unit?.unit_number || ""}) :\n${wo.description}\n\nMerci de confirmer ici que tout est réglé, ou de nous dire si ce n'est pas le cas : ${confirmUrl}\n\nL'équipe Lease Lane`,
         }),
       });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
@@ -157,7 +158,7 @@ Deno.serve(async (req) => {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              from: "Portail <onboarding@mail.portailgestion.ca>",
+              from: EXPEDITEUR,
               to: adminEmails,
               subject: `Le locataire signale que le problème persiste — ${address || ""}, unité ${unit?.unit_number || ""}`,
               text: `${tenant?.full_name || "Le locataire"} indique que la réparation suivante n'est pas réglée :\n${wo.description}\n\nMessage du locataire : ${message || "(aucun message)"}\n\nLa demande a été rouverte dans la file des demandes de service.`,
