@@ -937,7 +937,17 @@ async function startMfaEnrollment(){
   pendingFactorId = data.id;
   const qr = document.getElementById('mfa-qr');
   // Supabase renvoie le QR en SVG déjà encodé — pas de bibliothèque à charger.
-  qr.innerHTML = '<img src="' + data.totp.qr_code + '" alt="Code QR à scanner" style="max-width:200px;width:100%;">';
+  // Le code QR arrive en data URI SVG, qui CONTIENT des guillemets : les
+  // concaténer dans une chaîne HTML referme l'attribut src trop tôt et
+  // le reste de la balise s'affiche en texte. On construit donc l'élément
+  // par le DOM, où la valeur n'est jamais réinterprétée comme du HTML.
+  qr.textContent = '';
+  const img = document.createElement('img');
+  img.src = data.totp.qr_code;
+  img.alt = 'Code QR à scanner';
+  img.style.maxWidth = '200px';
+  img.style.width = '100%';
+  qr.appendChild(img);
   document.getElementById('mfa-secret').textContent = data.totp.secret;
   showMfaBox('mfa-enroll-box');
   const input = document.getElementById('mfa-enroll-code');
