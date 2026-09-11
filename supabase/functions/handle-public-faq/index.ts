@@ -1,3 +1,4 @@
+import { corsHeadersFor } from "../_shared/auth.ts";
 // FAQ publique en question libre — sur le modèle du Copilot du portail
 // propriétaire (ask-documents.ts / ask-finances.ts), mais sans authentification
 // et sans accès à aucune donnée d'un compte : l'IA répond uniquement à partir
@@ -9,25 +10,6 @@ const PROMPT_VERSION = "public-faq-v1";
 const RATE_LIMIT_PER_HOUR = 15;
 const QUESTION_MAX_LENGTH = 500;
 
-// Liste blanche d'origines : évite d'exposer les fonctions à un
-// site tiers qui embarquerait un appel authentifié depuis le
-// navigateur d'un usager (CSRF via fetch). Les appels serveur à
-// serveur (cron, webhooks, autre fonction edge) n'envoient pas
-// d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
-const ALLOWED_ORIGINS = ["https://portailgestion.ca", "https://www.portailgestion.ca"];
-function corsHeadersFor(origin: string | null) {
-  return {
-    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Vary": "Origin",
-    // Durcissement (Lot 7 TWIM) : ces en-têtes ne coûtent rien et
-    // réduisent la surface d'attaque même si le contenu JSON renvoyé
-    // n'est pas du HTML — défense en profondeur, pas une réaction à un
-    // vecteur d'attaque identifié ici.
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-  };
-}
 
 const KNOWLEDGE_BASE = `
 Tu es l'assistant du site web de "Portail", une entreprise de gestion immobilière résidentielle dans la grande région de Québec.

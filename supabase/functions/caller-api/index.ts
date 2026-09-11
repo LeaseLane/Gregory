@@ -1,74 +1,13 @@
-// Portail des prospecteurs téléphoniques (travailleurs autonomes de prospection
-// téléphonique). Contrairement à crm-api.ts (réservé aux admins), cette
-// fonction sert un compte "caller" — mais elle n'ouvre AUCUNE policy RLS
-// sur prospects (qui reste verrouillée au rôle service_role, voir
-// schema.sql). Chaque action ici vérifie explicitement que le prospect
-// visé est bien assigné à l'appelant connecté avant d'y toucher, exactement
-// comme crm-api.ts le fait pour l'admin — la même donnée sensible, gardée
-// par la même discipline, juste un périmètre plus étroit.
-//
-// Un prospecteur téléphonique ne peut PAS marquer un dossier "lost", ni modifier le coût
-// d'acquisition — ces décisions restent à l'admin via crm-api.ts. Via
-// update_my_stage, il peut seulement faire progresser un prospect de 'new'
-// à 'contacted' ou 'interested'. La seule façon d'atteindre 'signed' est
-// l'action create_client (conversion réelle en client), qui crée le compte
-// propriétaire lui-même — pas une simple mise à jour de statut.
-// Liste blanche d'origines : évite d'exposer les fonctions à un
-// site tiers qui embarquerait un appel authentifié depuis le
-// navigateur d'un usager (CSRF via fetch). Les appels serveur à
-// serveur (cron, webhooks, autre fonction edge) n'envoient pas
-// d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
-const ALLOWED_ORIGINS = ["https://portailgestion.ca", "https://www.portailgestion.ca"];
-function corsHeadersFor(origin: string | null) {
-  return {
-    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Vary": "Origin",
-    // Durcissement (Lot 7 TWIM) : ces en-têtes ne coûtent rien et
-    // réduisent la surface d'attaque même si le contenu JSON renvoyé
-    // n'est pas du HTML — défense en profondeur, pas une réaction à un
-    // vecteur d'attaque identifié ici.
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-  };
-}
+import { EXPEDITEUR, PORTAILS } from "../_shared/branding.ts";
+import { corsHeadersFor, requireUser } from "../_shared/auth.ts";
 
 const CALLER_ALLOWED_STAGES = ["contacted", "interested"];
-const OWNER_PORTAL_URL = "https://portailgestion.ca/portail-proprietaire.html";
+const OWNER_PORTAL_URL = PORTAILS.proprietaire;
 
 function randomPassword() {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 14);
 }
 
-// Vérifie la signature du JWT (HS256, secret du projet Supabase) au lieu
-// de se fier uniquement au réglage "Verify JWT" de la plateforme —
-// défense en profondeur : cette fonction reste sûre même si ce réglage
-// est mal configuré pour une fonction en particulier.
-// Vérifie le JWT en le faisant valider par le service Auth de Supabase
-// lui-même (GET /auth/v1/user) plutôt qu'en réimplémentant la
-// cryptographie de vérification. La passerelle Edge Functions a un bug
-// connu qui rejette à tort les JWT signés en ES256 quand verify_jwt=true
-// est réglé au niveau plateforme (github.com/supabase/supabase/issues/42244)
-// — d'où verify_jwt=false dans supabase/config.toml pour cette fonction :
-// ce code est maintenant la seule vérification, et s'appuie sur l'API
-// Auth de Supabase, qui elle gère ES256 correctement.
-async function verifySupabaseJwt(jwt: string, supabaseUrl: string): Promise<{ sub: string; [key: string]: unknown } | null> {
-  if (!jwt) return null;
-  try {
-    const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-        apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      },
-    });
-    if (!res.ok) return null;
-    const user = await res.json().catch(() => null);
-    if (!user?.id) return null;
-    return { sub: user.id, ...user };
-  } catch {
-    return null;
-  }
-}
 
 Deno.serve(async (req) => {
   const corsHeaders = corsHeadersFor(req.headers.get("origin"));
@@ -76,16 +15,9 @@ Deno.serve(async (req) => {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
   try {
-    const authHeader = req.headers.get("Authorization") || "";
-    const jwt = authHeader.replace("Bearer ", "");
-    if (!jwt) {
-      return new Response(JSON.stringify({ error: "Non authentifié" }), { status: 401, headers: corsHeaders });
-    }
-    const claims = await verifySupabaseJwt(jwt, Deno.env.get("SUPABASE_URL") ?? "");
-    if (!claims) {
-      return new Response(JSON.stringify({ error: "Jeton invalide ou expiré" }), { status: 401, headers: corsHeaders });
-    }
-    const userId = claims.sub as string;
+    const auth = await requireUser(req, corsHeaders);
+    if ("response" in auth) return auth.response;
+    const userId = auth.userId;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -115,7 +47,7 @@ Deno.serve(async (req) => {
       fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from: "Portail <onboarding@mail.portailgestion.ca>", to: [to], subject, text }),
+        body: JSON.stringify({ from: EXPEDITEUR, to: [to], subject, text }),
       });
 
     const body = await req.json().catch(() => ({}));

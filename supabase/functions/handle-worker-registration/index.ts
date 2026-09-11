@@ -1,32 +1,7 @@
-// Fonction PUBLIQUE (pas de JWT) — inscription "Portail Pro" depuis pro.html.
-// Même discipline anti-spam que handle-public-inquiry.ts : honeypot,
-// limite de débit par IP (public_submission_log), validation stricte.
-// Crée directement un compte (le travailleur peut se connecter tout de
-// suite et compléter son profil) mais avec verification_status='pending'
-// — aucun mandat ne lui sera envoyé tant qu'un admin n'a pas vérifié son
-// dossier (voir dispatch-work-order.ts, qui ne considère que
-// verification_status='verified').
-// Liste blanche d'origines : évite d'exposer les fonctions à un
-// site tiers qui embarquerait un appel authentifié depuis le
-// navigateur d'un usager (CSRF via fetch). Les appels serveur à
-// serveur (cron, webhooks, autre fonction edge) n'envoient pas
-// d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
-const ALLOWED_ORIGINS = ["https://portailgestion.ca", "https://www.portailgestion.ca"];
-function corsHeadersFor(origin: string | null) {
-  return {
-    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Vary": "Origin",
-    // Durcissement (Lot 7 TWIM) : ces en-têtes ne coûtent rien et
-    // réduisent la surface d'attaque même si le contenu JSON renvoyé
-    // n'est pas du HTML — défense en profondeur, pas une réaction à un
-    // vecteur d'attaque identifié ici.
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-  };
-}
+import { EXPEDITEUR, PORTAILS } from "../_shared/branding.ts";
+import { corsHeadersFor } from "../_shared/auth.ts";
 
-const WORKER_PORTAL_URL = "https://portailgestion.ca/portail-travailleur.html";
+const WORKER_PORTAL_URL = PORTAILS.travailleur;
 const RATE_LIMIT_PER_HOUR = 5;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ALLOWED_SPECIALTIES = ["plomberie", "electricite", "cvac", "serrurerie", "structure", "peinture", "menage", "autre"];
@@ -137,7 +112,7 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "Portail <onboarding@mail.portailgestion.ca>",
+          from: EXPEDITEUR,
           to: [email],
           subject: "Bienvenue sur Portail Pro — ton dossier est en cours de vérification",
           text: `Bonjour ${full_name},\n\nMerci de t'être inscrit sur Portail Pro. Ton compte est prêt et ton dossier est maintenant en attente de vérification par notre équipe (licence, assurance) — tu recevras des mandats dès qu'il sera approuvé.\n\nPortail : ${WORKER_PORTAL_URL}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi pour compléter ton profil (horaire, assurance, photos) en attendant. Tu peux changer ton mot de passe via "Mot de passe oublié" sur la page de connexion.\n\nL'équipe Portail`,
@@ -159,7 +134,7 @@ Deno.serve(async (req) => {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            from: "Portail <onboarding@mail.portailgestion.ca>",
+            from: EXPEDITEUR,
             to: adminEmails,
             subject: `Nouvelle inscription Portail Pro — ${full_name}`,
             text: `${full_name}${company_name ? " (" + company_name + ")" : ""} vient de s'inscrire sur Portail Pro.\n\nMétiers : ${specialties.join(", ")}\nZones : ${zones.join(", ")}\nCourriel : ${email}\nTéléphone : ${phone || "non fourni"}\n\nSon dossier attend une vérification dans le portail admin avant de recevoir des mandats.`,

@@ -64,7 +64,7 @@ jobs:
         run: deno check supabase/functions/_shared/auth.ts
 
       - name: Vérification des types des fonctions edge
-        # Seuil à 7 : c'est l'état RÉEL du dépôt aujourd'hui
+        # Seuil à 5 : c'est l'état RÉEL du dépôt aujourd'hui
         # (generate-owner-report, reconcile-bank-transactions,
         # onboarding-api — chemins financier et d'onboarding).
         #
@@ -79,7 +79,7 @@ jobs:
         # l'étape avertit d'elle-même quand c'est possible. Cible : 0.
         run: |
           set -uo pipefail
-          SEUIL=7
+          SEUIL=5
           # NO_COLOR : sans ça, Deno entoure "TS2339 [ERROR]" de codes
           # ANSI et tout grep d'ancrage compte 0 — le seuil ne se
           # déclencherait jamais. On lit le total que Deno annonce

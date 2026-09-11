@@ -1,6 +1,7 @@
+import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 // Page publique où le travailleur répond (accepter/refuser/proposer
 // une heure/demander des infos) — voir edge-function-handle-worker-response.ts
-const SITE_BASE_URL = "https://portailgestion.ca";
+
 
 Deno.serve(async (req) => {
   try {
@@ -40,7 +41,7 @@ Deno.serve(async (req) => {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            from: "Portail <onboarding@mail.portailgestion.ca>",
+            from: EXPEDITEUR,
             to: adminEmails,
             subject: `Aucun travailleur disponible — ${address || ""}, unité ${unit?.unit_number || ""}`,
             text: `Aucun travailleur n'a répondu dans les délais pour ce travail (${workOrder.description}) et la liste des travailleurs disponibles est épuisée. Une assignation manuelle est requise dans le portail admin.`,
@@ -94,7 +95,7 @@ L'équipe Portail`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Portail <onboarding@mail.portailgestion.ca>",
+        from: EXPEDITEUR,
         to: [worker.email],
         subject,
         text: bodyText,

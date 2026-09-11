@@ -1,3 +1,4 @@
+import { EXPEDITEUR } from "../_shared/branding.ts";
 Deno.serve(async (req) => {
   try {
     const payload = await req.json();
@@ -77,7 +78,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Portail <onboarding@mail.portailgestion.ca>",
+        from: EXPEDITEUR,
         to: [record.email],
         subject: parsed.reply_subject,
         text: replyBody,
@@ -104,7 +105,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "Portail <onboarding@mail.portailgestion.ca>",
+          from: EXPEDITEUR,
           to: adminEmails,
           subject: `${typeLabel} — ${record.full_name}`,
           text: `${typeLabel}\n\nNom : ${record.full_name}\nCourriel : ${record.email}\nTéléphone : ${record.phone || "non fourni"}\nMessage : ${record.message || "(aucun)"}\n\nCatégorie IA : ${parsed.category}\nRésumé : ${parsed.summary}\n\nUne réponse automatique a déjà été envoyée au prospect. Consulte le portail admin pour le détail complet et faire le suivi.`,

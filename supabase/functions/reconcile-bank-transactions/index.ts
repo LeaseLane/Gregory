@@ -1,32 +1,5 @@
-// Rapprochement bancaire par import CSV/OFX (pas de connexion bancaire
-// en temps réel — nécessiterait Plaid/Flinks, à brancher plus tard sur
-// ce même moteur). Le matching est entièrement déterministe et produit
-// un score de confiance (0-100) :
-//   - >= 95 : rapprochement automatique (paiement marqué payé/partiel)
-//   - 75-94 : suggestion dans l'admin, confirmation humaine requise
-//   - < 75  : non attribué — l'IA tente une piste seulement à ce stade,
-//             jamais appliquée automatiquement.
-// Un montant négatif est traité comme un renversement/rejet et rouvre
-// automatiquement le paiement visé.
-// Liste blanche d'origines : évite d'exposer les fonctions à un
-// site tiers qui embarquerait un appel authentifié depuis le
-// navigateur d'un usager (CSRF via fetch). Les appels serveur à
-// serveur (cron, webhooks, autre fonction edge) n'envoient pas
-// d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
-const ALLOWED_ORIGINS = ["https://portailgestion.ca", "https://www.portailgestion.ca"];
-function corsHeadersFor(origin: string | null) {
-  return {
-    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Vary": "Origin",
-    // Durcissement (Lot 7 TWIM) : ces en-têtes ne coûtent rien et
-    // réduisent la surface d'attaque même si le contenu JSON renvoyé
-    // n'est pas du HTML — défense en profondeur, pas une réaction à un
-    // vecteur d'attaque identifié ici.
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-  };
-}
+import { EXPEDITEUR } from "../_shared/branding.ts";
+import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 
 const AMOUNT_TOLERANCE = 3; // écart en dollars toléré comme "exact" (frais/arrondis bancaires)
 
@@ -77,35 +50,6 @@ async function computeExternalId(ownerId: string, row: any): Promise<string> {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
 }
 
-// Vérifie la signature du JWT (HS256, secret du projet Supabase) au lieu
-// de se fier uniquement au réglage "Verify JWT" de la plateforme —
-// défense en profondeur : cette fonction reste sûre même si ce réglage
-// est mal configuré pour une fonction en particulier.
-// Vérifie le JWT en le faisant valider par le service Auth de Supabase
-// lui-même (GET /auth/v1/user) plutôt qu'en réimplémentant la
-// cryptographie de vérification. La passerelle Edge Functions a un bug
-// connu qui rejette à tort les JWT signés en ES256 quand verify_jwt=true
-// est réglé au niveau plateforme (github.com/supabase/supabase/issues/42244)
-// — d'où verify_jwt=false dans supabase/config.toml pour cette fonction :
-// ce code est maintenant la seule vérification, et s'appuie sur l'API
-// Auth de Supabase, qui elle gère ES256 correctement.
-async function verifySupabaseJwt(jwt: string, supabaseUrl: string): Promise<{ sub: string; [key: string]: unknown } | null> {
-  if (!jwt) return null;
-  try {
-    const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-        apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      },
-    });
-    if (!res.ok) return null;
-    const user = await res.json().catch(() => null);
-    if (!user?.id) return null;
-    return { sub: user.id, ...user };
-  } catch {
-    return null;
-  }
-}
 
 Deno.serve(async (req) => {
   const corsHeaders = corsHeadersFor(req.headers.get("origin"));
@@ -133,16 +77,9 @@ Deno.serve(async (req) => {
 
     let userId: string | null = null;
     if (!isSystemCall) {
-      const authHeader = req.headers.get("Authorization") || "";
-      const jwt = authHeader.replace("Bearer ", "");
-      if (!jwt) {
-        return new Response(JSON.stringify({ error: "Non authentifié" }), { status: 401, headers: corsHeaders });
-      }
-      const claims = await verifySupabaseJwt(jwt, Deno.env.get("SUPABASE_URL") ?? "");
-      if (!claims) {
-        return new Response(JSON.stringify({ error: "Jeton invalide ou expiré" }), { status: 401, headers: corsHeaders });
-      }
-      userId = claims.sub as string;
+      const auth = await requireUserWithMfa(req, corsHeaders);
+      if ("response" in auth) return auth.response;
+      userId = auth.userId;
 
       const userRes = await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${userId}&select=is_admin`, { headers: adminHeaders });
       const userRows = await userRes.json();
@@ -168,7 +105,7 @@ Deno.serve(async (req) => {
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ from: "Portail <onboarding@mail.portailgestion.ca>", to: emails, subject, text }),
+          body: JSON.stringify({ from: EXPEDITEUR, to: emails, subject, text }),
         });
       } catch (e) {
         console.error("Failed to notify admins", e);
@@ -209,7 +146,13 @@ Deno.serve(async (req) => {
       const leasesRes = await fetch(`${supabaseUrl}/rest/v1/leases?unit_id=in.${unitFilter}&select=id,tenant_id,monthly_rent,tenants(full_name)`, { headers: adminHeaders });
       const leases = await leasesRes.json();
       const leaseFilter = leases.length ? `(${leases.map((l: any) => l.id).join(",")})` : "(00000000-0000-0000-0000-000000000000)";
-      const tenantNameByLeaseId = new Map(leases.map((l: any) => [l.id, l.tenants?.full_name]));
+      // Types explicites : `new Map(...)` inféré donnait Map<any, {}>, et
+      // scorePayment() recevait alors `unknown` au lieu du nom du locataire.
+      // Le nom reste optionnel — un bail peut ne pas avoir de locataire
+      // rattaché, et le score doit fonctionner sans lui.
+      const tenantNameByLeaseId = new Map<string, string | undefined>(
+        leases.map((l: any) => [l.id as string, l.tenants?.full_name as string | undefined]),
+      );
 
       const paymentsRes = await fetch(`${supabaseUrl}/rest/v1/payments?lease_id=in.${leaseFilter}&status=in.(pending,late)&select=*`, { headers: adminHeaders });
       let candidatePayments: any[] = await paymentsRes.json();
@@ -219,7 +162,16 @@ Deno.serve(async (req) => {
       const recentPaid: any[] = await recentPaidRes.json();
 
       const tenantNames: string[] = leases.map((l: any) => l.tenants?.full_name).filter(Boolean);
-      const tenantIdByName = new Map(leases.map((l: any) => [l.tenants?.full_name, l.tenant_id]));
+      // Les baux sans locataire rattaché sont écartés : sinon la clé
+      // `undefined` entrait dans la table, et une suggestion de l'IA sans
+      // nom exploitable pouvait retomber dessus et rattacher un dépôt au
+      // mauvais locataire. Sur le chemin du registre des loyers, mieux vaut
+      // aucune suggestion qu'une suggestion fausse.
+      const tenantIdByName = new Map<string, string>(
+        leases
+          .filter((l: any) => l.tenants?.full_name && l.tenant_id)
+          .map((l: any) => [l.tenants.full_name as string, l.tenant_id as string]),
+      );
 
       const existingIdsRes = await fetch(`${supabaseUrl}/rest/v1/bank_transactions?owner_id=eq.${owner_id}&select=external_id`, { headers: adminHeaders });
       if (!existingIdsRes.ok) {

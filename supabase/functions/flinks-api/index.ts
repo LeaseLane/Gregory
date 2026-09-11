@@ -1,40 +1,4 @@
-// Connexion bancaire en lecture seule via Flinks (Connect - Data
-// Aggregation). Aucun identifiant bancaire n'est jamais stocké côté
-// Portail — seulement le LoginId retourné par le widget Flinks Connect
-// une fois le propriétaire connecté à sa banque.
-//
-// Actions ADMIN (JWT requis, is_admin) :
-//   - generate_connect_token : jeton pour embarquer le widget Flinks Connect
-//   - link_account           : enregistre la connexion après un lien réussi
-//   - list_connections       : liste les connexions bancaires par propriétaire
-//   - sync_now               : synchronise une seule connexion, à la demande
-//   - disconnect             : désactive une connexion
-//
-// Action SYSTÈME (déclenchée par pg_cron, sans JWT utilisateur) :
-//   - sync_all : synchronise toutes les connexions actives, une fois par
-//     jour (voir trigger_flinks_daily_sync() dans schema.sql). Les
-//     transactions récupérées sont envoyées à reconcile-bank-transactions
-//     (action import_csv) pour réutiliser exactement le même moteur de
-//     matching déterministe que l'import CSV manuel.
-// Liste blanche d'origines : évite d'exposer les fonctions à un
-// site tiers qui embarquerait un appel authentifié depuis le
-// navigateur d'un usager (CSRF via fetch). Les appels serveur à
-// serveur (cron, webhooks, autre fonction edge) n'envoient pas
-// d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
-const ALLOWED_ORIGINS = ["https://portailgestion.ca", "https://www.portailgestion.ca"];
-function corsHeadersFor(origin: string | null) {
-  return {
-    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Vary": "Origin",
-    // Durcissement (Lot 7 TWIM) : ces en-têtes ne coûtent rien et
-    // réduisent la surface d'attaque même si le contenu JSON renvoyé
-    // n'est pas du HTML — défense en profondeur, pas une réaction à un
-    // vecteur d'attaque identifié ici.
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-  };
-}
+import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 
 const FLINKS_API_BASE_URL = Deno.env.get("FLINKS_API_BASE_URL") || "https://toolbox-api.private.fin.ag";
 const FLINKS_IFRAME_BASE_URL = Deno.env.get("FLINKS_IFRAME_BASE_URL") || "https://toolbox-iframe.private.fin.ag";
@@ -92,35 +56,6 @@ async function flinksGetAccountsDetail(token: string, requestId: string): Promis
   return data.Accounts as FlinksAccount[];
 }
 
-// Vérifie la signature du JWT (HS256, secret du projet Supabase) au lieu
-// de se fier uniquement au réglage "Verify JWT" de la plateforme —
-// défense en profondeur : cette fonction reste sûre même si ce réglage
-// est mal configuré pour une fonction en particulier.
-// Vérifie le JWT en le faisant valider par le service Auth de Supabase
-// lui-même (GET /auth/v1/user) plutôt qu'en réimplémentant la
-// cryptographie de vérification. La passerelle Edge Functions a un bug
-// connu qui rejette à tort les JWT signés en ES256 quand verify_jwt=true
-// est réglé au niveau plateforme (github.com/supabase/supabase/issues/42244)
-// — d'où verify_jwt=false dans supabase/config.toml pour cette fonction :
-// ce code est maintenant la seule vérification, et s'appuie sur l'API
-// Auth de Supabase, qui elle gère ES256 correctement.
-async function verifySupabaseJwt(jwt: string, supabaseUrl: string): Promise<{ sub: string; [key: string]: unknown } | null> {
-  if (!jwt) return null;
-  try {
-    const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-        apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      },
-    });
-    if (!res.ok) return null;
-    const user = await res.json().catch(() => null);
-    if (!user?.id) return null;
-    return { sub: user.id, ...user };
-  } catch {
-    return null;
-  }
-}
 
 Deno.serve(async (req) => {
   const corsHeaders = corsHeadersFor(req.headers.get("origin"));
@@ -225,16 +160,9 @@ Deno.serve(async (req) => {
     // (c'est le chemin recommandé — il entre lui-même ses identifiants
     // bancaires dans le widget Flinks, jamais l'admin). L'admin garde la
     // capacité d'agir pour n'importe quel propriétaire (dépannage).
-    const authHeader = req.headers.get("Authorization") || "";
-    const jwt = authHeader.replace("Bearer ", "");
-    if (!jwt) {
-      return new Response(JSON.stringify({ error: "Non authentifié" }), { status: 401, headers: corsHeaders });
-    }
-    const claims = await verifySupabaseJwt(jwt, Deno.env.get("SUPABASE_URL") ?? "");
-    if (!claims) {
-      return new Response(JSON.stringify({ error: "Jeton invalide ou expiré" }), { status: 401, headers: corsHeaders });
-    }
-    const userId = claims.sub as string;
+    const auth = await requireUserWithMfa(req, corsHeaders);
+    if ("response" in auth) return auth.response;
+    const userId = auth.userId;
     const userRes = await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${userId}&select=is_admin`, { headers: adminHeaders });
     const [user] = await userRes.json();
     const isAdmin = !!user?.is_admin;
