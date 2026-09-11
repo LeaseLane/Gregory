@@ -86,7 +86,7 @@ ${extraLines.length ? extraLines.join("\n") + "\n" : ""}
 Merci de répondre ici (accepter, refuser, proposer une autre heure, ou poser une question) :
 ${responseUrl}
 
-L'équipe Portail`;
+L'équipe Lease Lane`;
 
     await fetch("https://api.resend.com/emails", {
       method: "POST",

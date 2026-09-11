@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portail Pro — Recevez des contrats immobiliers près de chez vous</title>
+<title>Lease Lane Pro — Recevez des contrats immobiliers près de chez vous</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -67,11 +67,11 @@
 <body>
 <div class="wrap">
   <a class="back-link" href="index.html">&larr; Retour à l'accueil</a>
-  <div class="brand"><a href="index.html"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:26px;width:auto;display:inline-block;vertical-align:middle;"></a></div>
+  <div class="brand"><a href="index.html"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:26px;width:auto;display:inline-block;vertical-align:middle;"></a></div>
 
   <div class="hero">
     <h1>Recevez des contrats immobiliers près de chez vous.</h1>
-    <p class="lead">Portail Pro connecte les propriétaires qui ont besoin d'un entretien ou d'une réparation aux travailleurs autonomes de leur secteur — automatiquement, dès qu'un mandat correspondant à ton profil devient disponible.</p>
+    <p class="lead">Lease Lane Pro connecte les propriétaires qui ont besoin d'un entretien ou d'une réparation aux travailleurs autonomes de leur secteur — automatiquement, dès qu'un mandat correspondant à ton profil devient disponible.</p>
   </div>
 
   <ul class="benefits">
@@ -132,7 +132,7 @@
 
       <div class="checkbox-row">
         <input type="checkbox" name="consent" id="consent" required>
-        <label for="consent">J'accepte que mes informations soient utilisées par Portail pour évaluer mon profil et me proposer des mandats. Voir notre <a href="politique-de-confidentialite.html" target="_blank">politique de confidentialité</a>.</label>
+        <label for="consent">J'accepte que mes informations soient utilisées par Lease Lane pour évaluer mon profil et me proposer des mandats. Voir notre <a href="politique-de-confidentialite.html" target="_blank">politique de confidentialité</a>.</label>
       </div>
 
       <button type="submit" class="submit" id="submit-btn">Créer mon profil</button>
@@ -209,7 +209,7 @@ document.getElementById('pro-form').addEventListener('submit', async (e) => {
     msgEl.className = 'form-msg ok';
     msgEl.textContent = data.email_sent
       ? "Ton profil est créé — vérifie ta boîte courriel pour tes identifiants."
-      : "Ton profil est créé, mais le courriel de bienvenue n'a pas pu être envoyé. Contacte l'équipe Portail pour obtenir tes identifiants.";
+      : "Ton profil est créé, mais le courriel de bienvenue n'a pas pu être envoyé. Contacte l'équipe Lease Lane pour obtenir tes identifiants.";
     form.reset();
     selectedSpecialties.clear();
     document.querySelectorAll('#specialty-chips .chip').forEach(c => c.classList.remove('selected'));

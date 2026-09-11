@@ -1,3 +1,4 @@
+import { EXPEDITEUR } from "../_shared/branding.ts";
 // Moteur de dispatch Portail Pro — trouve automatiquement les travailleurs
 // admissibles à un work_order et leur diffuse le mandat par paliers de
 // score (au lieu qu'un admin cherche manuellement au téléphone).
@@ -50,7 +51,7 @@ const SAFETY_INSTRUCTIONS: Record<string, string> = {
   fuite_eau: "Si tu sais où se trouve la valve d'arrêt d'eau, ferme-la. Éponge ce que tu peux et éloigne tout appareil électrique de la zone mouillée.",
   chauffage: "Habille-toi chaudement, évite les chaufferettes d'appoint non surveillées, et signale-nous si la température devient dangereuse pour des enfants, personnes âgées ou animaux.",
   electrique: "Ne touche pas à la source du problème (prise, fil, interrupteur) et coupe le disjoncteur concerné si tu peux le faire en toute sécurité.",
-  enferme: "Reste calme, appelle le 911 si la situation est dangereuse, sinon reste joignable — quelqu'un de Portail te contacte immédiatement.",
+  enferme: "Reste calme, appelle le 911 si la situation est dangereuse, sinon reste joignable — quelqu'un de Lease Lane te contacte immédiatement.",
   egout: "Évite tout contact avec l'eau contaminée, ferme la porte de la pièce touchée si possible, et aère si tu le peux sans aggraver la situation.",
 };
 const DEFAULT_SAFETY_INSTRUCTIONS = "Reste en sécurité et évite d'intervenir toi-même sur le problème — un travailleur va te contacter très prochainement.";
@@ -88,7 +89,7 @@ Deno.serve(async (req) => {
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ from: "Portail <onboarding@mail.portailgestion.ca>", to: adminEmails, subject, text }),
+          body: JSON.stringify({ from: EXPEDITEUR, to: adminEmails, subject, text }),
         }).catch(() => null);
       }
     };
@@ -104,12 +105,12 @@ Deno.serve(async (req) => {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            from: "Portail <onboarding@mail.portailgestion.ca>",
+            from: EXPEDITEUR,
             to: [w.email],
             subject: workOrder.is_urgent
               ? `URGENT — nouveau mandat disponible — ${address}, unité ${unitNumber}`
               : `Nouveau mandat disponible — ${address}, unité ${unitNumber}`,
-            text: `Un mandat correspondant à ton profil est disponible.\n\nDescription : ${workOrder.description}\nAdresse : ${address}, unité ${unitNumber}\nRémunération offerte : ${workOrder.worker_pay != null ? workOrder.worker_pay + " $" : "à discuter (diagnostic requis)"}\n${workOrder.is_urgent ? "\nCeci est un mandat URGENT — premier arrivé, premier servi.\n" : ""}\nConnecte-toi à ton portail pour l'accepter avant qu'un autre travailleur ne le prenne :\n${SITE_BASE_URL}/portail-travailleur.html\n\nL'équipe Portail`,
+            text: `Un mandat correspondant à ton profil est disponible.\n\nDescription : ${workOrder.description}\nAdresse : ${address}, unité ${unitNumber}\nRémunération offerte : ${workOrder.worker_pay != null ? workOrder.worker_pay + " $" : "à discuter (diagnostic requis)"}\n${workOrder.is_urgent ? "\nCeci est un mandat URGENT — premier arrivé, premier servi.\n" : ""}\nConnecte-toi à ton portail pour l'accepter avant qu'un autre travailleur ne le prenne :\n${SITE_BASE_URL}/portail-travailleur.html\n\nL'équipe Lease Lane`,
           }),
         }).catch(() => null);
       }

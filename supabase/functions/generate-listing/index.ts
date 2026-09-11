@@ -1,3 +1,4 @@
+import { EXPEDITEUR } from "../_shared/branding.ts";
 // Marketplace (Facebook) n'a pas d'API publique de publication — cette
 // fonction ne publie donc rien elle-même. Dès qu'une annonce est
 // rédigée pour le site, elle prépare AUSSI le texte prêt à copier sur
@@ -79,7 +80,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const prompt = `Tu es l'assistant de location de "Portail", une entreprise de gestion immobilière résidentielle au Québec. Rédige une annonce de location en français pour ce logement VACANT (nouveau bail, pas un renouvellement — les comparables de marché sont donc appropriés ici).
+    const prompt = `Tu es l'assistant de location de "Lease Lane", une entreprise de gestion immobilière résidentielle au Québec. Rédige une annonce de location en français pour ce logement VACANT (nouveau bail, pas un renouvellement — les comparables de marché sont donc appropriés ici).
 
 Type de logement: ${unit.unit_type || "non spécifié"}
 Adresse: ${unit.buildings?.address || ""}
@@ -168,7 +169,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            from: "Portail <onboarding@mail.portailgestion.ca>",
+            from: EXPEDITEUR,
             to: [...recipientEmails],
             subject: `Annonce prête à publier — ${address}`,
             text: `Le logement suivant est vacant (ou le sera bientôt) et son annonce a été préparée automatiquement :\n\n${address}${unit.unit_type ? " — " + unit.unit_type : ""}\nLoyer suggéré : ${finalRent != null ? finalRent + " $/mois" : "à confirmer"}\n\n--- Annonce du site (déjà en ligne automatiquement) ---\n${parsed.description || ""}\n\n--- Prête à coller sur Facebook Marketplace ---\nTitre : ${marketplaceTitle}\nPrix : ${finalRent != null ? finalRent : "à confirmer"}\nDescription :\n${marketplaceDescription}\n\nIl ne reste qu'à copier ce texte dans Marketplace (aucune publication automatique n'est possible — Facebook ne le permet pas via une API externe). Une fois publié, marque l'annonce comme "publiée" dans le portail admin.`,

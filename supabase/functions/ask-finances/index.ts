@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
     const contentParts = [
       {
         type: "text",
-        text: `Tu es le Copilote financier de "Portail" pour le propriétaire ${owner.full_name}. Voici des agrégats DÉJÀ CALCULÉS (déterministiquement, pas par toi) sur ses ${LOOKBACK_MONTHS} derniers mois :\n\n${JSON.stringify(aggregates, null, 2)}\n\nRègles strictes :\n- Réponds UNIQUEMENT à partir des chiffres ci-dessus. N'invente et ne recalcule jamais un montant qui n'y figure pas déjà.\n- Si la question porte sur une donnée absente de ces agrégats (ex: une période hors de la fenêtre de ${LOOKBACK_MONTHS} mois, ou un détail trop fin), dis-le clairement plutôt que d'estimer.\n- Réponds en français, de façon concise (3-5 phrases), avec les chiffres exacts en dollars.\n\nQuestion du propriétaire : "${question}"`,
+        text: `Tu es le Copilote financier de "Lease Lane" pour le propriétaire ${owner.full_name}. Voici des agrégats DÉJÀ CALCULÉS (déterministiquement, pas par toi) sur ses ${LOOKBACK_MONTHS} derniers mois :\n\n${JSON.stringify(aggregates, null, 2)}\n\nRègles strictes :\n- Réponds UNIQUEMENT à partir des chiffres ci-dessus. N'invente et ne recalcule jamais un montant qui n'y figure pas déjà.\n- Si la question porte sur une donnée absente de ces agrégats (ex: une période hors de la fenêtre de ${LOOKBACK_MONTHS} mois, ou un détail trop fin), dis-le clairement plutôt que d'estimer.\n- Réponds en français, de façon concise (3-5 phrases), avec les chiffres exacts en dollars.\n\nQuestion du propriétaire : "${question}"`,
       },
     ];
 

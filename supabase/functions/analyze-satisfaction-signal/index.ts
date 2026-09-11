@@ -1,3 +1,4 @@
+import { EXPEDITEUR } from "../_shared/branding.ts";
 // L'IA classe le sentiment d'un texte déjà écrit par un humain — elle
 // n'invente jamais un motif d'insatisfaction et ne décide jamais seule
 // d'escalader. La décision d'escalade est un seuil fixe et
@@ -52,7 +53,7 @@ Deno.serve(async (req) => {
       "Content-Type": "application/json",
     };
 
-    const prompt = `Tu es l'assistant qui aide l'équipe de "Portail" (gestion immobilière au Québec) à repérer l'insatisfaction avant qu'elle ne s'aggrave. Voici un texte écrit par un ${subject_type === "owner" ? "propriétaire client" : "locataire"}. Classe UNIQUEMENT le ton de ce texte tel qu'il est écrit — n'invente aucun fait ni aucune cause qui ne serait pas dans le texte.
+    const prompt = `Tu es l'assistant qui aide l'équipe de "Lease Lane" (gestion immobilière au Québec) à repérer l'insatisfaction avant qu'elle ne s'aggrave. Voici un texte écrit par un ${subject_type === "owner" ? "propriétaire client" : "locataire"}. Classe UNIQUEMENT le ton de ce texte tel qu'il est écrit — n'invente aucun fait ni aucune cause qui ne serait pas dans le texte.
 
 Texte : "${content}"
 
@@ -157,7 +158,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              from: "Portail <onboarding@mail.portailgestion.ca>",
+              from: EXPEDITEUR,
               to: adminEmails,
               subject: `⚠ Signal d'insatisfaction à traiter (${subject_type === "owner" ? "propriétaire" : "locataire"})`,
               text: `Un signal d'insatisfaction a été détecté et nécessite ton attention.\n\nSource : ${source}\nExtrait : "${content.slice(0, 500)}"\n\nAnalyse IA (sentiment : ${sentiment}) : ${parsed.reasoning || "aucune explication fournie"}\n\nCeci est une classification automatique à titre indicatif — la décision d'action revient à l'équipe. Voir la section "Signaux d'insatisfaction" du portail admin.`,

@@ -1,3 +1,4 @@
+import { EXPEDITEUR } from "../_shared/branding.ts";
 // Envoie le courriel d'une règle d'automatisation (action_type =
 // 'envoyer_rappel_email'), déclenché par execute_automation_rules() via
 // pg_cron/pg_net — jamais appelé directement par un utilisateur. Le texte
@@ -78,10 +79,10 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "Portail <onboarding@mail.portailgestion.ca>",
+        from: EXPEDITEUR,
         to: [recipientEmail],
         subject: rule.name,
-        text: `Bonjour ${recipientName},\n\n${rule.action_message}\n\n— L'équipe Portail`,
+        text: `Bonjour ${recipientName},\n\n${rule.action_message}\n\n— L'équipe Lease Lane`,
       }),
     });
     if (!emailRes.ok) {

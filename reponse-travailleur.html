@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Portail — Réponse à une assignation</title>
+<title>Lease Lane — Réponse à une assignation</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,7 +39,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="brand"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></div>
+  <div class="brand"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></div>
   <div id="loading"><p class="muted">Chargement...</p></div>
 
   <div id="main" style="display:none;">
@@ -94,7 +94,7 @@
     </div>
 
     <div id="panel-already-done" class="panel">
-      <p class="muted">Merci ! Tu as déjà signalé ce travail comme terminé. L'équipe Portail va confirmer la fermeture du dossier.</p>
+      <p class="muted">Merci ! Tu as déjà signalé ce travail comme terminé. L'équipe Lease Lane va confirmer la fermeture du dossier.</p>
     </div>
 
     <div id="result" class="result"></div>
@@ -102,7 +102,7 @@
 
   <div id="not-found" style="display:none;">
     <h1>Lien invalide</h1>
-    <p class="subtitle">Ce lien n'est plus valide — une réponse a peut-être déjà été enregistrée, ou le lien a expiré. Contacte l'équipe Portail si tu as des questions.</p>
+    <p class="subtitle">Ce lien n'est plus valide — une réponse a peut-être déjà été enregistrée, ou le lien a expiré. Contacte l'équipe Lease Lane si tu as des questions.</p>
   </div>
 </div>
 
@@ -175,14 +175,14 @@ async function submitCompletion(){
     btn.disabled = false;
     btn.textContent = 'Envoyer';
     result.className = 'result error active';
-    result.textContent = data?.error || "Une erreur est survenue — réessaie, ou contacte l'équipe Portail si ça persiste.";
+    result.textContent = data?.error || "Une erreur est survenue — réessaie, ou contacte l'équipe Lease Lane si ça persiste.";
     return;
   }
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   result.className = 'result active';
-  result.textContent = "Merci ! Le travail a été signalé comme terminé avec tes photos. L'équipe Portail va confirmer la fermeture du dossier.";
+  result.textContent = "Merci ! Le travail a été signalé comme terminé avec tes photos. L'équipe Lease Lane va confirmer la fermeture du dossier.";
   if(data?.skipped_photos){
-    result.textContent += ` Attention : ${data.skipped_photos} photo(s) n'ont pas pu être envoyée(s) — contacte l'équipe Portail si c'est important.`;
+    result.textContent += ` Attention : ${data.skipped_photos} photo(s) n'ont pas pu être envoyée(s) — contacte l'équipe Lease Lane si c'est important.`;
   }
 }
 
@@ -198,16 +198,16 @@ async function respond(action){
   if(!ok){
     buttons.forEach(b => b.disabled = false);
     result.className = 'result error active';
-    result.textContent = data?.error || "Une erreur est survenue — réessaie, ou contacte l'équipe Portail si ça persiste.";
+    result.textContent = data?.error || "Une erreur est survenue — réessaie, ou contacte l'équipe Lease Lane si ça persiste.";
     return;
   }
 
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   const messages = {
     accept: "Merci ! Ta disponibilité est confirmée pour ce travail.",
-    decline: data.reassigned ? "Compris, ce travail a été réassigné à un autre travailleur." : "Compris. L'équipe Portail a été avisée qu'aucun autre travailleur n'est disponible.",
-    propose_time: "Ta proposition d'horaire a été transmise à l'équipe Portail — tu recevras une confirmation.",
-    request_info: "Ta question a été transmise à l'équipe Portail — tu recevras une réponse bientôt.",
+    decline: data.reassigned ? "Compris, ce travail a été réassigné à un autre travailleur." : "Compris. L'équipe Lease Lane a été avisée qu'aucun autre travailleur n'est disponible.",
+    propose_time: "Ta proposition d'horaire a été transmise à l'équipe Lease Lane — tu recevras une confirmation.",
+    request_info: "Ta question a été transmise à l'équipe Lease Lane — tu recevras une réponse bientôt.",
   };
   result.className = 'result active';
   result.textContent = messages[action] || "Réponse enregistrée.";
@@ -229,7 +229,7 @@ async function init(){
   if(!ok || (!canRespond && !canReportDone && !alreadyReportedDone)){
     document.getElementById('not-found').style.display = 'block';
     if(ok && data.worker_response && data.worker_response !== 'pending'){
-      document.querySelector('#not-found .subtitle').textContent = "Une réponse a déjà été enregistrée pour ce travail. Contacte l'équipe Portail si tu as des questions.";
+      document.querySelector('#not-found .subtitle').textContent = "Une réponse a déjà été enregistrée pour ce travail. Contacte l'équipe Lease Lane si tu as des questions.";
     }
     return;
   }

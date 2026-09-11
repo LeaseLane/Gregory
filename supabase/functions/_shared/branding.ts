@@ -31,9 +31,19 @@
 // Le seul endroit à changer le jour de la bascule.
 export const DOMAINE = "portailgestion.ca";
 
-// Nom affiché dans les courriels et les pages. Peut basculer AVANT le
-// domaine : renommer la marque visible ne dépend d'aucun DNS.
-export const MARQUE = "Portail";
+// Nom affiché dans les courriels et les pages. Bascule AVANT le domaine :
+// renommer la marque visible ne dépend d'aucun DNS.
+//
+// Basculé le 2026-09-11. Les clients lisent donc « Lease Lane » dans les
+// courriels, alors que les LIENS de ces courriels pointent encore vers
+// portailgestion.ca — c'est voulu et c'est le seul état cohérent tant que
+// P9 n'est pas fait : un lien vers leaselane.ca mènerait aujourd'hui à une
+// page stationnée chez Namecheap (vérifié à nouveau le 2026-09-11,
+// mail.leaselane.ca est toujours en NXDOMAIN).
+//
+// L'alternative — garder « Portail » — était pire : Grégory signe déjà
+// greg@leaselane.ca et communique sous ce nom à ses clients.
+export const MARQUE = "Lease Lane";
 
 export const SITE_BASE_URL = `https://${DOMAINE}`;
 
