@@ -1,0 +1,135 @@
+name: Test de restauration chronométré
+
+# Lot P10 — critère d'acceptation : « une restauration de base de données
+# a été exécutée et chronométrée avec succès ».
+#
+# CE QUE CE WORKFLOW PROUVE, ET CE QU'IL NE PROUVE PAS.
+#
+# Il prouve qu'une sauvegarde produite par backup.yml est RELISIBLE et
+# RESTAURABLE : le dump se télécharge, pg_restore l'applique sur une base
+# vide, et les tables attendues s'y retrouvent avec leurs données. C'est
+# la seule vérification qui compte — une sauvegarde jamais restaurée est
+# une hypothèse, pas un filet.
+#
+# Il ne prouve pas qu'une restauration de production serait indolore :
+# les tâches cron, les secrets du vault et les fonctions edge ne sont pas
+# dans le dump (voir docs/BACKUPS.md). Le chronomètre mesure la remise en
+# service des DONNÉES, pas du service complet.
+#
+# ⚠️  LA CIBLE EST TOUJOURS LA PRÉPRODUCTION. Une restauration ÉCRASE la
+# base visée : `pg_restore --clean` supprime les objets avant de les
+# recréer. Ce workflow refuse de s'exécuter si l'URL de destination
+# contient la référence du projet de production.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "ID du run backup.yml dont on restaure l'artefact. Vide = le plus récent."
+        required: false
+        default: ""
+
+jobs:
+  restauration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Même version que backup.yml : pg_restore refuse une archive
+      # produite par un pg_dump plus récent que lui.
+      - name: Installer pg_restore 17
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          pg_restore --version | grep -q ' 17\.' || {
+            echo "::error::pg_restore n'est pas en version 17."
+            exit 1
+          }
+
+      - name: Récupérer la sauvegarde la plus récente
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RUN_ID:-}" ]; then
+            RUN_ID=$(gh run list --workflow=backup.yml --status=success \
+                       --limit 1 --json databaseId --jq '.[0].databaseId')
+          fi
+          if [ -z "${RUN_ID:-}" ] || [ "$RUN_ID" = "null" ]; then
+            echo "::error::Aucune exécution réussie de backup.yml — rien à restaurer."
+            exit 1
+          fi
+          echo "Restauration de l'artefact du run $RUN_ID"
+          echo "RUN_ID=$RUN_ID" >> "$GITHUB_ENV"
+          gh run download "$RUN_ID" --dir ./sauvegarde
+          find ./sauvegarde -name '*.dump' -exec mv {} ./portail-backup.dump \;
+          ls -lh portail-backup.dump
+
+      - name: Vérifier la cible et restaurer, chronomètre en marche
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
+          PROD_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "::error::Le secret SUPABASE_STAGING_DB_URL n'est pas configuré — voir docs/BACKUPS.md."
+            exit 1
+          fi
+          # Garde-fou : une restauration écrase la base visée.
+          if [ -n "${PROD_REF:-}" ] && printf '%s' "$DATABASE_URL" | grep -q "$PROD_REF"; then
+            echo "::error::L'URL de destination pointe vers la PRODUCTION. Test refusé."
+            exit 1
+          fi
+
+          debut=$(date +%s)
+          pg_restore --no-owner --no-privileges --clean --if-exists \
+            --exit-on-error -d "$DATABASE_URL" portail-backup.dump
+          fin=$(date +%s)
+          duree=$((fin - debut))
+          echo "DUREE=$duree" >> "$GITHUB_ENV"
+          echo "Restauration terminée en ${duree} s."
+
+      - name: Vérifier que les données sont bien là
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
+        run: |
+          set -euo pipefail
+          # Une restauration « réussie » qui rend une base vide est le
+          # pire des cas : elle rassure sans protéger. On compte donc ce
+          # qui compte vraiment.
+          lire() { psql "$DATABASE_URL" -tAc "$1" | tr -d '[:space:]'; }
+          tables=$(lire "select count(*) from information_schema.tables where table_schema='public' and table_type='BASE TABLE'")
+          proprios=$(lire "select count(*) from owners")
+          baux=$(lire "select count(*) from leases")
+          paiements=$(lire "select count(*) from payments")
+          policies=$(lire "select count(*) from pg_policies where schemaname='public'")
+
+          echo "Tables: $tables | propriétaires: $proprios | baux: $baux | paiements: $paiements | policies: $policies"
+
+          echec=0
+          [ "$tables"   -ge 49 ] || { echo "::error::$tables tables restaurées, 49 attendues."; echec=1; }
+          [ "$policies" -ge 80 ] || { echo "::error::$policies policies RLS, au moins 80 attendues — l'étanchéité ne survivrait pas à la restauration."; echec=1; }
+          [ "$proprios" -ge 1 ]  || { echo "::error::Aucun propriétaire restauré — la sauvegarde ne contenait pas de données."; echec=1; }
+
+          {
+            echo "| Test de restauration (lot P10) | Valeur |"
+            echo "|---|---|"
+            echo "| Durée | **${DUREE} s** |"
+            echo "| Tables | $tables |"
+            echo "| Policies RLS | $policies |"
+            echo "| Propriétaires | $proprios |"
+            echo "| Baux | $baux |"
+            echo "| Paiements | $paiements |"
+            echo "| Artefact restauré | run \`${RUN_ID}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit $echec
