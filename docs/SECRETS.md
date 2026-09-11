@@ -76,8 +76,28 @@ doivent être identiques — c'est précisément ce qui a cassé (voir § 3).
 **Résultat attendu du mandat : aucun secret de production ne doit être
 accessible depuis la préproduction.**
 
-État au 2026-09-11 : **pas encore applicable**, faute de préproduction.
-La branche Supabase est bloquée par la PR #9.
+**✅ VÉRIFIÉ LE 2026-09-11.** La préproduction existe
+(`wwoapogkerhkowqqvwsu`) et ne porte **aucun secret de production** :
+
+```
+supabase secrets list --project-ref wwoapogkerhkowqqvwsu
+→ 7 secrets, tous générés par Supabase pour la branche elle-même :
+  SUPABASE_ANON_KEY, SUPABASE_DB_URL, SUPABASE_JWKS,
+  SUPABASE_PUBLISHABLE_KEYS, SUPABASE_SECRET_KEYS,
+  SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL
+```
+
+Aucune trace d'`ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `TWILIO_AUTH_TOKEN`,
+`FLINKS_*`, `TURNSTILE_SECRET_KEY`, ni des secrets internes. Les branches
+Supabase n'héritent pas des secrets du projet parent — la séparation est
+donc structurelle, pas seulement conventionnelle.
+
+Conséquence observée au lot P11 : la catégorisation IA échoue en
+préproduction avec `401 x-api-key header is required`. **C'est le
+comportement voulu** — une erreur en préproduction ne peut pas dépenser
+sur le compte Anthropic de production. Pour exercer les parcours IA, il
+faudra une clé Anthropic distincte avec un plafond mensuel bas, jamais
+celle de production.
 
 Règles à appliquer dès que la branche existe :
 
