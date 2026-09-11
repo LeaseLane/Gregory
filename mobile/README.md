@@ -1,6 +1,6 @@
 # Portail — app mobile (iOS / Android)
 
-Coquille native [Capacitor](https://capacitorjs.com) autour des portails web existants. **Aucune logique métier ici** : l'app charge en direct `https://portailgestion.ca/app.html`, exactement comme un navigateur — la connexion, les 3 portails (propriétaire/locataire/travailleur) et tout le reste continuent de tourner sur le même code et le même backend Supabase que le site web. Publier une mise à jour de `portail-locataire.html` etc. met à jour l'app instantanément, sans nouvelle soumission aux stores.
+Coquille native [Capacitor](https://capacitorjs.com) autour des portails web existants. **Aucune logique métier ici** : l'app charge en direct `https://leaselane.ca/app.html`, exactement comme un navigateur — la connexion, les 3 portails (propriétaire/locataire/travailleur) et tout le reste continuent de tourner sur le même code et le même backend Supabase que le site web. Publier une mise à jour de `portail-locataire.html` etc. met à jour l'app instantanément, sans nouvelle soumission aux stores.
 
 `app.html` (à la racine du repo) est le point d'entrée : connexion unique, puis redirection automatique vers le bon portail selon le rôle du compte (fonction `whoami`).
 

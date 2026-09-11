@@ -35,17 +35,20 @@ Deno.test("les adresses Reply-To restent sur le domaine racine", () => {
   }
 });
 
-Deno.test("le domaine n'est pas basculé avant que P9 soit fait", () => {
-  // Garde délibérée. leaselane.ca est stationné chez Namecheap et
-  // mail.leaselane.ca n'existe pas (vérifié le 2026-09-07) : basculer
-  // maintenant casserait tous les liens et tous les envois.
+Deno.test("le domaine et le CNAME de GitHub Pages restent d'accord", () => {
+  // La garde d'origine figeait DOMAINE sur portailgestion.ca tant que P9
+  // n'était pas fait. P9 étant fait (2026-09-11), elle est remplacée
+  // plutôt que supprimée : ce qui compte maintenant n'est plus « ne pas
+  // basculer » mais « ne pas basculer À MOITIÉ ».
   //
-  // POUR BASCULER : faire P9 (DNS + domaine vérifié chez Resend +
-  // délivrabilité), puis changer DOMAINE, puis SUPPRIMER ce test, puis
-  // mettre à jour CNAME, sitemap.xml et ALLOWED_ORIGINS dans auth.ts.
+  // Le fichier CNAME dit à GitHub Pages quel domaine servir. S'il diverge
+  // de DOMAINE, les courriels pointent vers un domaine que Pages ne sert
+  // pas — et la panne est invisible depuis le code, puisque les deux
+  // valeurs sont correctes prises séparément.
+  const cname = Deno.readTextFileSync(new URL("../../../CNAME", import.meta.url)).trim();
   assertEquals(
+    cname,
     DOMAINE,
-    "portailgestion.ca",
-    "DOMAINE a changé : confirmer que P9 est terminé (DNS + Resend vérifié) et supprimer ce test.",
+    `CNAME (${cname}) et DOMAINE (${DOMAINE}) divergent : GitHub Pages ne servirait pas le domaine des liens.`,
   );
 });

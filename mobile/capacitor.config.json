@@ -3,7 +3,7 @@
   "appName": "Portail",
   "webDir": "www",
   "server": {
-    "url": "https://portailgestion.ca/app.html",
+    "url": "https://leaselane.ca/app.html",
     "androidScheme": "https",
     "iosScheme": "https"
   }
