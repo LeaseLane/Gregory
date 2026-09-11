@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
       ? "connecté — erreur de synchronisation, vérification requise"
       : "connexion bancaire interrompue, à reconnecter";
 
-    const prompt = `Tu es l'assistant financier de "Portail", une entreprise de gestion immobilière résidentielle au Québec. Rédige un résumé court (3-5 phrases) du rapport mensuel d'un propriétaire, en français, ton clair et factuel, dans le style de cet exemple :
+    const prompt = `Tu es l'assistant financier de "Lease Lane", une entreprise de gestion immobilière résidentielle au Québec. Rédige un résumé court (3-5 phrases) du rapport mensuel d'un propriétaire, en français, ton clair et factuel, dans le style de cet exemple :
 
 "L'immeuble a encaissé 98 % des loyers ce mois-ci. Une unité présente un retard de cinq jours. Deux réparations ont été complétées pour un coût total de 630 $, incluant les frais de coordination."
 

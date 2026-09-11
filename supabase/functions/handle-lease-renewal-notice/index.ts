@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
 
       // Minimisation (Loi 25) : rédiger l'avis n'exige pas le nom ni
       // l'adresse du locataire — le destinataire les connaît déjà.
-      const prompt = `Tu es l'assistant de gestion locative de "Portail", au Québec. Rédige un avis à un locataire à propos de son bail. Utilise UNIQUEMENT les faits fournis ci-dessous — n'invente aucune date, aucun montant, aucune règle légale.
+      const prompt = `Tu es l'assistant de gestion locative de "Lease Lane", au Québec. Rédige un avis à un locataire à propos de son bail. Utilise UNIQUEMENT les faits fournis ci-dessous — n'invente aucune date, aucun montant, aucune règle légale.
 
 Fin du bail actuel : ${lease.end_date}
 Décision : ${factsLabel}
@@ -92,7 +92,7 @@ ${message ? `Message additionnel du gestionnaire : ${message}` : ""}
 Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 {
   "subject": "objet de courriel court et professionnel en français",
-  "body": "corps du courriel en français (4-6 phrases), professionnel et clair, qui communique exactement la décision ci-dessus sans ajouter de détail non fourni. Signé 'L'équipe Portail'."
+  "body": "corps du courriel en français (4-6 phrases), professionnel et clair, qui communique exactement la décision ci-dessus sans ajouter de détail non fourni. Signé 'L'équipe Lease Lane'."
 }`;
 
       const aiStartedAt = Date.now();

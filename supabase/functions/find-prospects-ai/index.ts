@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
     );
 
     // 3. Recherche web réelle via Claude — jamais de données inventées.
-    const prompt = `Tu es un chercheur de prospects pour "Portail", une entreprise québécoise de gestion immobilière qui offre ses services à des propriétaires qui gèrent eux-mêmes leurs immeubles à logements.
+    const prompt = `Tu es un chercheur de prospects pour "Lease Lane", une entreprise québécoise de gestion immobilière qui offre ses services à des propriétaires qui gèrent eux-mêmes leurs immeubles à logements.
 
 Utilise l'outil de recherche web pour trouver de VRAIS propriétaires au Québec qui possèdent et gèrent eux-mêmes un ou plusieurs immeubles à logements (plusieurs unités locatives), et qui ne semblent pas déjà faire affaire avec une entreprise de gestion immobilière.
 

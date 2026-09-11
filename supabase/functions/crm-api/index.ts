@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "prospect introuvable" }), { status: 404, headers: corsHeaders });
       }
 
-      const prompt = `Tu es l'assistant CRM de "Portail". Voici la transcription/notes d'un appel avec un prospect propriétaire. Analyse-la en détail.
+      const prompt = `Tu es l'assistant CRM de "Lease Lane". Voici la transcription/notes d'un appel avec un prospect propriétaire. Analyse-la en détail.
 
 Transcription: "${transcript}"
 

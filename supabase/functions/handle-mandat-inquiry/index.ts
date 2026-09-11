@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     const ownershipLabel = inquiry.ownership === "societe" ? "par une société" : inquiry.ownership === "personnel" ? "personnellement" : "non précisé";
     const managementLabel = inquiry.current_management === "sous_gestion" ? "déjà sous gestion" : inquiry.current_management === "autogere" ? "autogéré" : "non précisé";
 
-    const prompt = `Tu es l'assistant CRM de "Portail", une entreprise de gestion immobilière résidentielle au Québec. Rédige un résumé en une phrase pour l'équipe commerciale à partir de cette demande de mandat.
+    const prompt = `Tu es l'assistant CRM de "Lease Lane", une entreprise de gestion immobilière résidentielle au Québec. Rédige un résumé en une phrase pour l'équipe commerciale à partir de cette demande de mandat.
 
 Secteur : ${inquiry.sector || "non précisé"}
 Portes : ${numDoors ?? "non précisé"}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portail — Prospection téléphonique</title>
+<title>Lease Lane — Prospection téléphonique</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <meta name="robots" content="noindex, nofollow">
@@ -98,7 +98,7 @@
 
 <div id="login-screen">
   <div class="login-box">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Espace prospection téléphonique</div>
     <div class="f"><label for="login-email">Courriel</label><input type="email" id="login-email"></div>
     <div class="f"><label for="login-password">Mot de passe</label><input type="password" id="login-password"></div>
@@ -108,7 +108,7 @@
   </div>
 
   <div class="login-box" id="reset-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Réinitialiser le mot de passe</div>
     <div class="f"><label for="reset-email">Courriel</label><input type="email" id="reset-email"></div>
     <button onclick="sendResetLink()">Envoyer le lien</button>
@@ -118,7 +118,7 @@
   </div>
 
   <div class="login-box" id="newpw-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Choisir un nouveau mot de passe</div>
     <div class="f"><label for="newpw-value">Nouveau mot de passe</label><input type="password" id="newpw-value"></div>
     <button onclick="confirmNewPassword()">Confirmer</button>
@@ -129,7 +129,7 @@
 <div id="app-shell">
   <div class="shell">
     <aside>
-      <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+      <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
       <span class="brand-sub">Espace prospection téléphonique</span>
       <button class="tab-btn active" data-tab="queue" onclick="showTab('queue')">Ma file d'appels</button>
       <button class="tab-btn" data-tab="new-client" onclick="showTab('new-client')">+ Nouveau client</button>
@@ -280,7 +280,7 @@ async function loadCallerDashboard(userId){
     return;
   }
   if(!caller.active){
-    showLoginError("Ton compte est désactivé — contacte l'équipe Portail.");
+    showLoginError("Ton compte est désactivé — contacte l'équipe Lease Lane.");
     return;
   }
   callerRecord = caller;

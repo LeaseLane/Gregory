@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Accès refusé — aucun profil travailleur associé à ce compte" }), { status: 403, headers: corsHeaders });
     }
     if (worker.active === false) {
-      return new Response(JSON.stringify({ error: "Ton compte est désactivé — contacte l'équipe Portail" }), { status: 403, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "Ton compte est désactivé — contacte l'équipe Lease Lane" }), { status: 403, headers: corsHeaders });
     }
     const workerId = worker.id;
 

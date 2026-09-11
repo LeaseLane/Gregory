@@ -1,3 +1,4 @@
+import { EXPEDITEUR } from "../_shared/branding.ts";
 Deno.serve(async (req) => {
   try {
     const { payment_id, reminder_type } = await req.json();
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              from: "Portail <onboarding@mail.portailgestion.ca>",
+              from: EXPEDITEUR,
               to: adminEmails,
               subject: `Suivi humain requis — loyer impayé, unité ${unit?.unit_number || ""}`,
               text: `${tenant.full_name} (${tenant.email}) n'a pas payé le loyer dû le ${payment.due_date} (${payment.amount} $) malgré 3 rappels automatiques envoyés à ${address || ""}, unité ${unit?.unit_number || ""}.\n\nAucun autre rappel automatique ne sera envoyé à ce locataire pour ce paiement. Un suivi humain (appel, entente, mise en demeure si applicable) est requis.`,
@@ -82,7 +83,7 @@ Deno.serve(async (req) => {
 
     // Minimisation (Loi 25) : rédiger un rappel générique n'exige pas le
     // nom ni l'adresse du locataire — le destinataire les connaît déjà.
-    const prompt = `Tu es l'assistant du service à la clientèle de "Portail", une entreprise de gestion immobilière résidentielle au Québec. Rédige un courriel de rappel de paiement de loyer à un locataire.
+    const prompt = `Tu es l'assistant du service à la clientèle de "Lease Lane", une entreprise de gestion immobilière résidentielle au Québec. Rédige un courriel de rappel de paiement de loyer à un locataire.
 
 Type de rappel: ${reminder_type === "late" ? "Le paiement est EN RETARD (déjà passé la date d'échéance)" : "Le paiement arrive bientôt à échéance (rappel préventif)"}
 Numéro de ce rappel pour ce paiement: ${sequenceNumber}
@@ -92,12 +93,12 @@ Date d'échéance: ${payment.due_date}
 RÈGLES STRICTES (ne jamais les enfreindre) :
 - Ne mentionne JAMAIS de conséquence juridique, éviction, poursuite, pénalité, intérêt ou frais de retard — ces informations ne sont pas fournies et ne doivent jamais être inventées.
 - Ne menace jamais le locataire, même à un rappel avancé. Le ton reste professionnel et respectueux en tout temps.
-- Si le locataire doit régulariser sa situation ou a des questions, invite-le simplement à contacter l'équipe Portail — ne présume jamais de la procédure applicable.
+- Si le locataire doit régulariser sa situation ou a des questions, invite-le simplement à contacter l'équipe Lease Lane — ne présume jamais de la procédure applicable.
 
 Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 {
   "subject": "un objet de courriel court et professionnel en français",
-  "body": "un courriel bref, poli et professionnel en français (3-4 phrases). Si c'est un retard, reste courtois mais clair sur l'importance de régulariser rapidement et d'entrer en contact si besoin. Si c'est préventif, ton simplement informatif et amical. Signé 'L'équipe Portail'."
+  "body": "un courriel bref, poli et professionnel en français (3-4 phrases). Si c'est un retard, reste courtois mais clair sur l'importance de régulariser rapidement et d'entrer en contact si besoin. Si c'est préventif, ton simplement informatif et amical. Signé 'L'équipe Lease Lane'."
 }`;
 
     const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -130,7 +131,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Portail <onboarding@mail.portailgestion.ca>",
+        from: EXPEDITEUR,
         to: [tenant.email],
         subject: parsed.subject,
         text: parsed.body,

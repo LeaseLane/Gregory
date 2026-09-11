@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
         ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: file_base64 } }
         : { type: "image", source: { type: "base64", media_type: content_type, data: file_base64 } };
 
-      const prompt = `Tu es l'assistant comptable de "Portail", une entreprise de gestion immobilière résidentielle au Québec. Voici une facture ou un reçu de fournisseur téléversé par un admin. Analyse-le et extrais les informations pour préparer une écriture de dépense.
+      const prompt = `Tu es l'assistant comptable de "Lease Lane", une entreprise de gestion immobilière résidentielle au Québec. Voici une facture ou un reçu de fournisseur téléversé par un admin. Analyse-le et extrais les informations pour préparer une écriture de dépense.
 
 Liste des immeubles gérés (id :: adresse), pour tenter une correspondance si une adresse est visible sur la facture :
 ${buildingsList || "(aucun immeuble enregistré)"}

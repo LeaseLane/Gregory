@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Portail — Confirmation de réparation</title>
+<title>Lease Lane — Confirmation de réparation</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,7 +41,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="brand"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></div>
+  <div class="brand"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></div>
   <div id="loading"><p class="muted">Chargement...</p></div>
 
   <div id="main" style="display:none;">
@@ -81,7 +81,7 @@
 
   <div id="not-found" style="display:none;">
     <h1>Lien invalide</h1>
-    <p class="subtitle" id="not-found-text">Ce lien n'est plus valide — une réponse a peut-être déjà été enregistrée, ou le lien a expiré. Contacte l'équipe Portail si tu as des questions.</p>
+    <p class="subtitle" id="not-found-text">Ce lien n'est plus valide — une réponse a peut-être déjà été enregistrée, ou le lien a expiré. Contacte l'équipe Lease Lane si tu as des questions.</p>
   </div>
 </div>
 
@@ -138,13 +138,13 @@ async function respond(action){
 
   if(!ok){
     result.className = 'result error active';
-    result.textContent = data?.error || "Une erreur est survenue. Merci de contacter l'équipe Portail.";
+    result.textContent = data?.error || "Une erreur est survenue. Merci de contacter l'équipe Lease Lane.";
     return;
   }
 
   const messages = {
     confirm: "Merci d'avoir confirmé ! Le dossier est maintenant fermé.",
-    reopen: "Merci de nous l'avoir signalé — l'équipe Portail a été avisée et va s'en occuper.",
+    reopen: "Merci de nous l'avoir signalé — l'équipe Lease Lane a été avisée et va s'en occuper.",
   };
   result.className = 'result active';
   result.textContent = messages[action] || "Réponse enregistrée.";
@@ -162,7 +162,7 @@ async function init(){
   if(!ok || data.tenant_confirmed === true || data.tenant_confirmed === false){
     document.getElementById('not-found').style.display = 'block';
     if(ok){
-      document.getElementById('not-found-text').textContent = "Une réponse a déjà été enregistrée pour ce travail. Contacte l'équipe Portail si tu as des questions.";
+      document.getElementById('not-found-text').textContent = "Une réponse a déjà été enregistrée pour ce travail. Contacte l'équipe Lease Lane si tu as des questions.";
     }
     return;
   }

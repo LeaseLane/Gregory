@@ -1,3 +1,4 @@
+import { EXPEDITEUR } from "../_shared/branding.ts";
 Deno.serve(async (req) => {
   try {
     const { approval_id, decision } = await req.json();
@@ -42,13 +43,13 @@ Deno.serve(async (req) => {
       ? "APPROUVÉE — les travaux sont autorisés et seront planifiés."
       : `REFUSÉE — le budget demandé n'est pas autorisé pour l'instant. Le dossier N'EST PAS fermé : ${
           isUrgent
-            ? "étant donné l'urgence/le risque signalé, l'équipe Portail cherche une solution alternative (autre soumission, intervention partielle) sans délai."
-            : `l'équipe Portail va obtenir une autre soumission ou évaluer une solution alternative, avec un suivi prévu d'ici le ${reassessmentDue || "prochains jours"}.`
+            ? "étant donné l'urgence/le risque signalé, l'équipe Lease Lane cherche une solution alternative (autre soumission, intervention partielle) sans délai."
+            : `l'équipe Lease Lane va obtenir une autre soumission ou évaluer une solution alternative, avec un suivi prévu d'ici le ${reassessmentDue || "prochains jours"}.`
         }${ownerNote ? ` Note du propriétaire à transmettre si pertinente pour le locataire : "${ownerNote}"` : ""}`;
 
     // Minimisation (Loi 25) : rédiger l'avis n'exige pas le nom ni
     // l'adresse du locataire — le destinataire les connaît déjà.
-    const prompt = `Tu es l'assistant du service à la clientèle de "Portail", une entreprise de gestion immobilière résidentielle au Québec. Un propriétaire vient de prendre une décision au sujet d'une réparation demandée par un locataire. Rédige un courriel informant le locataire du résultat.
+    const prompt = `Tu es l'assistant du service à la clientèle de "Lease Lane", une entreprise de gestion immobilière résidentielle au Québec. Un propriétaire vient de prendre une décision au sujet d'une réparation demandée par un locataire. Rédige un courriel informant le locataire du résultat.
 
 Décision: ${decisionContext}
 Description des travaux demandés: ${workOrder?.description || ""}
@@ -61,7 +62,7 @@ RÈGLES STRICTES :
 Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 {
   "subject": "un objet de courriel court et professionnel en français",
-  "body": "un courriel bref, poli et professionnel en français (3-5 phrases) informant le locataire de la décision et de la vraie prochaine étape. Signé 'L'équipe Portail'."
+  "body": "un courriel bref, poli et professionnel en français (3-5 phrases) informant le locataire de la décision et de la vraie prochaine étape. Signé 'L'équipe Lease Lane'."
 }`;
 
     const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -94,7 +95,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Portail <onboarding@mail.portailgestion.ca>",
+        from: EXPEDITEUR,
         to: [tenant.email],
         subject: parsed.subject,
         text: parsed.body,

@@ -42,7 +42,7 @@ jobs:
         #   messagerie         — un message appartient à un seul fil
         #   appel-interne      — comparaison de secret à temps constant
         #   indicateurs        — « aucune donnée » ne s'affiche pas « 0 $ »
-        #   turnstile          — une panne Cloudflare ne bloque pas les formulaires
+        #   rappels-confirmes  — un rappel non livré ne se compte pas
         run: |
           set -euo pipefail
           for f in scripts/check-onboarding-gaps.mjs \
@@ -50,7 +50,7 @@ jobs:
                    scripts/check-messagerie.mjs \
                    scripts/check-appel-interne.mjs \
                    scripts/check-indicateurs-immeuble.mjs \
-                   scripts/check-turnstile.mjs; do
+                   scripts/check-rappels-confirmes.mjs; do
             echo "→ $f"
             node "$f"
           done

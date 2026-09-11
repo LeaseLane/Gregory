@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     // nom/courriel/téléphone ne sont donc jamais envoyés à l'IA ; ils
     // restent disponibles pour le courriel à l'équipe et l'écran admin,
     // construits localement plus bas à partir de `record` directement.
-    const prompt = `Tu es l'assistant du service à la clientèle de "Portail", une entreprise de gestion immobilière résidentielle au Québec. Un formulaire a été soumis sur le site public. Ce courriel est envoyé AUTOMATIQUEMENT, sans relecture humaine avant l'envoi.
+    const prompt = `Tu es l'assistant du service à la clientèle de "Lease Lane", une entreprise de gestion immobilière résidentielle au Québec. Un formulaire a été soumis sur le site public. Ce courriel est envoyé AUTOMATIQUEMENT, sans relecture humaine avant l'envoi.
 
 Type de demande: ${record.type === "visite" ? "Demande de visite pour un logement" : "Propriétaire souhaitant confier son immeuble en gestion"}
 Message: ${record.message || "(aucun message)"}
@@ -33,7 +33,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
   "category": "une courte étiquette de catégorisation en français",
   "summary": "un résumé en 1-2 phrases en français, à l'intention du gestionnaire",
   "reply_subject": "un objet de courriel court et professionnel en français",
-  "reply_body": "un courriel de réponse chaleureux, professionnel et concis en français (3-5 phrases), qui confirme la réception de la demande, indique qu'un membre de l'équipe la contactera bientôt, pose une question sur une information manquante si pertinent, et est signé 'L'équipe Portail'",
+  "reply_body": "un courriel de réponse chaleureux, professionnel et concis en français (3-5 phrases), qui confirme la réception de la demande, indique qu'un membre de l'équipe la contactera bientôt, pose une question sur une information manquante si pertinent, et est signé 'L'équipe Lease Lane'",
   "estimated_units": "si le message mentionne le nombre de logements de l'immeuble, ce nombre (entier) ; sinon null",
   "estimated_monthly_rent": "si le message permet d'estimer le loyer mensuel TOTAL de l'immeuble (somme de tous les logements), ce montant en dollars (nombre) ; sinon null"
 }`;

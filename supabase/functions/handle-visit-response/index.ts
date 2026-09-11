@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
           from: EXPEDITEUR,
           to: [visit.prospect_email],
           subject: `Rappel — ta visite de demain`,
-          text: `Bonjour ${visit.prospect_name},\n\nPetit rappel pour ta visite prévue :\n${address || ""}, unité ${unit?.unit_number || ""}\n${whenLabel}\n\nUn empêchement ? Avise-nous ici : ${confirmUrl}\n\nL'équipe Portail`,
+          text: `Bonjour ${visit.prospect_name},\n\nPetit rappel pour ta visite prévue :\n${address || ""}, unité ${unit?.unit_number || ""}\n${whenLabel}\n\nUn empêchement ? Avise-nous ici : ${confirmUrl}\n\nL'équipe Lease Lane`,
         }),
       });
       await fetch(`${supabaseUrl}/rest/v1/visits?id=eq.${visit_id}`, {

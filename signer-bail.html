@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Portail — Signature du renouvellement de bail</title>
+<title>Lease Lane — Signature du renouvellement de bail</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,7 +39,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="brand"><img src="assets/logo.png" alt="Portail — Gestion immobilière" style="height:28px;width:auto;display:block;"></div>
+  <div class="brand"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></div>
   <div id="loading"><p class="muted">Chargement...</p></div>
 
   <div id="main" style="display:none;">
@@ -68,7 +68,7 @@
 
   <div id="not-found" style="display:none;">
     <h1>Lien invalide</h1>
-    <p class="subtitle" id="not-found-text">Ce lien n'est plus valide — une signature a peut-être déjà été enregistrée, ou le lien a expiré. Contacte l'équipe Portail si tu as des questions.</p>
+    <p class="subtitle" id="not-found-text">Ce lien n'est plus valide — une signature a peut-être déjà été enregistrée, ou le lien a expiré. Contacte l'équipe Lease Lane si tu as des questions.</p>
   </div>
 </div>
 
@@ -167,7 +167,7 @@ async function submitSignature(){
   if(!ok){
     document.getElementById('sign-btn').disabled = false;
     result.className = 'result error active';
-    result.textContent = data?.error || "Une erreur est survenue. Merci de contacter l'équipe Portail.";
+    result.textContent = data?.error || "Une erreur est survenue. Merci de contacter l'équipe Lease Lane.";
     return;
   }
 
@@ -186,7 +186,7 @@ async function init(){
   if(!ok){
     document.getElementById('not-found').style.display = 'block';
     if(data?.already_signed){
-      document.getElementById('not-found-text').textContent = 'Ce bail a déjà été signé. Contacte l\'équipe Portail si tu as des questions.';
+      document.getElementById('not-found-text').textContent = 'Ce bail a déjà été signé. Contacte l\'équipe Lease Lane si tu as des questions.';
     }
     return;
   }

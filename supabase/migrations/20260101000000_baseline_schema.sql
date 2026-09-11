@@ -55,6 +55,30 @@ SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
+
+-- Le SET ci-dessus ne vaut QUE pour la session en cours. Le lanceur de
+-- migrations d'une branche Supabase n'exécute pas forcément tout le
+-- fichier dans une seule session : constaté le 2026-09-11, la branche
+-- repartait avec check_function_bodies = on et s'arrêtait à la deuxième
+-- instruction du corps.
+--
+-- Pourquoi ça casse : 11 fonctions sont déclarées LANGUAGE sql, et
+-- PostgreSQL VALIDE le corps d'une fonction sql à sa création (contrairement
+-- à plpgsql, qui ne le fait qu'à l'appel). Or `supabase db dump` trie les
+-- objets par ordre alphabétique, pas par dépendance : ces fonctions sont
+-- écrites avant les 49 tables qu'elles interrogent.
+--
+--   CREATE FUNCTION auth_caller_id() ... select id from cold_callers ...
+--   → ERROR 42P01: relation "cold_callers" does not exist
+--
+-- ALTER DATABASE rend le réglage persistant quelle que soit la session.
+-- Il est remis à sa valeur normale à la toute fin du fichier.
+DO $$
+BEGIN
+  EXECUTE format('ALTER DATABASE %I SET check_function_bodies = off',
+                 current_database());
+END
+$$;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
@@ -5247,3 +5271,14 @@ CREATE TRIGGER on_work_order_worker_assigned BEFORE INSERT OR UPDATE ON public.w
 --   CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
 --     FOR EACH ROW EXECUTE FUNCTION handle_new_auth_user();
 --
+
+-- Rétablit la validation des corps de fonction, désactivée en tête de
+-- fichier le temps de créer les 11 fonctions LANGUAGE sql avant leurs
+-- tables. La laisser désactivée masquerait de vraies erreurs dans toutes
+-- les migrations suivantes.
+DO $$
+BEGIN
+  EXECUTE format('ALTER DATABASE %I RESET check_function_bodies',
+                 current_database());
+END
+$$;
