@@ -69,3 +69,27 @@ Depuis un poste avec `pg_dump` installé et la chaîne de connexion :
 ```
 pg_dump "<connection-string>" --no-owner --no-privileges --format=custom --file=backup-manuel.dump
 ```
+
+## Test de restauration chronométré — lot P10
+
+`.github/workflows/restore-test.yml`, déclenchement manuel. Il télécharge
+l'artefact d'une exécution réussie de `backup.yml`, le restaure sur la
+**préproduction** avec `pg_restore` 17, chronomètre l'opération, puis
+vérifie le contenu restauré : 49 tables, au moins 80 policies RLS, au
+moins un propriétaire.
+
+Cette dernière vérification est le cœur du test. Une restauration
+« réussie » qui rend une base vide est le pire des cas — elle rassure
+sans protéger.
+
+**Secret requis :** `SUPABASE_STAGING_DB_URL`, la chaîne de connexion de
+la branche de préproduction. Le workflow refuse de s'exécuter si l'URL
+contient la référence du projet de production : `pg_restore --clean`
+supprime les objets avant de les recréer, donc une erreur de cible
+détruirait la base visée.
+
+**Ce que le test ne prouve pas.** Les tâches cron (schéma `cron`), les
+secrets du vault et les fonctions edge ne sont pas dans le dump. Le
+chronomètre mesure la remise en service des **données**, pas du service
+complet. Une restauration réelle demanderait en plus de rejouer
+`20260907190000_p1_taches_cron.sql` et de reposer les secrets.
