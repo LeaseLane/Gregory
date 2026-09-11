@@ -1,4 +1,5 @@
 import { corsHeadersFor } from "../_shared/auth.ts";
+import { refuserSiRobot } from "../_shared/turnstile.ts";
 // FAQ publique en question libre — sur le modèle du Copilot du portail
 // propriétaire (ask-documents.ts / ask-finances.ts), mais sans authentification
 // et sans accès à aucune donnée d'un compte : l'IA répond uniquement à partir
@@ -48,6 +49,16 @@ Deno.serve(async (req) => {
     if (website) {
       return new Response(JSON.stringify({ answer: "" }), { status: 200, headers: corsHeaders });
     }
+
+    // Anti-robot (lot P5). Placé APRÈS le champ piège et AVANT tout
+    // travail : une soumission refusée ne doit consommer ni requête à la
+    // base, ni appel à l'IA, ni ligne de journal métier.
+    const refusRobot = await refuserSiRobot(
+      body["cf-turnstile-response"],
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+      corsHeaders,
+    );
+    if (refusRobot) return refusRobot;
 
     if (!question || typeof question !== "string" || !question.trim()) {
       return new Response(JSON.stringify({ error: "Question manquante" }), { status: 400, headers: corsHeaders });
