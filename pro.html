@@ -63,6 +63,7 @@
   .back-link{display:inline-block;font-size:12.5px;color:var(--muted);text-decoration:none;margin-bottom:18px;}
   .back-link:hover{color:var(--brass-dark);}
 </style>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -135,6 +136,8 @@
         <label for="consent">J'accepte que mes informations soient utilisées par Portail pour évaluer mon profil et me proposer des mandats. Voir notre <a href="politique-de-confidentialite.html" target="_blank">politique de confidentialité</a>.</label>
       </div>
 
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEwdcNdTN1rCC_Jz" data-language="fr"
+           style="margin-bottom:12px;"></div>
       <button type="submit" class="submit" id="submit-btn">Créer mon profil</button>
       <p class="form-msg" id="form-msg"></p>
     </form>
@@ -176,6 +179,8 @@ document.getElementById('pro-form').addEventListener('submit', async (e) => {
   }
 
   const payload = {
+    // Jeton anti-robot posé par le widget Turnstile (lot P5).
+    'cf-turnstile-response': form['cf-turnstile-response']?.value || '',
     full_name: form.full_name.value.trim(),
     company_name: form.company_name.value.trim() || null,
     email: form.email.value.trim(),
@@ -202,6 +207,9 @@ document.getElementById('pro-form').addEventListener('submit', async (e) => {
     if(!res.ok || data.error){
       msgEl.className = 'form-msg error';
       msgEl.textContent = data.error || "Une erreur est survenue, réessaie dans un instant.";
+      // Le jeton Turnstile est à usage unique : sans réinitialisation,
+      // la deuxième tentative échouerait toujours (lot P5).
+      if (window.turnstile) window.turnstile.reset();
       btn.disabled = false;
       btn.textContent = 'Créer mon profil';
       return;
@@ -217,6 +225,9 @@ document.getElementById('pro-form').addEventListener('submit', async (e) => {
   } catch (err) {
     msgEl.className = 'form-msg error';
     msgEl.textContent = "Impossible de contacter le serveur — vérifie ta connexion et réessaie.";
+    // Le jeton Turnstile est à usage unique : sans réinitialisation,
+    // la deuxième tentative échouerait toujours (lot P5).
+    if (window.turnstile) window.turnstile.reset();
     btn.disabled = false;
     btn.textContent = 'Créer mon profil';
   }

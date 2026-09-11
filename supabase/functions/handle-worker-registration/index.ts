@@ -1,5 +1,6 @@
 import { EXPEDITEUR, PORTAILS } from "../_shared/branding.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
+import { refuserSiRobot } from "../_shared/turnstile.ts";
 
 const WORKER_PORTAL_URL = PORTAILS.travailleur;
 const RATE_LIMIT_PER_HOUR = 5;
@@ -26,6 +27,16 @@ Deno.serve(async (req) => {
     if (website) {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
     }
+
+    // Anti-robot (lot P5). Placé APRÈS le champ piège et AVANT tout
+    // travail : une soumission refusée ne doit consommer ni requête à la
+    // base, ni appel à l'IA, ni ligne de journal métier.
+    const refusRobot = await refuserSiRobot(
+      body["cf-turnstile-response"],
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+      corsHeaders,
+    );
+    if (refusRobot) return refusRobot;
 
     if (!full_name || String(full_name).trim().length < 2 || String(full_name).length > 200) {
       return new Response(JSON.stringify({ error: "Nom invalide" }), { status: 400, headers: corsHeaders });

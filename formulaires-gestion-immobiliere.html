@@ -44,6 +44,7 @@
   .confirm.active{display:block;}
   .error{color:var(--rust);font-size:12.5px;margin-top:10px;display:none;}
 </style>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -71,6 +72,8 @@
         <input type="checkbox" name="consent" id="visite-consent" required style="width:auto;margin-top:3px;">
         <label for="visite-consent" style="font-weight:400;">J'accepte que mes informations soient utilisées par Portail pour me contacter au sujet de cette demande. Voir notre <a href="politique-de-confidentialite.html" target="_blank">politique de confidentialité</a>.</label>
       </div>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEwdcNdTN1rCC_Jz" data-language="fr"
+           style="margin-bottom:12px;"></div>
       <button class="submit" type="submit">Envoyer la demande</button>
       <p class="error" id="error-visite"></p>
     </form>
@@ -115,6 +118,8 @@
         <input type="checkbox" name="consent" id="mandat-consent" required style="width:auto;margin-top:3px;">
         <label for="mandat-consent" style="font-weight:400;">J'accepte que mes informations soient utilisées par Portail pour me contacter au sujet de cette demande. Voir notre <a href="politique-de-confidentialite.html" target="_blank">politique de confidentialité</a>.</label>
       </div>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEwdcNdTN1rCC_Jz" data-language="fr"
+           style="margin-bottom:12px;"></div>
       <button class="submit" type="submit">Envoyer ma demande</button>
       <p class="error" id="error-mandat"></p>
     </form>
@@ -187,6 +192,8 @@ async function submitInquiry(event, type){
     phone: form.phone.value || null,
     message: form.message?.value || null,
     website: form.website.value || '',
+    // Jeton anti-robot posé par le widget Turnstile (lot P5).
+    'cf-turnstile-response': form['cf-turnstile-response']?.value || '',
     consent: form.consent.checked,
   };
   if(type === 'visite' && unitId){
@@ -215,12 +222,18 @@ async function submitInquiry(event, type){
     if(!res.ok || result.error){
       errorEl.textContent = result.error || "Une erreur est survenue, réessaie dans un instant.";
       errorEl.style.display = 'block';
+      // Le jeton Turnstile est à usage unique : sans réinitialisation,
+      // la deuxième tentative échouerait toujours (lot P5).
+      if (window.turnstile) window.turnstile.reset();
       button.disabled = false;
       return;
     }
   } catch (e) {
     errorEl.textContent = "Une erreur est survenue, réessaie dans un instant.";
     errorEl.style.display = 'block';
+    // Le jeton Turnstile est à usage unique : sans réinitialisation,
+    // la deuxième tentative échouerait toujours (lot P5).
+    if (window.turnstile) window.turnstile.reset();
     button.disabled = false;
     return;
   }
