@@ -57,7 +57,9 @@ jobs:
         # auth : un jeton falsifié doit être rejeté (critère P3).
         # branding : aucune URL ni expéditeur écrit en dur, et le domaine
         # ne peut pas basculer avant que P9 (DNS + Resend) soit fait.
-        run: deno test --allow-env --allow-net supabase/functions/_shared/
+        # --allow-read : le test « le domaine et le CNAME restent
+        # d'accord » lit le fichier CNAME à la racine (lot P9).
+        run: deno test --allow-env --allow-net --allow-read supabase/functions/_shared/
 
       - name: Vérification des types du module partagé
         # Le module partagé doit rester sans erreur, sans exception.
