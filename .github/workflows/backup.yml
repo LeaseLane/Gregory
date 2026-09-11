@@ -33,7 +33,23 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update
           sudo apt-get install -y postgresql-client-17
+
+          # Installer le paquet ne suffit pas. `/usr/bin/pg_dump` est un
+          # script d'aiguillage Debian qui choisit la version du cluster
+          # PAR DÉFAUT, pas la plus récente installée : avec les clients 16
+          # et 17 côte à côte, il continue d'appeler le 16 et l'erreur de
+          # version reste identique. Il faut mettre le binaire versionné
+          # devant dans le PATH.
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+          # Vérifie tout de suite que c'est bien le 17 qui répond, plutôt
+          # que de le découvrir à l'étape du dump.
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
           pg_dump --version
+          pg_dump --version | grep -q ' 17\.' || {
+            echo "::error::pg_dump n'est pas en version 17 — le dump échouerait sur un serveur 17.6."
+            exit 1
+          }
 
       - name: Créer la sauvegarde
         env:
