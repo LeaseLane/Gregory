@@ -69,6 +69,17 @@ jobs:
             echo "Le secret \`SUPABASE_STAGING_REF\` n'est pas configuré : rien ne valide ce code avant la production." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
+          # ⚠️ `supabase link` AVANT `db push` : sans lui, `--linked` lit
+          # project_id dans supabase/config.toml, qui pointe la PRODUCTION.
+          # Les migrations de la préproduction partiraient donc vers la
+          # vraie base.
+          supabase link --project-ref "$STAGING_REF" --yes
+
+          # Les MIGRATIONS d'abord, les fonctions ensuite. Une fonction qui
+          # lit une colonne pas encore créée échoue; l'inverse ne se
+          # produit pas. C'est aussi l'ordre suivi en production plus bas —
+          # la préproduction doit éprouver la même séquence.
+          supabase db push --linked --include-all --yes
           supabase functions deploy --project-ref "$STAGING_REF"
           echo "deploye=true" >> "$GITHUB_OUTPUT"
 
@@ -112,6 +123,13 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
+          # Le pipeline ne poussait QUE les fonctions. Constaté le
+          # 2026-09-12 : cinq migrations étaient sur main depuis des jours
+          # sans avoir jamais touché la production — dont le garde-fou
+          # Loi 25 du lot G1. Le dépôt disait « fusionné », la base disait
+          # le contraire, et rien ne signalait l'écart.
+          supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}" --yes
+          supabase db push --linked --include-all --yes
           supabase functions deploy --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
 
       - name: Consigner le commit déployé
