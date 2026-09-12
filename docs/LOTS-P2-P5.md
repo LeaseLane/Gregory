@@ -26,7 +26,7 @@ des jetons. P2 porte sur la gestion et la séparation des accès.
 | P2.1 | Les secrets sont inventoriés | ✅ `docs/SECRETS.md` § 1 |
 | P2.2 | Chaque secret a été tourné | ❌ aucun depuis le 2026-08-17 |
 | P2.3 | Préproduction et production ont des secrets distincts | ✅ vérifié le 2026-09-11 |
-| P2.4 | La gestion des accès est documentée | ⚠️ § 4 — admins Supabase à recenser |
+| P2.4 | La gestion des accès est documentée | ✅ recensé le 2026-09-11 |
 | P2.5 | La procédure de rotation est documentée | ✅ `docs/SECRETS.md` § 3 |
 
 **Ce qui existe.** Le vault Supabase contient deux secrets :
