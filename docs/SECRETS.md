@@ -76,8 +76,28 @@ doivent être identiques — c'est précisément ce qui a cassé (voir § 3).
 **Résultat attendu du mandat : aucun secret de production ne doit être
 accessible depuis la préproduction.**
 
-État au 2026-09-11 : **pas encore applicable**, faute de préproduction.
-La branche Supabase est bloquée par la PR #9.
+**✅ VÉRIFIÉ LE 2026-09-11.** La préproduction existe
+(`wwoapogkerhkowqqvwsu`) et ne porte **aucun secret de production** :
+
+```
+supabase secrets list --project-ref wwoapogkerhkowqqvwsu
+→ 7 secrets, tous générés par Supabase pour la branche elle-même :
+  SUPABASE_ANON_KEY, SUPABASE_DB_URL, SUPABASE_JWKS,
+  SUPABASE_PUBLISHABLE_KEYS, SUPABASE_SECRET_KEYS,
+  SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL
+```
+
+Aucune trace d'`ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `TWILIO_AUTH_TOKEN`,
+`FLINKS_*`, `TURNSTILE_SECRET_KEY`, ni des secrets internes. Les branches
+Supabase n'héritent pas des secrets du projet parent — la séparation est
+donc structurelle, pas seulement conventionnelle.
+
+Conséquence observée au lot P11 : la catégorisation IA échoue en
+préproduction avec `401 x-api-key header is required`. **C'est le
+comportement voulu** — une erreur en préproduction ne peut pas dépenser
+sur le compte Anthropic de production. Pour exercer les parcours IA, il
+faudra une clé Anthropic distincte avec un plafond mensuel bas, jamais
+celle de production.
 
 Règles à appliquer dès que la branche existe :
 
@@ -232,28 +252,58 @@ personnes ayant eu accès sera stabilisée.
 
 ## 4. Gestion des accès
 
-| Rôle | Donne accès à | Qui l'a au 2026-09-11 |
-|---|---|---|
-| Supabase — admin du projet | Tous les secrets edge, le vault, la base | À recenser |
-| GitHub — admin du dépôt | Secrets Actions, réglages Pages | gregpic006, cheedli |
-| GitHub — écriture | Code, ouverture de PR | Hamzaamdou |
-| Namecheap | DNS des deux domaines | gregpic006, cheedli |
-| Resend | Domaine d'envoi, clés API | gregpic006, cheedli |
-| Cloudflare | Turnstile | cheedli |
+| Service | Rôle | Qui | MFA |
+|---|---|---|---|
+| **Supabase** | Owner | chedhly@thewebismine.ca | ❌ |
+| **Supabase** | Owner | greg.picard.2003@gmail.com | ❌ |
+| **Supabase** | Owner | ha@thewebismine.ca | ❌ |
+| **Supabase** | Developer | chedley@thewebismine.ca — **invitation EXPIRÉE** | ❌ |
+| **GitHub** | admin | cheedli | — |
+| **GitHub** | admin | gregpic006 | — |
+| **GitHub** | écriture | Hamzaamdou | — |
+| **Namecheap** | — | gregpic006, chedhly | — |
+| **Resend** | — | gregpic006, chedhly | — |
+| **Cloudflare** | Turnstile | chedhly | — |
 
-**À faire :** recenser les admins du projet Supabase, et retirer les accès
-des personnes qui n'en ont plus besoin. C'est le préalable à toute
-rotation utile — tourner un secret que cinq anciens collaborateurs
-connaissent encore ne protège de rien.
+Recensé le 2026-09-11. **Aucun accès à retirer** : les quatre comptes
+Supabase et les trois comptes GitHub correspondent tous à des personnes
+actives sur le mandat.
 
----
+### ⚠️ Deux constats qui dépassent le cadre de P2
+
+**1. Aucun compte Supabase n'a la MFA activée.** Les trois Owners peuvent
+lire tous les secrets, vider la base et supprimer le projet. C'est un
+trou plus large que celui du portail admin couvert par P4 : la MFA du
+portail protège les données des clients, celle de Supabase protège
+l'infrastructure entière.
+
+Activation : Supabase → avatar → Account Settings → Multi-Factor
+Authentication. Quelques minutes par personne, aucun code à écrire.
+
+**2. `chedley@thewebismine.ca` est une invitation expirée** — une adresse
+très proche de `chedhly@thewebismine.ca`. Soit une faute de frappe à
+supprimer, soit une invitation à renvoyer. Une invitation expirée
+n'ouvre aucun accès, mais elle encombre la liste et brouille le
+recensement suivant.
+
+### Conséquence pour la rotation (P2.2)
+
+Aucun ancien collaborateur ne figure sur les listes : **rotation non
+urgente**. Aucune n'a jamais eu lieu, donc aucun délai n'est dépassé.
+
+Le moment raisonnable est **après la mise en service réelle**, quand la
+liste des personnes ayant eu accès sera stabilisée. La faire la semaine
+précédente ajouterait du risque sans en retirer.
+
+Exception : si quelqu'un quitte le mandat, rotation immédiate de ce qu'il
+connaissait, sans attendre.
 
 ## 5. État du lot P2
 
 | # | Critère | Statut |
 |---|---|---|
 | P2.1 | Les secrets sont inventoriés | ✅ ce document, § 1 |
-| P2.2 | Chaque secret a été tourné | ❌ aucune rotation à ce jour |
+| P2.2 | Chaque secret a été tourné | ⚠️ aucune à ce jour — non urgente, voir § 4 |
 | P2.3 | Préproduction et production séparées | ❌ bloqué par P1 (PR #9) |
-| P2.4 | La gestion des accès est documentée | ⚠️ § 4, admins Supabase à recenser |
+| P2.4 | La gestion des accès est documentée | ✅ § 4, recensé le 2026-09-11 |
 | P2.5 | La procédure de rotation est documentée | ✅ § 3 |
