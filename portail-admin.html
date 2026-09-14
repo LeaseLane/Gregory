@@ -121,6 +121,36 @@
     <button onclick="confirmNewPassword()">Confirmer</button>
     <p class="login-error" id="newpw-error"></p>
   </div>
+
+  <!-- Lot P4 — inscription au deuxième facteur. Affiché quand le compte
+       n'a encore aucun facteur vérifié : on impose l'inscription tout de
+       suite plutôt que d'ouvrir le tableau de bord, sinon la garde
+       anti-verrouillage (transitoire par conception) devient l'état
+       permanent. -->
+  <div class="login-box" id="mfa-enroll-box" style="display:none;">
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="sub">Activer la double authentification</div>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Ouvre ton application d'authentification (Google Authenticator, Authy, 1Password…) et scanne ce code. Elle affichera ensuite un code à 6 chiffres qui change toutes les 30 secondes.</p>
+    <div id="mfa-qr" style="text-align:center;margin-bottom:12px;"></div>
+    <details style="margin-bottom:12px;">
+      <summary style="font-size:12px;color:var(--muted);cursor:pointer;">Impossible de scanner ?</summary>
+      <p style="font-size:11.5px;color:var(--muted);margin-top:6px;">Saisis cette clé à la main dans ton application :</p>
+      <code id="mfa-secret" style="font-size:11px;word-break:break-all;display:block;padding:8px;background:var(--paper);border:1px solid var(--line);"></code>
+    </details>
+    <div class="f"><label for="mfa-enroll-code">Code à 6 chiffres</label><input type="text" id="mfa-enroll-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}"></div>
+    <button onclick="confirmMfaEnrollment()">Activer</button>
+    <p class="login-error" id="mfa-error-enroll"></p>
+  </div>
+
+  <!-- Défi : le compte a déjà un facteur vérifié. -->
+  <div class="login-box" id="mfa-box" style="display:none;">
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="sub">Vérification en deux étapes</div>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Entre le code affiché par ton application d'authentification.</p>
+    <div class="f"><label for="mfa-code">Code à 6 chiffres</label><input type="text" id="mfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}"></div>
+    <button onclick="verifyMfaChallenge()">Vérifier</button>
+    <p class="login-error" id="mfa-error"></p>
+  </div>
   </div>
 </div>
 
@@ -797,7 +827,10 @@ async function init(){
     }
   });
   const { data: { session } } = await supabaseClient.auth.getSession();
-  if(session) await loadAdminDashboard();
+  // Une session restaurée doit passer par le même contrôle qu'une
+  // connexion fraîche (lot P4) : sans ça, rouvrir l'onglet contournerait
+  // le deuxième facteur.
+  if(session) await routeAfterPassword();
 }
 
 function showResetForm(){
@@ -843,6 +876,117 @@ async function handleLogin(){
   const password = document.getElementById('login-password').value;
   const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
   if(error){ showLoginError(error.message); return; }
+  // Le mot de passe seul donne aal1. Les 9 fonctions à privilèges exigent
+  // aal2 : on route donc vers le défi ou vers l'inscription (lot P4).
+  await routeAfterPassword();
+}
+
+// ---- Double authentification (lot P4) --------------------------------
+// Utilise le MFA natif de supabase-js v2 (TOTP) : aucune dépendance
+// supplémentaire, et le secret ne transite jamais par notre code.
+//
+// La logique de routage reflète celle du serveur (requireUserWithMfa dans
+// _shared/auth.ts) : un compte SANS facteur est laissé passer côté
+// serveur pour qu'il PUISSE s'inscrire — sinon les 9 fonctions à
+// privilèges répondraient 403 à tout le monde en même temps, portail
+// admin inclus. Cette garde est transitoire par conception, donc ici on
+// impose l'inscription immédiatement plutôt que d'ouvrir le tableau de
+// bord : sans ça, l'état transitoire devient permanent.
+
+let pendingFactorId = null;
+let pendingChallengeId = null;
+
+function showMfaBox(id, message){
+  ['reset-box','newpw-box','mfa-box','mfa-enroll-box'].forEach(function(b){
+    const el = document.getElementById(b);
+    if(el) el.style.display = (b === id) ? 'block' : 'none';
+  });
+  document.querySelector('#login-screen .login-box').style.display = 'none';
+  if(message){
+    const err = document.getElementById(id === 'mfa-enroll-box' ? 'mfa-error-enroll' : 'mfa-error');
+    if(err){ err.textContent = message; err.style.display = 'block'; }
+  }
+}
+
+async function routeAfterPassword(){
+  // Session déjà en aal2 (restaurée, ou facteur tout juste vérifié).
+  const { data: aalData } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+  if(aalData && aalData.currentLevel === 'aal2'){ await loadAdminDashboard(); return; }
+
+  const { data: factorData, error: factorError } = await supabaseClient.auth.mfa.listFactors();
+  if(factorError){ showLoginError(factorError.message); return; }
+  const verified = ((factorData && factorData.totp) || []).filter(function(f){ return f.status === 'verified'; });
+
+  if(verified.length){ await startMfaChallenge(verified[0].id); return; }
+  await startMfaEnrollment();
+}
+
+async function startMfaEnrollment(){
+  // Un facteur « unverified » traîne si une inscription précédente a été
+  // abandonnée. Le réutiliser évite l'erreur « factor already exists ».
+  const { data: liste } = await supabaseClient.auth.mfa.listFactors();
+  const enAttente = ((liste && liste.totp) || []).filter(function(f){ return f.status === 'unverified'; });
+  for(const f of enAttente){ await supabaseClient.auth.mfa.unenroll({ factorId: f.id }); }
+
+  const { data, error } = await supabaseClient.auth.mfa.enroll({
+    factorType: 'totp',
+    friendlyName: 'Lease Lane admin ' + Date.now(),
+  });
+  if(error){ showMfaBox('mfa-enroll-box', error.message); return; }
+
+  pendingFactorId = data.id;
+  const qr = document.getElementById('mfa-qr');
+  // Supabase renvoie le QR en SVG déjà encodé — pas de bibliothèque à charger.
+  // Le code QR arrive en data URI SVG, qui CONTIENT des guillemets : les
+  // concaténer dans une chaîne HTML referme l'attribut src trop tôt et
+  // le reste de la balise s'affiche en texte. On construit donc l'élément
+  // par le DOM, où la valeur n'est jamais réinterprétée comme du HTML.
+  qr.textContent = '';
+  const img = document.createElement('img');
+  img.src = data.totp.qr_code;
+  img.alt = 'Code QR à scanner';
+  img.style.maxWidth = '200px';
+  img.style.width = '100%';
+  qr.appendChild(img);
+  document.getElementById('mfa-secret').textContent = data.totp.secret;
+  showMfaBox('mfa-enroll-box');
+  const input = document.getElementById('mfa-enroll-code');
+  if(input){ input.value = ''; input.focus(); }
+}
+
+async function confirmMfaEnrollment(){
+  const code = (document.getElementById('mfa-enroll-code').value || '').trim();
+  if(!/^[0-9]{6}$/.test(code)){ showMfaBox('mfa-enroll-box', 'Entre les 6 chiffres affichés par ton application.'); return; }
+  const { data: challenge, error: cErr } = await supabaseClient.auth.mfa.challenge({ factorId: pendingFactorId });
+  if(cErr){ showMfaBox('mfa-enroll-box', cErr.message); return; }
+  const { error } = await supabaseClient.auth.mfa.verify({
+    factorId: pendingFactorId, challengeId: challenge.id, code: code,
+  });
+  if(error){ showMfaBox('mfa-enroll-box', error.message); return; }
+  document.getElementById('login-screen').style.display = 'none';
+  await loadAdminDashboard();
+}
+
+async function startMfaChallenge(factorId){
+  pendingFactorId = factorId;
+  const { data, error } = await supabaseClient.auth.mfa.challenge({ factorId: factorId });
+  if(error){ showMfaBox('mfa-box', error.message); return; }
+  pendingChallengeId = data.id;
+  showMfaBox('mfa-box');
+  const input = document.getElementById('mfa-code');
+  if(input){ input.value = ''; input.focus(); }
+}
+
+async function verifyMfaChallenge(){
+  const code = (document.getElementById('mfa-code').value || '').trim();
+  if(!/^[0-9]{6}$/.test(code)){ showMfaBox('mfa-box', 'Entre les 6 chiffres affichés par ton application.'); return; }
+  const { error } = await supabaseClient.auth.mfa.verify({
+    factorId: pendingFactorId, challengeId: pendingChallengeId, code: code,
+  });
+  // Un code faux ne doit pas déconnecter : on laisse réessayer. Le
+  // verrouillage après trop d'essais est géré par Supabase.
+  if(error){ showMfaBox('mfa-box', error.message); return; }
+  document.getElementById('login-screen').style.display = 'none';
   await loadAdminDashboard();
 }
 
