@@ -1,0 +1,55 @@
+name: Vérification du schéma
+
+# Le journal d'un déploiement dit qu'une migration s'est appliquée. Il ne
+# dit pas que les objets existent : une migration idempotente qui se
+# trompe de condition passe « avec succès » sans rien créer. Ce workflow
+# regarde la base elle-même.
+#
+# Lecture seule. Aucune écriture, aucune donnée de test.
+
+on:
+  workflow_dispatch:
+    inputs:
+      cible:
+        description: "Environnement visé"
+        required: true
+        default: "production"
+        type: choice
+        options: [production, preproduction]
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer psql 17
+        # Même contrainte que pour les sauvegardes : le serveur tourne en
+        # 17.6 et le paquet par défaut d'Ubuntu installe la 16.
+        run: |
+          set -euo pipefail
+          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Lire le schéma
+        env:
+          DB_URL: ${{ inputs.cible == 'production' && secrets.SUPABASE_DB_URL || secrets.SUPABASE_STAGING_DB_URL }}
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f scripts/verif-schema.sql | tee /tmp/schema.txt
+          {
+            echo "### Schéma — ${{ inputs.cible }}"
+            echo ""
+            echo '```'
+            cat /tmp/schema.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Un objet manquant fait échouer le workflow : un rapport vert
+          # qui contient « MANQUANT » ne serait lu par personne.
+          if grep -q MANQUANT /tmp/schema.txt; then
+            echo "::error::Des objets attendus sont absents de ${{ inputs.cible }}."
+            exit 1
+          fi
