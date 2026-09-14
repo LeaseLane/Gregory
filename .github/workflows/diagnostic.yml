@@ -1,7 +1,14 @@
 name: Diagnostic Portail
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      cible:
+        description: "Environnement visé"
+        required: true
+        default: "preproduction"
+        type: choice
+        options: [preproduction, production]
   # Le cron quotidien a été retiré : le script nettoie maintenant ses
   # propres données à la fin de chaque exécution (voir cleanup() dans
   # e2e-diagnostic.mjs), mais on préfère déclencher ce test manuellement
@@ -20,4 +27,9 @@ jobs:
         env:
           TEST_BOT_EMAIL: ${{ secrets.TEST_BOT_EMAIL }}
           TEST_BOT_PASSWORD: ${{ secrets.TEST_BOT_PASSWORD }}
+          # Le script vise la préproduction par défaut (lot P11). Viser la
+          # production exige de le demander explicitement : ce test crée
+          # des propriétaires, des baux et des demandes de service, et
+          # déclenche de vrais appels IA.
+          SUPABASE_URL: ${{ inputs.cible == 'production' && format('https://{0}.supabase.co', secrets.SUPABASE_PROJECT_REF) || format('https://{0}.supabase.co', secrets.SUPABASE_STAGING_REF) }}
         run: node scripts/e2e-diagnostic.mjs

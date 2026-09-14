@@ -15,8 +15,22 @@
 // si au moins un test a échoué, pour que GitHub Actions marque le
 // run en rouge.
 
-const SUPABASE_URL = "https://kdmwfbcziokygfcmjxeq.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR";
+// Cible configurable — lot P11. Le plan exige que le parcours complet
+// s'exécute EN PRÉPRODUCTION, pas en production : ce script crée des
+// propriétaires, des baux, des demandes de service et déclenche des
+// appels IA. Le faire contre la vraie base laisse des traces dans les
+// données d'un vrai client, et le nettoyage de fin n'est une garantie
+// que s'il s'exécute vraiment.
+//
+// Par défaut, on vise donc la PRÉPRODUCTION. Viser la production exige
+// de fournir explicitement SUPABASE_URL — un oubli ne peut pas frapper
+// la production par accident.
+const SUPABASE_URL = process.env.SUPABASE_URL
+  || "https://wwoapogkerhkowqqvwsu.supabase.co";
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY
+  || "sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR";
+
+console.log(`Cible du diagnostic : ${SUPABASE_URL}`);
 
 const TEST_BOT_EMAIL = process.env.TEST_BOT_EMAIL;
 const TEST_BOT_PASSWORD = process.env.TEST_BOT_PASSWORD;
