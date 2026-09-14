@@ -209,7 +209,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
     }
 
-    // Portail Pro — approuve ou refuse le dossier d'un travailleur
+    // Lease Lane Pro — approuve ou refuse le dossier d'un travailleur
     // auto-inscrit (voir handle-worker-registration.ts). Distinct de
     // update_worker_verification ci-dessus : ceci est la porte d'entrée
     // "peut-il recevoir des mandats du tout", pas le suivi continu de
@@ -236,7 +236,7 @@ Deno.serve(async (req) => {
     // Désactive/réactive un travailleur — un travailleur désactivé n'est
     // plus jamais choisi par create_work_order, reassign_work_order, la
     // cascade automatique (process_worker_response_timeouts, decline) ni
-    // le dispatch Portail Pro. Distinct de verify_worker_pro : un
+    // le dispatch Lease Lane Pro. Distinct de verify_worker_pro : un
     // travailleur peut être "vérifié" mais temporairement désactivé (ex:
     // en congé prolongé) sans perdre son dossier de vérification.
     if (action === "toggle_worker_active") {
@@ -342,7 +342,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
     }
 
-    // Portail Pro — au lieu de choisir un travailleur soi-même (comme
+    // Lease Lane Pro — au lieu de choisir un travailleur soi-même (comme
     // create_work_order ci-dessus), on laisse le moteur de dispatch
     // (dispatch-work-order.ts) trouver et solliciter les travailleurs
     // admissibles par paliers de score. Aucun worker_id ici : le work

@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: EXPEDITEUR,
         to: adminEmails,
-        subject: `⚠️ Portail — ${issueList.length} problème(s) détecté(s) par la surveillance système`,
+        subject: `⚠️ Lease Lane — ${issueList.length} problème(s) détecté(s) par la surveillance système`,
         text: `La vérification automatique de santé du système a détecté ${issueList.length} problème(s) :\n\n${bodyLines}\n\nCette alerte ne se répétera pas avant 2h tant que le problème persiste. Vérifie le tableau de bord admin (section « État du système ») pour plus de détails.`,
       }),
     });

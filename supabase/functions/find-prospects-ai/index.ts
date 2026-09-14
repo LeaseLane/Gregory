@@ -5,7 +5,7 @@ import { corsHeadersFor } from "../_shared/auth.ts";
 //
 // Cible EXCLUSIVEMENT des propriétaires qui gèrent eux-mêmes leur(s)
 // immeuble(s) — jamais une entreprise de gestion immobilière, une agence
-// de location ou un courtier : ce sont des concurrents de Portail, pas
+// de location ou un courtier : ce sont des concurrents de Lease Lane, pas
 // des prospects.
 //
 // Chaque prospect soumis doit inclure "source_url" (page web réelle où
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
 Utilise l'outil de recherche web pour trouver de VRAIS propriétaires au Québec qui possèdent et gèrent eux-mêmes un ou plusieurs immeubles à logements (plusieurs unités locatives), et qui ne semblent pas déjà faire affaire avec une entreprise de gestion immobilière.
 
 RÈGLES STRICTES :
-- Ne cible JAMAIS une entreprise de gestion immobilière, une agence de location, un courtier immobilier ou toute entreprise qui gère des immeubles POUR d'autres propriétaires — ce sont des concurrents de Portail, pas des prospects.
+- Ne cible JAMAIS une entreprise de gestion immobilière, une agence de location, un courtier immobilier ou toute entreprise qui gère des immeubles POUR d'autres propriétaires — ce sont des concurrents de Lease Lane, pas des prospects.
 - Ne cible que des propriétaires individuels, des sociétés à numéro ou des petites entreprises familiales qui gèrent LEURS PROPRES immeubles.
 - N'invente JAMAIS un nom, un numéro de téléphone, un courriel ou une adresse. Si une information exacte n'apparaît pas dans les résultats de recherche, laisse le champ à null ou omets complètement ce prospect.
 - Chaque prospect soumis doit obligatoirement inclure "source_url" : l'URL réelle de la page où tu as trouvé l'information (annonce Kijiji/Facebook Marketplace/Centris publiée par le propriétaire lui-même, registre des entreprises, article, site web personnel, etc.).

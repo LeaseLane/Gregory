@@ -1,6 +1,6 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
-// Moteur de dispatch Portail Pro — trouve automatiquement les travailleurs
+// Moteur de dispatch Lease Lane Pro — trouve automatiquement les travailleurs
 // admissibles à un work_order et leur diffuse le mandat par paliers de
 // score (au lieu qu'un admin cherche manuellement au téléphone).
 //
