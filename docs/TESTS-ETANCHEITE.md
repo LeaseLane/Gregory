@@ -6,6 +6,26 @@ autre propriétaire ». Il exige deux comptes propriétaires réels, car la
 seule clé anon ne prouve rien sur ce qu'un propriétaire **connecté** peut
 lire.
 
+> **Écrit le 2026-09-15.** Ce document décrivait ce test depuis le début,
+> mais la fonction n'existait dans aucun fichier : `deploy.yml` passait
+> les quatre secrets, la variable `REQUIRE_ALL_CHECKS` avait un nom, et le
+> script ne lisait ni les uns ni l'autre. Tout l'échafaudage était en
+> place sauf le test — de quoi conclure, en lisant le dépôt, que le lot
+> n'attendait que des identifiants.
+
+**Comment il s'y prend.** Le propriétaire B lit son propre parc : c'est la
+référence. Puis A demande explicitement les identifiants de B. Si la RLS
+tient, la réponse est vide malgré des identifiants exacts.
+
+Sans la lecture de référence, « A ne voit rien » réussirait tout seul sur
+une base vide — le faux succès que ce lot doit éliminer. Un parc de test
+vide fait donc **échouer** le test au lieu de le faire passer.
+
+Cinq tables cloisonnées sont couvertes : `buildings`, `units`, `leases`,
+`payments`, `maintenance_requests`. La lecture passe par PostgREST et non
+par une fonction edge, parce que c'est le chemin qu'empruntent réellement
+les portails : c'est donc la RLS (`auth_owner_id()`) qui est éprouvée.
+
 ## Comptes créés
 
 | Rôle | Courriel | Parc |

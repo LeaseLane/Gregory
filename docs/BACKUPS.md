@@ -83,7 +83,24 @@ Cette dernière vérification est le cœur du test. Une restauration
 sans protéger.
 
 **Secret requis :** `SUPABASE_STAGING_DB_URL`, la chaîne de connexion de
-la branche de préproduction. Le workflow refuse de s'exécuter si l'URL
+la branche de préproduction, **en mode « Session pooler »**.
+
+⚠️ Pas la chaîne directe. Les hôtes `db.<ref>.supabase.co` ne résolvent
+qu'en IPv6, et les runners GitHub n'ont pas d'IPv6. Premier essai du test
+de restauration, le 2026-09-15 :
+
+```
+pg_restore: error: connection to server at "db.wwoapogkerhkowqqvwsu.supabase.co"
+(2600:1f11:63d:d101:...), port 5432 failed: Network is unreachable
+```
+
+Le dump s'était téléchargé correctement : l'échec ne venait ni de la
+sauvegarde ni de la préproduction, mais de l'adresse. Le workflow refuse
+maintenant une URL directe avec un message explicite, plutôt que
+d'échouer sur une erreur réseau qui ressemble à une panne.
+
+C'est aussi la raison pour laquelle `backup.yml` a toujours fonctionné :
+`SUPABASE_DB_URL` est déjà une chaîne de pooler. Le workflow refuse de s'exécuter si l'URL
 contient la référence du projet de production : `pg_restore --clean`
 supprime les objets avant de les recréer, donc une erreur de cible
 détruirait la base visée.

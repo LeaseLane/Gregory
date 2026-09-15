@@ -90,6 +90,19 @@ jobs:
             exit 1
           fi
 
+          # Les hôtes `db.<ref>.supabase.co` ne résolvent qu'en IPv6, que les
+          # runners GitHub n'ont pas. Constaté le 2026-09-15 : le test a
+          # échoué sur « Network is unreachable » après avoir téléchargé le
+          # dump — un échec de réseau qui ressemblait à une panne de la
+          # préproduction. Le mode « Session pooler » écoute en IPv4.
+          #
+          # C'est pour cette raison que backup.yml fonctionne : son secret
+          # est déjà une URL de pooler.
+          if printf '%s' "$DATABASE_URL" | grep -q '^\(postgres\|postgresql\)://[^@]*@db\.'; then
+            echo "::error::SUPABASE_STAGING_DB_URL vise l'hôte direct (db.<ref>.supabase.co), joignable en IPv6 seulement. Reprendre la chaîne en mode « Session pooler » — voir docs/BACKUPS.md."
+            exit 1
+          fi
+
           debut=$(date +%s)
           pg_restore --no-owner --no-privileges --clean --if-exists \
             --exit-on-error -d "$DATABASE_URL" portail-backup.dump

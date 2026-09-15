@@ -229,6 +229,82 @@ async function testStorageBucketsNotListableByAnon() {
   }
 }
 
+// ---- 9. Étanchéité entre propriétaires (lot P6) ----
+// La règle non négociable n°2 du plan de phase 1 : « une lecture croisée
+// entre propriétaires doit échouer, et l'échec doit être prouvé
+// automatiquement à chaque passage ».
+//
+// Les huit tests précédents n'utilisent que la clé anon. Ils prouvent
+// qu'un inconnu ne lit rien — pas qu'un propriétaire CONNECTÉ ne lit que
+// son parc. C'est pourtant le seul risque qui compte ici : les usagers
+// du produit sont des propriétaires légitimes, chacun avec un vrai jeton.
+//
+// La lecture passe par PostgREST, pas par une fonction edge : les
+// portails interrogent la base directement. C'est donc la RLS
+// (auth_owner_id()) qui est réellement mise à l'épreuve ici.
+
+const TABLES_CLOISONNEES = ["buildings", "units", "leases", "payments", "maintenance_requests"];
+
+async function signInOwner(email, password) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: SUPABASE_ANON_KEY },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json().catch(() => ({}));
+  return res.ok && data.access_token ? data.access_token : null;
+}
+
+async function restRequestAs(jwt, path) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${jwt}` },
+  });
+  const data = await res.json().catch(() => []);
+  return { ok: res.ok, status: res.status, data };
+}
+
+async function testCrossOwnerIsolation() {
+  const nom = "Étanchéité entre propriétaires (P6)";
+  const { TEST_OWNER_A_EMAIL, TEST_OWNER_A_PASSWORD, TEST_OWNER_B_EMAIL, TEST_OWNER_B_PASSWORD } = process.env;
+
+  if (!TEST_OWNER_A_EMAIL || !TEST_OWNER_A_PASSWORD || !TEST_OWNER_B_EMAIL || !TEST_OWNER_B_PASSWORD) {
+    record(nom, "SKIP", "comptes de test absents — voir docs/TESTS-ETANCHEITE.md");
+    return;
+  }
+
+  const jwtA = await signInOwner(TEST_OWNER_A_EMAIL, TEST_OWNER_A_PASSWORD);
+  const jwtB = await signInOwner(TEST_OWNER_B_EMAIL, TEST_OWNER_B_PASSWORD);
+  if (!jwtA || !jwtB) {
+    record(nom, "FAIL", `connexion impossible (A: ${jwtA ? "ok" : "échec"}, B: ${jwtB ? "ok" : "échec"}) — identifiants invalides ou comptes supprimés`);
+    return;
+  }
+
+  // Le parc de B, lu par B lui-même : c'est la référence. Sans elle, un
+  // test « A ne voit rien » réussirait tout seul sur une base vide — le
+  // faux succès que ce lot doit justement éliminer.
+  for (const table of TABLES_CLOISONNEES) {
+    const vuParB = await restRequestAs(jwtB, `${table}?select=id`);
+    const idsB = Array.isArray(vuParB.data) ? vuParB.data.map((r) => r.id) : [];
+
+    if (idsB.length === 0) {
+      record(`${nom} — ${table}`, "FAIL", "le propriétaire B ne voit aucune ligne : le test ne peut rien prouver (parc de test vide ?)");
+      continue;
+    }
+
+    // A demande explicitement les lignes de B. Si la RLS tient, la
+    // réponse est vide même si les identifiants sont exacts.
+    const cible = idsB.slice(0, 50).join(",");
+    const vuParA = await restRequestAs(jwtA, `${table}?select=id&id=in.(${cible})`);
+    const fuite = Array.isArray(vuParA.data) ? vuParA.data.length : 0;
+
+    if (fuite === 0) {
+      record(`${nom} — ${table}`, "PASS", `${idsB.length} ligne(s) de B, 0 visible(s) par A`);
+    } else {
+      record(`${nom} — ${table}`, "FAIL", `${fuite} ligne(s) du parc de B lisible(s) par A — cloisonnement rompu`);
+    }
+  }
+}
+
 async function main() {
   await testForgedJwtRejected();
   await testNoAuthRejected();
@@ -238,12 +314,32 @@ async function main() {
   await testBlogPostsScopedCorrectly();
   await testStorageBucketsNotListableByAnon();
   await testHealthCheckReachable();
+  await testCrossOwnerIsolation();
 
   const failed = results.filter((r) => r.status === "FAIL");
-  console.log(`\n${results.length} test(s) — ${results.length - failed.length} réussi(s), ${failed.length} échoué(s).`);
+  const skipped = results.filter((r) => r.status === "SKIP");
+  console.log(`\n${results.length} test(s) — ${results.length - failed.length - skipped.length} réussi(s), ${failed.length} échoué(s), ${skipped.length} ignoré(s).`);
+
   if (failed.length) {
     console.log("\n⚠️  Failles potentielles détectées :");
     failed.forEach((r) => console.log(`  - ${r.name}: ${r.detail}`));
+  }
+
+  // REQUIRE_ALL_CHECKS était passé par deploy.yml depuis le début, mais
+  // ce script ne l'a jamais lu : un test ignoré passait pour un succès.
+  // C'est exactement le faux vert que le lot P6 doit éliminer — « un test
+  // d'étanchéité qui passe faute d'avoir tourné est pire que pas de
+  // test » (docs/TESTS-ETANCHEITE.md).
+  const exigeTout = process.env.REQUIRE_ALL_CHECKS === "true";
+  if (skipped.length && exigeTout) {
+    console.log("\n⚠️  REQUIRE_ALL_CHECKS=true et des tests ont été ignorés :");
+    skipped.forEach((r) => console.log(`  - ${r.name}: ${r.detail}`));
+  } else if (skipped.length) {
+    console.log("\nℹ️  Tests ignorés (non bloquants tant que REQUIRE_ALL_CHECKS ≠ true) :");
+    skipped.forEach((r) => console.log(`  - ${r.name}: ${r.detail}`));
+  }
+
+  if (failed.length || (skipped.length && exigeTout)) {
     process.exit(1);
   }
 }
