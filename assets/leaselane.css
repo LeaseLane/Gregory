@@ -559,3 +559,64 @@ aside .tab-btn:hover .ic{ opacity:1; }
   aside .tab-btn .ic{ width:16px; height:16px; }
   aside .tab-btn{ gap:8px; }
 }
+
+/* ═══════ DÉFILEMENT ═══════
+   Les portails posaient .shell en min-height:100vh : la coquille peut
+   donc dépasser l'écran, c'est le DOCUMENT qui défile, et la barre
+   latérale s'en va avec lui.
+
+   Le système fait l'inverse (portail.css : body{overflow:hidden}) —
+   la coquille occupe exactement la hauteur de l'écran et c'est la
+   zone principale qui défile, seule. La barre latérale reste donc en
+   place, et défile elle-même si ses onglets dépassent. */
+html,body{ height:100%; }
+body{ overflow:hidden; }
+
+.shell{
+  height:100vh;
+  height:100dvh;        /* iOS : exclut la barre d'adresse rétractable */
+  min-height:0;
+  overflow:hidden;
+}
+
+aside{
+  height:100%;
+  overflow-y:auto;      /* une nav longue défile dans la barre */
+  overflow-x:hidden;
+  scrollbar-width:thin;
+}
+
+main{
+  height:100%;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Sur téléphone la barre est horizontale et posée en haut : c'est la
+   colonne entière qui doit tenir dans l'écran, la nav gardant sa
+   hauteur propre et le contenu prenant le reste. */
+@media (max-width:860px){
+  .shell{ flex-direction:column; }
+  aside{
+    height:auto; flex:none;
+    overflow-x:auto; overflow-y:hidden;
+    position:sticky; top:0; z-index:20;
+    background:var(--surface-carte);
+  }
+  main{ flex:1; min-height:0; }
+}
+
+/* Un conteneur flex qui défile écrase ses enfants pour les faire
+   tenir : les onglets perdaient leur hauteur de 44 px et leurs
+   marges. flex:none les en empêche — ils gardent leur taille et c'est
+   la barre qui défile, ce qui est le but. */
+aside .tab-btn,
+aside .brand,
+aside .brand-sub,
+aside .nav-group-label,
+aside .signout{ flex:none; }
+
+/* .signout était poussé par margin-top:auto, qui ne fonctionne plus
+   dans un conteneur qui défile : il se colle au dernier onglet. On le
+   détache par une marge fixe. */
+aside .signout{ margin-top:12px; }
