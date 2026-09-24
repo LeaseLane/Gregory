@@ -448,3 +448,114 @@ aside .nav-group-label{
   padding:18px 12px 8px;
   margin:0 12px;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE
+   ═══════════════════════════════════════════════════════════════
+   Les portails avaient déjà une bonne réponse à 760 px : la barre
+   latérale devient une barre d'onglets horizontale. Elle a cessé de
+   s'appliquer quand cette feuille est passée APRÈS leur <style> —
+   c'est donc ici qu'elle doit revivre, adaptée aux composants du
+   système.
+
+   Une barre latérale de 248 px sur un écran de 390 px ne laisse rien
+   au contenu : sur téléphone, la navigation se pose en haut et défile
+   horizontalement. */
+@media (max-width:860px){
+  .shell{ flex-direction:column; }
+
+  aside{
+    width:100%; flex:none;
+    border-right:0;
+    border-bottom:1px solid var(--bordure-fine);
+    flex-direction:row; align-items:center;
+    overflow-x:auto; white-space:nowrap;
+    padding:8px 4px;
+    gap:4px;
+    /* Défilement fluide au doigt, sans barre visible. */
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  aside::-webkit-scrollbar{ display:none; }
+
+  /* Le logo et le sur-titre reprennent la place du contenu : sur
+     téléphone, l'usager sait déjà dans quelle application il est. */
+  aside .brand,
+  aside .brand-sub,
+  aside .nav-group-label{ display:none; }
+
+  aside .tab-btn{
+    width:auto; flex:none;
+    margin:0; height:38px;
+    padding:0 14px;
+    border-radius:var(--rayon-pilule);
+    font-size:13.5px;
+  }
+  aside .signout{
+    margin:0 0 0 auto; flex:none;
+    border-top:0; padding:0;
+  }
+
+  main{ padding:20px 16px 40px; }
+
+  /* Deux tuiles par rangée : une seule gâche la hauteur d'écran,
+     trois rendent les chiffres illisibles. */
+  .metrics{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .metric{ padding:16px; }
+  .metric .val{ font-size:22px; line-height:26px; }
+
+  /* Un tableau large défile dans sa carte plutôt que de déborder de
+     la page : le reste de l'écran reste lisible. */
+  main table{ display:block; overflow-x:auto; max-width:100%; }
+
+  h1{ font-size:1.75em; }
+  h2{ font-size:1.4em; }
+}
+
+/* Écrans très étroits : une tuile par rangée devient plus lisible que
+   deux chiffres écrasés. */
+@media (max-width:420px){
+  .metrics{ grid-template-columns:1fr; }
+  main{ padding:16px 12px 32px; }
+}
+
+/* L'écran de connexion : le panneau marine disparaît sous 860 px, la
+   carte prend toute la largeur avec une gouttière. */
+@media (max-width:860px){
+  #login-screen{ padding:16px; }
+  .login-box{ width:100%; max-width:420px; }
+}
+
+/* Un enfant de grille refuse de descendre sous sa largeur intrinsèque
+   (min-width:auto par défaut) : une étiquette longue pousse la tuile
+   hors de l'écran. min-width:0 lève ce plancher, et le texte passe à
+   la ligne au lieu de déborder. */
+.metric,.card,.panel{ min-width:0; }
+.metric .label{ overflow-wrap:anywhere; }
+
+/* Même cause côté zone principale : sans min-width:0, un tableau large
+   élargit tout le conteneur au lieu de défiler dans sa carte. */
+main,.shell{ min-width:0; }
+.shell{ max-width:100%; }
+body{ overflow-x:hidden; }
+
+/* ═══════ ICÔNES ═══════
+   Sprite Lucide (assets/icones.svg), repris du système. Le trait est
+   en currentColor : l'icône suit donc la couleur du texte, y compris
+   sur l'élément actif en marine, sans règle supplémentaire. */
+.ic{
+  width:18px; height:18px; flex:none;
+  stroke-width:2;
+  vertical-align:middle;
+}
+aside .tab-btn .ic{ opacity:.75; }
+aside .tab-btn.active .ic,
+aside .tab-btn:hover .ic{ opacity:1; }
+
+/* Sur téléphone la barre devient horizontale : l'icône seule suffirait
+   à rendre les onglets illisibles, on garde donc les deux mais plus
+   serrés. */
+@media (max-width:860px){
+  aside .tab-btn .ic{ width:16px; height:16px; }
+  aside .tab-btn{ gap:8px; }
+}
