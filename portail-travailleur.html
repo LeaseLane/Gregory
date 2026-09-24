@@ -7,22 +7,17 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <meta name="robots" content="noindex, nofollow">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/leaselane.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
 <style>
-  :root{
-    --ink:#1F2421; --paper:#F5F1E8; --paper-2:#EDE7D8;
-    --brass:#B08D57; --brass-dark:#8A6B3E; --sage:#5F7355;
-    --rust:#A63D40; --line:#C9C2AE; --muted:#6E6C61; --amber:#B98A2E;
-  }
+  /* Palette retirée : voir assets/leaselane.css (couleurs du logo). */
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--police-texte);}
 
   #login-screen{min-height:100vh;display:flex;align-items:stretch;justify-content:center;}
   .login-side{flex:1 1 440px;max-width:480px;background:var(--ink);color:var(--paper);display:flex;flex-direction:column;justify-content:center;padding:60px;}
-  .login-side .side-brand{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin-bottom:26px;}
-  .login-side h2{font-family:'Fraunces',serif;font-weight:600;font-size:27px;line-height:1.25;margin-bottom:14px;}
+  .login-side .side-brand{font-family:var(--police-mono);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin-bottom:26px;}
+  .login-side h2{font-family:var(--police-titre);font-weight:600;font-size:27px;line-height:1.25;margin-bottom:14px;}
   .login-side p{font-size:14px;color:#C9C6BC;line-height:1.6;max-width:36ch;}
   .login-side ul{margin-top:26px;padding:0;list-style:none;}
   .login-side li{font-size:13px;color:#C9C6BC;padding:10px 0;border-top:1px solid #33362f;}
@@ -31,52 +26,52 @@
   @media (max-width:860px){.login-side{display:none;}}
 
   .login-box{width:100%;max-width:340px;padding:36px;background:var(--paper-2);border:1px solid var(--line);}
-  .login-box .brand{font-family:'Fraunces',serif;font-weight:600;font-size:22px;margin-bottom:4px;}
-  .login-box .sub{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:24px;}
+  .login-box .brand{font-family:var(--police-titre);font-weight:600;font-size:22px;margin-bottom:4px;}
+  .login-box .sub{font-family:var(--police-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:24px;}
   .login-box label{display:block;font-size:12.5px;font-weight:500;margin-bottom:6px;}
   .login-box .f{margin-bottom:14px;}
-  .login-box input{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:'Inter',sans-serif;}
+  .login-box input{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:var(--police-texte);}
   .login-box input:focus{outline:none;border-color:var(--brass);}
-  .login-box button{width:100%;background:var(--ink);color:var(--paper);border:none;padding:12px;font-size:13.5px;font-weight:500;cursor:pointer;margin-top:6px;}
+  .login-box button{width:100%;background:var(--brass);color:var(--paper);border:none;padding:12px;font-size:13.5px;font-weight:500;cursor:pointer;margin-top:6px;}
   .login-box button:hover{background:var(--brass-dark);}
   .login-error{color:var(--rust);font-size:12.5px;margin-top:10px;display:none;}
 
   #app-shell{display:none;min-height:100vh;}
   .shell{display:flex;min-height:100vh;}
   aside{width:230px;border-right:1px solid var(--ink);padding:24px 0;flex-shrink:0;}
-  .brand{font-family:'Fraunces',serif;font-weight:600;font-size:18px;padding:0 22px 6px;}
-  .brand-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:0 22px 20px;border-bottom:1px solid var(--line);margin-bottom:16px;display:block;}
-  .tab-btn{display:block;width:100%;text-align:left;background:none;border:none;padding:10px 22px;font-size:13.5px;color:var(--ink);cursor:pointer;border-left:2px solid transparent;font-family:'Inter',sans-serif;}
+  .brand{font-family:var(--police-titre);font-weight:600;font-size:18px;padding:0 22px 6px;}
+  .brand-sub{font-family:var(--police-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:0 22px 20px;border-bottom:1px solid var(--line);margin-bottom:16px;display:block;}
+  .tab-btn{display:block;width:100%;text-align:left;background:none;border:none;padding:10px 22px;font-size:13.5px;color:var(--ink);cursor:pointer;border-left:2px solid transparent;font-family:var(--police-texte);}
   .tab-btn:hover{background:var(--paper-2);}
   .tab-btn.active{border-left-color:var(--brass);background:var(--paper-2);font-weight:500;}
   .signout{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);}
 
   main{flex:1;padding:32px 40px;max-width:900px;}
-  h1{font-family:'Fraunces',serif;font-weight:600;font-size:26px;margin-bottom:6px;}
-  h2{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin:22px 0 10px;}
+  h1{font-family:var(--police-titre);font-weight:600;font-size:26px;margin-bottom:6px;}
+  h2{font-family:var(--police-titre);font-weight:600;font-size:18px;margin:22px 0 10px;}
   .subtitle{color:var(--muted);font-size:13.5px;margin-bottom:24px;}
 
   .avail-banner{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--paper-2);border:1px solid var(--line);padding:14px 16px;margin-bottom:24px;}
   .avail-banner .label{font-size:12.5px;color:var(--muted);margin-right:6px;}
-  .avail-btn{border:1px solid var(--line);background:var(--paper);padding:7px 13px;font-size:12.5px;cursor:pointer;font-family:'Inter',sans-serif;}
+  .avail-btn{border:1px solid var(--line);background:var(--paper);padding:7px 13px;font-size:12.5px;cursor:pointer;font-family:var(--police-texte);}
   .avail-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
   .avail-btn.active.dispo{background:var(--sage);border-color:var(--sage);}
   .avail-btn.active.indispo{background:var(--rust);border-color:var(--rust);}
 
   .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:8px;}
   .stat-box{background:var(--paper-2);border:1px solid var(--line);padding:14px;}
-  .stat-box .num{font-family:'Fraunces',serif;font-size:22px;font-weight:600;}
+  .stat-box .num{font-family:var(--police-titre);font-size:22px;font-weight:600;}
   .stat-box .label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.04em;margin-top:4px;}
 
   .job-card{background:var(--paper-2);border:1px solid var(--line);padding:18px 20px;margin-bottom:14px;}
   .job-card.urgent{border-color:var(--rust);}
-  .job-card .desc{font-family:'Fraunces',serif;font-size:16px;font-weight:600;}
+  .job-card .desc{font-family:var(--police-titre);font-size:16px;font-weight:600;}
   .job-card .meta{color:var(--muted);font-size:12.5px;margin-top:6px;}
   .job-card .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
-  .job-card button{font-size:12px;padding:8px 14px;border:1px solid var(--ink);background:none;color:var(--ink);cursor:pointer;font-family:'Inter',sans-serif;}
+  .job-card button{font-size:12px;padding:8px 14px;border:1px solid var(--ink);background:none;color:var(--ink);cursor:pointer;font-family:var(--police-texte);}
   .job-card button.primary{background:var(--sage);color:#fff;border-color:var(--sage);}
   .job-card button.secondary{border-color:var(--line);color:var(--muted);}
-  .tag{font-size:11px;padding:3px 9px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.04em;display:inline-block;}
+  .tag{font-size:11px;padding:3px 9px;font-family:var(--police-mono);text-transform:uppercase;letter-spacing:0.04em;display:inline-block;}
   .tag.urgent{background:var(--rust);color:#fff;}
   .tag.ok{background:var(--sage);color:#fff;}
   .tag.warn{background:var(--amber);color:#fff;}
@@ -84,18 +79,18 @@
 
   .completion-form{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
   .completion-form.active{display:block;}
-  .completion-form textarea{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);font-size:13px;font-family:'Inter',sans-serif;min-height:60px;resize:vertical;margin-bottom:8px;}
+  .completion-form textarea{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);font-size:13px;font-family:var(--police-texte);min-height:60px;resize:vertical;margin-bottom:8px;}
   .completion-form .row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;}
   .completion-form .f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);}
 
   .profile-form .f{margin-bottom:14px;}
   .profile-form label{display:block;font-size:12.5px;font-weight:500;margin-bottom:6px;}
-  .profile-form input{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper-2);font-size:13.5px;font-family:'Inter',sans-serif;}
+  .profile-form input{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper-2);font-size:13.5px;font-family:var(--police-texte);}
   .profile-form .hint{color:var(--muted);font-size:11.5px;margin-top:4px;}
   .profile-form .row{display:flex;flex-wrap:wrap;gap:14px;}
   .profile-form .row .f{flex:1;min-width:180px;}
   .checkbox-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
-  button.submit{background:var(--ink);color:var(--paper);border:none;padding:11px 22px;font-size:13.5px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;}
+  button.submit{background:var(--ink);color:var(--paper);border:none;padding:11px 22px;font-size:13.5px;font-weight:500;cursor:pointer;font-family:var(--police-texte);}
   .msg{font-size:12.5px;margin-top:10px;}
 
   .schedule-grid{display:grid;grid-template-columns:100px 1fr 1fr;gap:8px 10px;align-items:center;margin-bottom:16px;}
@@ -128,7 +123,7 @@
   </div>
   <div class="login-box-wrap">
   <div class="login-box">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Lease Lane Pro — Espace travailleur</div>
     <div class="f"><label for="login-email">Courriel</label><input type="email" id="login-email"></div>
     <div class="f"><label for="login-password">Mot de passe</label><input type="password" id="login-password"></div>
@@ -139,7 +134,7 @@
   </div>
 
   <div class="login-box" id="reset-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Réinitialiser le mot de passe</div>
     <div class="f"><label for="reset-email">Courriel</label><input type="email" id="reset-email"></div>
     <button onclick="sendResetLink()">Envoyer le lien</button>
@@ -149,7 +144,7 @@
   </div>
 
   <div class="login-box" id="newpw-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Choisir un nouveau mot de passe</div>
     <div class="f"><label for="newpw-value">Nouveau mot de passe</label><input type="password" id="newpw-value"></div>
     <button onclick="confirmNewPassword()">Confirmer</button>
@@ -161,7 +156,7 @@
 <div id="app-shell">
   <div class="shell">
     <aside>
-      <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+      <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
       <span class="brand-sub">Lease Lane Pro</span>
       <button class="tab-btn active" data-tab="offers" onclick="showTab('offers')">Jobs disponibles</button>
       <button class="tab-btn" data-tab="jobs" onclick="showTab('jobs')">Mes jobs</button>

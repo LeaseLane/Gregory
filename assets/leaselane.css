@@ -1,0 +1,212 @@
+/* Lease Lane — feuille de style partagée des portails.
+   Générée depuis « Lease Lane Design System » (tokens/ + ui_kits/portail-commun).
+   Ne pas modifier les valeurs ici à la main : elles viennent du logo.
+*/
+
+/* Lease Lane — webfaces. Bebas Neue (display) + IBM Plex Sans (UI/body) + IBM Plex Mono (data).
+   Files fetched from Google Fonts (SIL Open Font License 1.1) and vendored into assets/fonts/. */
+@font-face{font-family:'Bebas Neue';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/bebas-neue-400-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Bebas Neue';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/bebas-neue-400-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/ibm-plex-mono-400-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/ibm-plex-mono-400-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/ibm-plex-mono-500-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/ibm-plex-mono-500-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/ibm-plex-mono-600-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/ibm-plex-mono-600-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/ibm-plex-sans-400-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/ibm-plex-sans-400-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/ibm-plex-sans-500-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/ibm-plex-sans-500-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/ibm-plex-sans-600-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/ibm-plex-sans-600-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/ibm-plex-sans-700-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/ibm-plex-sans-700-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+
+/* Poppins — substitution documentée de Gilroy (police commerciale du thème source).
+   Même squelette géométrique, même « a » à un étage, même « y » à jambe droite. */
+@font-face{font-family:'Poppins';font-style:normal;font-weight:300;font-display:swap;src:url('fonts/poppins-300-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:300;font-display:swap;src:url('fonts/poppins-300-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/poppins-400-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/poppins-400-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/poppins-500-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/poppins-500-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/poppins-600-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/poppins-600-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/poppins-700-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/poppins-700-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:800;font-display:swap;src:url('fonts/poppins-800-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:800;font-display:swap;src:url('fonts/poppins-800-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+
+/* Playfair Display italique — accent de titre en serif, repris du thème de référence
+   (mot-clé en serif italique suivi du reste en géométrique grasse). */
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:400;font-display:swap;src:url('fonts/playfair-display-italic-400-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:400;font-display:swap;src:url('fonts/playfair-display-italic-400-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:500;font-display:swap;src:url('fonts/playfair-display-italic-500-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:500;font-display:swap;src:url('fonts/playfair-display-italic-500-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:600;font-display:swap;src:url('fonts/playfair-display-italic-600-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:600;font-display:swap;src:url('fonts/playfair-display-italic-600-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+
+/* Lease Lane — couleurs.
+   Toute la palette est dérivée du logo : le cadre marine, le dégradé bleu des
+   chevrons et du mot-clé « LANE », et les gris froids du cadre.
+   Échantillonnée depuis assets/logo/*.svg et la présentation commerciale. */
+:root{
+  /* ---- Marine (fond de marque) — cadre du logo, fonds de la présentation ---- */
+  --marine-950:#071A2E;
+  --marine-900:#0A2038;
+  --marine-800:#0D233B;
+  --marine-700:#122744;
+  --marine-600:#172C49;
+  --marine-500:#1C3053;
+  --marine-400:#24405F;
+  --marine-300:#2E5788;
+  --marine-200:#35629B;
+
+  /* ---- Bleu Lease Lane — dégradé des chevrons et du mot « LANE » ---- */
+  --bleu-800:#1C3451;
+  --bleu-700:#2E5788;
+  --bleu-600:#3767A2;
+  --bleu-500:#4581CB;
+  --bleu-400:#518ACF;
+  --bleu-300:#6A9AD5;
+  --bleu-200:#91B5E0;
+  --bleu-100:#B5CDEA;
+  --bleu-050:#C8DAF0;
+  --bleu-025:#ECF2F9;
+
+  /* ---- Gris froids — cadre et vitrages du logo ---- */
+  --gris-000:#FFFFFF;
+  --gris-025:#F7F9FB;
+  --gris-050:#EEF1F5;
+  --gris-100:#E1E6EC;
+  --gris-200:#D1D6DB;
+  --gris-300:#C8CDD4;
+  --gris-400:#A6B1BE;
+  --gris-500:#78838F;
+  --gris-600:#58697F;
+  --gris-700:#3E4A59;
+  --gris-800:#26303C;
+  --gris-900:#151C25;
+
+  /* ---- Signaux — teintes sourdes, calées sur la valeur du marine ---- */
+  --succes-600:#12694F;
+  --succes-500:#17795E;
+  --succes-100:#DCEFE8;
+  --alerte-600:#9C6212;
+  --alerte-500:#B77416;
+  --alerte-100:#FAEEDA;
+  --urgence-600:#9B2E28;
+  --urgence-500:#B4362F;
+  --urgence-100:#F8E4E2;
+  --info-500:var(--bleu-500);
+  --info-100:var(--bleu-025);
+
+  /* ---- Dégradés de marque ---- */
+  --degrade-chevron:linear-gradient(135deg,#5C86B9 0%,#6A9AD5 25%,#91B5E0 52%,#6593CC 80%,#5982B3 100%); /* @kind color */
+  --degrade-mot:linear-gradient(180deg,#FFFFFF 0%,#C8DAF0 45%,#6A9AD5 100%); /* @kind color */
+  --degrade-marine:linear-gradient(160deg,#0A2038 0%,#122744 55%,#1C3053 100%); /* @kind color */
+  --degrade-bandeau:linear-gradient(90deg,#0A2038 0%,#12294A 50%,#1C3053 100%); /* @kind color */
+  --lueur-bleue:radial-gradient(60% 70% at 50% 60%,rgba(145,181,224,.38) 0%,rgba(10,32,56,0) 70%); /* @kind color */
+
+  /* ---- Alias sémantiques ---- */
+  --surface-page:var(--gris-000);
+  --surface-douce:var(--gris-025);
+  --surface-carte:var(--gris-000);
+  --surface-enfoncee:var(--gris-050);
+  --surface-marine:var(--marine-900);
+  --surface-marine-haute:var(--marine-600);
+  --surface-survol:var(--bleu-025);
+
+  --texte-titre:var(--marine-900);
+  --texte-corps:var(--gris-700);
+  --texte-discret:var(--gris-500);
+  --texte-inverse:var(--gris-000);
+  --texte-inverse-discret:var(--bleu-100);
+  --texte-accent:var(--bleu-500);
+  --texte-lien:var(--bleu-600);
+  --texte-lien-survol:var(--marine-900);
+
+  --bordure-fine:var(--gris-100);
+  --bordure:var(--gris-200);
+  --bordure-forte:var(--gris-400);
+  --bordure-marine:rgba(145,181,224,.22);
+  --bordure-focus:var(--bleu-500);
+
+  --action-primaire:var(--bleu-500);
+  --action-primaire-survol:var(--bleu-600);
+  --action-primaire-active:var(--bleu-700);
+  --action-marine:var(--marine-900);
+  --action-marine-survol:var(--marine-600);
+
+  /* Trame « plan d'architecte » : motif de fond des zones marine */
+  --grille-trait:rgba(145,181,224,.10); /* @kind color */
+  --grille-pas:64px; /* @kind spacing */
+}
+
+/* ---------------------------------------------------------------
+   PONT VERS LES ANCIENS NOMS DE VARIABLES
+   ---------------------------------------------------------------
+   Les portails utilisent 1 039 fois des variables héritées de
+   l'ancienne palette (brass, sage, paper, ink...). Les redéfinir ici
+   restyle tout le produit sans toucher au balisage ni au JavaScript.
+
+   L'ancienne palette était chaude et terreuse (laiton, sauge, papier
+   crème). La nouvelle vient du logo : marine et bleu froid. Le
+   changement est donc volontairement total côté couleur, et nul côté
+   structure.
+
+   À terme, remplacer les usages par les noms --marine-* / --bleu-*
+   directement, et supprimer ce bloc. Tant que les deux coexistent,
+   c'est ici — et nulle part ailleurs — que la correspondance vit.
+--------------------------------------------------------------- */
+:root{
+  /* Fonds et texte */
+  --paper:var(--gris-025);      /* fond d'application */
+  --paper-2:var(--gris-050);    /* fond secondaire, entêtes de tableau */
+  --ink:var(--marine-900);      /* texte principal et fonds marine */
+  --line:var(--gris-100);       /* filets et bordures */
+  --muted:var(--gris-600);      /* texte secondaire */
+
+  /* Couleur d'action : le bleu du logo remplace le laiton.
+     C'est la SEULE couleur d'action du système. */
+  --brass:var(--bleu-500);
+  --brass-dark:var(--bleu-700);
+
+  /* Signaux — sourds, calés sur la valeur du marine (jamais en aplat) */
+  --sage:var(--succes-500);     /* succès : loyer reçu, dossier fermé */
+  --rust:var(--urgence-500);    /* urgence : arriéré, incident */
+  --amber:var(--alerte-500);    /* alerte : échéance proche */
+
+  /* Typographie de marque */
+  --police-titre:'Bebas Neue',Impact,sans-serif;
+  --police-texte:'IBM Plex Sans',system-ui,sans-serif;
+  --police-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+
+/* Bebas Neue est une condensée à chasse étroite : à taille égale elle
+   paraît bien plus petite qu'un serif. Les tailles héritées de l'ancienne
+   police sont donc remontées, sinon les titres rapetissent visuellement
+   au lieu de gagner en présence. */
+h1,h2,h3,h4{
+  font-family:var(--police-titre);
+  text-transform:uppercase;
+  line-height:.92;
+  letter-spacing:.01em;
+  font-weight:400;           /* Bebas n'a qu'une graisse : 600 la ferait synthétiser */
+}
+h1{ font-size:2.15em; }
+h2{ font-size:1.65em; }
+
+/* Les montants et numéros de dossier s'alignent en colonne :
+   tabular-nums évite que les chiffres dansent d'une ligne à l'autre. */
+code,kbd,samp{
+  font-family:var(--police-mono);
+  font-variant-numeric:tabular-nums;
+}
+
+/* Le bleu est la SEULE couleur d'action (readme §4.2). La règle vit
+   dans chaque portail, pas ici : cette feuille est liée AVANT leur
+   <style>, donc à spécificité égale le portail l'emporterait. Surenchérir
+   en spécificité marcherait aujourd'hui et casserait au prochain ajout.
+   Les fonds marine (.login-side, barres latérales) gardent --ink : ce
+   sont des surfaces, pas des actions. */
