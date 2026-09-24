@@ -7,27 +7,22 @@
 <title>Lease Lane — Signature du renouvellement de bail</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/leaselane.css">
 <style>
-  :root{
-    --ink:#1F2421; --paper:#F5F1E8; --paper-2:#EDE7D8;
-    --brass:#B08D57; --brass-dark:#8A6B3E; --sage:#5F7355;
-    --rust:#A63D40; --line:#C9C2AE; --muted:#6E6C61;
-  }
+  /* Palette retirée : voir assets/leaselane.css (couleurs du logo). */
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;line-height:1.55;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--police-texte);line-height:1.55;}
   .wrap{max-width:560px;margin:0 auto;padding:48px 28px;}
-  .brand{font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin-bottom:32px;}
-  h1{font-family:'Fraunces',serif;font-weight:600;font-size:24px;margin-bottom:8px;}
+  .brand{font-family:var(--police-titre);font-weight:600;font-size:20px;margin-bottom:32px;}
+  h1{font-family:var(--police-titre);font-weight:600;font-size:24px;margin-bottom:8px;}
   .subtitle{color:var(--muted);font-size:14px;margin-bottom:24px;}
   .card{background:var(--paper-2);border:1px solid var(--line);padding:20px;margin-bottom:24px;font-size:14px;line-height:1.7;}
   .actions{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
-  button{font-family:'Inter',sans-serif;font-size:13.5px;padding:12px 18px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;}
+  button{font-family:var(--police-texte);font-size:13.5px;padding:12px 18px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;}
   button.primary{background:var(--ink);color:var(--paper);}
   button:hover{background:var(--brass-dark);color:#fff;border-color:var(--brass-dark);}
   button:disabled{opacity:0.5;cursor:default;}
-  input[type=text]{width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--paper-2);font-size:13.5px;font-family:'Inter',sans-serif;margin-bottom:14px;}
+  input[type=text]{width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--paper-2);font-size:13.5px;font-family:var(--police-texte);margin-bottom:14px;}
   label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
   .result{display:none;background:var(--paper-2);border-left:2px solid var(--sage);padding:20px;font-size:14px;}
   .result.active{display:block;}
@@ -39,7 +34,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="brand"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></div>
+  <div class="brand"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></div>
   <div id="loading"><p class="muted">Chargement...</p></div>
 
   <div id="main" style="display:none;">
@@ -124,7 +119,11 @@ function moveDraw(evt){
   if(!drawing) return;
   const p = scalePoint(evt);
   ctx.lineTo(p.x, p.y);
-  ctx.strokeStyle = '#1F2421';
+  // Encre de signature : le marine de marque. Valeur littérale et non
+  // var(--marine-900) — un contexte canvas ne résout pas les variables
+  // CSS. Cette signature finit dans un PDF de bail : elle doit rester
+  // lisible même imprimée en noir et blanc.
+  ctx.strokeStyle = '#0A2038';
   ctx.lineWidth = 2.2;
   ctx.lineCap = 'round';
   ctx.stroke();
