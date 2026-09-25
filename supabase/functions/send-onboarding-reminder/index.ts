@@ -98,7 +98,25 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
       return new Response(JSON.stringify({ error: "Erreur du service IA" }), { status: 502, headers: corsHeaders });
     }
     const rawText = ia.texte || "{}";
-    const parsed = JSON.parse(rawText.replace(/```json|```/g, "").trim());
+    let parsed: { subject?: string; body?: string };
+    try {
+      parsed = JSON.parse(rawText.replace(/```json|```/g, "").trim());
+    } catch {
+      // Une réponse HTTP 200 n'est pas forcément du modèle : Tonia bloque
+      // en répondant 200 avec un message texte (« Modèle non disponible… »).
+      // Sans cette garde, la fonction plantait en 500 sans rien journaliser,
+      // et le motif du blocage — la seule information utile — était perdu.
+      await fetch(`${supabaseUrl}/rest/v1/ai_run_log`, {
+        method: "POST", headers: adminHeaders,
+        body: JSON.stringify({
+          function_name: "send-onboarding-reminder", trigger_source: "cron", entity_type: "owners", entity_id: owner_id,
+          prompt_version: "onboarding-reminder-v1", model_version: MODELE_RAPIDE, input_summary: gapsLabel,
+          duration_ms: Date.now() - aiStartedAt,
+          error: `reponse_non_json: ${rawText.slice(0, 380)}`,
+        }),
+      }).catch(() => null);
+      return new Response(JSON.stringify({ error: "Réponse IA inattendue", apercu: rawText.slice(0, 300) }), { status: 502, headers: corsHeaders });
+    }
 
     await fetch(`${supabaseUrl}/rest/v1/ai_run_log`, {
       method: "POST",
