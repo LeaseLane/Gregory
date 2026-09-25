@@ -1,5 +1,6 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
+import { appelerIA, MODELE_RAPIDE } from "../_shared/ia.ts";
 // Déclenchée par le cron flag_incomplete_onboarding() (ou manuellement
 // par l'admin) — jamais par un utilisateur final, donc pas de JWT à
 // vérifier ici (même convention que handle-payment-reminder). La liste
@@ -79,33 +80,24 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 }`;
 
     const aiStartedAt = Date.now();
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "x-api-key": anthropicKey ?? "", "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 400, messages: [{ role: "user", content: prompt }] }),
-    });
-    const aiData = await aiRes.json();
-    if (!aiRes.ok) {
-      console.error("Anthropic API error", aiRes.status, JSON.stringify(aiData));
+    const ia = await appelerIA({ prompt, maxTokens: 400 });
+    if (!ia.ok) {
+      console.error("Service IA", ia.status, ia.erreur);
       await fetch(`${supabaseUrl}/rest/v1/ai_run_log`, {
         method: "POST", headers: adminHeaders,
         body: JSON.stringify({
           function_name: "send-onboarding-reminder", trigger_source: "cron", entity_type: "owners", entity_id: owner_id,
-          prompt_version: "onboarding-reminder-v1", model_version: "claude-haiku-4-5-20251001", input_summary: gapsLabel,
+          prompt_version: "onboarding-reminder-v1", model_version: MODELE_RAPIDE, input_summary: gapsLabel,
           duration_ms: Date.now() - aiStartedAt,
-          // Le motif du refus vivait seulement dans console.error, donc
-          // invisible depuis la base. Vingt-cinq échecs sur vingt-huit
-          // appels sans qu'on puisse dire pourquoi : le message d'erreur
-          // d'Anthropic est justement ce qui distingue un modèle inconnu
-          // d'une requête malformée ou d'un quota dépassé.
-          error: `anthropic_api_error ${aiRes.status}: ${
-            (aiData?.error?.message ?? JSON.stringify(aiData ?? {})).slice(0, 400)
-          }`,
+          // Le motif du fournisseur est conservé : un 400 peut vouloir
+          // dire un modèle inconnu, un solde épuisé ou une requête
+          // malformée, et ces cas se corrigent différemment.
+          error: `ia_error ${ia.status}: ${ia.erreur ?? ""}`.slice(0, 400),
         }),
       }).catch(() => null);
       return new Response(JSON.stringify({ error: "Erreur du service IA" }), { status: 502, headers: corsHeaders });
     }
-    const rawText = aiData.content?.[0]?.text ?? "{}";
+    const rawText = ia.texte || "{}";
     const parsed = JSON.parse(rawText.replace(/```json|```/g, "").trim());
 
     await fetch(`${supabaseUrl}/rest/v1/ai_run_log`, {
@@ -117,12 +109,12 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         entity_type: "owners",
         entity_id: owner_id,
         prompt_version: "onboarding-reminder-v1",
-        model_version: "claude-haiku-4-5-20251001",
+        model_version: MODELE_RAPIDE,
         input_summary: gapsLabel,
         output_summary: parsed.subject ?? null,
         duration_ms: Date.now() - aiStartedAt,
-        input_tokens: aiData?.usage?.input_tokens ?? null,
-        output_tokens: aiData?.usage?.output_tokens ?? null,
+        input_tokens: ia.data?.usage?.input_tokens ?? null,
+        output_tokens: ia.data?.usage?.output_tokens ?? null,
         automatic_action_taken: "rappel_onboarding_envoye",
       }),
     }).catch((e) => console.error("Failed to write ai_run_log", e));
