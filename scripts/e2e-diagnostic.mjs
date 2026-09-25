@@ -263,6 +263,141 @@ async function main() {
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // CHAÎNE FINANCIÈRE
+  // ═══════════════════════════════════════════════════════════════
+  // Ajoutée le 2026-09-25. Ces modules n'avaient aucun test, et le
+  // relevé de production les donnait à ZÉRO exécution depuis la mise
+  // en service : approbations, factures, comptes à payer, grand
+  // livre, rappels de loyer. Un module jamais exécuté n'est pas un
+  // module « pas encore testé » — c'est un module dont personne ne
+  // sait s'il fonctionne.
+  //
+  // L'ordre suit l'argent : une dépense engagée devient un compte à
+  // payer, qui devient une écriture au grand livre, qui doit se
+  // retrouver dans la balance. Tester les maillons séparément
+  // laisserait passer exactement ce qui casse en pratique — le
+  // passage de l'un à l'autre.
+
+  // --- Seuil d'approbation ---
+  // Le seuil du propriétaire de test est à 300 $. Un bon de travail
+  // au-dessus doit produire une approbation en attente; en dessous,
+  // aucune. C'est la règle qui protège le propriétaire d'être engagé
+  // sans son accord, donc celle qui mérite le plus d'être vérifiée.
+  if (unitId) {
+    const cher = await callFn("ops-api", adminJwt, {
+      action: "dispatch_work_order_auto", unit_id: unitId,
+      description: "Diagnostic E2E — travail au-dessus du seuil",
+      worker_pay: 900, coordination_rate: 10,
+    });
+    if (cher.ok) {
+      await sleep(3000);
+      const appro = await restRequest("GET", "approvals?status=eq.pending&select=id,description,amount", adminJwt);
+      const liste = Array.isArray(appro.data) ? appro.data : [];
+      const trouve = liste.some((a) => (a.description || "").includes("au-dessus du seuil"));
+      record("Approbations — seuil déclenché au-dessus de 300 $",
+        trouve ? "PASS" : "FAIL",
+        trouve ? `${liste.length} approbation(s) en attente`
+               : "aucune approbation créée — le propriétaire serait engagé sans son accord");
+    } else {
+      record("Approbations — seuil déclenché au-dessus de 300 $", "FAIL",
+        `dispatch refusé : status ${cher.status} — ${JSON.stringify(cher.data)}`);
+    }
+  } else {
+    record("Approbations — seuil déclenché au-dessus de 300 $", "SKIP", "aucune unité de test");
+  }
+
+  // --- Compte à payer ---
+  let payableId = null;
+  if (buildingId) {
+    const pay = await callFn("ops-api", adminJwt, {
+      action: "create_payable", building_id: buildingId,
+      vendor_name: "Fournisseur Diagnostic E2E",
+      description: "Diagnostic E2E — facture fournisseur",
+      amount: 125.5, category: "entretien", due_date: today,
+    });
+    payableId = pay.data?.payable_id || pay.data?.payable?.id || null;
+    record("Comptes à payer — création", pay.ok ? "PASS" : "FAIL",
+      pay.ok ? `montant 125,50 $` : `status ${pay.status} — ${JSON.stringify(pay.data)}`);
+  } else {
+    record("Comptes à payer — création", "SKIP", "aucun immeuble de test");
+  }
+
+  // --- Grand livre ---
+  // L'écran Finances doit parler débit-crédit, pas simple liste de
+  // dépenses (readme du système, §2b). Une balance dont les deux
+  // colonnes ne s'égalisent pas est une comptabilité fausse : c'est
+  // la seule assertion qui compte ici.
+  if (ownerId) {
+    const bal = await callFn("ops-api", adminJwt, { action: "get_trial_balance", owner_id: ownerId });
+    const lignes = bal.data?.trial_balance || [];
+    if (!bal.ok) {
+      record("Grand livre — balance de vérification", "FAIL",
+        `status ${bal.status} — ${JSON.stringify(bal.data)}`);
+    } else if (lignes.length === 0) {
+      record("Grand livre — balance de vérification", "FAIL",
+        "balance vide — aucune écriture comptable produite par la chaîne");
+    } else {
+      const debit = lignes.reduce((t, l) => t + Number(l.debit || l.total_debit || 0), 0);
+      const credit = lignes.reduce((t, l) => t + Number(l.credit || l.total_credit || 0), 0);
+      const equilibre = Math.abs(debit - credit) < 0.01;
+      record("Grand livre — balance de vérification", equilibre ? "PASS" : "FAIL",
+        `débit ${debit.toFixed(2)} $ / crédit ${credit.toFixed(2)} $` +
+        (equilibre ? "" : " — la balance ne s'équilibre pas"));
+    }
+  } else {
+    record("Grand livre — balance de vérification", "SKIP", "aucun propriétaire de test");
+  }
+
+  // --- Facturation ---
+  const fact = await callFn("ops-api", adminJwt, { action: "list_invoices" });
+  record("Facturation — lecture du registre", fact.ok ? "PASS" : "FAIL",
+    fact.ok ? `${(fact.data?.invoices || []).length} facture(s)` :
+    `status ${fact.status} — ${JSON.stringify(fact.data)}`);
+
+  // --- Rappels de loyer ---
+  // Le compteur de rappels s'incrémentait autrefois sans qu'aucun
+  // courriel parte : net.http_post est asynchrone et ne sait pas si
+  // l'appel a abouti. On vérifie donc que la liste RÉPOND, pas qu'un
+  // chiffre a bougé.
+  const retards = await callFn("ops-api", adminJwt, { action: "list_late_payments" });
+  record("Loyers — registre des retards", retards.ok ? "PASS" : "FAIL",
+    retards.ok ? `${(retards.data?.payments || retards.data?.late_payments || []).length} en retard` :
+    `status ${retards.status} — ${JSON.stringify(retards.data)}`);
+
+  // --- Décisions automatisées (Loi 25) ---
+  // Chaque décision automatisée montrée à un usager doit exposer ses
+  // motifs et permettre une révision humaine. C'est une obligation
+  // légale câblée dans le schéma, pas une préférence produit.
+  const dec = await callFn("ops-api", adminJwt, { action: "list_automated_decisions" });
+  if (!dec.ok) {
+    record("Loi 25 — décisions automatisées traçables", "FAIL",
+      `status ${dec.status} — ${JSON.stringify(dec.data)}`);
+  } else {
+    const liste = dec.data?.decisions || [];
+    const sansMotif = liste.filter((d) => !d.summary && !d.factors);
+    record("Loi 25 — décisions automatisées traçables",
+      sansMotif.length === 0 ? "PASS" : "FAIL",
+      sansMotif.length === 0 ? `${liste.length} décision(s), toutes motivées`
+        : `${sansMotif.length} décision(s) sans motif — non conforme`);
+  }
+
+  // --- Rapprochement bancaire ---
+  // Flinks est en panne depuis le 2026-08-14 (HTTP 403 quotidien).
+  // Le test vérifie que le MODULE répond, pas que la synchronisation
+  // fonctionne : distinguer « le code est cassé » de « le tiers est
+  // injoignable » évite de courir après la mauvaise panne.
+  const banque = await restRequest("GET", "bank_transactions?select=id,matched_payment_id&limit=200", adminJwt);
+  if (!banque.ok) {
+    record("Rapprochement bancaire — module joignable", "FAIL",
+      `status ${banque.status} — ${JSON.stringify(banque.data)}`);
+  } else {
+    const tx = Array.isArray(banque.data) ? banque.data : [];
+    const rapproches = tx.filter((t) => t.matched_payment_id).length;
+    record("Rapprochement bancaire — module joignable", "PASS",
+      `${tx.length} transaction(s), ${rapproches} rapprochée(s)`);
+  }
+
   // --- Formulaire public (anti-spam) + CRM ---
   const publicInquiry = await callFn("handle-public-inquiry", null, {
     type: "mandat", full_name: "Prospect Diagnostic E2E", email: TEST_MANDAT_EMAIL,
@@ -295,6 +430,22 @@ async function cleanup() {
     // rien n'a pu être créé au-delà de l'étape de connexion de toute façon.
     return;
   }
+  // Le nettoyage côté serveur ne couvre que owners, leases, tenants et
+  // users — vérifié le 2026-09-25. Les comptes à payer créés par la
+  // chaîne financière y échappent : rattachés à un immeuble supprimé,
+  // ils deviendraient des orphelins qui fausseraient les prochaines
+  // lectures de la balance. On les retire ici, avant le nettoyage
+  // général, tant que l'immeuble existe encore.
+  const payablesTest = await restRequest(
+    "GET", "payables?vendor_name=eq.Fournisseur%20Diagnostic%20E2E&select=id", adminJwt);
+  if (payablesTest.ok && Array.isArray(payablesTest.data) && payablesTest.data.length) {
+    for (const pa of payablesTest.data) {
+      await restRequest("DELETE", `payables?id=eq.${pa.id}`, adminJwt);
+    }
+    record("Nettoyage — comptes à payer de test", "PASS",
+      `${payablesTest.data.length} supprimé(s)`);
+  }
+
   const res = await callFn("onboarding-api", adminJwt, { action: "cleanup_e2e_diagnostic_data" });
   if (res.ok) {
     record("Nettoyage — suppression des données de test", "PASS", JSON.stringify(res.data.summary || {}));
