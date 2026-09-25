@@ -467,6 +467,23 @@ async function cleanup() {
       `${payablesTest.data.length} supprimé(s)`);
   }
 
+  // Les écritures comptables et les approbations produites par la chaîne
+  // financière échappent elles aussi au nettoyage côté serveur. Une
+  // écriture orpheline fausserait la balance de vérification du prochain
+  // passage — et, sur la production, celle d'un vrai propriétaire.
+  for (const [table, filtre, libelle] of [
+    ["approvals", "description=like.*Diagnostic%20E2E*", "approbations"],
+    ["work_orders", "description=like.*Diagnostic%20E2E*", "bons de travail"],
+  ]) {
+    const trouve = await restRequest("GET", `${table}?${filtre}&select=id`, adminJwt);
+    if (trouve.ok && Array.isArray(trouve.data) && trouve.data.length) {
+      for (const ligne of trouve.data) {
+        await restRequest("DELETE", `${table}?id=eq.${ligne.id}`, adminJwt);
+      }
+      record(`Nettoyage — ${libelle} de test`, "PASS", `${trouve.data.length} supprimé(s)`);
+    }
+  }
+
   const res = await callFn("onboarding-api", adminJwt, { action: "cleanup_e2e_diagnostic_data" });
   if (res.ok) {
     record("Nettoyage — suppression des données de test", "PASS", JSON.stringify(res.data.summary || {}));
