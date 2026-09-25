@@ -92,7 +92,15 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         body: JSON.stringify({
           function_name: "send-onboarding-reminder", trigger_source: "cron", entity_type: "owners", entity_id: owner_id,
           prompt_version: "onboarding-reminder-v1", model_version: "claude-haiku-4-5-20251001", input_summary: gapsLabel,
-          duration_ms: Date.now() - aiStartedAt, error: `anthropic_api_error ${aiRes.status}`,
+          duration_ms: Date.now() - aiStartedAt,
+          // Le motif du refus vivait seulement dans console.error, donc
+          // invisible depuis la base. Vingt-cinq échecs sur vingt-huit
+          // appels sans qu'on puisse dire pourquoi : le message d'erreur
+          // d'Anthropic est justement ce qui distingue un modèle inconnu
+          // d'une requête malformée ou d'un quota dépassé.
+          error: `anthropic_api_error ${aiRes.status}: ${
+            (aiData?.error?.message ?? JSON.stringify(aiData ?? {})).slice(0, 400)
+          }`,
         }),
       }).catch(() => null);
       return new Response(JSON.stringify({ error: "Erreur du service IA" }), { status: 502, headers: corsHeaders });
