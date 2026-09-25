@@ -26,7 +26,7 @@ group by 1 order by 1 desc limit 14;
 --    précise appelle mal l'IA ».
 select function_name,
        count(*) as appels,
-       count(*) filter (where error is not null or success = false) as erreurs,
+       count(*) filter (where error is not null) as erreurs,
        to_char(max(created_at), 'MM-DD HH24:MI') as dernier
 from ai_run_log
 where created_at > now() - interval '14 days'
@@ -37,7 +37,7 @@ select to_char(created_at,'MM-DD HH24:MI') as quand,
        function_name,
        left(coalesce(error,'(pas de message)'), 160) as erreur
 from ai_run_log
-where (error is not null or success = false)
+where error is not null
 order by created_at desc limit 5;
 
 -- 4. La connexion bancaire et l'origine des 884 transactions.
