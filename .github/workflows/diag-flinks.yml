@@ -1,0 +1,32 @@
+name: Diagnostic Flinks
+
+# Lecture seule. Compare l'empreinte du secret côté coffre avec celle
+# affichée par `supabase secrets list`, et rapporte l'état des tâches
+# planifiées et des connexions bancaires.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installer psql 17
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+      - name: Lire l'état
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f scripts/diag-flinks.sql | tee /tmp/d.txt
+          { echo '### Diagnostic Flinks'; echo; echo '```'; cat /tmp/d.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
