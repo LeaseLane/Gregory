@@ -6,22 +6,16 @@
 <title>Lease Lane Pro — Recevez des contrats immobiliers près de chez vous</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --ink:#1F2421; --paper:#F5F1E8; --paper-2:#EDE7D8;
-    --brass:#B08D57; --brass-dark:#8A6B3E; --sage:#5F7355;
-    --rust:#A63D40; --line:#C9C2AE; --muted:#6E6C61;
-  }
+  /* Palette retirée : voir assets/leaselane.css (couleurs du logo). */
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;line-height:1.6;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--police-texte);line-height:1.6;}
   a{color:var(--brass-dark);}
   .wrap{max-width:640px;margin:0 auto;padding:48px 24px 80px;}
-  .brand{font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin-bottom:40px;}
+  .brand{font-family:var(--police-titre);font-weight:600;font-size:20px;margin-bottom:40px;}
   .brand a{text-decoration:none;color:inherit;}
 
-  .hero h1{font-family:'Fraunces',serif;font-weight:600;font-size:32px;line-height:1.25;margin-bottom:14px;}
+  .hero h1{font-family:var(--police-titre);font-weight:600;font-size:32px;line-height:1.25;margin-bottom:14px;}
   .hero p.lead{color:var(--muted);font-size:15.5px;margin-bottom:32px;}
 
   .benefits{list-style:none;margin-bottom:40px;}
@@ -30,7 +24,7 @@
   .benefits li .icon{color:var(--sage);font-weight:600;flex-shrink:0;}
 
   .card{background:var(--paper-2);border:1px solid var(--line);padding:28px 24px;}
-  .card h2{font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin-bottom:6px;}
+  .card h2{font-family:var(--police-titre);font-weight:600;font-size:20px;margin-bottom:6px;}
   .card .sub{color:var(--muted);font-size:13px;margin-bottom:22px;}
 
   .f{margin-bottom:16px;}
@@ -38,7 +32,7 @@
   .row .f{flex:1;min-width:200px;}
   label{display:block;font-size:12.5px;font-weight:500;margin-bottom:6px;}
   input[type=text], input[type=email], input[type=tel], input[type=number]{
-    width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:'Inter',sans-serif;
+    width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:var(--police-texte);
   }
   input:focus{outline:none;border-color:var(--brass);}
   .hint{color:var(--muted);font-size:11.5px;margin-top:5px;}
@@ -63,12 +57,13 @@
   .back-link{display:inline-block;font-size:12.5px;color:var(--muted);text-decoration:none;margin-bottom:18px;}
   .back-link:hover{color:var(--brass-dark);}
 </style>
+<link rel="stylesheet" href="assets/leaselane.css">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 <div class="wrap">
   <a class="back-link" href="index.html">&larr; Retour à l'accueil</a>
-  <div class="brand"><a href="index.html"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:26px;width:auto;display:inline-block;vertical-align:middle;"></a></div>
+  <div class="brand"><a href="index.html"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:26px;width:auto;display:inline-block;vertical-align:middle;"></a></div>
 
   <div class="hero">
     <h1>Recevez des contrats immobiliers près de chez vous.</h1>

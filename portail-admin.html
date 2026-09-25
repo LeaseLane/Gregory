@@ -7,22 +7,16 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <meta name="robots" content="noindex, nofollow">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
 <style>
-  :root{
-    --ink:#1F2421; --paper:#F5F1E8; --paper-2:#EDE7D8;
-    --brass:#B08D57; --brass-dark:#8A6B3E; --sage:#5F7355;
-    --rust:#A63D40; --line:#C9C2AE; --muted:#6E6C61;
-  }
+  /* Palette retirée : voir assets/leaselane.css (couleurs du logo). */
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--police-texte);}
 
   #login-screen{min-height:100vh;display:flex;align-items:stretch;justify-content:center;}
   .login-side{flex:1 1 440px;max-width:480px;background:var(--ink);color:var(--paper);display:flex;flex-direction:column;justify-content:center;padding:60px;}
-  .login-side .side-brand{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin-bottom:26px;}
-  .login-side h2{font-family:'Fraunces',serif;font-weight:600;font-size:27px;line-height:1.25;margin-bottom:14px;}
+  .login-side .side-brand{font-family:var(--police-mono);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin-bottom:26px;}
+  .login-side h2{font-family:var(--police-titre);font-weight:600;font-size:27px;line-height:1.25;margin-bottom:14px;}
   .login-side p{font-size:14px;color:#C9C6BC;line-height:1.6;max-width:36ch;}
   .login-side ul{margin-top:26px;padding:0;list-style:none;}
   .login-side li{font-size:13px;color:#C9C6BC;padding:10px 0;border-top:1px solid #33362f;}
@@ -31,28 +25,28 @@
   @media (max-width:860px){.login-side{display:none;}}
 
   .login-box{width:100%;max-width:340px;padding:36px;background:var(--paper-2);border:1px solid var(--line);}
-  .login-box .brand{font-family:'Fraunces',serif;font-weight:600;font-size:22px;margin-bottom:4px;}
-  .login-box .sub{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:24px;}
+  .login-box .brand{font-family:var(--police-titre);font-weight:600;font-size:22px;margin-bottom:4px;}
+  .login-box .sub{font-family:var(--police-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:24px;}
   .login-box label{display:block;font-size:12.5px;font-weight:500;margin-bottom:6px;}
   .login-box .f{margin-bottom:14px;}
-  .login-box input{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:'Inter',sans-serif;}
-  .login-box button{width:100%;background:var(--ink);color:var(--paper);border:none;padding:12px;font-size:13.5px;font-weight:500;cursor:pointer;margin-top:6px;}
+  .login-box input{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:var(--police-texte);}
+  .login-box button{width:100%;background:var(--brass);color:var(--paper);border:none;padding:12px;font-size:13.5px;font-weight:500;cursor:pointer;margin-top:6px;}
   .login-box button:hover{background:var(--brass-dark);}
   .login-error{color:var(--rust);font-size:12.5px;margin-top:10px;display:none;}
 
   #app-shell{display:none;}
   .shell{display:flex;min-height:100vh;}
   aside{width:230px;border-right:1px solid var(--ink);padding:24px 0;flex-shrink:0;overflow-y:auto;}
-  .brand{font-family:'Fraunces',serif;font-weight:600;font-size:18px;padding:0 22px 6px;}
-  .brand-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:0 22px 20px;border-bottom:1px solid var(--line);margin-bottom:10px;display:block;}
-  .nav-group-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:14px 22px 4px;}
-  .tab-btn{display:block;width:100%;text-align:left;background:none;border:none;padding:8px 22px;font-size:13px;color:var(--ink);cursor:pointer;border-left:2px solid transparent;font-family:'Inter',sans-serif;}
+  .brand{font-family:var(--police-titre);font-weight:600;font-size:18px;padding:0 22px 6px;}
+  .brand-sub{font-family:var(--police-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:0 22px 20px;border-bottom:1px solid var(--line);margin-bottom:10px;display:block;}
+  .nav-group-label{font-family:var(--police-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:14px 22px 4px;}
+  .tab-btn{display:block;width:100%;text-align:left;background:none;border:none;padding:8px 22px;font-size:13px;color:var(--ink);cursor:pointer;border-left:2px solid transparent;font-family:var(--police-texte);}
   .tab-btn:hover{background:var(--paper-2);}
   .tab-btn.active{border-left-color:var(--brass);background:var(--paper-2);font-weight:500;}
   .signout{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);}
 
   main{flex:1;padding:32px 40px;max-width:1020px;}
-  h1{font-family:'Fraunces',serif;font-weight:600;font-size:26px;}
+  h1{font-family:var(--police-titre);font-weight:600;font-size:26px;}
   .subtitle{color:var(--muted);font-size:13.5px;}
   .section{display:none;}
   .section.active{display:block;}
@@ -61,7 +55,7 @@
   .metric{background:var(--paper-2);border:1px solid var(--line);padding:16px;}
   .metric.flag{border-color:var(--rust);}
   .metric .label{font-size:12px;color:var(--muted);margin-bottom:6px;}
-  .metric .val{font-family:'Fraunces',serif;font-size:26px;font-weight:600;}
+  .metric .val{font-family:var(--police-titre);font-size:26px;font-weight:600;}
   .metric.flag .val{color:var(--rust);}
 
   table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--paper-2);border:1px solid var(--line);}
@@ -69,7 +63,7 @@
   td{padding:11px 14px;border-bottom:1px solid var(--line);}
   tr:last-child td{border-bottom:none;}
   .empty-row td{color:var(--muted);font-style:italic;}
-  .num{font-family:'JetBrains Mono',monospace;}
+  .num{font-family:var(--police-mono);}
 
   @media (max-width:760px){
     .shell{flex-direction:column;}
@@ -83,6 +77,7 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
+<link rel="stylesheet" href="assets/leaselane.css">
 </head>
 <body>
 
@@ -95,7 +90,7 @@
   </div>
   <div class="login-box-wrap">
   <div class="login-box">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Admin</div>
     <div class="f"><label for="login-email">Courriel</label><input type="email" id="login-email"></div>
     <div class="f"><label for="login-password">Mot de passe</label><input type="password" id="login-password"></div>
@@ -105,7 +100,7 @@
   </div>
 
   <div class="login-box" id="reset-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Réinitialiser le mot de passe</div>
     <div class="f"><label for="reset-email">Courriel</label><input type="email" id="reset-email"></div>
     <button onclick="sendResetLink()">Envoyer le lien</button>
@@ -115,7 +110,7 @@
   </div>
 
   <div class="login-box" id="newpw-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Choisir un nouveau mot de passe</div>
     <div class="f"><label for="newpw-value">Nouveau mot de passe</label><input type="password" id="newpw-value"></div>
     <button onclick="confirmNewPassword()">Confirmer</button>
@@ -128,7 +123,7 @@
        anti-verrouillage (transitoire par conception) devient l'état
        permanent. -->
   <div class="login-box" id="mfa-enroll-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Activer la double authentification</div>
     <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Ouvre ton application d'authentification (Google Authenticator, Authy, 1Password…) et scanne ce code. Elle affichera ensuite un code à 6 chiffres qui change toutes les 30 secondes.</p>
     <div id="mfa-qr" style="text-align:center;margin-bottom:12px;"></div>
@@ -144,7 +139,7 @@
 
   <!-- Défi : le compte a déjà un facteur vérifié. -->
   <div class="login-box" id="mfa-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Vérification en deux étapes</div>
     <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Entre le code affiché par ton application d'authentification.</p>
     <div class="f"><label for="mfa-code">Code à 6 chiffres</label><input type="text" id="mfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}"></div>
@@ -157,39 +152,39 @@
 <div id="app-shell">
   <div class="shell">
     <aside>
-      <div class="brand">Lease Lane</div>
+      <div class="brand"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane" style="height:34px;width:auto;display:block;"></div>
       <span class="brand-sub">Espace admin</span>
-      <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')">Vue d'ensemble</button>
+      <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#layout-grid"/></svg><span>Vue d'ensemble</span></button>
       <div class="nav-group-label">OPÉRATIONS</div>
-      <button class="tab-btn" data-tab="work-requests" onclick="showTab('work-requests')">Travaux à assigner</button>
-      <button class="tab-btn" data-tab="work-orders" onclick="showTab('work-orders')">Travaux en cours</button>
-      <button class="tab-btn" data-tab="visits" onclick="showTab('visits')">Visites</button>
-      <button class="tab-btn" data-tab="late-payments" onclick="showTab('late-payments')">Paiements en retard</button>
-      <button class="tab-btn" data-tab="workers" onclick="showTab('workers')">Travailleurs</button>
-      <button class="tab-btn" data-tab="service-catalog" onclick="showTab('service-catalog')">Catalogue de services</button>
-      <button class="tab-btn" data-tab="renewals" onclick="showTab('renewals')">Renouvellements de bail</button>
-      <button class="tab-btn" data-tab="tenants" onclick="showTab('tenants')">Locataires</button>
+      <button class="tab-btn" data-tab="work-requests" onclick="showTab('work-requests')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wrench"/></svg><span>Travaux à assigner</span></button>
+      <button class="tab-btn" data-tab="work-orders" onclick="showTab('work-orders')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#hammer"/></svg><span>Travaux en cours</span></button>
+      <button class="tab-btn" data-tab="visits" onclick="showTab('visits')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#calendar-check"/></svg><span>Visites</span></button>
+      <button class="tab-btn" data-tab="late-payments" onclick="showTab('late-payments')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-alert"/></svg><span>Paiements en retard</span></button>
+      <button class="tab-btn" data-tab="workers" onclick="showTab('workers')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#users"/></svg><span>Travailleurs</span></button>
+      <button class="tab-btn" data-tab="service-catalog" onclick="showTab('service-catalog')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#list"/></svg><span>Catalogue de services</span></button>
+      <button class="tab-btn" data-tab="renewals" onclick="showTab('renewals')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#refresh-cw"/></svg><span>Renouvellements de bail</span></button>
+      <button class="tab-btn" data-tab="tenants" onclick="showTab('tenants')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#user"/></svg><span>Locataires</span></button>
       <div class="nav-group-label">FINANCES</div>
-      <button class="tab-btn" data-tab="billing" onclick="showTab('billing')">Facturation & PAD</button>
-      <button class="tab-btn" data-tab="accounting" onclick="showTab('accounting')">Comptabilité</button>
-      <button class="tab-btn" data-tab="bank-recon" onclick="showTab('bank-recon')">Rapprochement bancaire</button>
-      <button class="tab-btn" data-tab="flinks" onclick="showTab('flinks')">Connexions bancaires</button>
-      <button class="tab-btn" data-tab="anomalies" onclick="showTab('anomalies')">Anomalies financières</button>
-      <button class="tab-btn" data-tab="supplier-invoices" onclick="showTab('supplier-invoices')">Factures fournisseurs</button>
+      <button class="tab-btn" data-tab="billing" onclick="showTab('billing')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#credit-card"/></svg><span>Facturation & PAD</span></button>
+      <button class="tab-btn" data-tab="accounting" onclick="showTab('accounting')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#scale"/></svg><span>Comptabilité</span></button>
+      <button class="tab-btn" data-tab="bank-recon" onclick="showTab('bank-recon')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#table-2"/></svg><span>Rapprochement bancaire</span></button>
+      <button class="tab-btn" data-tab="flinks" onclick="showTab('flinks')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wallet"/></svg><span>Connexions bancaires</span></button>
+      <button class="tab-btn" data-tab="anomalies" onclick="showTab('anomalies')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg><span>Anomalies financières</span></button>
+      <button class="tab-btn" data-tab="supplier-invoices" onclick="showTab('supplier-invoices')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#files"/></svg><span>Factures fournisseurs</span></button>
       <div class="nav-group-label">CROISSANCE</div>
-      <button class="tab-btn" data-tab="mandat-inquiries" onclick="showTab('mandat-inquiries')">Demandes de mandat</button>
-      <button class="tab-btn" data-tab="crm" onclick="showTab('crm')">CRM propriétaires</button>
-      <button class="tab-btn" data-tab="callers" onclick="showTab('callers')">Prospecteurs</button>
-      <button class="tab-btn" data-tab="marketplace" onclick="showTab('marketplace')">Annonces Marketplace</button>
-      <button class="tab-btn" data-tab="blog" onclick="showTab('blog')">Articles</button>
+      <button class="tab-btn" data-tab="mandat-inquiries" onclick="showTab('mandat-inquiries')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#gavel"/></svg><span>Demandes de mandat</span></button>
+      <button class="tab-btn" data-tab="crm" onclick="showTab('crm')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#handshake"/></svg><span>CRM propriétaires</span></button>
+      <button class="tab-btn" data-tab="callers" onclick="showTab('callers')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg><span>Prospecteurs</span></button>
+      <button class="tab-btn" data-tab="marketplace" onclick="showTab('marketplace')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shopping-bag"/></svg><span>Annonces Marketplace</span></button>
+      <button class="tab-btn" data-tab="blog" onclick="showTab('blog')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bookmark"/></svg><span>Articles</span></button>
       <div class="nav-group-label">ADMINISTRATION</div>
-      <button class="tab-btn" data-tab="onboarding" onclick="showTab('onboarding')">Onboarding client</button>
-      <button class="tab-btn" data-tab="demo-accounts" onclick="showTab('demo-accounts')">Comptes démo</button>
-      <button class="tab-btn" data-tab="audit-log" onclick="showTab('audit-log')">Journal d'audit</button>
-      <button class="tab-btn" data-tab="observability" onclick="showTab('observability')">Observabilité</button>
-      <button class="tab-btn" data-tab="automations" onclick="showTab('automations')">Automatisations</button>
-      <button class="tab-btn" data-tab="privacy" onclick="showTab('privacy')">Confidentialité (Loi 25)</button>
-      <button class="tab-btn" data-tab="automated-decisions" onclick="showTab('automated-decisions')">Décisions automatisées</button>
+      <button class="tab-btn" data-tab="onboarding" onclick="showTab('onboarding')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#log-in"/></svg><span>Onboarding client</span></button>
+      <button class="tab-btn" data-tab="demo-accounts" onclick="showTab('demo-accounts')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#users"/></svg><span>Comptes démo</span></button>
+      <button class="tab-btn" data-tab="audit-log" onclick="showTab('audit-log')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg><span>Journal d'audit</span></button>
+      <button class="tab-btn" data-tab="observability" onclick="showTab('observability')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#eye"/></svg><span>Observabilité</span></button>
+      <button class="tab-btn" data-tab="automations" onclick="showTab('automations')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#zap"/></svg><span>Automatisations</span></button>
+      <button class="tab-btn" data-tab="privacy" onclick="showTab('privacy')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#lock"/></svg><span>Confidentialité (Loi 25)</span></button>
+      <button class="tab-btn" data-tab="automated-decisions" onclick="showTab('automated-decisions')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bot"/></svg><span>Décisions automatisées</span></button>
       <div class="signout">
         <button class="tab-btn" onclick="handleSignOut()">Se déconnecter</button>
       </div>
@@ -583,11 +578,11 @@
       <div style="margin-bottom:10px;"><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;">Titre</label>
         <input id="blog-title" type="text" oninput="blogAutoSlug()" style="width:100%;padding:9px;border:1px solid var(--line);font-size:13.5px;"></div>
       <div style="margin-bottom:10px;"><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;">Slug (URL — blog.html?article=...)</label>
-        <input id="blog-slug" type="text" oninput="blogSlugManuallyEdited = true" style="width:100%;padding:9px;border:1px solid var(--line);font-size:13.5px;font-family:'JetBrains Mono',monospace;"></div>
+        <input id="blog-slug" type="text" oninput="blogSlugManuallyEdited = true" style="width:100%;padding:9px;border:1px solid var(--line);font-size:13.5px;font-family:var(--police-mono);"></div>
       <div style="margin-bottom:10px;"><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;">Résumé (optionnel — affiché dans la liste des articles)</label>
         <textarea id="blog-excerpt" style="width:100%;padding:9px;border:1px solid var(--line);font-size:13.5px;min-height:50px;"></textarea></div>
       <div style="margin-bottom:10px;"><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;">Contenu (un paragraphe par ligne vide)</label>
-        <textarea id="blog-body" style="width:100%;padding:9px;border:1px solid var(--line);font-size:13.5px;min-height:220px;font-family:'Inter',sans-serif;"></textarea></div>
+        <textarea id="blog-body" style="width:100%;padding:9px;border:1px solid var(--line);font-size:13.5px;min-height:220px;font-family:var(--police-texte);"></textarea></div>
       <div style="margin-bottom:10px;"><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;">Auteur</label>
         <input id="blog-author" type="text" value="L'équipe Lease Lane" style="width:280px;padding:9px;border:1px solid var(--line);font-size:13.5px;"></div>
       <div style="margin-bottom:14px;"><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;">Photo de couverture</label>
@@ -755,7 +750,7 @@
       <button onclick="createAutomationRule()" style="background:var(--ink);color:var(--paper);border:none;padding:9px 16px;font-size:12.5px;cursor:pointer;">Créer la règle</button>
       <div id="ar-message-wrap" style="display:none;width:100%;">
         <label style="display:block;font-size:11px;color:var(--muted);margin:8px 0 4px;" for="ar-message">Message du courriel (rédigé par toi — jamais généré par l'IA)</label>
-        <textarea id="ar-message" placeholder="Ex: Nous constatons que votre loyer est en retard. Merci de régulariser votre situation ou de nous contacter rapidement." style="width:100%;padding:8px;border:1px solid var(--line);min-height:70px;font-family:'Inter',sans-serif;"></textarea>
+        <textarea id="ar-message" placeholder="Ex: Nous constatons que votre loyer est en retard. Merci de régulariser votre situation ou de nous contacter rapidement." style="width:100%;padding:8px;border:1px solid var(--line);min-height:70px;font-family:var(--police-texte);"></textarea>
       </div>
     </div>
     <p id="ar-msg" style="font-size:12.5px;margin-bottom:10px;"></p>
@@ -1694,7 +1689,7 @@ function renderAuditGroups(){
       </tr>`).join('');
     return `
       <div style="border:1px solid var(--line);margin-bottom:10px;background:var(--paper-2);">
-        <button onclick="toggleAuditGroup('${key}')" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:13.5px;text-align:left;">
+        <button onclick="toggleAuditGroup('${key}')" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:none;border:none;cursor:pointer;font-family:var(--police-texte);font-size:13.5px;text-align:left;">
           <span>${esc(label)} <span style="color:var(--muted);font-size:12px;">(${items.length})</span></span>
           <span style="color:var(--muted);">${isOpen ? '▾' : '▸'}</span>
         </button>

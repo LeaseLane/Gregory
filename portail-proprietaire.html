@@ -7,23 +7,19 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <meta name="robots" content="noindex, nofollow">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
 <style>
-  :root{
-    --ink:#1F2421; --paper:#F5F1E8; --paper-2:#EDE7D8;
-    --brass:#B08D57; --brass-dark:#8A6B3E; --sage:#5F7355;
-    --rust:#A63D40; --line:#C9C2AE; --muted:#6E6C61; --amber:#B98A2E;
-  }
+  /* Palette retirée : les couleurs viennent de assets/leaselane.css,
+     dérivées du logo. L'ancienne (laiton, sauge, papier crème) n'avait
+     aucun lien avec la marque. */
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--police-texte);}
 
   /* ---- Écran de connexion ---- */
   #login-screen{min-height:100vh;display:flex;align-items:stretch;justify-content:center;}
   .login-side{flex:1 1 440px;max-width:480px;background:var(--ink);color:var(--paper);display:flex;flex-direction:column;justify-content:center;padding:60px;}
-  .login-side .side-brand{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin-bottom:26px;}
-  .login-side h2{font-family:'Fraunces',serif;font-weight:600;font-size:27px;line-height:1.25;margin-bottom:14px;}
+  .login-side .side-brand{font-family:var(--police-mono);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin-bottom:26px;}
+  .login-side h2{font-family:var(--police-titre);font-weight:600;font-size:27px;line-height:1.25;margin-bottom:14px;}
   .login-side p{font-size:14px;color:#C9C6BC;line-height:1.6;max-width:36ch;}
   .login-side ul{margin-top:26px;padding:0;list-style:none;}
   .login-side li{font-size:13px;color:#C9C6BC;padding:10px 0;border-top:1px solid #33362f;}
@@ -32,13 +28,13 @@
   @media (max-width:860px){.login-side{display:none;}}
 
   .login-box{width:100%;max-width:340px;padding:36px;background:var(--paper-2);border:1px solid var(--line);}
-  .login-box .brand{font-family:'Fraunces',serif;font-weight:600;font-size:22px;margin-bottom:4px;}
-  .login-box .sub{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:24px;}
+  .login-box .brand{font-family:var(--police-titre);font-weight:600;font-size:22px;margin-bottom:4px;}
+  .login-box .sub{font-family:var(--police-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:24px;}
   .login-box label{display:block;font-size:12.5px;font-weight:500;margin-bottom:6px;}
   .login-box .f{margin-bottom:14px;}
-  .login-box input{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:'Inter',sans-serif;}
+  .login-box input{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:var(--police-texte);}
   .login-box input:focus{outline:none;border-color:var(--brass);}
-  .login-box button{width:100%;background:var(--ink);color:var(--paper);border:none;padding:12px;font-size:13.5px;font-weight:500;cursor:pointer;margin-top:6px;}
+  .login-box button{width:100%;background:var(--brass);color:var(--paper);border:none;padding:12px;font-size:13.5px;font-weight:500;cursor:pointer;margin-top:6px;}
   .login-box button:hover{background:var(--brass-dark);}
   .login-error{color:var(--rust);font-size:12.5px;margin-top:10px;display:none;}
   .config-warning{background:#fff3f3;border:1px solid var(--rust);color:var(--rust);font-size:11.5px;padding:10px 12px;margin-bottom:18px;display:none;}
@@ -47,22 +43,22 @@
   #app-shell{display:none;min-height:100vh;}
   .shell{display:flex;min-height:100vh;}
   aside{width:230px;border-right:1px solid var(--ink);padding:24px 0;flex-shrink:0;}
-  .brand{font-family:'Fraunces',serif;font-weight:600;font-size:18px;padding:0 22px 6px;}
-  .brand-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:0 22px 20px;border-bottom:1px solid var(--line);margin-bottom:16px;display:block;}
-  .tab-btn{display:block;width:100%;text-align:left;background:none;border:none;padding:10px 22px;font-size:13.5px;color:var(--ink);cursor:pointer;border-left:2px solid transparent;font-family:'Inter',sans-serif;}
+  .brand{font-family:var(--police-titre);font-weight:600;font-size:18px;padding:0 22px 6px;}
+  .brand-sub{font-family:var(--police-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:0 22px 20px;border-bottom:1px solid var(--line);margin-bottom:16px;display:block;}
+  .tab-btn{display:block;width:100%;text-align:left;background:none;border:none;padding:10px 22px;font-size:13.5px;color:var(--ink);cursor:pointer;border-left:2px solid transparent;font-family:var(--police-texte);}
   .tab-btn:hover{background:var(--paper-2);}
   .tab-btn.active{border-left-color:var(--brass);background:var(--paper-2);font-weight:500;}
   .signout{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);}
 
   main{flex:1;padding:32px 40px;max-width:1020px;}
-  h1{font-family:'Fraunces',serif;font-weight:600;font-size:26px;margin-bottom:6px;}
+  h1{font-family:var(--police-titre);font-weight:600;font-size:26px;margin-bottom:6px;}
   .subtitle{color:var(--muted);font-size:13.5px;margin-bottom:24px;}
 
   .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:32px;}
   .metric{background:var(--paper-2);border:1px solid var(--line);padding:16px;}
   .metric.flag{border-color:var(--rust);}
   .metric .label{font-size:12px;color:var(--muted);margin-bottom:6px;}
-  .metric .val{font-family:'Fraunces',serif;font-size:26px;font-weight:600;}
+  .metric .val{font-family:var(--police-titre);font-size:26px;font-weight:600;}
   .metric.flag .val{color:var(--rust);}
 
   table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--paper-2);border:1px solid var(--line);}
@@ -71,7 +67,7 @@
   tr:last-child td{border-bottom:none;}
   .empty-row td{color:var(--muted);font-style:italic;}
 
-  .tag{font-size:11px;padding:3px 9px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.04em;}
+  .tag{font-size:11px;padding:3px 9px;font-family:var(--police-mono);text-transform:uppercase;letter-spacing:0.04em;}
   .tag.ok{background:var(--sage);color:var(--paper);}
   .tag.warn{background:var(--amber);color:var(--paper);}
   .tag.urgent{background:var(--rust);color:var(--paper);}
@@ -80,13 +76,13 @@
   .section{display:none;}
   .section.active{display:block;}
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
-  .toolbar h2{font-family:'Fraunces',serif;font-size:20px;font-weight:600;}
+  .toolbar h2{font-family:var(--police-titre);font-size:20px;font-weight:600;}
 
   .approve-row{display:flex;justify-content:space-between;align-items:center;background:var(--paper-2);border:1px solid var(--line);padding:14px 16px;margin-bottom:10px;}
   .approve-row .desc b{display:block;font-size:13.5px;margin-bottom:2px;}
   .approve-row .desc span{color:var(--muted);font-size:12.5px;}
   .approve-actions{display:flex;gap:8px;}
-  .approve-actions button{border:1px solid var(--ink);background:none;padding:7px 14px;font-size:12.5px;cursor:pointer;font-family:'Inter',sans-serif;}
+  .approve-actions button{border:1px solid var(--ink);background:none;padding:7px 14px;font-size:12.5px;cursor:pointer;font-family:var(--police-texte);}
   .approve-actions button.accept:hover{background:var(--sage);border-color:var(--sage);color:var(--paper);}
   .approve-actions button.reject:hover{background:var(--rust);border-color:var(--rust);color:var(--paper);}
 
@@ -94,10 +90,10 @@
   .wo-form.open{display:flex;}
   .wo-form .f{display:flex;flex-direction:column;gap:4px;}
   .wo-form label{font-size:11px;color:var(--muted);}
-  .wo-form select, .wo-form input{padding:8px 10px;border:1px solid var(--line);background:var(--paper-2);font-size:13px;font-family:'Inter',sans-serif;}
-  .wo-form button{border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:8px 16px;font-size:12.5px;cursor:pointer;font-family:'Inter',sans-serif;}
+  .wo-form select, .wo-form input{padding:8px 10px;border:1px solid var(--line);background:var(--paper-2);font-size:13px;font-family:var(--police-texte);}
+  .wo-form button{border:1px solid var(--brass);background:var(--brass);color:var(--paper);padding:8px 16px;font-size:12.5px;cursor:pointer;font-family:var(--police-texte);}
   .wo-form button:hover{background:var(--brass-dark);border-color:var(--brass-dark);}
-  .btn-small{border:1px solid var(--ink);background:none;padding:6px 12px;font-size:11.5px;cursor:pointer;font-family:'Inter',sans-serif;}
+  .btn-small{border:1px solid var(--ink);background:none;padding:6px 12px;font-size:11.5px;cursor:pointer;font-family:var(--police-texte);}
   .btn-small:hover{background:var(--ink);color:var(--paper);}
 
   @media (max-width:760px){
@@ -114,6 +110,7 @@
     .approve-row{flex-direction:column;align-items:flex-start;gap:10px;}
   }
 </style>
+<link rel="stylesheet" href="assets/leaselane.css">
 </head>
 <body>
 
@@ -127,7 +124,7 @@
   </div>
   <div class="login-box-wrap">
   <div class="login-box">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Espace propriétaire</div>
     <div class="config-warning" id="config-warning">
       SUPABASE_URL / SUPABASE_ANON_KEY ne sont pas configurés dans ce fichier — remplace les valeurs en haut du &lt;script&gt; avant de tester la connexion.
@@ -140,7 +137,7 @@
   </div>
 
   <div class="login-box" id="reset-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Réinitialiser le mot de passe</div>
     <div class="f"><label for="reset-email">Courriel</label><input type="email" id="reset-email"></div>
     <button onclick="sendResetLink()">Envoyer le lien</button>
@@ -150,7 +147,7 @@
   </div>
 
   <div class="login-box" id="newpw-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Choisir un nouveau mot de passe</div>
     <div class="f"><label for="newpw-value">Nouveau mot de passe</label><input type="password" id="newpw-value"></div>
     <button onclick="confirmNewPassword()">Confirmer</button>
@@ -163,22 +160,22 @@
 <div id="app-shell">
   <div class="shell">
     <aside>
-      <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+      <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
       <span class="brand-sub">Espace propriétaire</span>
-      <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')">Vue d'ensemble</button>
-      <button class="tab-btn" data-tab="buildings" onclick="showTab('buildings')">Immeubles</button>
-      <button class="tab-btn" data-tab="units" onclick="showTab('units')">Logements et locataires</button>
-      <button class="tab-btn" data-tab="rentals" onclick="showTab('rentals')">Location</button>
-      <button class="tab-btn" data-tab="payments" onclick="showTab('payments')">Loyers et paiements</button>
-      <button class="tab-btn" data-tab="expenses" onclick="showTab('expenses')">Dépenses</button>
-      <button class="tab-btn" data-tab="workorders" onclick="showTab('workorders')">Travaux</button>
-      <button class="tab-btn" data-tab="approvals" onclick="showTab('approvals')">Travaux à approuver</button>
-      <button class="tab-btn" data-tab="inquiries" onclick="showTab('inquiries')">Demandes</button>
-      <button class="tab-btn" data-tab="documents" onclick="showTab('documents')">Documents</button>
-      <button class="tab-btn" data-tab="messages" onclick="showTab('messages')">Messages</button>
-      <button class="tab-btn" data-tab="reports" onclick="showTab('reports')">Rapports mensuels</button>
-      <button class="tab-btn" data-tab="decisions" onclick="showTab('decisions')">Décisions automatisées</button>
-      <button class="tab-btn" data-tab="copilot" onclick="showTab('copilot')">Copilot</button>
+      <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#layout-grid"/></svg><span>Vue d'ensemble</span></button>
+      <button class="tab-btn" data-tab="buildings" onclick="showTab('buildings')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#building-2"/></svg><span>Immeubles</span></button>
+      <button class="tab-btn" data-tab="units" onclick="showTab('units')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#house"/></svg><span>Logements et locataires</span></button>
+      <button class="tab-btn" data-tab="rentals" onclick="showTab('rentals')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#key"/></svg><span>Location</span></button>
+      <button class="tab-btn" data-tab="payments" onclick="showTab('payments')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#banknote"/></svg><span>Loyers et paiements</span></button>
+      <button class="tab-btn" data-tab="expenses" onclick="showTab('expenses')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#receipt"/></svg><span>Dépenses</span></button>
+      <button class="tab-btn" data-tab="workorders" onclick="showTab('workorders')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#hammer"/></svg><span>Travaux</span></button>
+      <button class="tab-btn" data-tab="approvals" onclick="showTab('approvals')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-check"/></svg><span>Travaux à approuver</span></button>
+      <button class="tab-btn" data-tab="inquiries" onclick="showTab('inquiries')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#message-square"/></svg><span>Demandes</span></button>
+      <button class="tab-btn" data-tab="documents" onclick="showTab('documents')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#file-text"/></svg><span>Documents</span></button>
+      <button class="tab-btn" data-tab="messages" onclick="showTab('messages')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#message-circle"/></svg><span>Messages</span></button>
+      <button class="tab-btn" data-tab="reports" onclick="showTab('reports')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chart-column"/></svg><span>Rapports mensuels</span></button>
+      <button class="tab-btn" data-tab="decisions" onclick="showTab('decisions')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bot"/></svg><span>Décisions automatisées</span></button>
+      <button class="tab-btn" data-tab="copilot" onclick="showTab('copilot')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg><span>Copilot</span></button>
       <div class="signout">
         <button class="tab-btn" onclick="handleSignOut()">Se déconnecter</button>
       </div>
@@ -244,10 +241,10 @@
 
       <section id="workorders" class="section">
         <div class="toolbar"><h2>Travaux</h2></div>
-        <h3 style="font-family:'Fraunces',serif;font-size:15px;font-weight:600;margin-bottom:10px;">Demandes de service ouvertes</h3>
+        <h3 style="font-family:var(--police-titre);font-size:15px;font-weight:600;margin-bottom:10px;">Demandes de service ouvertes</h3>
         <div id="service-requests-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
 
-        <h3 style="font-family:'Fraunces',serif;font-size:15px;font-weight:600;margin:22px 0 10px;">Travaux en cours</h3>
+        <h3 style="font-family:var(--police-titre);font-size:15px;font-weight:600;margin:22px 0 10px;">Travaux en cours</h3>
         <table><thead><tr><th>Unité</th><th>Description</th><th>Travailleur</th><th>Coût estimé</th><th>Statut</th></tr></thead>
           <tbody id="workorders-body"><tr class="empty-row"><td colspan="5">Chargement...</td></tr></tbody>
         </table>
@@ -303,7 +300,7 @@
       <section id="messages" class="section">
         <div class="toolbar"><h2>Messages</h2></div>
         <div id="messages-body" style="margin-bottom:16px;"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
-        <div class="f"><label for="message-text">Nouveau message</label><textarea id="message-text" style="width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--paper-2);font-size:13.5px;font-family:'Inter',sans-serif;min-height:80px;"></textarea></div>
+        <div class="f"><label for="message-text">Nouveau message</label><textarea id="message-text" style="width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--paper-2);font-size:13.5px;font-family:var(--police-texte);min-height:80px;"></textarea></div>
         <button class="btn-small" onclick="sendMessage()">Envoyer</button>
       </section>
 
@@ -1211,7 +1208,7 @@ async function loadInquiries(){
     const typeLabel = i.type === 'visite' ? 'Visite' : 'Mandat';
     const next = nextStatus[i.status];
     const actionBtn = next
-      ? `<button onclick="markInquiryStatus('${i.id}','${next}')" style="border:1px solid var(--ink);background:none;padding:5px 10px;font-size:11.5px;cursor:pointer;font-family:'Inter',sans-serif;">${nextLabel[i.status]}</button>`
+      ? `<button onclick="markInquiryStatus('${i.id}','${next}')" style="border:1px solid var(--ink);background:none;padding:5px 10px;font-size:11.5px;cursor:pointer;font-family:var(--police-texte);">${nextLabel[i.status]}</button>`
       : '';
     return `<tr>
       <td>${typeLabel}</td>

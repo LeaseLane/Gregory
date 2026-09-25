@@ -1,0 +1,622 @@
+/* Lease Lane — feuille de style partagée des portails.
+   Générée depuis « Lease Lane Design System ». Les valeurs viennent
+   du logo et des jetons officiels : ne pas les modifier à la main.
+*/
+
+/* Lease Lane — webfaces. Bebas Neue (display) + IBM Plex Sans (UI/body) + IBM Plex Mono (data).
+   Files fetched from Google Fonts (SIL Open Font License 1.1) and vendored into assets/fonts/. */
+@font-face{font-family:'Bebas Neue';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/bebas-neue-400-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Bebas Neue';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/bebas-neue-400-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/ibm-plex-mono-400-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/ibm-plex-mono-400-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/ibm-plex-mono-500-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/ibm-plex-mono-500-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/ibm-plex-mono-600-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/ibm-plex-mono-600-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/ibm-plex-sans-400-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/ibm-plex-sans-400-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/ibm-plex-sans-500-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/ibm-plex-sans-500-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/ibm-plex-sans-600-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/ibm-plex-sans-600-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/ibm-plex-sans-700-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/ibm-plex-sans-700-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+
+/* Poppins — substitution documentée de Gilroy (police commerciale du thème source).
+   Même squelette géométrique, même « a » à un étage, même « y » à jambe droite. */
+@font-face{font-family:'Poppins';font-style:normal;font-weight:300;font-display:swap;src:url('fonts/poppins-300-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:300;font-display:swap;src:url('fonts/poppins-300-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/poppins-400-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/poppins-400-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/poppins-500-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/poppins-500-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/poppins-600-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/poppins-600-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/poppins-700-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/poppins-700-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:800;font-display:swap;src:url('fonts/poppins-800-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Poppins';font-style:normal;font-weight:800;font-display:swap;src:url('fonts/poppins-800-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+
+/* Playfair Display italique — accent de titre en serif, repris du thème de référence
+   (mot-clé en serif italique suivi du reste en géométrique grasse). */
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:400;font-display:swap;src:url('fonts/playfair-display-italic-400-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:400;font-display:swap;src:url('fonts/playfair-display-italic-400-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:500;font-display:swap;src:url('fonts/playfair-display-italic-500-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:500;font-display:swap;src:url('fonts/playfair-display-italic-500-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:600;font-display:swap;src:url('fonts/playfair-display-italic-600-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Playfair Display';font-style:italic;font-weight:600;font-display:swap;src:url('fonts/playfair-display-italic-600-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+
+/* Lease Lane — couleurs.
+   Toute la palette est dérivée du logo : le cadre marine, le dégradé bleu des
+   chevrons et du mot-clé « LANE », et les gris froids du cadre.
+   Échantillonnée depuis assets/logo/*.svg et la présentation commerciale. */
+:root{
+  /* ---- Marine (fond de marque) — cadre du logo, fonds de la présentation ---- */
+  --marine-950:#071A2E;
+  --marine-900:#0A2038;
+  --marine-800:#0D233B;
+  --marine-700:#122744;
+  --marine-600:#172C49;
+  --marine-500:#1C3053;
+  --marine-400:#24405F;
+  --marine-300:#2E5788;
+  --marine-200:#35629B;
+
+  /* ---- Bleu Lease Lane — dégradé des chevrons et du mot « LANE » ---- */
+  --bleu-800:#1C3451;
+  --bleu-700:#2E5788;
+  --bleu-600:#3767A2;
+  --bleu-500:#4581CB;
+  --bleu-400:#518ACF;
+  --bleu-300:#6A9AD5;
+  --bleu-200:#91B5E0;
+  --bleu-100:#B5CDEA;
+  --bleu-050:#C8DAF0;
+  --bleu-025:#ECF2F9;
+
+  /* ---- Gris froids — cadre et vitrages du logo ---- */
+  --gris-000:#FFFFFF;
+  --gris-025:#F7F9FB;
+  --gris-050:#EEF1F5;
+  --gris-100:#E1E6EC;
+  --gris-200:#D1D6DB;
+  --gris-300:#C8CDD4;
+  --gris-400:#A6B1BE;
+  --gris-500:#78838F;
+  --gris-600:#58697F;
+  --gris-700:#3E4A59;
+  --gris-800:#26303C;
+  --gris-900:#151C25;
+
+  /* ---- Signaux — teintes sourdes, calées sur la valeur du marine ---- */
+  --succes-600:#12694F;
+  --succes-500:#17795E;
+  --succes-100:#DCEFE8;
+  --alerte-600:#9C6212;
+  --alerte-500:#B77416;
+  --alerte-100:#FAEEDA;
+  --urgence-600:#9B2E28;
+  --urgence-500:#B4362F;
+  --urgence-100:#F8E4E2;
+  --info-500:var(--bleu-500);
+  --info-100:var(--bleu-025);
+
+  /* ---- Dégradés de marque ---- */
+  --degrade-chevron:linear-gradient(135deg,#5C86B9 0%,#6A9AD5 25%,#91B5E0 52%,#6593CC 80%,#5982B3 100%); /* @kind color */
+  --degrade-mot:linear-gradient(180deg,#FFFFFF 0%,#C8DAF0 45%,#6A9AD5 100%); /* @kind color */
+  --degrade-marine:linear-gradient(160deg,#0A2038 0%,#122744 55%,#1C3053 100%); /* @kind color */
+  --degrade-bandeau:linear-gradient(90deg,#0A2038 0%,#12294A 50%,#1C3053 100%); /* @kind color */
+  --lueur-bleue:radial-gradient(60% 70% at 50% 60%,rgba(145,181,224,.38) 0%,rgba(10,32,56,0) 70%); /* @kind color */
+
+  /* ---- Alias sémantiques ---- */
+  --surface-page:var(--gris-000);
+  --surface-douce:var(--gris-025);
+  --surface-carte:var(--gris-000);
+  --surface-enfoncee:var(--gris-050);
+  --surface-marine:var(--marine-900);
+  --surface-marine-haute:var(--marine-600);
+  --surface-survol:var(--bleu-025);
+
+  --texte-titre:var(--marine-900);
+  --texte-corps:var(--gris-700);
+  --texte-discret:var(--gris-500);
+  --texte-inverse:var(--gris-000);
+  --texte-inverse-discret:var(--bleu-100);
+  --texte-accent:var(--bleu-500);
+  --texte-lien:var(--bleu-600);
+  --texte-lien-survol:var(--marine-900);
+
+  --bordure-fine:var(--gris-100);
+  --bordure:var(--gris-200);
+  --bordure-forte:var(--gris-400);
+  --bordure-marine:rgba(145,181,224,.22);
+  --bordure-focus:var(--bleu-500);
+
+  --action-primaire:var(--bleu-500);
+  --action-primaire-survol:var(--bleu-600);
+  --action-primaire-active:var(--bleu-700);
+  --action-marine:var(--marine-900);
+  --action-marine-survol:var(--marine-600);
+
+  /* Trame « plan d'architecte » : motif de fond des zones marine */
+  --grille-trait:rgba(145,181,224,.10); /* @kind color */
+  --grille-pas:64px; /* @kind spacing */
+}
+
+/* Lease Lane — rayons. Le thème de référence est très peu arrondi : médias à 10 px,
+   boutons et pastilles en pilule complète, tout le reste net. */
+:root{
+  --rayon-0:0px;
+  --rayon-1:2px;
+  --rayon-2:6px;
+  --rayon-3:10px;
+  --rayon-4:12px;
+  --rayon-5:16px;
+  --rayon-pilule:999px;
+  --rayon-carte:10px;
+  --rayon-champ:8px;
+  --rayon-bouton:999px;
+}
+
+/* Lease Lane — ombres et lueurs.
+   Sur fond clair : ombres froides, très diffuses, jamais noires.
+   Sur fond marine : pas d'ombre — on utilise une lueur bleue et un filet clair. */
+:root{
+  --ombre-0:none; /* @kind shadow */
+  --ombre-1:0 1px 2px rgba(10,32,56,.06),0 1px 1px rgba(10,32,56,.04);
+  --ombre-2:0 2px 6px rgba(10,32,56,.07),0 1px 2px rgba(10,32,56,.05);
+  --ombre-3:0 8px 24px rgba(10,32,56,.09),0 2px 6px rgba(10,32,56,.05);
+  --ombre-4:0 18px 48px rgba(10,32,56,.13),0 4px 12px rgba(10,32,56,.06);
+  --ombre-5:0 32px 80px rgba(10,32,56,.18);
+  --ombre-interne:inset 0 1px 2px rgba(10,32,56,.06); /* @kind shadow */
+
+  --lueur-focus:0 0 0 3px rgba(69,129,203,.28);
+  --lueur-marine:0 0 48px rgba(145,181,224,.28);
+  --filet-marine:inset 0 1px 0 rgba(200,218,240,.14); /* @kind shadow */
+}
+
+/* Lease Lane — bases d'élément. Volontairement minimal. */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:var(--police-corps);font-size:var(--texte-m);line-height:var(--interligne-corps);color:var(--texte-corps);background:var(--surface-page);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,h5{font-family:var(--police-titre);font-weight:700;line-height:var(--interligne-titre);letter-spacing:var(--interlettre-titre);color:var(--texte-titre);margin:0}
+h1{font-size:var(--titre-xl)}h2{font-size:var(--titre-l)}h3{font-size:var(--titre-m)}h4{font-size:var(--titre-s)}h5{font-size:var(--titre-xs)}
+p{margin:0 0 var(--esp-4);text-wrap:pretty}
+a{color:var(--texte-lien);text-decoration:none;transition:color var(--duree-2) var(--courbe-sortie)}
+a:hover{color:var(--texte-lien-survol);text-decoration:underline;text-underline-offset:3px}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--bordure-focus);outline-offset:2px}
+small{font-size:var(--texte-xs)}
+strong{font-weight:var(--graisse-demi);color:var(--texte-titre)}
+code,kbd{font-family:var(--police-mono);font-size:.92em}
+hr{border:0;border-top:1px solid var(--bordure-fine);margin:var(--esp-7) 0}
+::selection{background:var(--bleu-100);color:var(--marine-900)}
+
+/* Sur-titre : barre oblique + capitales espacées (signature du thème de référence). */
+.ll-surtitre{font-family:var(--police-corps);font-size:var(--surtitre-taille);font-weight:var(--surtitre-graisse);letter-spacing:var(--interlettre-surtitre);text-transform:uppercase;color:var(--texte-discret)}
+.ll-surtitre::before{content:"/ ";color:var(--bleu-500)}
+/* Titre d'affiche — présentation commerciale seulement. */
+.ll-affiche{font-family:var(--police-affiche);text-transform:uppercase;line-height:.92;letter-spacing:.005em;font-weight:400}
+.ll-marine{background:var(--degrade-marine);color:var(--texte-inverse)}
+.ll-grille{background-image:linear-gradient(var(--grille-trait) 1px,transparent 1px),linear-gradient(90deg,var(--grille-trait) 1px,transparent 1px);background-size:var(--grille-pas) var(--grille-pas)}
+/* Filets verticaux de colonne, posés sur une section pleine largeur. */
+.ll-filets{position:relative}
+.ll-filets::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;background-image:repeating-linear-gradient(90deg,var(--web-filet) 0 1px,transparent 1px calc(100% / var(--web-filet-colonnes)))}
+.ll-filets>*{position:relative;z-index:1}
+.ll-mono{font-family:var(--police-mono);font-variant-numeric:tabular-nums}
+
+/* Lease Lane — espacements. Pas de 4 px, doublement à partir de 16. */
+:root{
+  --esp-0:0px; --esp-1:4px; --esp-2:8px; --esp-3:12px; --esp-4:16px;
+  --esp-5:20px; --esp-6:24px; --esp-7:32px; --esp-8:40px; --esp-9:48px;
+  --esp-10:64px; --esp-11:80px; --esp-12:96px; --esp-13:128px;
+
+  --gouttiere:24px;
+  --marge-section:96px;
+  --largeur-max:1240px;
+  --largeur-texte:68ch; /* @kind spacing */
+  --hauteur-entete:72px;
+  --largeur-rail:264px;
+  --cible-tactile:44px;
+}
+
+/* Lease Lane — mouvement. Court, linéaire-sortant, jamais de rebond. */
+:root{
+  --duree-1:120ms; /* @kind other */
+  --duree-2:180ms; /* @kind other */
+  --duree-3:260ms; /* @kind other */
+  --duree-4:420ms; /* @kind other */
+  --courbe-sortie:cubic-bezier(.2,.8,.3,1); /* @kind other */
+  --courbe-entree:cubic-bezier(.4,0,.6,1); /* @kind other */
+  --courbe-douce:cubic-bezier(.4,0,.2,1); /* @kind other */
+  --transition-interface:all var(--duree-2) var(--courbe-sortie); /* @kind other */
+}
+@media (prefers-reduced-motion:reduce){
+  :root{--duree-1:0ms; /* @kind other */ --duree-2:0ms; /* @kind other */ --duree-3:0ms; /* @kind other */ --duree-4:0ms /* @kind other */}
+  .ll-onde,[style*="ll-onde"]{animation:none!important}
+}
+/* Onde de présence : un anneau bleu qui s'élargit et s'efface. Portée par le lanceur de l'agent. */
+@keyframes ll-onde{0%{transform:scale(1);opacity:.75}70%{transform:scale(1.55);opacity:0}100%{transform:scale(1.55);opacity:0}}
+
+/* ═══════════════════════════════════════════════════════════════
+   PONT VERS LES ANCIENS NOMS DE VARIABLES
+   Les portails utilisent 1 039 fois des variables héritées. Les
+   redéfinir ici restyle le produit sans toucher au balisage.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --paper:var(--surface-douce);
+  --paper-2:var(--surface-enfoncee);
+  --ink:var(--marine-900);
+  --line:var(--bordure-fine);
+  --muted:var(--texte-discret);
+  --brass:var(--action-primaire);
+  --brass-dark:var(--action-primaire-survol);
+  --sage:var(--succes-500);
+  --rust:var(--urgence-500);
+  --amber:var(--alerte-500);
+
+  --police-titre:'Bebas Neue',Impact,sans-serif;
+  --police-texte:'IBM Plex Sans',system-ui,sans-serif;
+  --police-mono:'IBM Plex Mono',ui-monospace,monospace;
+
+  /* Filet des portails : un cran plus présent que --bordure-fine,
+     pour détacher chaque bloc du fond (portail.css du système). */
+  --bordure-portail:#D6DCE4;
+}
+
+body{ background:var(--surface-douce); color:var(--texte-corps); }
+
+/* Les portails déclarent la police sur des sélecteurs plus précis que
+   `body` (.subtitle, p, aside…). On couvre donc explicitement le texte
+   courant, sinon l'ancienne serif ressort par endroits. */
+body,p,span,div,td,th,li,label,input,select,textarea,button,a{
+  font-family:var(--police-texte);
+}
+
+/* ═══════ TYPOGRAPHIE ═══════
+   Bebas est une condensée : à taille égale elle paraît plus petite
+   qu'un serif. Les tailles sont donc remontées, sinon les titres
+   rapetissent au lieu de gagner en présence. */
+h1,h2,h3,h4{
+  font-family:var(--police-titre);
+  text-transform:uppercase;
+  line-height:.92;
+  letter-spacing:.01em;
+  font-weight:400;            /* Bebas n'a qu'une graisse */
+  color:var(--texte-titre);
+}
+h1{ font-size:2.15em; }
+h2{ font-size:1.6em; }
+code,kbd,samp{ font-family:var(--police-mono); font-variant-numeric:tabular-nums; }
+
+/* ═══════ BARRE LATÉRALE ═══════
+   Spec : chrome.jsx › Rail. Largeur fixe 248 px, entête de 72 px
+   séparé par un filet, éléments de 44 px à coins arrondis, pastille
+   marine pleine sur l'élément actif. */
+aside{
+  width:248px; flex:none;
+  background:var(--surface-carte);
+  border-right:1px solid var(--bordure-fine);
+  display:flex; flex-direction:column;
+  padding:0;
+}
+aside .brand{
+  height:72px; display:flex; align-items:center;
+  padding:0 20px; margin:0;
+  border-bottom:1px solid var(--bordure-fine);
+  flex:none;
+}
+aside .brand-sub{
+  display:block; padding:16px 20px 8px;
+  font:600 11px/1 var(--police-texte);
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--texte-accent);
+}
+aside .tab-btn{
+  display:flex; align-items:center; gap:12px;
+  height:44px; padding:0 12px; margin:2px 12px;
+  border:0; border-radius:var(--rayon-2);
+  background:transparent; color:var(--marine-900);
+  font:500 14px/1 var(--police-texte);
+  text-align:left; cursor:pointer; white-space:nowrap;
+  transition:background var(--duree-2,.15s) ease;
+}
+aside .tab-btn:hover{ background:var(--surface-douce); }
+aside .tab-btn.active{
+  background:var(--marine-900); color:var(--texte-inverse);
+  font-weight:600;
+}
+aside .signout{
+  margin-top:auto;
+  border-top:1px solid var(--bordure-fine);
+  padding:8px 0;
+}
+
+/* ═══════ CARTES ET SURFACES ═══════
+   Spec readme §4.5 : filet ET ombre, les deux. */
+.metric,.card,.panel{
+  background:var(--surface-carte);
+  border:1px solid var(--bordure-portail);
+  border-radius:var(--rayon-carte);
+  box-shadow:var(--ombre-2);
+  padding:20px;
+}
+
+/* Tuile de mesure — spec chrome.jsx › Tuile */
+.metric .label{
+  font:600 10.5px/15px var(--police-texte);
+  letter-spacing:.08em; text-transform:uppercase;
+  color:var(--texte-discret);
+}
+.metric .val{
+  font-family:var(--police-texte);
+  font-variant-numeric:tabular-nums;
+  font-size:28px; font-weight:700; line-height:32px;
+  letter-spacing:-.02em;
+  color:var(--marine-900);
+  margin-top:6px;
+}
+/* tabular-nums aligne les colonnes de chiffres, mais élargit aussi les
+   séparateurs : réservé aux tableaux, pas aux tuiles. */
+tbody td{ font-variant-numeric:tabular-nums; }
+/* Une tuile d'alerte se signale par son filet et son chiffre, jamais
+   par un aplat de couleur (readme §4.2 : pas de grands aplats). */
+.metric.flag{ border-color:var(--urgence-500); }
+.metric.flag .val{ color:var(--urgence-600); }
+
+/* ═══════ TABLEAUX ═══════
+   Spec chrome.jsx › Tableau2 : entêtes en petites capitales
+   espacées, lignes séparées par un filet, pas de zébrure. */
+table{ width:100%; border-collapse:collapse; font-size:14px; }
+thead th{
+  font:600 11px/1 var(--police-texte);
+  letter-spacing:.14em; text-transform:uppercase;
+  color:var(--texte-discret);
+  text-align:left; padding:0 12px 10px;
+  border-bottom:1px solid var(--bordure-fine);
+  white-space:nowrap;
+  background:transparent;
+}
+tbody td{
+  padding:14px 12px;
+  border-bottom:1px solid var(--bordure-fine);
+  color:var(--texte-corps);
+  vertical-align:middle;
+}
+tbody tr:hover{ background:var(--surface-survol); }
+
+/* ═══════ CHAMPS ═══════ */
+input,select,textarea{
+  border:1px solid var(--bordure);
+  border-radius:var(--rayon-champ);
+  padding:10px 12px;
+  font:400 14px/1.4 var(--police-texte);
+  background:var(--surface-carte);
+  color:var(--texte-corps);
+}
+input:focus,select:focus,textarea:focus{
+  outline:none;
+  border-color:var(--bordure-focus);
+  box-shadow:var(--lueur-focus);
+}
+
+/* ═══════ BOUTONS ═══════
+   Le bleu est la SEULE couleur d'action (readme §4.2). Rayon en
+   pilule : --rayon-bouton vaut 999px dans le système. */
+button{ font-family:var(--police-texte); }
+
+/* ═══════ ZONE PRINCIPALE ═══════
+   Spec chrome.jsx › Coquille : la zone de contenu défile seule, avec
+   un rembourrage généreux. Sans cela, le tableau touche le bord et
+   son entête se retrouve collé au bandeau. */
+main{
+  padding:28px 32px 48px;
+  overflow-y:auto;
+  background:var(--surface-douce);
+}
+main > .section > .toolbar{ margin-bottom:18px; }
+
+/* Un tableau vit dans une carte (spec › Carte), jamais posé nu sur le
+   fond : c'est ce qui détache chaque bloc de contenu de la page. */
+main table{
+  background:var(--surface-carte);
+  border:1px solid var(--bordure-portail);
+  border-radius:var(--rayon-carte);
+  box-shadow:var(--ombre-2);
+  overflow:hidden;
+  border-collapse:separate;
+  border-spacing:0;
+}
+main thead th{ padding:16px 16px 12px; }
+main tbody td{ padding:14px 16px; }
+main tbody tr:last-child td{ border-bottom:0; }
+
+/* Les tuiles de mesure s'alignent en grille souple : elles gardent une
+   largeur lisible et passent à la ligne plutôt que de s'écraser. */
+.metrics{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:16px;
+  margin-top:20px;
+}
+
+/* Libellés de groupe dans la barre latérale (portail admin) : même
+   traitement que les sur-titres du système — capitales espacées,
+   précédées d'un filet bleu (readme §3 « Sur-titres »). */
+aside .nav-group-label{
+  font:600 10px/1 var(--police-texte);
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--texte-discret);
+  padding:18px 12px 8px;
+  margin:0 12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE
+   ═══════════════════════════════════════════════════════════════
+   Les portails avaient déjà une bonne réponse à 760 px : la barre
+   latérale devient une barre d'onglets horizontale. Elle a cessé de
+   s'appliquer quand cette feuille est passée APRÈS leur <style> —
+   c'est donc ici qu'elle doit revivre, adaptée aux composants du
+   système.
+
+   Une barre latérale de 248 px sur un écran de 390 px ne laisse rien
+   au contenu : sur téléphone, la navigation se pose en haut et défile
+   horizontalement. */
+@media (max-width:860px){
+  .shell{ flex-direction:column; }
+
+  aside{
+    width:100%; flex:none;
+    border-right:0;
+    border-bottom:1px solid var(--bordure-fine);
+    flex-direction:row; align-items:center;
+    overflow-x:auto; white-space:nowrap;
+    padding:8px 4px;
+    gap:4px;
+    /* Défilement fluide au doigt, sans barre visible. */
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  aside::-webkit-scrollbar{ display:none; }
+
+  /* Le logo et le sur-titre reprennent la place du contenu : sur
+     téléphone, l'usager sait déjà dans quelle application il est. */
+  aside .brand,
+  aside .brand-sub,
+  aside .nav-group-label{ display:none; }
+
+  aside .tab-btn{
+    width:auto; flex:none;
+    margin:0; height:38px;
+    padding:0 14px;
+    border-radius:var(--rayon-pilule);
+    font-size:13.5px;
+  }
+  aside .signout{
+    margin:0 0 0 auto; flex:none;
+    border-top:0; padding:0;
+  }
+
+  main{ padding:20px 16px 40px; }
+
+  /* Deux tuiles par rangée : une seule gâche la hauteur d'écran,
+     trois rendent les chiffres illisibles. */
+  .metrics{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .metric{ padding:16px; }
+  .metric .val{ font-size:22px; line-height:26px; }
+
+  /* Un tableau large défile dans sa carte plutôt que de déborder de
+     la page : le reste de l'écran reste lisible. */
+  main table{ display:block; overflow-x:auto; max-width:100%; }
+
+  h1{ font-size:1.75em; }
+  h2{ font-size:1.4em; }
+}
+
+/* Écrans très étroits : une tuile par rangée devient plus lisible que
+   deux chiffres écrasés. */
+@media (max-width:420px){
+  .metrics{ grid-template-columns:1fr; }
+  main{ padding:16px 12px 32px; }
+}
+
+/* L'écran de connexion : le panneau marine disparaît sous 860 px, la
+   carte prend toute la largeur avec une gouttière. */
+@media (max-width:860px){
+  #login-screen{ padding:16px; }
+  .login-box{ width:100%; max-width:420px; }
+}
+
+/* Un enfant de grille refuse de descendre sous sa largeur intrinsèque
+   (min-width:auto par défaut) : une étiquette longue pousse la tuile
+   hors de l'écran. min-width:0 lève ce plancher, et le texte passe à
+   la ligne au lieu de déborder. */
+.metric,.card,.panel{ min-width:0; }
+.metric .label{ overflow-wrap:anywhere; }
+
+/* Même cause côté zone principale : sans min-width:0, un tableau large
+   élargit tout le conteneur au lieu de défiler dans sa carte. */
+main,.shell{ min-width:0; }
+.shell{ max-width:100%; }
+body{ overflow-x:hidden; }
+
+/* ═══════ ICÔNES ═══════
+   Sprite Lucide (assets/icones.svg), repris du système. Le trait est
+   en currentColor : l'icône suit donc la couleur du texte, y compris
+   sur l'élément actif en marine, sans règle supplémentaire. */
+.ic{
+  width:18px; height:18px; flex:none;
+  stroke-width:2;
+  vertical-align:middle;
+}
+aside .tab-btn .ic{ opacity:.75; }
+aside .tab-btn.active .ic,
+aside .tab-btn:hover .ic{ opacity:1; }
+
+/* Sur téléphone la barre devient horizontale : l'icône seule suffirait
+   à rendre les onglets illisibles, on garde donc les deux mais plus
+   serrés. */
+@media (max-width:860px){
+  aside .tab-btn .ic{ width:16px; height:16px; }
+  aside .tab-btn{ gap:8px; }
+}
+
+/* ═══════ DÉFILEMENT ═══════
+   Les portails posaient .shell en min-height:100vh : la coquille peut
+   donc dépasser l'écran, c'est le DOCUMENT qui défile, et la barre
+   latérale s'en va avec lui.
+
+   Le système fait l'inverse (portail.css : body{overflow:hidden}) —
+   la coquille occupe exactement la hauteur de l'écran et c'est la
+   zone principale qui défile, seule. La barre latérale reste donc en
+   place, et défile elle-même si ses onglets dépassent. */
+html,body{ height:100%; }
+body{ overflow:hidden; }
+
+.shell{
+  height:100vh;
+  height:100dvh;        /* iOS : exclut la barre d'adresse rétractable */
+  min-height:0;
+  overflow:hidden;
+}
+
+aside{
+  height:100%;
+  overflow-y:auto;      /* une nav longue défile dans la barre */
+  overflow-x:hidden;
+  scrollbar-width:thin;
+}
+
+main{
+  height:100%;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Sur téléphone la barre est horizontale et posée en haut : c'est la
+   colonne entière qui doit tenir dans l'écran, la nav gardant sa
+   hauteur propre et le contenu prenant le reste. */
+@media (max-width:860px){
+  .shell{ flex-direction:column; }
+  aside{
+    height:auto; flex:none;
+    overflow-x:auto; overflow-y:hidden;
+    position:sticky; top:0; z-index:20;
+    background:var(--surface-carte);
+  }
+  main{ flex:1; min-height:0; }
+}
+
+/* Un conteneur flex qui défile écrase ses enfants pour les faire
+   tenir : les onglets perdaient leur hauteur de 44 px et leurs
+   marges. flex:none les en empêche — ils gardent leur taille et c'est
+   la barre qui défile, ce qui est le but. */
+aside .tab-btn,
+aside .brand,
+aside .brand-sub,
+aside .nav-group-label,
+aside .signout{ flex:none; }
+
+/* .signout était poussé par margin-top:auto, qui ne fonctionne plus
+   dans un conteneur qui défile : il se colle au dernier onglet. On le
+   détache par une marge fixe. */
+aside .signout{ margin-top:12px; }

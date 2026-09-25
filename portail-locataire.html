@@ -7,22 +7,16 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <meta name="robots" content="noindex, nofollow">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
 <style>
-  :root{
-    --ink:#1F2421; --paper:#F5F1E8; --paper-2:#EDE7D8;
-    --brass:#B08D57; --brass-dark:#8A6B3E; --sage:#5F7355;
-    --rust:#A63D40; --line:#C9C2AE; --muted:#6E6C61; --amber:#B98A2E;
-  }
+  /* Palette retirée : voir assets/leaselane.css (couleurs du logo). */
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--police-texte);}
 
   #login-screen{min-height:100vh;display:flex;align-items:stretch;justify-content:center;}
   .login-side{flex:1 1 440px;max-width:480px;background:var(--ink);color:var(--paper);display:flex;flex-direction:column;justify-content:center;padding:60px;}
-  .login-side .side-brand{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin-bottom:26px;}
-  .login-side h2{font-family:'Fraunces',serif;font-weight:600;font-size:27px;line-height:1.25;margin-bottom:14px;}
+  .login-side .side-brand{font-family:var(--police-mono);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin-bottom:26px;}
+  .login-side h2{font-family:var(--police-titre);font-weight:600;font-size:27px;line-height:1.25;margin-bottom:14px;}
   .login-side p{font-size:14px;color:#C9C6BC;line-height:1.6;max-width:36ch;}
   .login-side ul{margin-top:26px;padding:0;list-style:none;}
   .login-side li{font-size:13px;color:#C9C6BC;padding:10px 0;border-top:1px solid #33362f;}
@@ -31,32 +25,32 @@
   @media (max-width:860px){.login-side{display:none;}}
 
   .login-box{width:100%;max-width:340px;padding:36px;background:var(--paper-2);border:1px solid var(--line);}
-  .login-box .brand{font-family:'Fraunces',serif;font-weight:600;font-size:22px;margin-bottom:4px;}
-  .login-box .sub{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:24px;}
+  .login-box .brand{font-family:var(--police-titre);font-weight:600;font-size:22px;margin-bottom:4px;}
+  .login-box .sub{font-family:var(--police-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:24px;}
   .login-box label{display:block;font-size:12.5px;font-weight:500;margin-bottom:6px;}
   .login-box .f{margin-bottom:14px;}
-  .login-box input{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:'Inter',sans-serif;}
+  .login-box input{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:var(--police-texte);}
   .login-box input:focus{outline:none;border-color:var(--brass);}
-  .login-box button{width:100%;background:var(--ink);color:var(--paper);border:none;padding:12px;font-size:13.5px;font-weight:500;cursor:pointer;margin-top:6px;}
+  .login-box button{width:100%;background:var(--brass);color:var(--paper);border:none;padding:12px;font-size:13.5px;font-weight:500;cursor:pointer;margin-top:6px;}
   .login-box button:hover{background:var(--brass-dark);}
   .login-error{color:var(--rust);font-size:12.5px;margin-top:10px;display:none;}
 
   #app-shell{display:none;min-height:100vh;}
   .shell{display:flex;min-height:100vh;}
   aside{width:230px;border-right:1px solid var(--ink);padding:24px 0;flex-shrink:0;}
-  .brand{font-family:'Fraunces',serif;font-weight:600;font-size:18px;padding:0 22px 6px;}
-  .brand-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:0 22px 20px;border-bottom:1px solid var(--line);margin-bottom:16px;display:block;}
-  .tab-btn{display:block;width:100%;text-align:left;background:none;border:none;padding:10px 22px;font-size:13.5px;color:var(--ink);cursor:pointer;border-left:2px solid transparent;font-family:'Inter',sans-serif;}
+  .brand{font-family:var(--police-titre);font-weight:600;font-size:18px;padding:0 22px 6px;}
+  .brand-sub{font-family:var(--police-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:0 22px 20px;border-bottom:1px solid var(--line);margin-bottom:16px;display:block;}
+  .tab-btn{display:block;width:100%;text-align:left;background:none;border:none;padding:10px 22px;font-size:13.5px;color:var(--ink);cursor:pointer;border-left:2px solid transparent;font-family:var(--police-texte);}
   .tab-btn:hover{background:var(--paper-2);}
   .tab-btn.active{border-left-color:var(--brass);background:var(--paper-2);font-weight:500;}
   .signout{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);}
 
   main{flex:1;padding:32px 40px;max-width:900px;}
-  h1{font-family:'Fraunces',serif;font-weight:600;font-size:26px;margin-bottom:6px;}
+  h1{font-family:var(--police-titre);font-weight:600;font-size:26px;margin-bottom:6px;}
   .subtitle{color:var(--muted);font-size:13.5px;margin-bottom:24px;}
 
   .card-box{background:var(--paper-2);border:1px solid var(--line);padding:22px;margin-bottom:20px;}
-  .card-box h3{font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin-bottom:14px;}
+  .card-box h3{font-family:var(--police-titre);font-size:17px;font-weight:600;margin-bottom:14px;}
   .kv{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
   .kv:last-child{border-bottom:none;}
   .kv span:first-child{color:var(--muted);}
@@ -67,7 +61,7 @@
   tr:last-child td{border-bottom:none;}
   .empty-row td{color:var(--muted);font-style:italic;}
 
-  .tag{font-size:11px;padding:3px 9px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.04em;}
+  .tag{font-size:11px;padding:3px 9px;font-family:var(--police-mono);text-transform:uppercase;letter-spacing:0.04em;}
   .tag.ok{background:var(--sage);color:var(--paper);}
   .tag.warn{background:var(--amber);color:var(--paper);}
   .tag.urgent{background:var(--rust);color:var(--paper);}
@@ -76,11 +70,11 @@
   .section{display:none;}
   .section.active{display:block;}
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
-  .toolbar h2{font-family:'Fraunces',serif;font-size:20px;font-weight:600;}
+  .toolbar h2{font-family:var(--police-titre);font-size:20px;font-weight:600;}
 
   .f{margin-bottom:14px;}
   label{display:block;font-size:12.5px;font-weight:500;margin-bottom:6px;}
-  textarea{width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:'Inter',sans-serif;min-height:100px;resize:vertical;}
+  textarea{width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:var(--police-texte);min-height:100px;resize:vertical;}
   textarea:focus{outline:none;border-color:var(--brass);}
   button.submit{background:var(--ink);color:var(--paper);border:none;padding:12px 24px;font-size:13.5px;font-weight:500;cursor:pointer;}
   button.submit:hover{background:var(--brass-dark);}
@@ -97,6 +91,7 @@
     table{display:block;overflow-x:auto;}
   }
 </style>
+<link rel="stylesheet" href="assets/leaselane.css">
 </head>
 <body>
 
@@ -109,7 +104,7 @@
   </div>
   <div class="login-box-wrap">
   <div class="login-box">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Espace locataire</div>
     <div class="f"><label for="login-email">Courriel</label><input type="email" id="login-email"></div>
     <div class="f"><label for="login-password">Mot de passe</label><input type="password" id="login-password"></div>
@@ -119,7 +114,7 @@
   </div>
 
   <div class="login-box" id="reset-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Réinitialiser le mot de passe</div>
     <div class="f"><label for="reset-email">Courriel</label><input type="email" id="reset-email"></div>
     <button onclick="sendResetLink()">Envoyer le lien</button>
@@ -129,7 +124,7 @@
   </div>
 
   <div class="login-box" id="newpw-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Choisir un nouveau mot de passe</div>
     <div class="f"><label for="newpw-value">Nouveau mot de passe</label><input type="password" id="newpw-value"></div>
     <button onclick="confirmNewPassword()">Confirmer</button>
@@ -141,12 +136,12 @@
 <div id="app-shell">
   <div class="shell">
     <aside>
-      <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo.png" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+      <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
       <span class="brand-sub">Espace locataire</span>
-      <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')">Mon logement</button>
-      <button class="tab-btn" data-tab="payments" onclick="showTab('payments')">Mes paiements</button>
-      <button class="tab-btn" data-tab="requests" onclick="showTab('requests')">Signaler un problème</button>
-      <button class="tab-btn" data-tab="decisions" onclick="showTab('decisions')">Décisions automatisées</button>
+      <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#layout-grid"/></svg><span>Mon logement</span></button>
+      <button class="tab-btn" data-tab="payments" onclick="showTab('payments')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#banknote"/></svg><span>Mes paiements</span></button>
+      <button class="tab-btn" data-tab="requests" onclick="showTab('requests')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#square"/></svg><span>Signaler un problème</span></button>
+      <button class="tab-btn" data-tab="decisions" onclick="showTab('decisions')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bot"/></svg><span>Décisions automatisées</span></button>
       <div class="signout">
         <button class="tab-btn" onclick="handleSignOut()">Se déconnecter</button>
       </div>
@@ -188,7 +183,7 @@
           </form>
         </div>
 
-        <h3 style="font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:24px 0 14px;">Mes demandes précédentes</h3>
+        <h3 style="font-family:var(--police-titre);font-size:17px;font-weight:600;margin:24px 0 14px;">Mes demandes précédentes</h3>
         <table><thead><tr><th>Description</th><th>Statut</th></tr></thead>
           <tbody id="requests-body"><tr class="empty-row"><td colspan="2">Chargement...</td></tr></tbody>
         </table>
@@ -199,7 +194,7 @@
         <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Certaines décisions vous concernant sont prises automatiquement par le système, selon des règles fixes. Voici l'historique et les facteurs qui ont mené à chacune — tu peux demander qu'un humain la révise.</p>
         <div id="decisions-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
 
-        <h3 style="font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:24px 0 14px;">Mes renseignements personnels</h3>
+        <h3 style="font-family:var(--police-titre);font-size:17px;font-weight:600;margin:24px 0 14px;">Mes renseignements personnels</h3>
         <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Demande d'accès à tes renseignements, de rectification ou d'effacement — conformément à la Loi 25. Une réponse te sera communiquée sous 30 jours.</p>
         <div class="card-box">
           <div class="f">
