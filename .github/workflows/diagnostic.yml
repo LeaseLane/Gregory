@@ -32,4 +32,11 @@ jobs:
           # des propriétaires, des baux et des demandes de service, et
           # déclenche de vrais appels IA.
           SUPABASE_URL: ${{ inputs.cible == 'production' && format('https://{0}.supabase.co', secrets.SUPABASE_PROJECT_REF) || format('https://{0}.supabase.co', secrets.SUPABASE_STAGING_REF) }}
+          # Une clé anon ne vaut que pour son projet. Le script visait la
+          # préproduction avec la clé de production écrite en dur : il
+          # échouait sur « Invalid API key » dès la connexion, et n'avait
+          # donc jamais tourné contre la préproduction (constaté le
+          # 2026-09-25). Tant que SUPABASE_STAGING_ANON_KEY n'existe pas,
+          # le script refuse l'attelage et le dit.
+          SUPABASE_ANON_KEY: ${{ inputs.cible == 'production' && secrets.SUPABASE_ANON_KEY || secrets.SUPABASE_STAGING_ANON_KEY }}
         run: node scripts/e2e-diagnostic.mjs

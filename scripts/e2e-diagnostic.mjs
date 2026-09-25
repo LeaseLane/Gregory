@@ -32,6 +32,27 @@ const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY
 
 console.log(`Cible du diagnostic : ${SUPABASE_URL}`);
 
+// La clé écrite ci-dessus appartient à la PRODUCTION, alors que la cible
+// par défaut est la préproduction : une clé ne vaut que pour son projet.
+// Constaté le 2026-09-25 — le diagnostic échouait sur « Invalid API key »
+// dès la connexion, et n'avait donc jamais pu s'exécuter contre la
+// préproduction.
+//
+// On refuse explicitement l'attelage plutôt que de laisser Supabase
+// répondre par un 401 qu'on lirait comme un problème d'identifiants.
+const REF_CIBLE = (SUPABASE_URL.match(/https:\/\/([a-z0-9]+)\.supabase\.co/) || [])[1];
+const REF_CLE_PROD = "kdmwfbcziokygfcmjxeq";
+if (REF_CIBLE && REF_CIBLE !== REF_CLE_PROD && !process.env.SUPABASE_ANON_KEY) {
+  console.error(
+    `\n❌ Clé et cible incompatibles.\n` +
+    `   Cible  : ${REF_CIBLE}\n` +
+    `   Clé    : celle de la production (${REF_CLE_PROD})\n\n` +
+    `   Une clé anon ne vaut que pour son projet. Fournis SUPABASE_ANON_KEY\n` +
+    `   correspondant à la cible — pour la préproduction, ajoute le secret\n` +
+    `   GitHub SUPABASE_STAGING_ANON_KEY et passe-le au workflow.\n`);
+  process.exit(1);
+}
+
 const TEST_BOT_EMAIL = process.env.TEST_BOT_EMAIL;
 const TEST_BOT_PASSWORD = process.env.TEST_BOT_PASSWORD;
 
