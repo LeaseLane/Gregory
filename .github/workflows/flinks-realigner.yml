@@ -1,0 +1,64 @@
+name: Réaligner le secret Flinks
+
+# Le cron quotidien envoie le secret du coffre (flinks_sync_secret) ;
+# flinks-api le compare à sa variable FLINKS_SYNC_SECRET. Les deux ont
+# divergé le 2026-08-14 : la fonction refuse son propre cron (403
+# quotidien), plus aucune transaction importée depuis.
+#
+# Ce workflow copie la valeur du coffre vers la fonction, sans jamais
+# l'afficher, puis lance une synchronisation pour vérifier. Même forme
+# que la panne HEALTH_ALERT_SECRET du 2026-08-17 : deux magasins à
+# garder identiques à la main.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  realigner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Installer psql 17
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      # Version épinglée : « latest » a déjà fait échouer un déploiement
+      # sur une limite de l'API GitHub (2026-09-25).
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.116.0
+
+      - name: Copier le secret du coffre vers la fonction
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          v=$(psql "$DB_URL" -tAc "select decrypted_secret from vault.decrypted_secrets where name='flinks_sync_secret'")
+          [ -n "$v" ] || { echo "::error::flinks_sync_secret absent du coffre"; exit 1; }
+          echo "::add-mask::$v"
+          supabase secrets set "FLINKS_SYNC_SECRET=$v" --project-ref "$REF" > /dev/null
+          echo "Empreinte du coffre : $(printf '%s' "$v" | sha256sum | cut -c1-12)…"
+          echo "Empreinte de la fonction : $(supabase secrets list --project-ref "$REF" -o json | python3 -c "import json,sys;print([s['value'] for s in json.load(sys.stdin) if s['name']=='FLINKS_SYNC_SECRET'][0][:12])")…"
+          echo "SYNC_KEY=$v" >> "$GITHUB_ENV"
+
+      - name: Lancer une synchronisation
+        env:
+          REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          set -uo pipefail
+          # Laisser la fonction relire son environnement après la mise à jour.
+          sleep 20
+          code=$(curl -s -o /tmp/r.json -w '%{http_code}' --max-time 120 -X POST \
+            "https://${REF}.supabase.co/functions/v1/flinks-api" \
+            -H "Content-Type: application/json" -H "x-flinks-sync-key: $SYNC_KEY" \
+            -d '{"action":"sync_all"}')
+          echo "HTTP $code"
+          python3 -m json.tool /tmp/r.json | head -60 || cat /tmp/r.json
+          { echo "### Synchronisation Flinks"; echo; echo "HTTP $code"; echo; echo '```'; head -c 3000 /tmp/r.json; echo; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          [ "$code" = "200" ]
