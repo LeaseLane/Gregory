@@ -1082,12 +1082,14 @@ async function loadAdminDashboard(){
 
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-shell').style.display = 'block';
+  // Le tableau de bord s'affiche dès que admin-api répond ; les sections
+  // se remplissent ensuite. Avant, le masque restait jusqu'à la fin des
+  // ~35 chargements faits un par un (≈ 5 s à chaque rechargement).
+  document.body.classList.remove('ll-verif');
 
   const { totals, clients, anomalies, command_center } = data;
   renderCommandCenter(command_center);
-  await loadSystemHealth();
-  await loadHealthHistory();
-  await loadAiErrors();
+  const enCours = [loadSystemHealth(), loadHealthHistory(), loadAiErrors()];
   document.getElementById('m-clients').textContent = totals.clients_count;
   document.getElementById('m-buildings').textContent = totals.buildings_count;
   document.getElementById('m-units').textContent = totals.units_count;
@@ -1131,26 +1133,22 @@ async function loadAdminDashboard(){
   const currentFlinksOwner = flinksOwnerSelect.value;
   flinksOwnerSelect.innerHTML = '<option value="">— Choisir —</option>' + clients.map(c => `<option value="${c.id}">${esc(c.full_name)}</option>`).join('');
   if(currentFlinksOwner) flinksOwnerSelect.value = currentFlinksOwner;
-  await loadFlinksConnections();
+  enCours.push(loadFlinksConnections());
 
   const padOwnerSelect = document.getElementById('pad-owner');
   const currentPadOwner = padOwnerSelect.value;
   padOwnerSelect.innerHTML = '<option value="">— Choisir —</option>' + clients.map(c => `<option value="${c.id}">${esc(c.full_name)}</option>`).join('');
   if(currentPadOwner) padOwnerSelect.value = currentPadOwner;
-  await loadPadAuthorizations();
-  await loadTenantPadLeaseOptions();
-  await loadTenantPadAuthorizations();
-
-  await loadOps();
-  await loadCallers();
-  await loadProspects();
-  await loadTenants();
-  await loadLeaseRenewals();
-  await loadAuditLog();
-  await loadPrivacyIncidents();
-  await loadDataRequests();
-  await loadAutomatedDecisionsAdmin();
-  await obInit();
+  // Chargements indépendants : en parallèle. allSettled pour qu'une
+  // section en erreur n'empêche pas les autres de s'afficher.
+  await Promise.allSettled([
+    ...enCours,
+    loadPadAuthorizations(),
+    loadTenantPadLeaseOptions().then(loadTenantPadAuthorizations),
+    loadOps(), loadCallers().then(loadProspects), loadTenants(), loadLeaseRenewals(),
+    loadAuditLog(), loadPrivacyIncidents(), loadDataRequests(), loadAutomatedDecisionsAdmin(),
+    obInit(),
+  ]);
 }
 
 async function callPrivacyApi(payload){
@@ -1938,21 +1936,15 @@ function photoLinksHtml(bucket, paths, label){
 }
 
 async function loadOps(){
-  await loadMarketplaceListings();
-  await loadBuildingsForReceipts();
-  await loadWorkersAdmin();
-  await loadServiceCatalog();
-  await loadVisitInquiries();
-  await loadMandatInquiries();
-  await loadVisitsAdmin();
-  await loadServiceRequestsAdmin();
-  await loadWorkOrdersAdmin();
-  await loadLatePaymentsAdmin();
-  await loadPayablesAdmin();
-  await loadCompanySettings();
-  await loadAutomationRules();
-  await loadInvoices();
-  await loadBlogPosts();
+  await Promise.allSettled([
+    loadMarketplaceListings(), loadBuildingsForReceipts(), loadServiceCatalog(),
+    loadVisitInquiries(), loadMandatInquiries(), loadVisitsAdmin(),
+    // Les listes de demandes et de travaux proposent les travailleurs :
+    // elles attendent que workersDirectory soit rempli.
+    loadWorkersAdmin().then(() => Promise.allSettled([loadServiceRequestsAdmin(), loadWorkOrdersAdmin()])),
+    loadLatePaymentsAdmin(), loadPayablesAdmin(), loadCompanySettings(),
+    loadAutomationRules(), loadInvoices(), loadBlogPosts(),
+  ]);
 }
 
 async function loadCompanySettings(){
@@ -2523,7 +2515,7 @@ async function loadWorkersAdmin(){
   const resume = document.getElementById('tr-resume');
   if(!workersDirectory.length){
     if(resume) resume.innerHTML = '';
-    basculerFormTravailleur(true);
+    document.getElementById('tr-form').hidden = false;
     container.innerHTML = '<p class="tr-vide">Aucun travailleur pour l\'instant. Ajoute le premier ci-dessus.</p>';
     return;
   }
