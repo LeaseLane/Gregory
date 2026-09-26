@@ -68,11 +68,11 @@
   tr:last-child td{border-bottom:none;}
   .empty-row td{color:var(--muted);font-style:italic;}
 
-  .tag{font-size:11px;padding:3px 9px;font-family:var(--police-mono);text-transform:uppercase;letter-spacing:0.04em;}
-  .tag.ok{background:var(--sage);color:var(--paper);}
-  .tag.warn{background:var(--amber);color:var(--paper);}
-  .tag.urgent{background:var(--rust);color:var(--paper);}
-  .tag.neutral{background:var(--line);color:var(--ink);}
+  .tag{display:inline-block;font:600 11.5px/1 var(--police-texte);padding:5px 10px;border-radius:var(--rayon-pilule);white-space:nowrap;}
+  .tag.ok{background:var(--succes-100);color:var(--succes-600);}
+  .tag.warn{background:var(--alerte-100);color:var(--alerte-600);}
+  .tag.urgent{background:var(--urgence-100);color:var(--urgence-600);}
+  .tag.neutral{background:var(--surface-enfoncee);color:var(--texte-discret);}
 
   .section{display:none;}
   .section.active{display:block;}
@@ -223,21 +223,27 @@
 
       <section id="rentals" class="section">
         <div class="toolbar"><h2>Location</h2></div>
-        <div id="rentals-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
+        <div id="rentals-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="payments" class="section">
-        <div class="toolbar"><h2>Connexion bancaire</h2></div>
-        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Connecte ton compte bancaire pour que les loyers reçus soient rapprochés automatiquement — en lecture seule, Lease Lane n'a jamais accès à tes identifiants bancaires (tu les entres directement dans la fenêtre sécurisée de Flinks, notre partenaire).</p>
-        <div id="bank-connections-body" style="margin-bottom:14px;"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
-        <button onclick="startOwnerBankConnect()" id="bank-connect-btn" style="margin-bottom:14px;">Connecter mon compte bancaire</button>
-        <div id="bank-connect-widget-wrap" style="display:none;margin-bottom:14px;">
-          <iframe id="bank-connect-iframe" height="700" style="width:100%;max-width:520px;border:1px solid var(--line);"></iframe>
-          <p style="font-size:11.5px;color:var(--muted);margin-top:6px;">Une fois la connexion réussie ci-dessus, la liaison se fait automatiquement en quelques secondes.</p>
-        </div>
-        <p id="bank-connect-msg" style="font-size:12.5px;margin-bottom:24px;"></p>
-
         <div class="toolbar"><h2>Loyers et paiements</h2></div>
+        <div class="pp-carte pp-banque">
+          <span class="vo-icone"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wallet"/></svg></span>
+          <div class="pp-banque__texte">
+            <h3>Compte bancaire</h3>
+            <p>Les loyers reçus sont rapprochés automatiquement. Accès en lecture seule : tes identifiants restent chez Flinks, notre partenaire, jamais chez nous.</p>
+            <div id="bank-connections-body"><p class="tr-vide">Chargement...</p></div>
+            <p id="bank-connect-msg" class="pp-note"></p>
+          </div>
+          <button class="ll-bouton ll-bouton--primaire" onclick="startOwnerBankConnect()" id="bank-connect-btn">Connecter mon compte</button>
+        </div>
+        <div id="bank-connect-widget-wrap" style="display:none;margin-bottom:14px;">
+          <iframe id="bank-connect-iframe" height="700" style="width:100%;max-width:520px;border:1px solid var(--bordure);border-radius:var(--rayon-carte);"></iframe>
+          <p class="pp-note">Une fois la connexion réussie ci-dessus, la liaison se fait automatiquement en quelques secondes.</p>
+        </div>
+
+        <h3 class="sous-titre">Historique des loyers</h3>
         <table><thead><tr><th>Locataire</th><th>Montant</th><th>Échéance</th><th>Statut</th></tr></thead>
           <tbody id="payments-body"><tr class="empty-row"><td colspan="4">Chargement...</td></tr></tbody>
         </table>
@@ -253,7 +259,7 @@
       <section id="workorders" class="section">
         <div class="toolbar"><h2>Travaux</h2></div>
         <h3 style="font-family:var(--police-titre);font-size:15px;font-weight:600;margin-bottom:10px;">Demandes de service ouvertes</h3>
-        <div id="service-requests-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
+        <div id="service-requests-body"><p class="tr-vide">Chargement...</p></div>
 
         <h3 style="font-family:var(--police-titre);font-size:15px;font-weight:600;margin:22px 0 10px;">Travaux en cours</h3>
         <table><thead><tr><th>Unité</th><th>Description</th><th>Travailleur</th><th>Coût estimé</th><th>Statut</th></tr></thead>
@@ -263,14 +269,20 @@
 
       <section id="approvals" class="section">
         <div class="toolbar"><h2>Travaux à approuver</h2></div>
-        <p style="color:var(--muted);font-size:13.5px;">
-          Plafond d'approbation automatique :
-          <input type="number" id="spending-cap-input" min="0" max="50000" step="10" style="width:100px;">
-          $ — au-delà, on te demande toujours ton approbation avant d'envoyer un travailleur.
-          <button class="btn-small" onclick="saveSpendingCap()">Enregistrer</button>
-          <span id="spending-cap-status"></span>
-        </p>
-        <div id="approvals-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
+        <div class="pp-carte pp-plafond">
+          <span class="vo-icone"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg></span>
+          <div class="pp-banque__texte">
+            <h3>Plafond d'approbation automatique</h3>
+            <p>Sous ce montant, on lance la réparation sans te déranger. Au-delà, on te demande toujours ton accord avant d'envoyer un travailleur.</p>
+          </div>
+          <div class="pp-plafond__champ">
+            <label class="pp-montant"><input type="number" id="spending-cap-input" min="0" max="50000" step="10" aria-label="Plafond en dollars"><span>$</span></label>
+            <button class="ll-bouton ll-bouton--primaire" onclick="saveSpendingCap()">Enregistrer</button>
+            <span id="spending-cap-status" class="pp-note"></span>
+          </div>
+        </div>
+        <h3 class="sous-titre">En attente de ta décision</h3>
+        <div id="approvals-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="inquiries" class="section">
@@ -282,9 +294,20 @@
 
       <section id="documents" class="section">
         <div class="toolbar"><h2>Documents</h2></div>
-        <div class="wo-form open" style="margin-bottom:16px;">
-          <div class="f"><label for="doc-title">Titre</label><input type="text" id="doc-title"></div>
-          <div class="f"><label for="doc-type">Type</label>
+        <div class="pp-carte pp-question">
+          <span class="vo-icone"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg></span>
+          <div class="pp-banque__texte">
+            <h3>Poser une question sur tes documents</h3>
+            <div class="pp-demande">
+              <input type="text" id="doc-question" placeholder="Ex. : Quand expire l'assurance de cet entrepreneur ?" onkeydown="if(event.key==='Enter') askDocuments();">
+              <button class="ll-bouton ll-bouton--primaire" onclick="askDocuments()" id="doc-ask-btn">Demander</button>
+            </div>
+            <p id="doc-answer" class="pp-reponse"></p>
+          </div>
+        </div>
+        <div class="fo-carte">
+          <div><label class="ch-label" for="doc-title">Titre</label><input type="text" id="doc-title" placeholder="Ex. : Bail unité 1"></div>
+          <div><label class="ch-label" for="doc-type">Type</label>
             <select id="doc-type">
               <option value="bail">Bail</option>
               <option value="mandat">Mandat</option>
@@ -292,16 +315,9 @@
               <option value="rapport">Rapport</option>
             </select>
           </div>
-          <div class="f"><label for="doc-file">Fichier</label><input type="file" id="doc-file"></div>
-          <button onclick="addDocument()" id="doc-submit-btn">Téléverser</button>
+          <div><label class="ch-label" for="doc-file">Fichier</label><input type="file" id="doc-file"></div>
+          <button class="ll-bouton ll-bouton--primaire" onclick="addDocument()" id="doc-submit-btn"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#upload"/></svg> Téléverser</button>
           <p class="login-error" id="doc-error"></p>
-        </div>
-        <div class="wo-form open" style="margin-bottom:16px;">
-          <div class="f" style="flex:1;"><label for="doc-question">Poser une question sur tes documents</label>
-            <input type="text" id="doc-question" placeholder="Ex. : Quand expire l'assurance de cet entrepreneur ?">
-          </div>
-          <button onclick="askDocuments()" id="doc-ask-btn">Demander</button>
-          <p id="doc-answer" style="width:100%;font-size:13px;color:var(--muted);margin-top:6px;white-space:pre-wrap;"></p>
         </div>
         <table><thead><tr><th>Titre</th><th>Type</th><th>Analyse IA</th><th>Fichier</th><th></th></tr></thead>
           <tbody id="documents-body"><tr class="empty-row"><td colspan="5">Chargement...</td></tr></tbody>
@@ -310,49 +326,62 @@
 
       <section id="messages" class="section">
         <div class="toolbar"><h2>Messages</h2></div>
-        <div id="messages-body" style="margin-bottom:16px;"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
-        <div class="f"><label for="message-text">Nouveau message</label><textarea id="message-text" style="width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--paper-2);font-size:13.5px;font-family:var(--police-texte);min-height:80px;"></textarea></div>
-        <button class="btn-small" onclick="sendMessage()">Envoyer</button>
+        <p class="subtitle">Écris à l'équipe Lease Lane. On te répond ici, en général le jour même.</p>
+        <div class="pp-carte pp-messages">
+          <div id="messages-body" class="ms-fil"><p class="tr-vide">Chargement...</p></div>
+          <div class="ms-ecrire">
+            <textarea id="message-text" rows="3" placeholder="Ton message…" aria-label="Nouveau message" onkeydown="if(event.key==='Enter' && (event.metaKey||event.ctrlKey)) sendMessage();"></textarea>
+            <div class="ms-actions"><span class="ms-dest">Ctrl + Entrée pour envoyer</span><button class="ll-bouton ll-bouton--primaire" onclick="sendMessage()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div>
+          </div>
+        </div>
       </section>
 
       <section id="reports" class="section">
         <div class="toolbar"><h2>Rapports mensuels</h2></div>
-        <div id="reports-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
+        <div id="reports-body"><p class="tr-vide">Chargement...</p></div>
 
         <div class="toolbar" style="margin-top:32px;"><h2>Factures — frais de gestion Lease Lane</h2></div>
         <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Frais de gestion et de coordination des travaux, déjà déduits du montant net qui te revient chaque mois — voici le détail formel pour ta comptabilité.</p>
-        <div id="invoices-body-owner"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
+        <div id="invoices-body-owner"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="decisions" class="section">
         <div class="toolbar"><h2>Décisions automatisées</h2></div>
         <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Certaines décisions vous concernant sont prises automatiquement par le système, selon des règles fixes (ex. : réparation lancée sans approbation parce que son coût respecte votre plafond). Voici l'historique et les facteurs qui ont mené à chacune — tu peux demander qu'un humain la révise.</p>
-        <div id="decisions-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
+        <div id="decisions-body"><p class="tr-vide">Chargement...</p></div>
 
         <div class="toolbar" style="margin-top:32px;"><h2>Mes renseignements personnels</h2></div>
         <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Demande d'accès à tes renseignements, de rectification ou d'effacement — conformément à la Loi 25. Une réponse te sera communiquée sous 30 jours.</p>
-        <div class="wo-form open" style="margin-bottom:16px;">
-          <div class="f"><label for="pdr-type">Type de demande</label>
+        <div class="fo-carte">
+          <div><label class="ch-label" for="pdr-type">Type de demande</label>
             <select id="pdr-type"><option value="access">Accès à mes renseignements</option><option value="rectification">Rectification</option><option value="deletion">Effacement</option></select>
           </div>
-          <div class="f" style="flex:1;"><label for="pdr-details">Précisions (optionnel)</label><input type="text" id="pdr-details" placeholder="Ex. : préciser ce qui doit être corrigé"></div>
-          <button onclick="submitPersonalDataRequest()">Envoyer la demande</button>
+          <div class="pp-large"><label class="ch-label" for="pdr-details">Précisions (optionnel)</label><input type="text" id="pdr-details" placeholder="Ex. : préciser ce qui doit être corrigé"></div>
+          <button class="ll-bouton ll-bouton--primaire" onclick="submitPersonalDataRequest()">Envoyer la demande</button>
           <p class="login-error" id="pdr-error"></p>
         </div>
-        <div id="pdr-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
+        <div id="pdr-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="copilot" class="section">
         <div class="toolbar"><h2>Copilot financier</h2></div>
         <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Pose une question sur tes revenus, tes dépenses ou tes travaux — les réponses sont calculées à partir de tes vraies données des 24 derniers mois, jamais inventées.</p>
-        <div class="wo-form open" style="margin-bottom:16px;">
-          <div class="f" style="flex:1;"><label for="copilot-question">Ta question</label>
-            <input type="text" id="copilot-question" placeholder="Ex. : Combien j'ai dépensé en plomberie cet été ?" onkeydown="if(event.key==='Enter') askFinances();">
+        <div class="pp-carte pp-question">
+          <span class="vo-icone"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg></span>
+          <div class="pp-banque__texte">
+            <h3>Ta question</h3>
+            <div class="pp-demande">
+              <input type="text" id="copilot-question" placeholder="Ex. : Combien j'ai dépensé en plomberie cet été ?" onkeydown="if(event.key==='Enter') askFinances();">
+              <button class="ll-bouton ll-bouton--primaire" onclick="askFinances()" id="copilot-ask-btn">Demander</button>
+            </div>
+            <div class="pp-exemples">
+              <button type="button" onclick="copilotExemple(this)">Quel est mon revenu total ce mois-ci ?</button>
+              <button type="button" onclick="copilotExemple(this)">Combien de paiements en retard depuis le début de l'année ?</button>
+              <button type="button" onclick="copilotExemple(this)">Quel immeuble me coûte le plus cher en entretien ?</button>
+            </div>
+            <div id="copilot-answer" class="pp-reponse"></div>
           </div>
-          <button onclick="askFinances()" id="copilot-ask-btn">Demander</button>
         </div>
-        <div id="copilot-answer" style="white-space:pre-wrap;font-size:14px;line-height:1.6;padding:14px;background:var(--paper-2);border:1px solid var(--line);min-height:40px;color:var(--ink);"></div>
-        <p style="color:var(--muted);font-size:12px;margin-top:10px;">Exemples : « Quel est mon revenu total ce mois-ci ? » · « Combien de paiements en retard depuis le début de l'année ? » · « Quel immeuble me coûte le plus cher en entretien ? »</p>
       </section>
     </main>
   </div>
@@ -652,17 +681,20 @@ async function loadOwnerBankConnections(){
   const res = await callFlinksApiOwner({ action: 'list_connections' });
   const connections = res?.connections || [];
   if(!connections.length){
-    container.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucun compte bancaire connecté.</p>';
+    container.innerHTML = '<p class="tr-vide">Aucun compte bancaire connecté.</p>';
     return;
   }
   const statusLabel = { active: 'Active', error: 'Erreur — resynchronise ou reconnecte', disconnected: 'Déconnectée' };
-  container.innerHTML = connections.map(c => `
-    <div style="background:var(--paper-2);border:1px solid var(--line);padding:12px 14px;margin-bottom:8px;font-size:13px;">
-      <b>${esc(c.institution_name) || 'Institution inconnue'}</b> — ${statusLabel[c.status] || esc(c.status)}
-      <div style="color:var(--muted);font-size:12px;margin-top:2px;">Dernière synchro : ${c.last_synced_at ? new Date(c.last_synced_at).toLocaleString('fr-CA') : 'jamais'}</div>
-      ${c.last_sync_error ? `<div style="color:var(--rust);font-size:12px;margin-top:2px;">${esc(c.last_sync_error)}</div>` : ''}
-      <button onclick="syncOwnerBankNow('${c.id}')" style="margin-top:8px;padding:6px 10px;font-size:11.5px;">Synchroniser maintenant</button>
-    </div>`).join('');
+  const statut = { active: ['Active', 'ok'], error: ['Erreur — resynchronise ou reconnecte', 'urgent'], disconnected: ['Déconnectée', 'neutral'] };
+  container.innerHTML = connections.map(c => {
+    const [lib, ton] = statut[c.status] || [esc(c.status), 'neutral'];
+    return `<div class="pp-compte">
+      <div><b>${esc(c.institution_name) || 'Institution inconnue'}</b> <span class="tag ${ton}">${lib}</span>
+        <div class="pp-note">Dernière synchro : ${c.last_synced_at ? new Date(c.last_synced_at).toLocaleString('fr-CA') : 'jamais'}</div>
+        ${c.last_sync_error ? `<div class="pp-note pp-note--erreur">${esc(String(c.last_sync_error).replace(/^Error:\s*/, ''))}</div>` : ''}</div>
+      <button class="vo-action" onclick="syncOwnerBankNow('${c.id}')">Synchroniser</button>
+    </div>`;
+  }).join('');
 }
 
 async function syncOwnerBankNow(connection_id){
@@ -696,7 +728,7 @@ async function loadServiceRequests(){
 
   const container = document.getElementById('service-requests-body');
   if(!data || !data.length){
-    container.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucune demande de service ouverte.</p>';
+    container.innerHTML = '<p class="tr-vide">Aucune demande de service ouverte.</p>';
     return;
   }
 
@@ -758,20 +790,20 @@ async function loadApprovals(){
 
   const container = document.getElementById('approvals-body');
   if(!data || !data.length){
-    container.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucun travail en attente d\'approbation.</p>';
+    container.innerHTML = '<div class="vo-rien"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-check"/></svg> Rien à approuver pour le moment.</div>';
     return;
   }
   container.innerHTML = data.map(a => `
-    <div class="approve-row">
+    <div class="approve-row pp-carte">
       <div class="desc">
         <b>${esc(a.work_orders?.description) || 'Travaux'} — Unité ${esc(a.work_orders?.units?.unit_number) ?? ''}</b>
         <span>Coût demandé : ${Number(a.requested_amount).toLocaleString('fr-CA')} $ — dépasse votre plafond de ${Number(a.spending_cap_at_request).toLocaleString('fr-CA')} $</span>
       </div>
       <div class="approve-actions">
-        <button class="accept" onclick="decideApproval('${a.id}','approved')">Approuver</button>
-        <button class="reject" onclick="decideApproval('${a.id}','rejected')">Refuser</button>
-        <button onclick="requestAnotherQuote('${a.id}')">Demander une autre soumission</button>
-        <button onclick="askApprovalQuestion('${a.id}')">Poser une question</button>
+        <button class="ll-bouton ll-bouton--primaire" onclick="decideApproval('${a.id}','approved')">Approuver</button>
+        <button class="ll-bouton ll-bouton--secondaire" onclick="decideApproval('${a.id}','rejected')">Refuser</button>
+        <button class="vo-action" onclick="requestAnotherQuote('${a.id}')">Autre soumission</button>
+        <button class="vo-action" onclick="askApprovalQuestion('${a.id}')">Poser une question</button>
       </div>
     </div>`).join('');
 }
@@ -810,7 +842,7 @@ async function loadAutomatedDecisions(){
 
   const container = document.getElementById('decisions-body');
   if(!data || !data.length){
-    container.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucune décision automatisée enregistrée pour le moment.</p>';
+    container.innerHTML = '<p class="tr-vide">Aucune décision automatisée enregistrée pour le moment.</p>';
     return;
   }
   container.innerHTML = data.map(d => `
@@ -842,7 +874,7 @@ async function loadPersonalDataRequests(){
 
   const container = document.getElementById('pdr-body');
   if(!data || !data.length){
-    container.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucune demande envoyée.</p>';
+    container.innerHTML = '<p class="tr-vide">Aucune demande envoyée.</p>';
     return;
   }
   const typeLabel = { access: 'Accès', rectification: 'Rectification', deletion: 'Effacement' };
@@ -973,6 +1005,11 @@ async function askDocuments(){
   }
 }
 
+function copilotExemple(b){
+  document.getElementById('copilot-question').value = b.textContent;
+  askFinances();
+}
+
 async function askFinances(){
   const question = document.getElementById('copilot-question').value.trim();
   const answerEl = document.getElementById('copilot-answer');
@@ -1040,16 +1077,15 @@ async function loadMessages(){
   const { data } = await supabaseClient.from('messages').select('*').eq('owner_id', ownerRecord.id).order('created_at', { ascending: true });
   const body = document.getElementById('messages-body');
   if(!data || !data.length){
-    body.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucun message.</p>';
+    body.innerHTML = '<p class="tr-vide">Aucun message pour l\'instant. Écris-nous ci-dessous.</p>';
     return;
   }
   body.innerHTML = data.map(m => `
-    <div class="approve-row" style="justify-content:flex-start;">
-      <div class="desc">
-        <b>${m.sender === 'owner' ? 'Toi' : 'Équipe Lease Lane'} · ${new Date(m.created_at).toLocaleString('fr-CA')}</b>
-        <span>${esc(m.body)}</span>
-      </div>
+    <div class="ms-bulle ${m.sender === 'owner' ? 'ms-bulle--sortant' : 'ms-bulle--entrant'}">
+      <div class="ms-meta">${m.sender === 'owner' ? 'Toi' : 'Équipe Lease Lane'} · ${new Date(m.created_at).toLocaleString('fr-CA', { dateStyle:'medium', timeStyle:'short' })}</div>
+      <div class="ms-corps"><div>${esc(m.body)}</div></div>
     </div>`).join('');
+  body.scrollTop = body.scrollHeight;
 }
 
 async function loadReports(){
@@ -1067,7 +1103,7 @@ async function loadReports(){
 
   const body = document.getElementById('reports-body');
   if(!data || !data.length){
-    body.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucun relevé disponible pour l\'instant. Le premier sera généré automatiquement au début du mois prochain.</p>';
+    body.innerHTML = '<p class="tr-vide">Aucun relevé disponible pour l\'instant. Le premier sera généré automatiquement au début du mois prochain.</p>';
     return;
   }
   const pctChange = (curr, prev) => {
@@ -1130,7 +1166,7 @@ async function loadOwnerInvoices(){
 
   const body = document.getElementById('invoices-body-owner');
   if(!data || !data.length){
-    body.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucune facture pour l\'instant.</p>';
+    body.innerHTML = '<p class="tr-vide">Aucune facture pour l\'instant.</p>';
     return;
   }
   const invoiceStatusLabel = { issued: 'Émise', paid: 'Payée' };
@@ -1160,7 +1196,7 @@ async function loadRentals(){
 
   const body = document.getElementById('rentals-body');
   if(!units || !units.length){
-    body.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucun logement vacant en ce moment.</p>';
+    body.innerHTML = '<p class="tr-vide">Aucun logement vacant en ce moment.</p>';
     return;
   }
 

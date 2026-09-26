@@ -1173,3 +1173,50 @@ body.fi-ouvert .fi-tiroir{ transform:none; }
 .vo-signal--att{ background:var(--alerte-100); border-color:transparent; color:var(--alerte-600); }
 .vo-signal--att b{ color:var(--alerte-600); }
 .vo-carte li > span:last-child{ display:inline-flex; align-items:center; gap:10px; white-space:nowrap; }
+
+/* ═══════ ESPACE PROPRIÉTAIRE — PAGES ═══════
+   Une carte par intention (connecter la banque, fixer le plafond, poser
+   une question) : icône, explication courte, action à droite. */
+.pp-carte{
+  background:var(--surface-carte); border:1px solid var(--bordure-portail);
+  border-radius:var(--rayon-carte); box-shadow:var(--ombre-2); padding:18px 20px; margin-bottom:16px;
+}
+.pp-banque, .pp-plafond, .pp-question{ display:flex; align-items:flex-start; gap:14px; }
+.pp-banque__texte{ flex:1; min-width:0; }
+.pp-banque__texte h3{ margin:0 0 4px; font:600 15px/1.3 var(--police-texte); letter-spacing:0; text-transform:none; color:var(--marine-900); }
+.pp-banque__texte > p{ margin:0 0 10px; font-size:13.5px; line-height:1.5; color:var(--texte-discret); }
+.pp-banque > .ll-bouton{ flex:none; }
+.pp-note{ font-size:12.5px; color:var(--texte-discret); margin:4px 0 0; }
+.pp-note:empty{ display:none; }
+.pp-note--erreur{ color:var(--urgence-600); }
+.pp-compte{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--bordure-fine); font-size:13.5px; }
+.pp-compte b{ margin-right:6px; }
+
+.pp-plafond__champ{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; flex:none; }
+.pp-montant{ display:flex; align-items:center; gap:6px; }
+.pp-montant input{ width:110px; text-align:right; }
+.pp-montant span{ font-weight:600; color:var(--marine-900); }
+
+.pp-demande{ display:flex; gap:10px; margin-top:8px; }
+.pp-demande input{ flex:1; min-width:0; }
+.pp-demande .ll-bouton{ flex:none; }
+.pp-exemples{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.pp-exemples button{
+  border:1px solid var(--bordure); background:var(--surface-carte); color:var(--texte-corps);
+  border-radius:var(--rayon-pilule); padding:6px 12px; font:500 12.5px/1.2 var(--police-texte); cursor:pointer;
+}
+.pp-exemples button:hover{ border-color:var(--action-primaire); color:var(--action-primaire); }
+.pp-reponse{ margin:14px 0 0; padding:12px 14px; border-radius:var(--rayon-champ); background:var(--bleu-025); border:1px solid var(--bordure-fine); font-size:14px; line-height:1.6; color:var(--texte-corps); white-space:pre-wrap; }
+.pp-reponse:empty{ display:none; }
+
+.pp-messages .ms-fil{ min-height:120px; }
+.pp-large{ grid-column:span 2; }
+.fo-carte .ll-bouton .ic{ width:15px; height:15px; margin-right:6px; vertical-align:-2px; }
+.approve-row.pp-carte{ padding:16px 18px; margin-bottom:12px; }
+.approve-actions{ flex-wrap:wrap; justify-content:flex-end; align-items:center; }
+
+@media (max-width:640px){
+  .pp-banque, .pp-plafond, .pp-question{ flex-direction:column; }
+  .pp-demande{ flex-direction:column; }
+  .pp-large{ grid-column:auto; }
+}
