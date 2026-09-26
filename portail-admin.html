@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lease Lane — Admin</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <meta name="robots" content="noindex, nofollow">
@@ -554,9 +555,14 @@
       </section>
 
       <section id="mandat-inquiries" class="section">
-    <h1 style="margin-top:40px;font-size:22px;">Demandes de mandat (site public)</h1>
-    <p class="subtitle" style="margin-bottom:16px;">Propriétaires ayant rempli le formulaire "devenir client" — une réponse automatique leur a déjà été envoyée, à toi de faire le suivi</p>
-    <div id="mandat-inquiries-body" style="margin-bottom:32px;"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
+    <div class="tr-entete">
+      <div>
+        <h1>Demandes de mandat</h1>
+        <p class="subtitle">Formulaire « devenir client » du site. Une réponse automatique est déjà partie : à toi d'appeler.</p>
+      </div>
+    </div>
+    <div id="md-resume" class="tr-resume"></div>
+    <div id="mandat-inquiries-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="crm" class="section">
@@ -2212,36 +2218,78 @@ async function loadVisitInquiries(){
 async function loadMandatInquiries(){
   const data = await callOpsApi({ action: 'list_mandat_inquiries' });
   const container = document.getElementById('mandat-inquiries-body');
+  const resume = document.getElementById('md-resume');
   const inquiries = data?.inquiries || [];
   if(!inquiries.length){
-    container.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucune demande de mandat en attente.</p>';
+    resume.innerHTML = '';
+    container.innerHTML = '<div class="vo-rien"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-check"/></svg>Aucune demande en attente.</div>';
     return;
   }
   const ownershipLabel = { personnel: 'Personnel', societe: 'Société' };
   const managementLabel = { autogere: 'Autogéré', sous_gestion: 'Déjà sous gestion' };
-  container.innerHTML = inquiries.map(i => `
-    <div style="background:var(--paper-2);border:1px solid var(--line);padding:14px 16px;margin-bottom:10px;">
-      <b style="display:block;margin-bottom:4px;">${esc(i.full_name)}</b>
-      <span style="font-size:12.5px;color:var(--muted);display:block;margin-bottom:8px;">${esc(i.email)} · ${esc(i.phone) || '—'} · reçu le ${new Date(i.created_at).toLocaleDateString('fr-CA')}</span>
-      <div style="font-size:12.5px;margin-bottom:8px;">
-        ${i.sector ? `Secteur : ${esc(i.sector)}<br>` : ''}
-        ${i.num_doors != null ? `Portes : ${i.num_doors}<br>` : ''}
-        ${i.avg_rent != null ? `Loyer moyen : ${Number(i.avg_rent).toLocaleString('fr-CA')} $<br>` : ''}
-        ${i.ownership ? `Propriété : ${ownershipLabel[i.ownership] || esc(i.ownership)}<br>` : ''}
-        ${i.current_management ? `Gestion actuelle : ${managementLabel[i.current_management] || esc(i.current_management)}<br>` : ''}
-        ${i.services_needed ? `Services souhaités : ${esc(i.services_needed)}<br>` : ''}
-        ${i.main_problem ? `Problème principal : ${esc(i.main_problem)}<br>` : ''}
-        ${i.desired_start_date ? `Début souhaité : ${esc(i.desired_start_date)}<br>` : ''}
-        ${i.best_call_time ? `Meilleur moment pour appeler : ${esc(i.best_call_time)}<br>` : ''}
-        ${i.message ? `Message : ${esc(i.message)}<br>` : ''}
-        ${i.ai_summary ? `<span style="color:var(--muted);">Résumé IA : ${esc(i.ai_summary)}</span>` : ''}
+  const argent = n => Number(n).toLocaleString('fr-CA', { maximumFractionDigits: 0 }) + ' $';
+  // Frais de gestion : 6 % du loyer des logements occupés.
+  const potentiel = i => (i.num_doors && i.avg_rent) ? i.num_doors * i.avg_rent * 0.06 : null;
+  const parCourriel = {};
+  inquiries.forEach(i => { const k = (i.email || '').toLowerCase(); parCourriel[k] = (parCourriel[k] || 0) + 1; });
+  const totalPotentiel = inquiries.reduce((n, i) => n + (potentiel(i) || 0), 0);
+  resume.innerHTML = `<span><b>${inquiries.length}</b> demande${inquiries.length > 1 ? 's' : ''} à rappeler</span>`
+    + (totalPotentiel ? `<span class="tr-pastille tr-pastille--info"><span>jusqu'à <b>${argent(totalPotentiel)}/mois</b> de frais de gestion</span></span>` : '');
+
+  container.innerHTML = inquiries.map(i => {
+    const initiales = (i.full_name || '?').split(/\s+/).map(m => m[0]).join('').slice(0, 2).toUpperCase();
+    const jours = Math.floor((Date.now() - new Date(i.created_at)) / 864e5);
+    const recu = jours <= 0 ? "reçue aujourd'hui" : jours === 1 ? 'reçue hier' : `reçue il y a ${jours} jours`;
+    const pot = potentiel(i);
+    const doublon = parCourriel[(i.email || '').toLowerCase()] > 1;
+    const faits = [
+      ['Portes', i.num_doors],
+      ['Loyer moyen', i.avg_rent != null ? argent(i.avg_rent) : null],
+      ['Frais estimés', pot ? argent(pot) + '/mois' : null],
+      ['Début souhaité', i.desired_start_date],
+    ].filter(f => f[1] != null && f[1] !== '');
+    const details = [
+      ['Secteur', i.sector],
+      ['Propriété', i.ownership && (ownershipLabel[i.ownership] || i.ownership)],
+      ['Gestion actuelle', i.current_management && (managementLabel[i.current_management] || i.current_management)],
+      ['Services souhaités', i.services_needed],
+      ['Problème principal', i.main_problem],
+      ['Quand appeler', i.best_call_time],
+    ].filter(d => d[1]);
+    return `
+    <article class="tr-carte">
+      <header class="tr-tete">
+        <span class="tr-avatar" aria-hidden="true">${esc(initiales)}</span>
+        <div class="tr-ident">
+          <h3>${esc(i.full_name)}</h3>
+          <div class="md-sous">${recu} · ${new Date(i.created_at).toLocaleDateString('fr-CA')}</div>
+        </div>
+        <div class="tr-pastilles">
+          ${jours >= 2 ? '<span class="tr-pastille tr-pastille--att">En attente d\'appel</span>' : '<span class="tr-pastille tr-pastille--info">Nouvelle</span>'}
+          ${doublon ? `<span class="tr-pastille tr-pastille--att">${parCourriel[(i.email || '').toLowerCase()]} demandes, même courriel</span>` : ''}
+        </div>
+      </header>
+      <div class="tr-infos">
+        ${i.phone ? `<a href="tel:${esc(i.phone)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>${esc(i.phone)}</a>` : ''}
+        ${i.email ? `<a href="mailto:${esc(i.email)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>${esc(i.email)}</a>` : ''}
       </div>
-      <button onclick="markInquiryHandled('${i.id}')" style="border:1px solid var(--ink);background:none;padding:6px 12px;font-size:11.5px;cursor:pointer;">Marquer comme contacté</button>
-    </div>`).join('');
+      ${faits.length ? `<div class="md-faits">${faits.map(f => `<div><span>${f[0]}</span><b>${esc(f[1])}</b></div>`).join('')}</div>` : ''}
+      ${details.length ? `<dl class="md-details">${details.map(d => `<dt>${d[0]}</dt><dd>${esc(d[1])}</dd>`).join('')}</dl>` : ''}
+      ${i.message ? `<blockquote class="md-message">« ${esc(i.message)} »</blockquote>` : ''}
+      ${i.ai_summary ? `<div class="md-ia"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg><span><b>Résumé IA</b> ${esc(i.ai_summary)}</span></div>` : ''}
+      <footer class="tr-pied">
+        ${i.phone ? `<a class="ll-bouton ll-bouton--secondaire" href="tel:${esc(i.phone)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>Appeler</a>` : ''}
+        ${i.email ? `<a class="ll-bouton ll-bouton--secondaire" href="mailto:${esc(i.email)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>Écrire</a>` : ''}
+        <span class="tr-espace"></span>
+        <button class="ll-bouton ll-bouton--primaire" onclick="markInquiryHandled('${i.id}')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg>Marquer comme contacté</button>
+      </footer>
+    </article>`;
+  }).join('');
 }
 
 async function markInquiryHandled(inquiry_id){
-  await callOpsApi({ action: 'mark_inquiry_handled', inquiry_id });
+  const res = await callOpsApi({ action: 'mark_inquiry_handled', inquiry_id });
+  if(res) llToast('Demande marquée comme contactée.', 'succes');
   await loadMandatInquiries();
 }
 
