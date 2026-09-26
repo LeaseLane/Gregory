@@ -628,3 +628,84 @@ aside .signout{ margin-top:12px; }
    son contenu qui garde une largeur lisible. */
 main{ flex:1; max-width:none; }
 main > *{ max-width:1240px; }
+
+/* ═══════ ASSISTANT D'ONBOARDING ═══════
+   Une étape visible à la fois ; la barre du haut montre où l'on est,
+   ce qui est fait et ce qui reste. */
+.ob-etapes{
+  display:flex; gap:8px; list-style:none; margin:20px 0 18px; padding:0;
+  counter-reset:none; flex-wrap:wrap;
+}
+.ob-etapes li{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 14px 8px 8px;
+  border:1px solid var(--bordure-portail); border-radius:var(--rayon-pilule);
+  background:var(--surface-carte);
+  font:500 13px/1 var(--police-texte); color:var(--texte-discret);
+}
+.ob-etapes li span{
+  width:24px; height:24px; border-radius:50%; display:grid; place-items:center;
+  background:var(--surface-enfoncee); color:var(--texte-discret);
+  font:600 12px/1 var(--police-texte);
+}
+.ob-etapes li.actif{ border-color:var(--marine-900); color:var(--marine-900); }
+.ob-etapes li.actif span{ background:var(--marine-900); color:#fff; }
+.ob-etapes li.fait{ color:var(--succes-600); }
+.ob-etapes li.fait span{ background:var(--succes-100); color:var(--succes-600); }
+
+.ob-panneau{ display:none; }
+.ob-panneau.actif,
+.ob-carte{
+  display:block;
+  background:var(--surface-carte);
+  border:1px solid var(--bordure-portail);
+  border-radius:var(--rayon-carte);
+  box-shadow:var(--ombre-2);
+  padding:24px;
+}
+.ob-panneau h2{ font-size:1.5em; margin-bottom:6px; }
+.ob-aide{ color:var(--texte-discret); font-size:13.5px; margin:0 0 16px; max-width:70ch; }
+.ob-aide a,.ob-lien a{ color:var(--texte-lien); }
+.ob-lien{ margin-top:14px; font-size:13px; }
+.ob-msg{ font-size:13px; margin-top:10px; min-height:1em; }
+
+.ob-avert{
+  display:flex; align-items:center; gap:8px;
+  margin:14px 0 0; padding:10px 12px;
+  background:var(--bleu-025); border-radius:var(--rayon-2);
+  font-size:13px; color:var(--marine-900);
+}
+.ob-avert .ic{ width:16px; height:16px; color:var(--bleu-600); flex:none; }
+
+.ob-liste{ list-style:none; margin:14px 0 0; padding:0; }
+.ob-liste li{
+  padding:10px 12px; border-top:1px solid var(--bordure-fine);
+  font-size:13.5px; color:var(--texte-corps);
+}
+.ob-liste li::before{ content:"✓  "; color:var(--succes-600); font-weight:600; }
+
+.ob-nav{ display:flex; justify-content:space-between; gap:12px; margin-top:22px; flex-wrap:wrap; }
+.ob-suivant{
+  margin-left:auto; background:var(--action-primaire); color:#fff; border:0;
+  border-radius:var(--rayon-bouton); padding:10px 18px;
+  font:600 13.5px/1 var(--police-texte); cursor:pointer;
+}
+.ob-suivant:hover{ background:var(--action-primaire-survol); }
+.ob-retour{
+  background:transparent; border:1px solid var(--bordure); color:var(--marine-900);
+  border-radius:var(--rayon-bouton); padding:10px 16px;
+  font:500 13.5px/1 var(--police-texte); cursor:pointer;
+}
+
+.ob-import{ margin-top:18px; border-top:1px solid var(--bordure-fine); padding-top:14px; }
+.ob-import summary{ cursor:pointer; font-size:13.5px; color:var(--texte-lien); }
+.ob-import[open] summary{ margin-bottom:12px; }
+
+.ob-recap{ display:grid; grid-template-columns:max-content 1fr; gap:10px 24px; margin:6px 0 0; }
+.ob-recap dt{ font:600 11px/20px var(--police-texte); letter-spacing:.12em; text-transform:uppercase; color:var(--texte-discret); }
+.ob-recap dd{ margin:0; font-size:14px; color:var(--marine-900); }
+
+@media (max-width:860px){
+  .ob-etapes li{ padding:6px 10px 6px 6px; font-size:12px; }
+  .ob-panneau.actif,.ob-carte{ padding:18px; }
+}
