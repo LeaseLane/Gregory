@@ -1844,6 +1844,9 @@ async function callOpsApi(payload){
     alert('Erreur : ' + detail);
     return null;
   }
+  // ops-api répond souvent sans Content-Type JSON : supabase-js rend alors
+  // le corps en texte brut, et « res.ok » vaut undefined même après un succès.
+  if(typeof data === 'string'){ try { return JSON.parse(data); } catch(e){} }
   return data;
 }
 
