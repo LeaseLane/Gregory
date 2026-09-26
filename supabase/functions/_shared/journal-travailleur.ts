@@ -20,10 +20,16 @@ export async function courrielTravailleur(opts: {
   const resendKey = Deno.env.get("RESEND_API_KEY");
   if (!resendKey) return { ok: false, erreur: "RESEND_API_KEY absente" };
 
+  // Adresse de réponse propre au travailleur : sa réponse revient dans
+  // son fil (fonction resend-inbound). Posée seulement une fois le
+  // domaine de réception configuré, sinon les réponses rebondiraient.
+  const domaine = Deno.env.get("REPONSES_DOMAINE");
+  const reponse = domaine ? { reply_to: `travailleur-${opts.workerId}@${domaine}` } : {};
+
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify(avecHtml({ from: EXPEDITEUR, to: [opts.to], subject: opts.sujet, text: opts.texte }, opts.habillage)),
+    body: JSON.stringify(avecHtml({ from: EXPEDITEUR, to: [opts.to], subject: opts.sujet, text: opts.texte, ...reponse }, opts.habillage)),
   }).catch(() => null);
   const data = res ? await res.json().catch(() => ({})) : {};
   if (!res?.ok) return { ok: false, erreur: data?.message ?? `Resend ${res?.status ?? "injoignable"}` };

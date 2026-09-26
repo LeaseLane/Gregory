@@ -101,3 +101,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.send-sms]
 verify_jwt = false
+[functions.resend-inbound]
+verify_jwt = false
