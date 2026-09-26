@@ -620,3 +620,11 @@ aside .signout{ flex:none; }
    dans un conteneur qui défile : il se colle au dernier onglet. On le
    détache par une marge fixe. */
 aside .signout{ margin-top:12px; }
+
+/* Les portails bornaient main à 900–1020 px. Tant que la page entière
+   défilait, ça ne se voyait pas. Depuis que main est la zone de
+   défilement, sa barre s'arrêtait à cette largeur et laissait une bande
+   vide à droite. La zone défilante prend donc toute la largeur ; c'est
+   son contenu qui garde une largeur lisible. */
+main{ flex:1; max-width:none; }
+main > *{ max-width:1240px; }
