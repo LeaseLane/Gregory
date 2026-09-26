@@ -89,7 +89,8 @@
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
 </head>
-<body>
+<body class="ll-verif">
+<script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
 
 <div id="login-screen">
   <div class="login-box">
@@ -233,7 +234,7 @@ async function confirmNewPassword(){
 
 async function init(){
   const { data: { session } } = await supabaseClient.auth.getSession();
-  if(session) await loadCallerDashboard(session.user.id);
+  try { if(session) await loadCallerDashboard(session.user.id); } finally { document.body.classList.remove('ll-verif'); }
 }
 
 async function handleLogin(){

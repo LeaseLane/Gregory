@@ -112,7 +112,8 @@
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
 </head>
-<body>
+<body class="ll-verif">
+<script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
 
 <!-- ============ ÉCRAN DE CONNEXION ============ -->
 <div id="login-screen">
@@ -380,7 +381,7 @@ async function init(){
     }
   });
   const { data: { session } } = await supabaseClient.auth.getSession();
-  if(session) await loadOwnerDashboard(session.user.id);
+  try { if(session) await loadOwnerDashboard(session.user.id); } finally { document.body.classList.remove('ll-verif'); }
 }
 
 function showResetForm(){

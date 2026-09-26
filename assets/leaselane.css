@@ -709,3 +709,19 @@ main > *{ max-width:1240px; }
   .ob-etapes li{ padding:6px 10px 6px 6px; font-size:12px; }
   .ob-panneau.actif,.ob-carte{ padding:18px; }
 }
+
+/* Au rechargement, la page vérifie la session avant de décider quoi
+   afficher. Sans ce masque, l'écran de connexion apparaissait pendant
+   cette vérification et donnait l'impression d'avoir été déconnecté. */
+body.ll-verif #login-screen,
+body.ll-verif #app-shell{ visibility:hidden; }
+body.ll-verif::after{
+  content:"Chargement…";
+  position:fixed; inset:0; display:grid; place-items:center;
+  font:500 14px/1 var(--police-texte); color:var(--texte-discret);
+  background:var(--surface-douce);
+}
+
+/* Les titres prennent la couleur marine par défaut — sur le panneau
+   marine de l'écran de connexion, ils devenaient invisibles. */
+.login-side h1,.login-side h2,.login-side h3{ color:var(--texte-inverse); }

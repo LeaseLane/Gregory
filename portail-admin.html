@@ -79,7 +79,8 @@
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
 </head>
-<body>
+<body class="ll-verif">
+<script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
 
 <div id="login-screen">
   <div class="login-side">
@@ -856,7 +857,7 @@ async function init(){
   // Une session restaurée doit passer par le même contrôle qu'une
   // connexion fraîche (lot P4) : sans ça, rouvrir l'onglet contournerait
   // le deuxième facteur.
-  if(session) await routeAfterPassword();
+  try { if(session) await routeAfterPassword(); } finally { document.body.classList.remove('ll-verif'); }
 }
 
 function showResetForm(){
@@ -1038,8 +1039,17 @@ function showLoginError(msg){
 async function loadAdminDashboard(){
   const { data, error } = await supabaseClient.functions.invoke('admin-api');
   if(error){
-    showLoginError('Accès refusé — ce compte n\'est pas administrateur.');
-    await supabaseClient.auth.signOut();
+    // Seul un refus explicite (401/403) déconnecte. Une erreur réseau ou
+    // serveur passagère déconnectait aussi : un rechargement pendant un
+    // hoquet du serveur renvoyait à l'écran de connexion, session perdue.
+    const statut = error.context && error.context.status;
+    if(statut === 401 || statut === 403){
+      showLoginError('Accès refusé — ce compte n\'est pas administrateur.');
+      await supabaseClient.auth.signOut();
+      return;
+    }
+    document.getElementById('login-screen').style.display = 'flex';
+    showLoginError('Le serveur ne répond pas — ta session est conservée. Recharge la page dans un instant.');
     return;
   }
 
