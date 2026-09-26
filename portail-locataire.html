@@ -94,6 +94,7 @@
   }
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
+<script src="assets/charger-portail.js"></script>
 <script src="assets/ui.js"></script>
 </head>
 <body class="ll-verif">
@@ -305,6 +306,7 @@ async function loadTenantDashboard(userId){
     .from('tenants').select('*').eq('user_id', userId).single();
 
   if(error || !tenant){
+    if(await llBonPortail(supabaseClient, 'portail-locataire')) return;
     showLoginError("Aucun profil locataire associé à ce compte.");
     return;
   }

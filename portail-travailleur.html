@@ -113,6 +113,7 @@
   }
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
+<script src="assets/charger-portail.js"></script>
 <script src="assets/ui.js"></script>
 </head>
 <body class="ll-verif">
@@ -348,6 +349,7 @@ async function callWorkerApi(payload){
 async function loadWorkerDashboard(userId){
   const data = await callWorkerApi({ action: 'get_my_profile' });
   if(data?.error || !data?.worker){
+    if(await llBonPortail(supabaseClient, 'portail-travailleur')) return;
     showLoginError(data?.error || "Aucun profil travailleur associé à ce compte.");
     return;
   }

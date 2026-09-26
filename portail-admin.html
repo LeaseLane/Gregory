@@ -80,6 +80,7 @@
   }
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
+<script src="assets/charger-portail.js"></script>
 <script src="assets/ui.js"></script>
 </head>
 <body class="ll-verif">
@@ -986,6 +987,9 @@ function showMfaBox(id, message){
 }
 
 async function routeAfterPassword(){
+  // Un propriétaire/locataire/travailleur n'a rien à faire ici : on l'envoie
+  // à son portail AVANT de lui proposer le double facteur des admins.
+  if(await llBonPortail(supabaseClient, 'portail-admin')) return;
   // Session déjà en aal2 (restaurée, ou facteur tout juste vérifié).
   const { data: aalData } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
   if(aalData && aalData.currentLevel === 'aal2'){ await loadAdminDashboard(); return; }

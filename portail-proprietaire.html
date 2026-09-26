@@ -113,6 +113,7 @@
   }
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
+<script src="assets/charger-portail.js"></script>
 <script src="assets/ui.js"></script>
 </head>
 <body class="ll-verif">
@@ -489,6 +490,7 @@ async function loadOwnerDashboard(userId){
     .from('owners').select('*').eq('user_id', userId).single();
 
   if(error || !owner){
+    if(await llBonPortail(supabaseClient, 'portail-proprietaire')) return;
     showLoginError("Aucun profil propriétaire associé à ce compte.");
     return;
   }
