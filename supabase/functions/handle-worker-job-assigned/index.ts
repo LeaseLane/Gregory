@@ -1,5 +1,6 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
+import { courrielTravailleur } from "../_shared/journal-travailleur.ts";
 // Page publique où le travailleur répond (accepter/refuser/proposer
 // une heure/demander des infos) — voir edge-function-handle-worker-response.ts
 
@@ -89,18 +90,14 @@ ${responseUrl}
 
 L'équipe Lease Lane`;
 
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(avecHtml({
-        from: EXPEDITEUR,
-        to: [worker.email],
-        subject,
-        text: bodyText,
-      }, { pied: POURQUOI.travailleur, bouton: { libelle: "Répondre au travail", url: responseUrl } })),
+    await courrielTravailleur({
+      workerId: workOrder.worker_id,
+      to: worker.email,
+      sujet: subject,
+      texte: bodyText,
+      origine: "automatique",
+      workOrderId: workOrder.id,
+      habillage: { pied: POURQUOI.travailleur, bouton: { libelle: "Répondre au travail", url: responseUrl } },
     });
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });

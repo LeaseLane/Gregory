@@ -2747,8 +2747,10 @@ function trDetail(w){
 // envoyées, réponses (ou silences), relances, travaux faits, avis, notes
 // de l'équipe. Les travailleurs répondent par lien, pas par courriel :
 // la « conversation » est donc reconstituée à partir de ces événements.
-let ficheTr = { id: null, onglet: 'activite', data: null };
+let ficheTr = { id: null, onglet: 'messages', data: null };
 const trReponse = { accepted: 'a accepté', declined: 'a refusé', proposed_other_time: 'propose une autre heure' };
+// « pending » = offre envoyée, pas encore de réponse.
+const aRepondu = m => m.worker_response && m.worker_response !== 'pending';
 const trStatutMandat = { open: 'Ouvert', assigned: 'Assigné', in_progress: 'En cours', completed: 'Terminé', cancelled: 'Annulé' };
 const trAudit = {
   'worker.create': 'Fiche créée', 'worker.self_registered': 'Inscription via le portail Pro',
@@ -2759,7 +2761,7 @@ const trAudit = {
 const quand = d => new Date(d).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' });
 
 async function ouvrirFicheTravailleur(id, onglet){
-  ficheTr = { id, onglet: onglet || ficheTr.onglet || 'activite', data: null };
+  ficheTr = { id, onglet: onglet || ficheTr.onglet || 'messages', data: null };
   let tiroir = document.getElementById('fiche-tr');
   if(!tiroir){
     document.body.insertAdjacentHTML('beforeend', '<div id="fiche-tr-fond" class="fi-fond" onclick="fermerFicheTravailleur()"></div><aside id="fiche-tr" class="fi-tiroir" role="dialog" aria-modal="true" aria-label="Fiche travailleur"></aside>');
@@ -2786,8 +2788,8 @@ function trEvenements(d){
     const titre = `« ${m.description} » — ${lieu(m)}`;
     if(m.worker_notified_at) ev.push({ t: m.worker_notified_at, ic: 'send', ton: 'info', txt: `Offre envoyée par courriel`, sous: titre });
     if(m.response_reminder_sent) ev.push({ t: m.worker_notified_at, ic: 'bell', ton: 'att', txt: 'Relance envoyée (pas de réponse)', sous: titre, approx: true });
-    if(m.worker_response && m.worker_response_at) ev.push({ t: m.worker_response_at, ic: m.worker_response === 'declined' ? 'circle-x' : 'message-circle', ton: m.worker_response === 'declined' ? 'ko' : 'ok', txt: `Le travailleur ${trReponse[m.worker_response] || m.worker_response}`, sous: titre, citation: m.worker_response_note });
-    else if(m.worker_notified_at && !m.worker_response && Date.now() - new Date(m.worker_notified_at) > 864e5) ev.push({ t: new Date(new Date(m.worker_notified_at).getTime() + 864e5).toISOString(), ic: 'clock', ton: 'ko', txt: 'Toujours sans réponse après 24 h', sous: titre });
+    if(aRepondu(m) && m.worker_response_at) ev.push({ t: m.worker_response_at, ic: m.worker_response === 'declined' ? 'circle-x' : 'message-circle', ton: m.worker_response === 'declined' ? 'ko' : 'ok', txt: `Le travailleur ${trReponse[m.worker_response] || m.worker_response}`, sous: titre, citation: m.worker_response_note });
+    else if(m.worker_notified_at && !aRepondu(m) && Date.now() - new Date(m.worker_notified_at) > 864e5) ev.push({ t: new Date(new Date(m.worker_notified_at).getTime() + 864e5).toISOString(), ic: 'clock', ton: 'ko', txt: 'Toujours sans réponse après 24 h', sous: titre });
     if(m.worker_reported_done_at) ev.push({ t: m.worker_reported_done_at, ic: 'check', ton: 'ok', txt: 'A signalé le travail terminé', sous: titre, citation: m.worker_completion_note });
     if(m.tenant_confirmed) ev.push({ t: m.worker_reported_done_at || m.created_at, ic: 'circle-check', ton: 'ok', txt: 'Le locataire a confirmé la réparation', sous: titre, approx: true });
   });
@@ -2809,12 +2811,15 @@ function renderFicheTravailleur(){
   const d = ficheTr.data;
   const mandats = d?.mandats || [];
   const offres = mandats.filter(m => m.worker_notified_at).length + (d?.refuses?.length || 0);
-  const repondues = mandats.filter(m => m.worker_response).length + (d?.refuses?.length || 0);
+  const repondues = mandats.filter(aRepondu).length + (d?.refuses?.length || 0);
   const initiales = (w.name || '?').split(/\s+/).map(m => m[0]).join('').slice(0, 2).toUpperCase();
   const onglet = (id, libelle, n) => `<button class="fi-onglet${ficheTr.onglet === id ? ' actif' : ''}" onclick="ficheTr.onglet='${id}';renderFicheTravailleur()">${libelle}${n ? ` <span>${n}</span>` : ''}</button>`;
   let corps;
   if(!d) corps = '<p class="tr-vide">Chargement de l\'historique…</p>';
   else if(d.erreur && ficheTr.onglet !== 'conformite') corps = '<p class="tr-vide">Historique indisponible pour le moment.</p>';
+  else if(ficheTr.onglet === 'messages'){
+    corps = trFil(d, w);
+  }
   else if(ficheTr.onglet === 'activite'){
     const ev = trEvenements(d);
     corps = ev.length ? `<ol class="fi-fil">${ev.map(e => `
@@ -2830,7 +2835,7 @@ function renderFicheTravailleur(){
   } else if(ficheTr.onglet === 'mandats'){
     corps = mandats.length ? `<table class="fi-table"><thead><tr><th>Travail</th><th>Statut</th><th class="num">Paie</th><th>Reçu le</th></tr></thead><tbody>${mandats.map(m => `
       <tr><td><b>${esc(m.description)}</b>${m.is_urgent ? ' <span class="tr-pastille tr-pastille--ko">Urgent</span>' : ''}<small>${esc(m.units?.buildings?.address || '')}${m.units ? ', unité ' + esc(m.units.unit_number) : ''}</small></td>
-      <td>${trStatutMandat[m.status] || esc(m.status)}${m.worker_response ? `<small>${trReponse[m.worker_response] || esc(m.worker_response)}</small>` : m.worker_notified_at ? '<small class="tr-manque">sans réponse</small>' : ''}</td>
+      <td>${trStatutMandat[m.status] || esc(m.status)}${aRepondu(m) ? `<small>${trReponse[m.worker_response] || esc(m.worker_response)}</small>` : m.worker_notified_at ? '<small class="tr-manque">sans réponse</small>' : ''}</td>
       <td class="num">${m.worker_pay != null ? Number(m.worker_pay).toLocaleString('fr-CA') + ' $' : '—'}</td>
       <td>${new Date(m.created_at).toLocaleDateString('fr-CA')}</td></tr>`).join('')}</tbody></table>` : '<p class="tr-vide">Aucun mandat pour l\'instant.</p>';
   } else if(ficheTr.onglet === 'notes'){
@@ -2866,9 +2871,64 @@ function renderFicheTravailleur(){
       <div><b>${w.ratings_count ? '★ ' + w.avg_rating : '—'}</b><span>${w.ratings_count ? w.ratings_count + ' avis' : 'pas d\'avis'}</span></div>
     </div>
     <div class="fi-onglets" role="tablist">
-      ${onglet('activite', 'Activité')}${onglet('mandats', 'Mandats', mandats.length)}${onglet('notes', 'Notes', (d?.notes?.length || 0) + (w.verification_notes ? 1 : 0))}${onglet('conformite', 'Conformité')}
+      ${onglet('messages', 'Messages', d?.messages?.length)}${onglet('activite', 'Activité')}${onglet('mandats', 'Mandats', mandats.length)}${onglet('notes', 'Notes', (d?.notes?.length || 0) + (w.verification_notes ? 1 : 0))}${onglet('conformite', 'Conformité')}
     </div>
     <div class="fi-corps">${corps}</div>`;
+  const fil = document.getElementById('ms-fil');
+  if(fil) fil.scrollTop = fil.scrollHeight;
+}
+
+// Fil de discussion : courriels envoyés (automatiques ou écrits ici) et
+// réponses du travailleur, dans l'ordre. Ses réponses passent par le
+// lien des offres ; les courriels qu'il écrirait en retour arrivent pour
+// l'instant dans la boîte de l'équipe, pas ici.
+function trFil(d, w){
+  const bulles = [];
+  (d.messages || []).forEach(m => bulles.push({
+    t: m.created_at, sens: m.direction,
+    etiquette: m.direction === 'entrant' ? 'Courriel reçu' : m.origine === 'manuel' ? `Envoyé par ${esc(m.users?.email?.split('@')[0] || 'l\'équipe')}` : 'Courriel automatique',
+    auto: m.origine === 'automatique', sujet: m.sujet, corps: m.corps, wo: m.work_order_id,
+  }));
+  (d.mandats || []).filter(aRepondu).forEach(m => bulles.push({
+    t: m.worker_response_at || m.created_at, sens: 'entrant', etiquette: 'Réponse via le lien',
+    sujet: `${(trReponse[m.worker_response] || m.worker_response).replace(/^./, c => c.toUpperCase())} — « ${m.description} »`,
+    corps: m.worker_response_note || '', wo: m.id,
+  }));
+  (d.mandats || []).filter(m => m.worker_reported_done_at).forEach(m => bulles.push({
+    t: m.worker_reported_done_at, sens: 'entrant', etiquette: 'Depuis son portail',
+    sujet: `Travail terminé — « ${m.description} »`, corps: m.worker_completion_note || '', wo: m.id,
+  }));
+  bulles.sort((x, y) => new Date(x.t) - new Date(y.t));
+  const derniere = bulles[bulles.length - 1];
+  const attente = derniere && derniere.sens === 'sortant'
+    ? `<div class="ms-attente"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#clock"/></svg>Pas encore de réponse depuis le ${quand(derniere.t)}</div>` : '';
+  const fil = bulles.length ? bulles.map(b => `
+    <div class="ms-bulle ms-bulle--${b.sens}${b.auto ? ' ms-bulle--auto' : ''}">
+      <div class="ms-meta">${b.auto ? '<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bot"/></svg>' : ''}${b.etiquette} · ${quand(b.t)}</div>
+      ${b.sujet ? `<div class="ms-sujet">${esc(b.sujet)}</div>` : ''}
+      ${b.corps ? `<details class="ms-corps"${b.auto ? '' : ' open'}><summary>${b.auto ? 'Voir le courriel' : ''}</summary><div>${esc(b.corps)}</div></details>` : ''}
+    </div>`).join('') : '<p class="tr-vide">Aucun échange pour l\'instant. Les offres de mandat et les relances apparaîtront ici automatiquement.</p>';
+  return `
+    <div class="ms-fil" id="ms-fil">${fil}${attente}</div>
+    ${w.email ? `
+    <div class="ms-ecrire">
+      <input type="text" id="ms-sujet" placeholder="Objet" maxlength="200">
+      <textarea id="ms-texte" rows="4" placeholder="Écris ton message à ${esc(w.name || 'ce travailleur')}…"></textarea>
+      <div class="ms-actions"><span class="ms-dest">À : ${esc(w.email)}</span><button class="ll-bouton ll-bouton--primaire" id="ms-envoyer" onclick="envoyerCourrielTravailleur()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div>
+    </div>` : '<p class="tr-manque">Ajoute un courriel à ce travailleur pour pouvoir lui écrire.</p>'}`;
+}
+
+async function envoyerCourrielTravailleur(){
+  const sujet = document.getElementById('ms-sujet').value.trim();
+  const texte = document.getElementById('ms-texte').value.trim();
+  if(!sujet || !texte){ llToast('Ajoute un objet et un message.', 'erreur'); return; }
+  const bouton = document.getElementById('ms-envoyer');
+  bouton.disabled = true;
+  const res = await callOpsApi({ action: 'send_worker_email', worker_id: ficheTr.id, sujet, texte });
+  bouton.disabled = false;
+  if(!res?.ok) return;
+  llToast('Courriel envoyé.', 'succes');
+  ouvrirFicheTravailleur(ficheTr.id, 'messages');
 }
 
 async function ajouterNoteTravailleur(){

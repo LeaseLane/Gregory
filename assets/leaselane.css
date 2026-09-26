@@ -1147,3 +1147,25 @@ body.fi-ouvert .fi-tiroir{ transform:none; }
 .fi-note{ padding:12px 14px; border:1px solid var(--bordure-fine); border-radius:var(--rayon-champ); margin-bottom:10px; font-size:14px; white-space:pre-wrap; color:var(--texte-corps); }
 .fi-note .fi-sous{ margin:0 0 6px; }
 @media (max-width:640px){ .fi-tiroir{ padding:18px 16px 32px; } .fi-stats{ grid-template-columns:repeat(2, 1fr); } }
+
+/* ═══════ FICHE TRAVAILLEUR — MESSAGES ═══════ */
+.ms-fil{ display:flex; flex-direction:column; gap:12px; max-height:52vh; overflow-y:auto; padding:4px 2px 8px; }
+.ms-bulle{ max-width:82%; padding:10px 14px; border-radius:14px; font-size:14px; line-height:1.45; }
+.ms-bulle--sortant{ align-self:flex-end; background:var(--action-primaire); color:#fff; border-bottom-right-radius:4px; }
+.ms-bulle--sortant.ms-bulle--auto{ background:var(--bleu-025); color:var(--texte-corps); border:1px solid var(--bordure-fine); }
+.ms-bulle--entrant{ align-self:flex-start; background:var(--surface-enfoncee); color:var(--texte-corps); border-bottom-left-radius:4px; }
+.ms-meta{ display:flex; align-items:center; gap:5px; font-size:11.5px; opacity:.8; margin-bottom:4px; }
+.ms-meta .ic{ width:13px; height:13px; }
+.ms-sujet{ font-weight:600; }
+.ms-corps summary{ cursor:pointer; font-size:12.5px; margin-top:4px; opacity:.85; list-style:none; }
+.ms-corps summary::-webkit-details-marker{ display:none; }
+.ms-corps[open] summary:empty{ display:none; }
+.ms-corps div{ white-space:pre-wrap; margin-top:6px; overflow-wrap:anywhere; }
+.ms-attente{ align-self:flex-end; display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--alerte-600); }
+.ms-attente .ic{ width:14px; height:14px; }
+.ms-ecrire{ margin-top:14px; border:1px solid var(--bordure); border-radius:var(--rayon-carte); padding:10px; display:flex; flex-direction:column; gap:8px; background:var(--surface-carte); }
+.ms-ecrire input, .ms-ecrire textarea{ width:100%; box-sizing:border-box; border:none; box-shadow:none !important; padding:6px 8px; resize:vertical; }
+.ms-ecrire input{ font-weight:600; border-bottom:1px solid var(--bordure-fine); border-radius:0; }
+.ms-actions{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.ms-dest{ font-size:12.5px; color:var(--texte-discret); overflow-wrap:anywhere; }
+.ms-actions .ll-bouton .ic{ width:15px; height:15px; margin-right:6px; vertical-align:-2px; }

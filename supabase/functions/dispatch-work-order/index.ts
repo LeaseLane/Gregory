@@ -1,5 +1,6 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
+import { courrielTravailleur } from "../_shared/journal-travailleur.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 // Moteur de dispatch Lease Lane Pro — trouve automatiquement les travailleurs
 // admissibles à un work_order et leur diffuse le mandat par paliers de
@@ -88,17 +89,16 @@ Deno.serve(async (req) => {
       if (!resendKey) return;
       for (const w of workers) {
         if (!w.email) continue;
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify(avecHtml({
-            from: EXPEDITEUR,
-            to: [w.email],
-            subject: workOrder.is_urgent
+        await courrielTravailleur({
+          workerId: w.id,
+          to: w.email,
+          sujet: workOrder.is_urgent
               ? `URGENT — nouveau mandat disponible — ${address}, unité ${unitNumber}`
               : `Nouveau mandat disponible — ${address}, unité ${unitNumber}`,
-            text: `Un mandat correspondant à ton profil est disponible.\n\nDescription : ${workOrder.description}\nAdresse : ${address}, unité ${unitNumber}\nRémunération offerte : ${workOrder.worker_pay != null ? workOrder.worker_pay + " $" : "à discuter (diagnostic requis)"}\n${workOrder.is_urgent ? "\nCeci est un mandat URGENT — premier arrivé, premier servi.\n" : ""}\nConnecte-toi à ton portail pour l'accepter avant qu'un autre travailleur ne le prenne :\n${SITE_BASE_URL}/portail-travailleur.html\n\nL'équipe Lease Lane`,
-          }, { pied: POURQUOI.travailleur })),
+          texte: `Un mandat correspondant à ton profil est disponible.\n\nDescription : ${workOrder.description}\nAdresse : ${address}, unité ${unitNumber}\nRémunération offerte : ${workOrder.worker_pay != null ? workOrder.worker_pay + " $" : "à discuter (diagnostic requis)"}\n${workOrder.is_urgent ? "\nCeci est un mandat URGENT — premier arrivé, premier servi.\n" : ""}\nConnecte-toi à ton portail pour l'accepter avant qu'un autre travailleur ne le prenne :\n${SITE_BASE_URL}/portail-travailleur.html\n\nL'équipe Lease Lane`,
+          origine: "automatique",
+          workOrderId: workOrder.id,
+          habillage: { pied: POURQUOI.travailleur },
         }).catch(() => null);
       }
     };

@@ -1,5 +1,6 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
+import { courrielTravailleur } from "../_shared/journal-travailleur.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
@@ -158,13 +159,14 @@ Deno.serve(async (req) => {
       }
       const lire = (chemin: string) => fetch(`${supabaseUrl}/rest/v1/${chemin}`, { headers: adminHeaders }).then((r) => r.ok ? r.json() : []);
       const champsMandat = "id,description,status,estimated_cost,worker_pay,created_at,is_urgent,worker_notified_at,worker_response,worker_response_at,worker_response_note,response_reminder_sent,response_escalated,appointment_at,worker_reported_done_at,worker_completion_note,tenant_confirmed,units(unit_number,buildings(address))";
-      const [[worker], mandats, refuses, evaluations, notes, auditTravailleur] = await Promise.all([
+      const [[worker], mandats, refuses, evaluations, notes, auditTravailleur, messages] = await Promise.all([
         lire(`worker_verification_status?id=eq.${worker_id}&select=*`),
         lire(`work_orders?worker_id=eq.${worker_id}&select=${champsMandat}&order=created_at.desc&limit=100`),
         lire(`work_orders?declined_worker_ids=cs.{${worker_id}}&select=id,description,created_at,units(unit_number,buildings(address))&order=created_at.desc&limit=50`),
         lire(`worker_ratings?worker_id=eq.${worker_id}&select=*&order=created_at.desc`),
         lire(`worker_notes?worker_id=eq.${worker_id}&select=id,body,created_at,users(email)&order=created_at.desc`),
         lire(`audit_log?entity_id=eq.${worker_id}&select=action,actor_type,details,created_at&order=created_at.desc&limit=100`),
+        lire(`worker_messages?worker_id=eq.${worker_id}&select=id,direction,origine,sujet,corps,work_order_id,created_at,users(email)&order=created_at.asc&limit=300`),
       ]);
       if (!worker) {
         return new Response(JSON.stringify({ error: "Travailleur introuvable" }), { status: 404, headers: corsHeaders });
@@ -173,7 +175,28 @@ Deno.serve(async (req) => {
       const auditMandats = idsMandats.length
         ? await lire(`audit_log?entity_id=in.(${idsMandats.join(",")})&select=action,actor_type,entity_id,details,created_at&order=created_at.desc&limit=200`)
         : [];
-      return new Response(JSON.stringify({ worker, mandats, refuses, evaluations, notes, audit: [...auditTravailleur, ...auditMandats] }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ worker, mandats, refuses, evaluations, notes, messages, audit: [...auditTravailleur, ...auditMandats] }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Courriel écrit par l'équipe depuis la fiche du travailleur. Passe
+    // par le même gabarit et le même journal que les envois automatiques.
+    if (action === "send_worker_email") {
+      const { worker_id, sujet, texte } = body;
+      const s = String(sujet ?? "").trim(), t = String(texte ?? "").trim();
+      if (!worker_id || !s || !t || s.length > 200 || t.length > 10000) {
+        return new Response(JSON.stringify({ error: "Objet et message requis" }), { status: 400, headers: corsHeaders });
+      }
+      const wRes = await fetch(`${supabaseUrl}/rest/v1/workers?id=eq.${worker_id}&select=email`, { headers: adminHeaders });
+      const [w] = await wRes.json().catch(() => []);
+      if (!w?.email) {
+        return new Response(JSON.stringify({ error: "Ce travailleur n'a pas de courriel" }), { status: 400, headers: corsHeaders });
+      }
+      const envoi = await courrielTravailleur({ workerId: worker_id, to: w.email, sujet: s, texte: t, origine: "manuel", auteurId: userId, habillage: { pied: POURQUOI.travailleur } });
+      if (!envoi.ok) {
+        return new Response(JSON.stringify({ error: `Courriel non envoyé : ${envoi.erreur}` }), { status: 502, headers: corsHeaders });
+      }
+      await logAudit("worker.email_sent", "workers", worker_id, { sujet: s });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "add_worker_note") {
