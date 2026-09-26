@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 
 Deno.serve(async (req) => {
@@ -73,12 +74,12 @@ Deno.serve(async (req) => {
       const emailRes = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify(avecHtml({
           from: EXPEDITEUR,
           to: [fallback_email],
           subject: fallback_subject || "Message de Portail",
           text: message,
-        }),
+        })),
       });
       if (!emailRes.ok) {
         console.error("Failed to send SMS email fallback", await emailRes.text());

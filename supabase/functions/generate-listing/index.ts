@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml } from "../_shared/courriel.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 // Marketplace (Facebook) n'a pas d'API publique de publication — cette
 // fonction ne publie donc rien elle-même. Dès qu'une annonce est
@@ -169,12 +170,12 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
+          body: JSON.stringify(avecHtml({
             from: EXPEDITEUR,
             to: [...recipientEmails],
             subject: `Annonce prête à publier — ${address}`,
             text: `Le logement suivant est vacant (ou le sera bientôt) et son annonce a été préparée automatiquement :\n\n${address}${unit.unit_type ? " — " + unit.unit_type : ""}\nLoyer suggéré : ${finalRent != null ? finalRent + " $/mois" : "à confirmer"}\n\n--- Annonce du site (déjà en ligne automatiquement) ---\n${parsed.description || ""}\n\n--- Prête à coller sur Facebook Marketplace ---\nTitre : ${marketplaceTitle}\nPrix : ${finalRent != null ? finalRent : "à confirmer"}\nDescription :\n${marketplaceDescription}\n\nIl ne reste qu'à copier ce texte dans Marketplace (aucune publication automatique n'est possible — Facebook ne le permet pas via une API externe). Une fois publié, marque l'annonce comme "publiée" dans le portail admin.`,
-          }),
+          })),
         });
       }
     } catch (e) {

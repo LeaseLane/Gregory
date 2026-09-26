@@ -1,4 +1,5 @@
 import { EXPEDITEUR, PORTAILS } from "../_shared/branding.ts";
+import { avecHtml } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
@@ -84,7 +85,7 @@ Deno.serve(async (req) => {
       fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from: EXPEDITEUR, to: [to], subject, text }),
+        body: JSON.stringify(avecHtml({ from: EXPEDITEUR, to: [to], subject, text })),
       });
 
     const body = await req.json().catch(() => ({}));

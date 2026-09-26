@@ -1,4 +1,5 @@
 import { EXPEDITEUR, PORTAILS } from "../_shared/branding.ts";
+import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 import { refuserSiRobot } from "../_shared/turnstile.ts";
 
@@ -122,12 +123,12 @@ Deno.serve(async (req) => {
       const emailRes = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify(avecHtml({
           from: EXPEDITEUR,
           to: [email],
           subject: "Bienvenue sur Lease Lane Pro — ton dossier est en cours de vérification",
           text: `Bonjour ${full_name},\n\nMerci de t'être inscrit sur Lease Lane Pro. Ton compte est prêt et ton dossier est maintenant en attente de vérification par notre équipe (licence, assurance) — tu recevras des mandats dès qu'il sera approuvé.\n\nPortail : ${WORKER_PORTAL_URL}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi pour compléter ton profil (horaire, assurance, photos) en attendant. Tu peux changer ton mot de passe via "Mot de passe oublié" sur la page de connexion.\n\nL'équipe Lease Lane`,
-        }),
+        }, { pied: POURQUOI.travailleur })),
       });
       const emailData = await emailRes.json().catch(() => ({}));
       if (!emailRes.ok) { emailSent = false; emailError = emailData?.message || "Échec de l'envoi du courriel"; }
@@ -144,12 +145,12 @@ Deno.serve(async (req) => {
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
+          body: JSON.stringify(avecHtml({
             from: EXPEDITEUR,
             to: adminEmails,
             subject: `Nouvelle inscription Lease Lane Pro — ${full_name}`,
             text: `${full_name}${company_name ? " (" + company_name + ")" : ""} vient de s'inscrire sur Lease Lane Pro.\n\nMétiers : ${specialties.join(", ")}\nZones : ${zones.join(", ")}\nCourriel : ${email}\nTéléphone : ${phone || "non fourni"}\n\nSon dossier attend une vérification dans le portail admin avant de recevoir des mandats.`,
-          }),
+          }, { pied: POURQUOI.admin })),
         });
       }
     } catch (e) {

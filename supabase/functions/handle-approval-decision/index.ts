@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml } from "../_shared/courriel.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 Deno.serve(async (req) => {
   try {
@@ -95,12 +96,12 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         Authorization: `Bearer ${resendKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
+      body: JSON.stringify(avecHtml({
         from: EXPEDITEUR,
         to: [tenant.email],
         subject: parsed.subject,
         text: parsed.body,
-      }),
+      })),
     });
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });

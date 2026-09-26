@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
@@ -498,12 +499,12 @@ Deno.serve(async (req) => {
           await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
+            body: JSON.stringify(avecHtml({
               from: EXPEDITEUR,
               to: [tenant.email],
               subject: `Ta réparation est complétée — confirme que tout est réglé`,
               text: `Bonjour ${tenant.full_name},\n\nLa réparation suivante a été complétée à ton logement (${address || ""}, unité ${wo.units?.unit_number || ""}) :\n${wo.description}\n\nPeux-tu confirmer que tout est réglé ? ${confirmUrl}\n\nSi rien ne se passe d'ici quelques jours, on considérera le dossier réglé automatiquement — mais si le problème persiste, dis-le-nous via ce lien.\n\nL'équipe Lease Lane`,
-            }),
+            }, { bouton: { libelle: "Confirmer la réparation", url: confirmUrl } })),
           });
         } catch (e) {
           console.error("Failed to send tenant confirmation email", e);
@@ -713,12 +714,12 @@ Deno.serve(async (req) => {
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify(avecHtml({
           from: EXPEDITEUR,
           to: [prospect_email],
           subject: `Proposition de visite — ${unit?.buildings?.address || ""}`,
           text: `Bonjour ${prospect_name},\n\nNous te proposons une visite du logement suivant :\n${unit?.buildings?.address || ""}, unité ${unit?.unit_number || ""}\nDate et heure proposées : ${whenLabel}\n\nMerci de confirmer, refuser ou proposer un autre moment via ce lien : ${confirmUrl}\n\nL'équipe Lease Lane`,
-        }),
+        }, { pied: POURQUOI.prospect, bouton: { libelle: "Répondre à la proposition", url: confirmUrl } })),
       });
 
       if (inquiry_id) {

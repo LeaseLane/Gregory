@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 import { appelerIA, MODELE_RAPIDE } from "../_shared/ia.ts";
 // Déclenchée par le cron flag_incomplete_onboarding() (ou manuellement
@@ -140,12 +141,12 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
     await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: JSON.stringify(avecHtml({
         from: EXPEDITEUR,
         to: [userRow.email],
         subject: parsed.subject,
         text: parsed.body,
-      }),
+      })),
     });
 
     await fetch(`${supabaseUrl}/rest/v1/owners?id=eq.${owner_id}`, {

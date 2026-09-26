@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 
 Deno.serve(async (req) => {
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ from: EXPEDITEUR, to: adminEmails, subject, text }),
+          body: JSON.stringify(avecHtml({ from: EXPEDITEUR, to: adminEmails, subject, text }, { pied: POURQUOI.admin })),
         });
       }
     };

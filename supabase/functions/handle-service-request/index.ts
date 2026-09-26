@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 // Règles de sécurité déterministes : ne dépendent JAMAIS de l'IA.
 // Si l'une de ces situations est détectée dans la description du
@@ -67,12 +68,12 @@ Deno.serve(async (req) => {
           await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
+            body: JSON.stringify(avecHtml({
               from: EXPEDITEUR,
               to: adminEmails,
               subject: `URGENCE SÉCURITÉ — demande de service #${String(record.id).slice(0, 8)}`,
               text: `Une demande de service a déclenché une alerte de sécurité automatique (règle déterministe, indépendante de l'IA).\n\nMotif(s) : ${matchedRules.map((r) => r.label).join(", ")}\n\nDescription du locataire : ${record.description}\n\nCette demande a été marquée "urgence" automatiquement. Veuillez intervenir immédiatement.`,
-            }),
+            }, { pied: POURQUOI.admin })),
           });
         }
       } catch (e) {
@@ -235,12 +236,12 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
           await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
+            body: JSON.stringify(avecHtml({
               from: EXPEDITEUR,
               to: [tenant.email],
               subject: "Ta demande de service — suivi",
               text: lines.join("\n"),
-            }),
+            })),
           });
         }
       } catch (e) {

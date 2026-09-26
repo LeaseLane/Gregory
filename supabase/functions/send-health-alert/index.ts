@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 
 const severityLabel: Record<string, string> = {
@@ -51,12 +52,12 @@ Deno.serve(async (req) => {
     const resendRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: JSON.stringify(avecHtml({
         from: EXPEDITEUR,
         to: adminEmails,
         subject: `⚠️ Lease Lane — ${issueList.length} problème(s) détecté(s) par la surveillance système`,
         text: `La vérification automatique de santé du système a détecté ${issueList.length} problème(s) :\n\n${bodyLines}\n\nCette alerte ne se répétera pas avant 2h tant que le problème persiste. Vérifie le tableau de bord admin (section « État du système ») pour plus de détails.`,
-      }),
+      }, { pied: POURQUOI.admin })),
     });
 
     if (!resendRes.ok) {

@@ -1,4 +1,5 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
+import { avecHtml } from "../_shared/courriel.ts";
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 
@@ -148,12 +149,12 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify(avecHtml({
           from: EXPEDITEUR,
           to: [tenant.email],
           subject: parsed.subject,
           text: `${parsed.body}${signatureLine}\n\n---\n${LEGAL_DISCLAIMER}`,
-        }),
+        }, notice_type !== "non_renouvellement" ? { bouton: { libelle: "Signer électroniquement", url: signatureUrl } } : {})),
       });
 
       const noticePatchRes = await fetch(`${supabaseUrl}/rest/v1/leases?id=eq.${lease_id}`, {

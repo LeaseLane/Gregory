@@ -1,4 +1,5 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
+import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 
 
@@ -41,12 +42,12 @@ Deno.serve(async (req) => {
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify(avecHtml({
           from: EXPEDITEUR,
           to: [visit.prospect_email],
           subject: `Rappel — ta visite de demain`,
           text: `Bonjour ${visit.prospect_name},\n\nPetit rappel pour ta visite prévue :\n${address || ""}, unité ${unit?.unit_number || ""}\n${whenLabel}\n\nUn empêchement ? Avise-nous ici : ${confirmUrl}\n\nL'équipe Lease Lane`,
-        }),
+        }, { pied: POURQUOI.prospect, bouton: { libelle: "Aviser d'un empêchement", url: confirmUrl } })),
       });
       await fetch(`${supabaseUrl}/rest/v1/visits?id=eq.${visit_id}`, {
         method: "PATCH", headers: adminHeaders, body: JSON.stringify({ reminder_sent_at: new Date().toISOString() }),

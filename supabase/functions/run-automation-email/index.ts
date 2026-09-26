@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 // Envoie le courriel d'une règle d'automatisation (action_type =
 // 'envoyer_rappel_email'), déclenché par execute_automation_rules() via
@@ -65,12 +66,12 @@ Deno.serve(async (req) => {
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: JSON.stringify(avecHtml({
         from: EXPEDITEUR,
         to: [recipientEmail],
         subject: rule.name,
         text: `Bonjour ${recipientName},\n\n${rule.action_message}\n\n— L'équipe Lease Lane`,
-      }),
+      })),
     });
     if (!emailRes.ok) {
       console.error("Failed to send automation email", await emailRes.text());

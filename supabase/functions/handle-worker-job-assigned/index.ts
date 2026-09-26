@@ -1,4 +1,5 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
+import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 // Page publique où le travailleur répond (accepter/refuser/proposer
 // une heure/demander des infos) — voir edge-function-handle-worker-response.ts
 
@@ -40,12 +41,12 @@ Deno.serve(async (req) => {
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
+          body: JSON.stringify(avecHtml({
             from: EXPEDITEUR,
             to: adminEmails,
             subject: `Aucun travailleur disponible — ${address || ""}, unité ${unit?.unit_number || ""}`,
             text: `Aucun travailleur n'a répondu dans les délais pour ce travail (${workOrder.description}) et la liste des travailleurs disponibles est épuisée. Une assignation manuelle est requise dans le portail admin.`,
-          }),
+          }, { pied: POURQUOI.admin })),
         });
       }
       await fetch(`${supabaseUrl}/rest/v1/audit_log`, {
@@ -94,12 +95,12 @@ L'équipe Lease Lane`;
         Authorization: `Bearer ${resendKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
+      body: JSON.stringify(avecHtml({
         from: EXPEDITEUR,
         to: [worker.email],
         subject,
         text: bodyText,
-      }),
+      }, { pied: POURQUOI.travailleur, bouton: { libelle: "Répondre au travail", url: responseUrl } })),
     });
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
