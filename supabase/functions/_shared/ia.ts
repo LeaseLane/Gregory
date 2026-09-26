@@ -21,6 +21,14 @@
 const BASE_URL = Deno.env.get("IA_BASE_URL") || "https://api.anthropic.com";
 const CLE = Deno.env.get("IA_API_KEY") || Deno.env.get("ANTHROPIC_API_KEY") || "";
 
+// Pour les fonctions qui construisent elles-mêmes leur requête (images,
+// documents PDF, prompt système) : elles gardent leur corps tel quel et
+// n'empruntent au module que l'adresse et la clé. Réécrire dix-sept
+// requêtes différentes pour les faire passer par appelerIA aurait
+// multiplié les occasions d'en casser une.
+export const IA_MESSAGES_URL = `${BASE_URL}/v1/messages`;
+export const IA_CLE = CLE;
+
 // Identifiant sans suffixe de date : c'est la forme acceptée par l'API
 // d'Anthropic comme par Tonia en mode `x-api-key`. Les formes datées
 // (claude-haiku-4-5-20251001) sont refusées par un 400 dont le message

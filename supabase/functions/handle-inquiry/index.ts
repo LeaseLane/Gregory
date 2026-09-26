@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 Deno.serve(async (req) => {
   try {
     const payload = await req.json();
@@ -38,15 +39,15 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
   "estimated_monthly_rent": "si le message permet d'estimer le loyer mensuel TOTAL de l'immeuble (somme de tous les logements), ce montant en dollars (nombre) ; sinon null"
 }`;
 
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(IA_MESSAGES_URL, {
       method: "POST",
       headers: {
-        "x-api-key": anthropicKey ?? "",
+        "x-api-key": IA_CLE,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: MODELE_RAPIDE,
         max_tokens: 1024,
         messages: [{ role: "user", content: prompt }],
       }),

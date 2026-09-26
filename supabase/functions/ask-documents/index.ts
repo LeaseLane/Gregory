@@ -1,11 +1,12 @@
 import { corsHeadersFor, requireUser } from "../_shared/auth.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 // Au lieu d'envoyer uniquement les résumés (qui peuvent omettre une
 // clause importante), on r'envoie les documents sources pertinents
 // eux-mêmes à Claude (comme à l'extraction) et on exige une citation
 // (titre du document + page) pour chaque réponse — jamais une
 // affirmation non sourcée.
 const MAX_DOCS_SENT = 5;
-const MODEL_VERSION = "claude-haiku-4-5-20251001";
+const MODEL_VERSION = MODELE_RAPIDE;
 const PROMPT_VERSION = "ask-documents-v2-cited-sources";
 
 
@@ -110,10 +111,10 @@ Deno.serve(async (req) => {
     contentParts.push({ type: "text", text: `Question du propriétaire : "${question}"\n\nRéponds en français, brièvement, en citant le document et la page pour chaque affirmation factuelle.` });
 
     const aiStartedAt = Date.now();
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(IA_MESSAGES_URL, {
       method: "POST",
       headers: {
-        "x-api-key": anthropicKey ?? "",
+        "x-api-key": IA_CLE,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },

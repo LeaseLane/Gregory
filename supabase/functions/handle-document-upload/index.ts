@@ -1,4 +1,5 @@
-const MODEL_VERSION = "claude-haiku-4-5-20251001";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
+const MODEL_VERSION = MODELE_RAPIDE;
 const PROMPT_VERSION = "document-extraction-v2-traceability";
 const CONFIDENCE_THRESHOLD = 85;
 
@@ -93,10 +94,10 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
   "doc_type_detected": "le type de document que tu observes réellement (bail, mandat, reglement, facture, rapport, autre) — peut différer du type déclaré ci-dessus"
 }`;
 
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(IA_MESSAGES_URL, {
       method: "POST",
       headers: {
-        "x-api-key": anthropicKey ?? "",
+        "x-api-key": IA_CLE,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },

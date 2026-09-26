@@ -1,12 +1,13 @@
 import { corsHeadersFor } from "../_shared/auth.ts";
 import { refuserSiRobot } from "../_shared/turnstile.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 // FAQ publique en question libre — sur le modèle du Copilot du portail
 // propriétaire (ask-documents.ts / ask-finances.ts), mais sans authentification
 // et sans accès à aucune donnée d'un compte : l'IA répond uniquement à partir
 // d'une base de connaissance statique construite sur le vrai contenu du site,
 // jamais depuis une base de données. Elle ne doit donc jamais pouvoir
 // promettre, deviner, ou inventer une information spécifique à un client.
-const MODEL_VERSION = "claude-haiku-4-5-20251001";
+const MODEL_VERSION = MODELE_RAPIDE;
 const PROMPT_VERSION = "public-faq-v1";
 const RATE_LIMIT_PER_HOUR = 15;
 const QUESTION_MAX_LENGTH = 500;
@@ -92,10 +93,10 @@ Deno.serve(async (req) => {
     });
 
     const aiStartedAt = Date.now();
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(IA_MESSAGES_URL, {
       method: "POST",
       headers: {
-        "x-api-key": anthropicKey ?? "",
+        "x-api-key": IA_CLE,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },

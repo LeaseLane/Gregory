@@ -1,4 +1,5 @@
 import { corsHeadersFor, requireUser } from "../_shared/auth.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 // Portail Copilot — Q&A financier en langage naturel pour le propriétaire.
 // Principe non négociable du projet : l'IA ne calcule jamais elle-même
 // les montants. Toutes les sommes (revenus, dépenses par catégorie, par
@@ -6,7 +7,7 @@ import { corsHeadersFor, requireUser } from "../_shared/auth.ts";
 // avant d'être envoyées à Claude — l'IA ne fait que choisir les bons
 // chiffres déjà calculés et rédiger la réponse en français, jamais
 // d'arithmétique de sa part sur des données brutes.
-const MODEL_VERSION = "claude-haiku-4-5-20251001";
+const MODEL_VERSION = MODELE_RAPIDE;
 const PROMPT_VERSION = "ask-finances-v1-aggregats-precalcules";
 const LOOKBACK_MONTHS = 24;
 
@@ -171,10 +172,10 @@ Deno.serve(async (req) => {
     ];
 
     const aiStartedAt = Date.now();
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(IA_MESSAGES_URL, {
       method: "POST",
       headers: {
-        "x-api-key": anthropicKey ?? "",
+        "x-api-key": IA_CLE,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },

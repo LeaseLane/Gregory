@@ -1,4 +1,5 @@
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 
 
 Deno.serve(async (req) => {
@@ -164,15 +165,15 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
   "confidence": un nombre entre 0 et 100 représentant ta confiance dans cette analyse — baisse-la si la transcription est courte, vague ou ambiguë,
   "next_followup_days": un nombre entier de jours avant le prochain suivi recommandé
 }`;
-      const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+      const aiRes = await fetch(IA_MESSAGES_URL, {
         method: "POST",
         headers: {
-          "x-api-key": anthropicKey ?? "",
+          "x-api-key": IA_CLE,
           "anthropic-version": "2023-06-01",
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
+          model: MODELE_RAPIDE,
           max_tokens: 500,
           messages: [{ role: "user", content: prompt }],
         }),

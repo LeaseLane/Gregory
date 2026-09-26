@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 // Marketplace (Facebook) n'a pas d'API publique de publication — cette
 // fonction ne publie donc rien elle-même. Dès qu'une annonce est
 // rédigée pour le site, elle prépare AUSSI le texte prêt à copier sur
@@ -103,15 +104,15 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
   "discriminatory_language_removed": true ou false selon si tu as dû retirer une formulation discriminatoire du brouillon initial en rédigeant"
 }`;
 
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(IA_MESSAGES_URL, {
       method: "POST",
       headers: {
-        "x-api-key": anthropicKey ?? "",
+        "x-api-key": IA_CLE,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: MODELE_RAPIDE,
         max_tokens: 700,
         messages: [{ role: "user", content: prompt }],
       }),

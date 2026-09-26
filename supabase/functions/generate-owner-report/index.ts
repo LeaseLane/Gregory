@@ -1,3 +1,4 @@
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 Deno.serve(async (req) => {
   try {
     const { owner_id, period_start, period_end } = await req.json();
@@ -184,15 +185,15 @@ RÈGLES : n'invente aucun chiffre au-delà de ceux fournis ci-dessus. Si des act
 Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 { "summary": "le résumé rédigé" }`;
 
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(IA_MESSAGES_URL, {
       method: "POST",
       headers: {
-        "x-api-key": anthropicKey ?? "",
+        "x-api-key": IA_CLE,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: MODELE_RAPIDE,
         max_tokens: 500,
         messages: [{ role: "user", content: prompt }],
       }),

@@ -1,5 +1,6 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 
 
 
@@ -96,10 +97,10 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 }`;
 
       const aiStartedAt = Date.now();
-      const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+      const aiRes = await fetch(IA_MESSAGES_URL, {
         method: "POST",
-        headers: { "x-api-key": anthropicKey ?? "", "anthropic-version": "2023-06-01", "content-type": "application/json" },
-        body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 500, messages: [{ role: "user", content: prompt }] }),
+        headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        body: JSON.stringify({ model: MODELE_RAPIDE, max_tokens: 500, messages: [{ role: "user", content: prompt }] }),
       });
       const aiData = await aiRes.json();
       if (!aiRes.ok) {
@@ -108,7 +109,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
           method: "POST", headers: adminHeaders,
           body: JSON.stringify({
             function_name: "handle-lease-renewal-notice", trigger_source: "admin_portal", entity_type: "leases", entity_id: lease_id,
-            prompt_version: "lease-renewal-notice-v1", model_version: "claude-haiku-4-5-20251001", input_summary: factsLabel,
+            prompt_version: "lease-renewal-notice-v1", model_version: MODELE_RAPIDE, input_summary: factsLabel,
             duration_ms: Date.now() - aiStartedAt, error: `anthropic_api_error ${aiRes.status}`,
           }),
         }).catch(() => null);
@@ -126,7 +127,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
           entity_type: "leases",
           entity_id: lease_id,
           prompt_version: "lease-renewal-notice-v1",
-          model_version: "claude-haiku-4-5-20251001",
+          model_version: MODELE_RAPIDE,
           input_summary: factsLabel,
           output_summary: parsed.subject ?? null,
           duration_ms: Date.now() - aiStartedAt,
