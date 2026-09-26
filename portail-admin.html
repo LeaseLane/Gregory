@@ -194,25 +194,36 @@
     </aside>
     <main>
       <section id="overview" class="section active">
-    <h1>Vue d'ensemble</h1>
-    <p class="subtitle" style="margin-bottom:24px;">Tous les clients, tous les immeubles</p>
-
-    <div id="system-health-banner" style="display:none;margin-bottom:16px;padding:12px 16px;font-size:13px;"></div>
-
-    <h1 style="font-size:22px;">Centre de commandement du jour</h1>
-    <p class="subtitle" style="margin-bottom:16px;">Tout ce qui demande ton attention aujourd'hui, en un seul endroit</p>
-    <div id="command-center-body" style="margin-bottom:32px;"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
-
-    <div class="metrics">
-      <div class="metric"><div class="label">Clients actifs</div><div class="val" id="m-clients">—</div></div>
-      <div class="metric"><div class="label">Immeubles gérés</div><div class="val" id="m-buildings">—</div></div>
-      <div class="metric"><div class="label">Logements sous gestion</div><div class="val" id="m-units">—</div></div>
-      <div class="metric"><div class="label">Revenu de gestion mensuel</div><div class="val" id="m-revenue">—</div></div>
-      <div class="metric flag"><div class="label">Travaux en attente d'approbation</div><div class="val" id="m-approvals">—</div></div>
-      <div class="metric flag"><div class="label">Nouvelles demandes</div><div class="val" id="m-inquiries">—</div></div>
-      <div class="metric flag"><div class="label">Anomalies financières ouvertes</div><div class="val" id="m-anomalies">—</div></div>
+    <div class="vo-entete">
+      <div>
+        <h1>Vue d'ensemble</h1>
+        <p class="subtitle" id="vo-date">Tous les clients, tous les immeubles</p>
+      </div>
+      <div id="system-health-banner" class="vo-sante" hidden></div>
     </div>
 
+    <div class="vo-kpis">
+      <div class="vo-kpi"><span class="vo-kpi__label">Clients actifs</span><b id="m-clients">—</b></div>
+      <div class="vo-kpi"><span class="vo-kpi__label">Immeubles gérés</span><b id="m-buildings">—</b></div>
+      <div class="vo-kpi"><span class="vo-kpi__label">Logements sous gestion</span><b id="m-units">—</b></div>
+      <div class="vo-kpi vo-kpi--accent"><span class="vo-kpi__label">Revenu de gestion mensuel</span><b id="m-revenue">—</b></div>
+    </div>
+    <div class="vo-signaux">
+      <button class="vo-signal" data-signal onclick="showTab('work-requests')"><span>Travaux en attente d'approbation</span><b id="m-approvals">—</b></button>
+      <button class="vo-signal" data-signal="info" onclick="showTab('mandat-inquiries')"><span>Nouvelles demandes</span><b id="m-inquiries">—</b></button>
+      <button class="vo-signal" data-signal onclick="showTab('anomalies')"><span>Anomalies financières ouvertes</span><b id="m-anomalies">—</b></button>
+    </div>
+
+    <div class="vo-titre">
+      <h2>À traiter aujourd'hui</h2>
+      <span id="vo-total" class="vo-compte"></span>
+    </div>
+    <div id="command-center-body" class="vo-grille"><p class="tr-vide">Chargement...</p></div>
+
+    <div class="vo-titre">
+      <h2>Clients</h2>
+      <button class="vo-lien" onclick="showTab('clients')">Tous les clients<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#arrow-right"/></svg></button>
+    </div>
     <table><thead><tr><th>Client</th><th>Téléphone</th><th class="num">Immeubles</th><th class="num">Logements</th><th class="num">Occupés</th><th class="num">Revenu/mois</th><th></th></tr></thead>
       <tbody id="clients-body"><tr class="empty-row"><td colspan="7">Chargement...</td></tr></tbody>
     </table>
@@ -1055,6 +1066,7 @@ function showTab(id){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelector(`.tab-btn[data-tab="${id}"]`)?.classList.add('active');
+  document.querySelector('main')?.scrollTo(0, 0);
 }
 
 function showLoginError(msg){
@@ -1097,6 +1109,10 @@ async function loadAdminDashboard(){
   document.getElementById('m-approvals').textContent = totals.pending_approvals;
   document.getElementById('m-inquiries').textContent = totals.new_inquiries;
   document.getElementById('m-anomalies').textContent = totals.open_anomalies;
+  // Un signal n'est rouge que s'il y a quelque chose à faire.
+  document.querySelectorAll('[data-signal]').forEach(el => el.classList.toggle(el.dataset.signal === 'info' ? 'vo-signal--info' : 'vo-signal--actif', Number(el.querySelector('b').textContent) > 0));
+  const d = document.getElementById('vo-date');
+  if(d) d.textContent = new Date().toLocaleDateString('fr-CA', { weekday:'long', day:'numeric', month:'long', year:'numeric' }).replace(/^./, c => c.toUpperCase());
 
   const anomalyTypeLabel = { facture_dupliquee:'Facture en double', depassement_cout:'Dépassement de coût', loyer_montant_incorrect:'Loyer — montant incorrect', recu_manquant:'Reçu manquant' };
   const anomalyBody = document.getElementById('anomalies-body');
@@ -1298,29 +1314,26 @@ async function respondDecisionReview(decision_id, outcome){
   if(res?.ok){ await loadAutomatedDecisionsAdmin(); }
 }
 
-const healthSeverityColor = { critical: 'var(--rust)', warning: 'var(--brass)' };
-const healthSeverityLabel = { critical: '🔴 Critique', warning: '🟠 Avertissement' };
+const healthSeverityLabel = { critical: 'Critique —', warning: 'Avertissement —' };
 
 async function loadSystemHealth(){
   const banner = document.getElementById('system-health-banner');
   const res = await callOpsApi({ action: 'get_system_health' });
   const health = res?.health;
-  if(!health){ banner.style.display = 'none'; return; }
-
+  if(!health){ banner.hidden = true; return; }
+  banner.hidden = false;
   if(health.healthy){
-    banner.style.display = 'block';
-    banner.style.background = 'var(--paper-2)';
-    banner.style.borderLeft = '3px solid var(--sage)';
-    banner.innerHTML = `🟢 Système en bon état (vérifié ${new Date(health.checked_at).toLocaleString('fr-CA')})`;
+    banner.className = 'vo-sante vo-sante--ok';
+    banner.innerHTML = `<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-check"/></svg><span>Système en bon état<small>vérifié ${new Date(health.checked_at).toLocaleString('fr-CA', { dateStyle:'short', timeStyle:'short' })}</small></span>`;
     return;
   }
-
-  banner.style.display = 'block';
-  banner.style.background = '#fdf0ef';
-  banner.style.borderLeft = '3px solid var(--rust)';
-  banner.innerHTML = `<b>État du système — ${health.issues.length} problème(s) détecté(s)</b><ul style="margin:8px 0 0 18px;padding:0;">` +
-    health.issues.map(i => `<li><span style="color:${healthSeverityColor[i.severity] || 'inherit'};">${healthSeverityLabel[i.severity] || i.severity}</span> — ${esc(i.detail)}</li>`).join('') +
-    `</ul>`;
+  const critique = health.issues.some(i => i.severity === 'critical');
+  banner.className = 'vo-sante ' + (critique ? 'vo-sante--ko' : 'vo-sante--att');
+  banner.innerHTML = `<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg>
+    <details><summary>${health.issues.length} problème${health.issues.length > 1 ? 's' : ''} système</summary>
+      <ul>${health.issues.map(i => `<li><b>${healthSeverityLabel[i.severity] || esc(i.severity)}</b> ${esc(i.detail)}</li>`).join('')}</ul>
+      <button class="vo-lien" onclick="showTab('observability')">Voir l'observabilité<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#arrow-right"/></svg></button>
+    </details>`;
 }
 
 async function loadHealthHistory(){
@@ -1363,7 +1376,7 @@ function renderCommandCenter(cc){
   const sections = [];
 
   if(cc.urgences?.length){
-    sections.push({ label: '⚠ Urgences', color: '#c0392b', items: cc.urgences.map(s => `${esc(s.description)} — ${addr(s.units)} (${esc((s.safety_flags||[]).join(', ')) || esc(s.ai_urgency)})`) });
+    sections.push({ label: 'Urgences', ton: 'urgent', icone: 'flame', items: cc.urgences.map(s => `${esc(s.description)} — ${addr(s.units)} (${esc((s.safety_flags||[]).join(', ')) || esc(s.ai_urgency)})`) });
   }
   const decisions = [
     ...(cc.decisions_requises?.approbations_en_attente || []).map(a => `Approbation en attente — ${Number(a.requested_amount||0).toLocaleString('fr-CA')} $`),
@@ -1371,34 +1384,34 @@ function renderCommandCenter(cc){
     ...(cc.decisions_requises?.documents_a_valider || []).map(d => `Document à valider — "${esc(d.title)}" (${esc(d.owners?.full_name) || 'client inconnu'})`),
     ...(cc.decisions_requises?.decisions_travailleurs || []).map(w => `${esc(w.workers?.name) || 'Travailleur'} — ${w.worker_response === 'proposed_other_time' ? 'propose une autre heure' : 'demande des infos'}${w.worker_response_note ? ' : ' + esc(w.worker_response_note) : ''}`),
   ];
-  if(decisions.length) sections.push({ label: '🔎 Décisions humaines requises', color: '#e6a817', items: decisions });
+  if(decisions.length) sections.push({ label: 'Décisions à prendre', ton: 'att', icone: 'gavel', items: decisions });
 
   const blocked = [
     ...(cc.dossiers_bloques?.refuses_a_reevaluer || []).map(s => `Refusé par le propriétaire — ${esc(s.description)} (${addr(s.units)}) — réévaluation d'ici le ${esc(s.reassessment_due)}`),
     ...(cc.dossiers_bloques?.tous_travailleurs_ont_refuse || []).map(w => `Aucun travailleur disponible — ${esc(w.description)} (${addr(w.units)})`),
   ];
-  if(blocked.length) sections.push({ label: '⛔ Dossiers bloqués', color: '#8a5fb0', items: blocked });
+  if(blocked.length) sections.push({ label: 'Dossiers bloqués', ton: 'urgent', icone: 'circle-x', tab: 'work-requests', items: blocked });
 
   if(cc.travailleurs_sans_reponse?.length){
-    sections.push({ label: 'Travailleurs sans réponse', items: cc.travailleurs_sans_reponse.map(w => `${esc(w.workers?.name) || 'Travailleur'} — ${esc(w.description)} (notifié le ${new Date(w.worker_notified_at).toLocaleDateString('fr-CA')})`) });
+    sections.push({ label: 'Travailleurs sans réponse', ton: 'att', icone: 'clock', tab: 'work-orders', items: cc.travailleurs_sans_reponse.map(w => `${esc(w.workers?.name) || 'Travailleur'} — ${esc(w.description)} (notifié le ${new Date(w.worker_notified_at).toLocaleDateString('fr-CA')})`) });
   }
   if(cc.loyers_en_retard?.length){
-    sections.push({ label: 'Loyers en retard', items: cc.loyers_en_retard.map(p => `${esc(p.leases?.tenants?.full_name) || ''} — ${Number(p.amount).toLocaleString('fr-CA')} $ dû le ${esc(p.due_date)} (${addr(p.leases?.units)})`) });
+    sections.push({ label: 'Loyers en retard', ton: 'urgent', icone: 'banknote', tab: 'late-payments', items: cc.loyers_en_retard.map(p => `${esc(p.leases?.tenants?.full_name) || ''} — ${Number(p.amount).toLocaleString('fr-CA')} $ dû le ${esc(p.due_date)} (${addr(p.leases?.units)})`) });
   }
   if(cc.baux_a_renouveler?.length){
-    sections.push({ label: 'Baux à renouveler (60 jours)', items: cc.baux_a_renouveler.map(l => `${esc(l.tenants?.full_name) || ''} — ${addr(l.units)} — échéance ${esc(l.end_date)}`) });
+    sections.push({ label: 'Baux à renouveler (60 jours)', icone: 'refresh-cw', tab: 'renewals', items: cc.baux_a_renouveler.map(l => `${esc(l.tenants?.full_name) || ''} — ${addr(l.units)} — échéance ${esc(l.end_date)}`) });
   }
   if(cc.messages_sans_reponse?.length){
-    sections.push({ label: 'Messages sans réponse', items: cc.messages_sans_reponse.map(m => `${esc(m.owners?.full_name) || 'Propriétaire'} : "${esc(m.body)}"`) });
+    sections.push({ label: 'Messages sans réponse', ton: 'att', icone: 'message-circle', items: cc.messages_sans_reponse.map(m => `${esc(m.owners?.full_name) || 'Propriétaire'} : "${esc(m.body)}"`) });
   }
   if(cc.documents_expirant_bientot?.length){
-    sections.push({ label: 'Documents expirant bientôt (30 jours)', items: cc.documents_expirant_bientot.map(d => `"${esc(d.title)}" — ${esc(d.owners?.full_name) || ''} — échéance ${esc(d.ai_expiry_date)}`) });
+    sections.push({ label: 'Documents expirant bientôt', icone: 'file-text', items: cc.documents_expirant_bientot.map(d => `"${esc(d.title)}" — ${esc(d.owners?.full_name) || ''} — échéance ${esc(d.ai_expiry_date)}`) });
   }
   if(cc.prospects_a_relancer?.length){
-    sections.push({ label: 'Prospects à relancer', items: cc.prospects_a_relancer.map(p => `${esc(p.full_name)} — suivi prévu le ${esc(p.next_followup_date)} (${stageLabel[p.stage] || esc(p.stage)})`) });
+    sections.push({ label: 'Prospects à relancer', icone: 'handshake', tab: 'crm', items: cc.prospects_a_relancer.map(p => `${esc(p.full_name)} — suivi prévu le ${esc(p.next_followup_date)} (${stageLabel[p.stage] || esc(p.stage)})`) });
   }
   if(cc.anomalies_financieres?.length){
-    sections.push({ label: 'Anomalies financières', items: cc.anomalies_financieres.map(a => `${esc(a.description)} — ${esc(a.owners?.full_name) || ''}`) });
+    sections.push({ label: 'Anomalies financières', ton: 'urgent', icone: 'receipt', tab: 'anomalies', items: cc.anomalies_financieres.map(a => `${esc(a.description)} — ${esc(a.owners?.full_name) || ''}`) });
   }
   const stuckLabel = {
     'repair_case.stuck_no_diagnosis': 'Diagnostic IA bloqué depuis plus de 2 jours',
@@ -1409,16 +1422,16 @@ function renderCommandCenter(cc){
     'repair_case.tenant_reopened': 'Le locataire signale que le problème persiste',
   };
   if(cc.dossiers_reparation_stagnants?.length){
-    sections.push({ label: '🔧 Dossiers de réparation stagnants', color: '#c0392b', items: cc.dossiers_reparation_stagnants.map(a => `${stuckLabel[a.action] || esc(a.action)} — ${esc(a.details?.description) || ''}`) });
+    sections.push({ label: 'Réparations qui stagnent', ton: 'urgent', icone: 'wrench', tab: 'work-orders', items: cc.dossiers_reparation_stagnants.map(a => `${stuckLabel[a.action] || esc(a.action)} — ${esc(a.details?.description) || ''}`) });
   }
   if(cc.ia_faible_confiance?.length){
-    sections.push({ label: '🤖 IA à faible confiance ou en erreur (24h)', color: '#e6a817', items: cc.ia_faible_confiance.map(r => `${esc(r.function_name)} — ${r.error ? 'erreur : ' + esc(r.error) : (esc(r.input_summary) || '') + (r.confidence != null ? ' (confiance ' + Math.round(r.confidence) + '%)' : '')}`) });
+    sections.push({ label: 'IA incertaine ou en erreur (24 h)', ton: 'att', icone: 'bot', tab: 'observability', items: cc.ia_faible_confiance.map(r => `${esc(r.function_name)} — ${r.error ? 'erreur : ' + esc(r.error) : (esc(r.input_summary) || '') + (r.confidence != null ? ' (confiance ' + Math.round(r.confidence) + '%)' : '')}`) });
   }
   if(cc.onboarding_incomplet?.length){
-    sections.push({ label: '📋 Dossiers clients incomplets', items: cc.onboarding_incomplet.map(o => `${esc(o.full_name)} — ${esc(o.gaps.join(', '))} <button onclick="sendOnboardingReminder('${o.owner_id}')" style="border:1px solid var(--ink);background:none;padding:3px 8px;font-size:11px;cursor:pointer;margin-left:6px;">Envoyer un rappel</button>`) });
+    sections.push({ label: 'Dossiers clients incomplets', icone: 'files', tab: 'clients', items: cc.onboarding_incomplet.map(o => `${esc(o.full_name)} — ${esc(o.gaps.join(', '))} <button class="vo-action" onclick="sendOnboardingReminder('${o.owner_id}')">Envoyer un rappel</button>`) });
   }
   if(cc.travailleurs_a_verifier?.length){
-    sections.push({ label: '🛠 Travailleurs à vérifier', color: '#c0392b', items: cc.travailleurs_a_verifier.map(v => v.action === 'worker_verification.non_compliant'
+    sections.push({ label: 'Travailleurs à vérifier', ton: 'urgent', icone: 'shield-check', tab: 'workers', items: cc.travailleurs_a_verifier.map(v => v.action === 'worker_verification.non_compliant'
       ? `${esc(v.details?.name)} — ${esc((v.details?.reasons || []).join(', '))}`
       : `${esc(v.details?.name)} — expire bientôt (RBQ ${esc(v.details?.rbq_license_expiry) || '—'}, assurance ${esc(v.details?.insurance_expiry) || '—'})`) });
   }
@@ -1427,25 +1440,35 @@ function renderCommandCenter(cc){
     ...(cc.visites?.sans_reponse || []).map(v => `Sans réponse depuis 2+ jours — ${esc(v.prospect_name)} — ${addr(v.units)}${v.response_note ? ' — ' + esc(v.response_note) : ''}`),
     ...(cc.visites?.resultat_manquant || []).map(v => `Résultat manquant — ${esc(v.prospect_name)} — ${addr(v.units)} — visite du ${new Date(v.proposed_at).toLocaleDateString('fr-CA')}`),
   ];
-  if(visitItems.length) sections.push({ label: '🏠 Visites à traiter', items: visitItems });
+  if(visitItems.length) sections.push({ label: 'Visites à traiter', icone: 'calendar-check', tab: 'visits', items: visitItems });
   if(cc.signaux_insatisfaction?.length){
     const subjectLabel = { owner: 'Propriétaire', tenant: 'Locataire' };
-    sections.push({ label: '😟 Signaux d\'insatisfaction', color: '#c0392b', items: cc.signaux_insatisfaction.map(s => `${esc(subjectLabel[s.subject_type] || s.subject_type)} — "${esc(s.content_excerpt)}" — IA : ${esc(s.ai_sentiment)}${s.ai_reasoning ? ' (' + esc(s.ai_reasoning) + ')' : ''} <button onclick="resolveDissatisfactionSignal('${s.id}')" style="border:1px solid var(--ink);background:none;padding:3px 8px;font-size:11px;cursor:pointer;margin-left:6px;">Marquer résolu</button>`) });
+    sections.push({ label: 'Signaux d\'insatisfaction', ton: 'urgent', icone: 'triangle-alert', items: cc.signaux_insatisfaction.map(s => `${esc(subjectLabel[s.subject_type] || s.subject_type)} — "${esc(s.content_excerpt)}" — IA : ${esc(s.ai_sentiment)}${s.ai_reasoning ? ' (' + esc(s.ai_reasoning) + ')' : ''} <button class="vo-action" onclick="resolveDissatisfactionSignal('${s.id}')">Marquer résolu</button>`) });
   }
 
+  const total = sections.reduce((n, x) => n + x.items.length, 0);
+  const compte = document.getElementById('vo-total');
+  if(compte) compte.textContent = total ? `${total} élément${total > 1 ? 's' : ''}` : '';
   if(!sections.length){
-    container.innerHTML = '<p style="color:var(--sage);font-size:13.5px;">Rien à signaler aujourd\'hui — tout est sous contrôle.</p>';
+    container.innerHTML = '<div class="vo-rien"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-check"/></svg>Rien à signaler aujourd\'hui — tout est sous contrôle.</div>';
     return;
   }
-
-  container.innerHTML = sections.map(s => `
-    <div style="background:var(--paper-2);border-left:3px solid ${s.color || 'var(--brass)'};padding:12px 16px;margin-bottom:10px;">
-      <b style="display:block;margin-bottom:6px;">${s.label} (${s.items.length})</b>
-      <ul style="margin:0 0 0 18px;padding:0;font-size:12.5px;color:var(--muted);">
-        ${s.items.slice(0, 8).map(i => `<li>${i}</li>`).join('')}
-        ${s.items.length > 8 ? `<li>… et ${s.items.length - 8} de plus</li>` : ''}
+  // L'urgent d'abord, puis ce qui attend une décision, puis le reste.
+  const rang = { urgent: 0, att: 1 };
+  sections.sort((x, y) => (rang[x.ton] ?? 2) - (rang[y.ton] ?? 2));
+  container.innerHTML = sections.map(x => `
+    <article class="vo-carte vo-carte--${x.ton || 'info'}">
+      <header>
+        <span class="vo-icone"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#${x.icone || 'info'}"/></svg></span>
+        <h3>${x.label}</h3>
+        <span class="vo-nb">${x.items.length}</span>
+      </header>
+      <ul>
+        ${x.items.slice(0, 5).map(i => `<li>${i}</li>`).join('')}
       </ul>
-    </div>`).join('');
+      ${x.tab ? `<button class="vo-lien" onclick="showTab('${x.tab}')">${x.items.length > 5 ? `Voir les ${x.items.length}` : 'Ouvrir'}<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#arrow-right"/></svg></button>`
+        : x.items.length > 5 ? `<p class="vo-plus">… et ${x.items.length - 5} de plus</p>` : ''}
+    </article>`).join('');
 }
 
 async function callOnboardingApi(payload){
