@@ -1169,3 +1169,7 @@ body.fi-ouvert .fi-tiroir{ transform:none; }
 .ms-actions{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .ms-dest{ font-size:12.5px; color:var(--texte-discret); overflow-wrap:anywhere; }
 .ms-actions .ll-bouton .ic{ width:15px; height:15px; margin-right:6px; vertical-align:-2px; }
+/* Espace propriétaire : échéance proche = à surveiller, pas urgent. */
+.vo-signal--att{ background:var(--alerte-100); border-color:transparent; color:var(--alerte-600); }
+.vo-signal--att b{ color:var(--alerte-600); }
+.vo-carte li > span:last-child{ display:inline-flex; align-items:center; gap:10px; white-space:nowrap; }

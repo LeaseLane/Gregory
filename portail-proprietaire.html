@@ -186,17 +186,25 @@
 
     <main>
       <section id="overview" class="section active">
-        <h1 id="owner-greeting">Bonjour</h1>
-        <p class="subtitle" id="owner-subtitle">Chargement...</p>
-        <div class="metrics">
-          <div class="metric"><div class="label">Revenus encaissés (mois en cours)</div><div class="val" id="m-revenue">—</div></div>
-          <div class="metric"><div class="label">Dépenses (mois en cours)</div><div class="val" id="m-expenses">—</div></div>
-          <div class="metric"><div class="label">Revenu net estimé (mois en cours)</div><div class="val" id="m-net">—</div></div>
-          <div class="metric flag"><div class="label">Loyers en retard</div><div class="val" id="m-late">—</div></div>
-          <div class="metric"><div class="label">Unités occupées</div><div class="val" id="m-occupancy">—</div></div>
-          <div class="metric flag"><div class="label">Travaux en attente d'approbation</div><div class="val" id="m-approvals">—</div></div>
-          <div class="metric flag"><div class="label">Baux se terminant sous 60 jours</div><div class="val" id="m-renewals">—</div></div>
+        <div class="vo-entete">
+          <div>
+            <h1 id="owner-greeting">Bonjour</h1>
+            <p class="subtitle" id="owner-subtitle">Chargement...</p>
+          </div>
         </div>
+        <div class="vo-kpis">
+          <div class="vo-kpi"><span class="vo-kpi__label">Loyers encaissés ce mois-ci</span><b id="m-revenue">—</b></div>
+          <div class="vo-kpi"><span class="vo-kpi__label">Dépenses ce mois-ci</span><b id="m-expenses">—</b></div>
+          <div class="vo-kpi vo-kpi--accent"><span class="vo-kpi__label">Revenu net estimé</span><b id="m-net">—</b></div>
+          <div class="vo-kpi"><span class="vo-kpi__label">Logements occupés</span><b id="m-occupancy">—</b></div>
+        </div>
+        <div class="vo-signaux">
+          <button class="vo-signal" data-signal onclick="showTab('payments')"><span>Loyers en retard</span><b id="m-late">—</b></button>
+          <button class="vo-signal" data-signal onclick="showTab('approvals')"><span>Travaux à approuver</span><b id="m-approvals">—</b></button>
+          <button class="vo-signal" data-signal="att" onclick="showTab('units')"><span>Baux se terminant sous 60 jours</span><b id="m-renewals">—</b></button>
+        </div>
+        <div class="vo-titre"><h2>Loyers du mois</h2><span class="vo-compte" id="vo-mois"></span></div>
+        <div class="vo-carte"><ul id="vo-loyers"><li>Chargement...</li></ul></div>
       </section>
 
       <section id="buildings" class="section">
@@ -527,6 +535,32 @@ async function renderOverview(buildings){
   document.getElementById('m-late').textContent = late;
   document.getElementById('m-occupancy').textContent = occupied + ' / ' + total;
   document.getElementById('m-renewals').textContent = renewalsSoon;
+
+  // Une ligne par logement : qui paie, combien, où en est le loyer du mois.
+  document.getElementById('vo-mois').textContent = now.toLocaleDateString('fr-CA', { month:'long', year:'numeric' });
+  const lignes = [];
+  buildings.forEach(b => (b.units||[]).forEach(u => {
+    const bail = (u.leases||[]).find(l => l.status === 'active');
+    const p = (bail?.payments||[]).find(p => p.due_date >= monthStart && p.due_date < monthEnd);
+    const etat = !bail ? '<span class="tag neutral">Vacant</span>'
+      : !p ? '<span class="tag neutral">Aucun loyer prévu</span>'
+      : p.status === 'paid' ? '<span class="tag ok">Payé</span>'
+      : p.status === 'late' ? '<span class="tag urgent">En retard</span>'
+      : '<span class="tag warn">À venir · ' + esc(p.due_date) + '</span>';
+    const montant = p ? Number(p.amount).toLocaleString('fr-CA') + ' $' : (u.rent ? Number(u.rent).toLocaleString('fr-CA') + ' $' : '');
+    lignes.push(`<li><span><b>Unité ${esc(u.unit_number)}</b> · ${esc(bail?.tenants?.full_name || 'Aucun locataire')}${buildings.length > 1 ? ' · ' + esc(b.address) : ''}</span><span>${esc(montant)} ${etat}</span></li>`);
+  }));
+  document.getElementById('vo-loyers').innerHTML = lignes.join('') || '<li>Aucun logement.</li>';
+  voSignaux();
+}
+
+// Rouge seulement quand il y a vraiment quelque chose à faire : un 0 reste neutre.
+function voSignaux(){
+  document.querySelectorAll('[data-signal]').forEach(el => {
+    const actif = Number(el.querySelector('b').textContent) > 0;
+    el.classList.toggle('vo-signal--actif', actif && el.dataset.signal !== 'att');
+    el.classList.toggle('vo-signal--att', actif && el.dataset.signal === 'att');
+  });
 }
 
 function renderBuildingsTab(buildings){
@@ -720,6 +754,7 @@ async function loadApprovals(){
     .eq('status', 'pending');
 
   document.getElementById('m-approvals').textContent = data ? data.length : 0;
+  voSignaux();
 
   const container = document.getElementById('approvals-body');
   if(!data || !data.length){
