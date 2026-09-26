@@ -78,6 +78,7 @@
   }
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
+<script src="assets/ui.js"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -1235,7 +1236,7 @@ async function fulfillDataRequest(request_id){
 }
 
 async function closeDataRequestManually(request_id){
-  const resolution_note = prompt('Note de résolution (ex: correction appliquée manuellement) :') || '';
+  const resolution_note = await llDemander('Note de résolution (ex: correction appliquée manuellement) :') || '';
   const res = await callPrivacyApi({ action: 'update_data_request', request_id, status: 'fulfilled', resolution_note });
   if(res?.ok){ await loadDataRequests(); }
 }
@@ -1268,7 +1269,7 @@ async function loadAutomatedDecisionsAdmin(){
 }
 
 async function respondDecisionReview(decision_id, outcome){
-  const response_text = prompt('Explication envoyée à la personne concernée (optionnel) :') || '';
+  const response_text = await llDemander('Explication envoyée à la personne concernée (optionnel) :') || '';
   const res = await callOpsApi({ action: 'respond_decision_review', decision_id, outcome, response_text });
   if(res?.ok){ await loadAutomatedDecisionsAdmin(); }
 }
@@ -1869,7 +1870,7 @@ async function toggleAutomationRule(rule_id, active){
 }
 
 async function deleteAutomationRule(rule_id){
-  if(!confirm('Supprimer cette règle définitivement ?')) return;
+  if(!await llConfirmer('Supprimer cette règle définitivement ?')) return;
   const res = await callOpsApi({ action: 'delete_automation_rule', rule_id });
   if(res?.ok) await loadAutomationRules();
 }
@@ -2336,7 +2337,7 @@ async function uploadUnitPhoto(unitId, inputEl){
 }
 
 async function removeUnitPhoto(unitId, path){
-  if(!confirm('Retirer cette photo de l\'annonce ?')) return;
+  if(!await llConfirmer('Retirer cette photo de l\'annonce ?')) return;
   const current = marketplaceListingsCache.find(u => u.id === unitId);
   const photo_urls = (Array.isArray(current?.photo_urls) ? current.photo_urls : []).filter(p => p !== path);
   const res = await callOpsApi({ action: 'update_unit_photos', unit_id: unitId, photo_urls });
@@ -2472,7 +2473,7 @@ async function toggleBlogPostStatus(id){
 }
 
 async function deleteBlogPost(id){
-  if(!confirm('Supprimer définitivement cet article ?')) return;
+  if(!await llConfirmer('Supprimer définitivement cet article ?')) return;
   const res = await callOpsApi({ action: 'delete_blog_post', post_id: id });
   if(res?.ok){ await loadBlogPosts(); }
 }
@@ -2548,7 +2549,7 @@ async function loadWorkersAdmin(){
 async function verifyWorkerPro(worker_id, decision){
   let rejection_reason = null;
   if(decision === 'rejected'){
-    rejection_reason = prompt('Raison du refus (visible par le travailleur, optionnel) :') || null;
+    rejection_reason = await llDemander('Raison du refus (visible par le travailleur, optionnel) :') || null;
   }
   const res = await callOpsApi({ action: 'verify_worker_pro', worker_id, decision, rejection_reason });
   if(res?.error){ alert('Erreur : ' + res.error); return; }
@@ -2556,7 +2557,7 @@ async function verifyWorkerPro(worker_id, decision){
 }
 
 async function toggleWorkerActive(worker_id, active){
-  if(!active && !confirm('Désactiver ce travailleur ? Il ne recevra plus aucun nouveau mandat (assignation manuelle, cascade automatique ou dispatch Lease Lane Pro) tant que tu ne le réactives pas.')) return;
+  if(!active && !await llConfirmer('Désactiver ce travailleur ? Il ne recevra plus aucun nouveau mandat (assignation manuelle, cascade automatique ou dispatch Lease Lane Pro) tant que tu ne le réactives pas.')) return;
   const res = await callOpsApi({ action: 'toggle_worker_active', worker_id, active });
   if(res?.error){ alert('Erreur : ' + res.error); return; }
   await loadWorkersAdmin();
@@ -2724,7 +2725,7 @@ async function createDisbursement(leaseId){
 }
 
 async function markDisbursementBilled(disbursementId){
-  if(!confirm('Facturer ce débours au propriétaire, au coût réel exact (sans marge) ?')) return;
+  if(!await llConfirmer('Facturer ce débours au propriétaire, au coût réel exact (sans marge) ?')) return;
   const res = await callOpsApi({ action: 'mark_disbursement_billed', disbursement_id: disbursementId });
   if(res?.ok){ await loadLatePaymentsAdmin(); } else { alert(res?.error || 'Échec.'); }
 }
@@ -2841,7 +2842,7 @@ async function dispatchServiceRequestAuto(serviceRequestId, unitId){
     alert('Ajoute une description du travail avant de lancer le dispatch automatique.');
     return;
   }
-  if(!confirm('Le dispatch automatique va solliciter des travailleurs admissibles par ordre de score, sans que tu en choisisses un toi-même. Continuer ?')) return;
+  if(!await llConfirmer('Le dispatch automatique va solliciter des travailleurs admissibles par ordre de score, sans que tu en choisisses un toi-même. Continuer ?')) return;
   const res = await callOpsApi({
     action: 'dispatch_work_order_auto', service_request_id: serviceRequestId, unit_id: unitId, description,
     worker_pay: worker_pay ? Number(worker_pay) : null,
@@ -2940,13 +2941,13 @@ async function createPayable(){
 }
 
 async function respondPayable(payableId, outcome){
-  const rejection_note = outcome === 'rejected' ? (prompt('Raison du rejet (optionnel) :') || null) : null;
+  const rejection_note = outcome === 'rejected' ? (await llDemander('Raison du rejet (optionnel) :') || null) : null;
   const res = await callOpsApi({ action: 'respond_payable', payable_id: payableId, outcome, rejection_note });
   if(res?.ok){ await loadPayablesAdmin(); } else { alert(res?.error || 'Échec.'); }
 }
 
 async function markPayablePaid(payableId){
-  if(!confirm('Marquer cette facture payée ? Une dépense réelle sera créée et postée au grand livre.')) return;
+  if(!await llConfirmer('Marquer cette facture payée ? Une dépense réelle sera créée et postée au grand livre.')) return;
   const res = await callOpsApi({ action: 'mark_payable_paid', payable_id: payableId });
   if(res?.ok){ await loadPayablesAdmin(); } else { alert(res?.error || 'Échec.'); }
 }
@@ -3261,7 +3262,7 @@ async function createColdCaller(){
 }
 
 async function resetCallerLogin(caller_id){
-  if(!confirm('Régénérer un mot de passe temporaire pour ce prospecteur téléphonique ?')) return;
+  if(!await llConfirmer('Régénérer un mot de passe temporaire pour ce prospecteur téléphonique ?')) return;
   const res = await callOnboardingApi({ action: 'reset_cold_caller_login', caller_id });
   if(res?.error){ alert('Erreur : ' + res.error); return; }
   alert(`Nouveau mot de passe temporaire pour ${res.email} :\n\n${res.temp_password}\n\nCommunique-le manuellement au prospecteur téléphonique (le courriel de bienvenue n'est pas renvoyé automatiquement ici).`);
@@ -3272,7 +3273,7 @@ function deleteColdCallerFromButton(btn){
 }
 
 async function deleteColdCaller(caller_id, full_name){
-  if(!confirm(`Supprimer définitivement le compte de ${full_name} ? Ses prospects assignés seront désassignés (pas supprimés) et redeviendront disponibles à réassigner.`)) return;
+  if(!await llConfirmer(`Supprimer définitivement le compte de ${full_name} ? Ses prospects assignés seront désassignés (pas supprimés) et redeviendront disponibles à réassigner.`)) return;
   const res = await callOnboardingApi({ action: 'delete_cold_caller', caller_id });
   if(res?.error){ alert('Erreur : ' + res.error); return; }
   await loadCallers();
@@ -3291,9 +3292,9 @@ function toggleCallHistory(prospectId){
 }
 
 async function promptCorrectCall(prospect_id, call_index){
-  const summary = prompt('Résumé corrigé (laisse vide pour ne pas changer) :');
-  const interest_level = prompt('Niveau d\'intérêt corrigé (chaud / tiede / froid — laisse vide pour ne pas changer) :');
-  const correction_note = prompt('Pourquoi cette correction ? (optionnel, aide à améliorer l\'IA)') || null;
+  const summary = await llDemander('Résumé corrigé (laisse vide pour ne pas changer) :');
+  const interest_level = await llDemander('Niveau d\'intérêt corrigé (chaud / tiede / froid — laisse vide pour ne pas changer) :');
+  const correction_note = await llDemander('Pourquoi cette correction ? (optionnel, aide à améliorer l\'IA)') || null;
   const corrections = {};
   if(summary) corrections.summary = summary;
   if(interest_level && ['chaud','tiede','froid'].includes(interest_level.trim())) corrections.interest_level = interest_level.trim();
@@ -3403,7 +3404,7 @@ async function syncFlinksNow(connection_id){
 }
 
 async function disconnectFlinks(connection_id){
-  if(!confirm('Déconnecter ce compte bancaire ? La synchronisation automatique s\'arrêtera.')) return;
+  if(!await llConfirmer('Déconnecter ce compte bancaire ? La synchronisation automatique s\'arrêtera.')) return;
   await callFlinksApi({ action: 'disconnect', connection_id });
   await loadFlinksConnections();
 }
@@ -3506,7 +3507,7 @@ async function confirmSuggestedMatch(transaction_id, payment_id){
 }
 
 async function promptConfirmMatch(transaction_id){
-  const payment_id = prompt('Colle l\'identifiant (UUID) du paiement auquel associer ce dépôt (visible dans Supabase Table Editor, table "payments") :');
+  const payment_id = await llDemander('Colle l\'identifiant (UUID) du paiement auquel associer ce dépôt (visible dans Supabase Table Editor, table "payments") :');
   if(!payment_id) return;
   const res = await callReconApi({ action: 'confirm_match', transaction_id, payment_id: payment_id.trim() });
   if(res?.ok){ await loadBankTransactions(); }
@@ -3577,16 +3578,16 @@ async function sendLeaseRenewalNotice(lease_id){
 }
 
 async function promptRecordRenewalResponse(lease_id){
-  const responseVal = prompt('Réponse du locataire (accepted / refused / no_response) :');
+  const responseVal = await llDemander('Réponse du locataire (accepted / refused / no_response) :');
   if(!responseVal || !['accepted','refused','no_response'].includes(responseVal.trim())) return;
-  const signedVal = confirm('Le document de renouvellement a-t-il été signé ?');
-  const note = prompt('Note additionnelle (optionnel) :') || null;
+  const signedVal = await llConfirmer('Le document de renouvellement a-t-il été signé ?');
+  const note = await llDemander('Note additionnelle (optionnel) :') || null;
   const res = await callLeaseRenewalApi({ action: 'record_response', lease_id, renewal_response: responseVal.trim(), renewal_signed: signedVal, renewal_response_note: note });
   if(res?.ok){ await loadLeaseRenewals(); }
 }
 
 async function promptAcquisitionCost(prospect_id, current){
-  const value = prompt('Coût d\'acquisition de ce prospect ($) — laisse vide pour effacer :', current != null ? String(current) : '');
+  const value = await llDemander('Coût d\'acquisition de ce prospect ($) — laisse vide pour effacer :', current != null ? String(current) : '');
   if(value === null) return;
   await callCrmApi({ action: 'update_acquisition_cost', prospect_id, acquisition_cost: value.trim() });
   await loadProspects();
@@ -3611,14 +3612,14 @@ async function createProspect(){
 async function updateProspectStage(prospect_id, stage){
   let loss_reason = null;
   if(stage === 'lost'){
-    loss_reason = prompt('Raison de la perte de ce prospect (optionnel) :') || null;
+    loss_reason = await llDemander('Raison de la perte de ce prospect (optionnel) :') || null;
   }
   await callCrmApi({ action: 'update_stage', prospect_id, stage, loss_reason });
   await loadProspects();
 }
 
 async function resolveDissatisfactionSignal(signal_id){
-  const resolution_note = prompt('Note de résolution (optionnel) :') || null;
+  const resolution_note = await llDemander('Note de résolution (optionnel) :') || null;
   const { data, error } = await supabaseClient.functions.invoke('admin-api', { body: { action: 'resolve_dissatisfaction_signal', signal_id, resolution_note } });
   if(error || data?.error){ alert('Erreur : ' + (error?.message || data?.error)); return; }
   await loadAdminDashboard();
@@ -3638,7 +3639,7 @@ async function updateAnomaly(anomaly_id, status){
 }
 
 async function promptAddCall(prospect_id){
-  const transcript = prompt('Résumé ou transcription de l\'appel :');
+  const transcript = await llDemander('Résumé ou transcription de l\'appel :');
   if(!transcript) return;
   await callCrmApi({ action: 'add_call', prospect_id, transcript });
   await loadProspects();
