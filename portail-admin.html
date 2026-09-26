@@ -156,6 +156,7 @@
       <span class="brand-sub">Espace admin</span>
       <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#layout-grid"/></svg><span>Vue d'ensemble</span></button>
       <div class="nav-group-label">OPÉRATIONS</div>
+      <button class="tab-btn" data-tab="clients" onclick="showTab('clients')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#building"/></svg><span>Clients propriétaires</span></button>
       <button class="tab-btn" data-tab="work-requests" onclick="showTab('work-requests')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wrench"/></svg><span>Travaux à assigner</span></button>
       <button class="tab-btn" data-tab="work-orders" onclick="showTab('work-orders')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#hammer"/></svg><span>Travaux en cours</span></button>
       <button class="tab-btn" data-tab="visits" onclick="showTab('visits')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#calendar-check"/></svg><span>Visites</span></button>
@@ -175,7 +176,7 @@
       <button class="tab-btn" data-tab="mandat-inquiries" onclick="showTab('mandat-inquiries')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#gavel"/></svg><span>Demandes de mandat</span></button>
       <button class="tab-btn" data-tab="crm" onclick="showTab('crm')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#handshake"/></svg><span>CRM propriétaires</span></button>
       <button class="tab-btn" data-tab="callers" onclick="showTab('callers')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg><span>Prospecteurs</span></button>
-      <button class="tab-btn" data-tab="onboarding" onclick="showTab('onboarding')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#log-in"/></svg><span>Onboarding client</span></button>
+      <button class="tab-btn" data-tab="onboarding" onclick="showTab('onboarding')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#log-in"/></svg><span>Nouveau client</span></button>
       <button class="tab-btn" data-tab="marketplace" onclick="showTab('marketplace')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shopping-bag"/></svg><span>Annonces Marketplace</span></button>
       <button class="tab-btn" data-tab="blog" onclick="showTab('blog')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bookmark"/></svg><span>Articles</span></button>
       <div class="nav-group-label">ADMINISTRATION</div>
@@ -601,11 +602,20 @@
       </section>
 
       <section id="onboarding" class="section">
-    <h1 style="margin-top:40px;font-size:22px;">Onboarding — nouveau client</h1>
-    <p class="subtitle" style="margin-bottom:16px;">Crée le compte, l'accès au portail et envoie les identifiants automatiquement — aucune manipulation SQL requise</p>
+    <h1>Nouveau client</h1>
+    <p class="subtitle">Du propriétaire à son premier locataire, en quatre étapes. Chaque étape reprend ce que la précédente a créé.</p>
 
-    <div style="background:var(--surface-carte);border:1px solid var(--bordure-portail);border-radius:var(--rayon-carte);box-shadow:var(--ombre-2);padding:20px;margin-bottom:16px;">
-      <h3 style="font-size:14px;margin-bottom:10px;">1. Compte propriétaire</h3>
+    <ol class="ob-etapes" aria-label="Étapes">
+      <li data-etape="1" class="actif"><span>1</span>Propriétaire</li>
+      <li data-etape="2"><span>2</span>Immeuble</li>
+      <li data-etape="3"><span>3</span>Unités</li>
+      <li data-etape="4"><span>4</span>Locataires</li>
+      <li data-etape="5"><span>✓</span>Récapitulatif</li>
+    </ol>
+
+    <div class="ob-panneau actif" data-etape="1">
+      <h2>Le propriétaire</h2>
+      <p class="ob-aide">Le taux de gestion et le plafond de dépenses restent modifiables ensuite, dans <a href="#" onclick="showTab('clients');return false;">Clients propriétaires</a>. Au-dessus du plafond, chaque travail attend l'accord du propriétaire.</p>
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-owner-name">Nom complet</label><input type="text" id="ob-owner-name" style="padding:8px;border:1px solid var(--line);"></div>
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-owner-email">Courriel</label><input type="email" id="ob-owner-email" style="padding:8px;border:1px solid var(--line);"></div>
@@ -613,19 +623,15 @@
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-owner-company">Entreprise</label><input type="text" id="ob-owner-company" style="padding:8px;border:1px solid var(--line);"></div>
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-owner-rate">Taux de gestion (%)</label><input type="number" id="ob-owner-rate" value="6" step="0.1" style="padding:8px;border:1px solid var(--line);width:80px;"></div>
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-owner-cap">Plafond de dépenses ($)</label><input type="number" id="ob-owner-cap" value="300" style="padding:8px;border:1px solid var(--line);width:100px;"></div>
-        <button onclick="obCreateOwner()" style="background:var(--brass);color:#fff;border-radius:var(--rayon-bouton);border:none;padding:9px 16px;font-size:12.5px;cursor:pointer;">Créer le compte + envoyer l'accès</button>
+        <button onclick="obCreateOwner()" style="background:var(--brass);color:#fff;border-radius:var(--rayon-bouton);border:none;padding:9px 16px;font-size:12.5px;cursor:pointer;">Créer le client</button>
       </div>
-      <p id="ob-owner-msg" style="font-size:12.5px;margin-top:8px;"></p>
+      <p class="ob-avert"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>Un courriel avec ses identifiants de connexion part à cette adresse dès la création.</p>
+      <p id="ob-owner-msg" class="ob-msg"></p>
+      <p class="ob-lien"><a href="#" onclick="obEtape(2);return false;">Le client existe déjà ? Passer à l'immeuble →</a></p>
     </div>
 
-    <div style="background:var(--surface-carte);border:1px solid var(--bordure-portail);border-radius:var(--rayon-carte);box-shadow:var(--ombre-2);padding:20px;margin-bottom:16px;">
-      <h3 style="font-size:14px;margin-bottom:10px;">Propriétaires existants — modifier le contrat</h3>
-      <p class="subtitle" style="margin-bottom:12px;">Taux de gestion et de coordination des travaux — jamais figés, toujours modifiables par propriétaire.</p>
-      <div id="owners-list-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
-    </div>
-
-    <div style="background:var(--surface-carte);border:1px solid var(--bordure-portail);border-radius:var(--rayon-carte);box-shadow:var(--ombre-2);padding:20px;margin-bottom:16px;">
-      <h3 style="font-size:14px;margin-bottom:10px;">2. Immeuble</h3>
+    <div class="ob-panneau" data-etape="2">
+      <h2>L'immeuble</h2>
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-building-owner">Propriétaire</label>
           <select id="ob-building-owner" style="padding:8px;border:1px solid var(--line);"><option value="">— Choisir —</option></select>
@@ -635,11 +641,30 @@
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-building-year">Année</label><input type="number" id="ob-building-year" style="padding:8px;border:1px solid var(--line);width:90px;"></div>
         <button onclick="obAddBuilding()" style="background:var(--brass);color:#fff;border-radius:var(--rayon-bouton);border:none;padding:9px 16px;font-size:12.5px;cursor:pointer;">Ajouter l'immeuble</button>
       </div>
-      <p id="ob-building-msg" style="font-size:12.5px;margin-top:8px;"></p>
+      <p id="ob-building-msg" class="ob-msg"></p>
+      <details class="ob-import">
+        <summary>Plusieurs dizaines de portes ? Importer un fichier CSV</summary>
+        <p style="font-size:11.5px;color:var(--muted);margin-bottom:10px;">Pour ajouter 50 à 500 portes d'un coup au lieu de remplir le formulaire ci-dessus une unité à la fois. Fichier CSV avec ces colonnes (dans cet ordre) : <code>address,unit_number,unit_type,rent,tenant_full_name,tenant_email,tenant_phone,lease_start_date,monthly_rent</code>. Seules <code>address</code> et <code>unit_number</code> sont obligatoires — laisse les colonnes locataire vides pour une unité vacante. Les immeubles/unités déjà existants (même adresse, même numéro) ne sont jamais dupliqués — relancer le même fichier deux fois est sans danger.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
+        <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="bulk-import-owner">Propriétaire</label>
+          <select id="bulk-import-owner" style="padding:8px;border:1px solid var(--line);"><option value="">— Choisir —</option></select>
+        </div>
+        <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="bulk-import-file">Fichier CSV</label>
+          <input type="file" id="bulk-import-file" accept=".csv" style="padding:6px;border:1px solid var(--line);">
+        </div>
+        <div><label style="display:block;font-size:11px;color:var(--muted);"><input type="checkbox" id="bulk-import-send-emails"> Envoyer un courriel de bienvenue aux locataires avec un courriel renseigné</label></div>
+        <button onclick="obBulkImport()" style="background:var(--brass);color:#fff;border-radius:var(--rayon-bouton);border:none;padding:9px 16px;font-size:12.5px;cursor:pointer;">Importer</button>
+      </div>
+      <p id="bulk-import-msg" style="font-size:12.5px;margin-top:8px;"></p>
+      <div id="bulk-import-results" style="margin-top:10px;max-height:400px;overflow-y:auto;"></div>
+    
+      </details>
+      <div class="ob-nav"><button type="button" class="ob-retour" onclick="obEtape(1)">← Retour</button></div>
     </div>
 
-    <div style="background:var(--surface-carte);border:1px solid var(--bordure-portail);border-radius:var(--rayon-carte);box-shadow:var(--ombre-2);padding:20px;margin-bottom:16px;">
-      <h3 style="font-size:14px;margin-bottom:10px;">3. Unité</h3>
+    <div class="ob-panneau" data-etape="3">
+      <h2>Les unités</h2>
+      <p class="ob-aide">Ajoute chaque logement de l'immeuble. Seules les unités <b>occupées</b> recevront un locataire à l'étape suivante.</p>
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-unit-building">Immeuble</label>
           <select id="ob-unit-building" style="padding:8px;border:1px solid var(--line);"><option value="">— Choisir un propriétaire d'abord —</option></select>
@@ -656,11 +681,17 @@
         </div>
         <button onclick="obAddUnit()" style="background:var(--brass);color:#fff;border-radius:var(--rayon-bouton);border:none;padding:9px 16px;font-size:12.5px;cursor:pointer;">Ajouter l'unité</button>
       </div>
-      <p id="ob-unit-msg" style="font-size:12.5px;margin-top:8px;"></p>
+      <p id="ob-unit-msg" class="ob-msg"></p>
+      <ul id="ob-unites-ajoutees" class="ob-liste"></ul>
+      <div class="ob-nav">
+        <button type="button" class="ob-retour" onclick="obEtape(2)">← Retour</button>
+        <button type="button" class="ob-suivant" onclick="obEtape(4)">Continuer vers les locataires →</button>
+      </div>
     </div>
 
-    <div style="background:var(--surface-carte);border:1px solid var(--bordure-portail);border-radius:var(--rayon-carte);box-shadow:var(--ombre-2);padding:20px;margin-bottom:32px;">
-      <h3 style="font-size:14px;margin-bottom:10px;">4. Locataire + bail</h3>
+    <div class="ob-panneau" data-etape="4">
+      <h2>Les locataires</h2>
+      <p class="ob-aide">Un locataire et son bail par unité occupée. Sans courriel, le dossier est créé mais le locataire n'a pas d'accès au portail.</p>
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-tenant-unit">Unité</label>
           <select id="ob-tenant-unit" style="padding:8px;border:1px solid var(--line);"><option value="">— Choisir un immeuble d'abord —</option></select>
@@ -671,28 +702,28 @@
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-tenant-rent">Loyer mensuel ($)</label><input type="number" id="ob-tenant-rent" style="padding:8px;border:1px solid var(--line);width:100px;"></div>
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-tenant-start">Début du bail</label><input type="date" id="ob-tenant-start" style="padding:8px;border:1px solid var(--line);"></div>
         <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="ob-tenant-end">Fin du bail (optionnel)</label><input type="date" id="ob-tenant-end" style="padding:8px;border:1px solid var(--line);"></div>
-        <button onclick="obCreateTenant()" style="background:var(--brass);color:#fff;border-radius:var(--rayon-bouton);border:none;padding:9px 16px;font-size:12.5px;cursor:pointer;">Créer le compte + envoyer l'accès</button>
+        <button onclick="obCreateTenant()" style="background:var(--brass);color:#fff;border-radius:var(--rayon-bouton);border:none;padding:9px 16px;font-size:12.5px;cursor:pointer;">Ajouter le locataire</button>
       </div>
-      <p id="ob-tenant-msg" style="font-size:12.5px;margin-top:8px;"></p>
+      <p class="ob-avert"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>Si un courriel est saisi, le locataire reçoit ses identifiants de connexion.</p>
+      <p id="ob-tenant-msg" class="ob-msg"></p>
+      <ul id="ob-locataires-ajoutes" class="ob-liste"></ul>
+      <div class="ob-nav">
+        <button type="button" class="ob-retour" onclick="obEtape(3)">← Retour</button>
+        <button type="button" class="ob-suivant" onclick="obTerminer()">Terminer →</button>
+      </div>
     </div>
 
-    <div style="background:var(--surface-carte);border:1px solid var(--bordure-portail);border-radius:var(--rayon-carte);box-shadow:var(--ombre-2);padding:20px;margin-bottom:32px;">
-      <h3 style="font-size:14px;margin-bottom:10px;">5. Import massif (immeubles + unités + locataires)</h3>
-      <p style="font-size:11.5px;color:var(--muted);margin-bottom:10px;">Pour ajouter 50 à 500 portes d'un coup au lieu de remplir le formulaire ci-dessus une unité à la fois. Fichier CSV avec ces colonnes (dans cet ordre) : <code>address,unit_number,unit_type,rent,tenant_full_name,tenant_email,tenant_phone,lease_start_date,monthly_rent</code>. Seules <code>address</code> et <code>unit_number</code> sont obligatoires — laisse les colonnes locataire vides pour une unité vacante. Les immeubles/unités déjà existants (même adresse, même numéro) ne sont jamais dupliqués — relancer le même fichier deux fois est sans danger.</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
-        <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="bulk-import-owner">Propriétaire</label>
-          <select id="bulk-import-owner" style="padding:8px;border:1px solid var(--line);"><option value="">— Choisir —</option></select>
-        </div>
-        <div><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;" for="bulk-import-file">Fichier CSV</label>
-          <input type="file" id="bulk-import-file" accept=".csv" style="padding:6px;border:1px solid var(--line);">
-        </div>
-        <div><label style="display:block;font-size:11px;color:var(--muted);"><input type="checkbox" id="bulk-import-send-emails"> Envoyer un courriel de bienvenue aux locataires avec un courriel renseigné</label></div>
-        <button onclick="obBulkImport()" style="background:var(--brass);color:#fff;border-radius:var(--rayon-bouton);border:none;padding:9px 16px;font-size:12.5px;cursor:pointer;">Importer</button>
-      </div>
-      <p id="bulk-import-msg" style="font-size:12.5px;margin-top:8px;"></p>
-      <div id="bulk-import-results" style="margin-top:10px;max-height:400px;overflow-y:auto;"></div>
+    <div class="ob-panneau" data-etape="5">
+      <h2>Client prêt</h2>
+      <div id="ob-recap"></div>
+      <div class="ob-nav"><button type="button" class="ob-suivant" onclick="obNouveau()">Nouveau client</button></div>
     </div>
+      </section>
 
+      <section id="clients" class="section">
+    <h1>Clients propriétaires</h1>
+    <p class="subtitle">Taux de gestion, taux de coordination des travaux et plafond de dépenses — jamais figés, modifiables par propriétaire.</p>
+    <div class="ob-carte"><div id="owners-list-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div></div>
       </section>
 
       <section id="demo-accounts" class="section">
@@ -1392,6 +1423,50 @@ async function callOnboardingApi(payload){
   return data;
 }
 
+// ── Assistant d'onboarding ──────────────────────────────────────────
+// Les quatre appels au serveur restent ceux d'avant (obCreateOwner,
+// obAddBuilding, obAddUnit, obCreateTenant). L'assistant ne fait que
+// les enchaîner : chaque étape reprend l'identifiant que la précédente
+// vient de créer, au lieu de le faire choisir à nouveau dans une liste.
+const OB_STATUTS = { occupied: 'occupée', available: 'disponible', soon_available: 'bientôt libre' };
+let obEtat = { ownerId: null, ownerNom: null, buildingId: null, adresse: null, unites: [], locataires: [], courriels: [] };
+
+function obEtape(n){
+  document.querySelectorAll('#onboarding .ob-panneau').forEach(p => p.classList.toggle('actif', Number(p.dataset.etape) === n));
+  document.querySelectorAll('#onboarding .ob-etapes li').forEach(li => {
+    const e = Number(li.dataset.etape);
+    li.classList.toggle('actif', e === n);
+    li.classList.toggle('fait', e < n);
+  });
+  document.getElementById('onboarding').scrollIntoView({ block: 'start' });
+}
+
+function obListe(id, lignes){
+  document.getElementById(id).innerHTML = lignes.map(l => `<li>${l}</li>`).join('');
+}
+
+function obTerminer(){
+  const occupees = obEtat.unites.filter(u => u.statut === 'occupied').length;
+  const sansLocataire = Math.max(0, occupees - obEtat.locataires.length);
+  document.getElementById('ob-recap').innerHTML = `
+    <dl class="ob-recap">
+      <dt>Propriétaire</dt><dd>${esc(obEtat.ownerNom || '—')}</dd>
+      <dt>Immeuble</dt><dd>${esc(obEtat.adresse || '—')}</dd>
+      <dt>Unités</dt><dd>${obEtat.unites.length} (dont ${occupees} occupée${occupees > 1 ? 's' : ''})</dd>
+      <dt>Locataires</dt><dd>${obEtat.locataires.length}</dd>
+      <dt>Courriels envoyés</dt><dd>${obEtat.courriels.length ? obEtat.courriels.map(esc).join('<br>') : 'aucun'}</dd>
+    </dl>
+    ${sansLocataire ? `<p class="ob-avert">${sansLocataire} unité(s) occupée(s) sans locataire enregistré : le dossier du client apparaîtra comme incomplet dans la vue d'ensemble.</p>` : ''}`;
+  obEtape(5);
+}
+
+function obNouveau(){
+  obEtat = { ownerId: null, ownerNom: null, buildingId: null, adresse: null, unites: [], locataires: [], courriels: [] };
+  ['ob-unites-ajoutees','ob-locataires-ajoutes'].forEach(id => document.getElementById(id).innerHTML = '');
+  ['ob-owner-msg','ob-building-msg','ob-unit-msg','ob-tenant-msg'].forEach(id => document.getElementById(id).textContent = '');
+  obEtape(1);
+}
+
 async function obInit(){
   const data = await callOnboardingApi({ action: 'list_owners' });
   const owners = data?.owners || [];
@@ -1517,6 +1592,10 @@ async function obCreateOwner(){
   document.getElementById('ob-owner-phone').value = '';
   document.getElementById('ob-owner-company').value = '';
   await obInit();
+  obEtat.ownerId = res.owner_id; obEtat.ownerNom = full_name; obEtat.courriels.push(email);
+  document.getElementById('ob-building-owner').value = res.owner_id;
+  document.getElementById('bulk-import-owner').value = res.owner_id;
+  obEtape(2);
 }
 
 async function obAddBuilding(){
@@ -1532,6 +1611,10 @@ async function obAddBuilding(){
   msg.textContent = 'Immeuble ajouté !';
   document.getElementById('ob-building-address').value = '';
   await obLoadBuildingsForUnit(owner_id);
+  obEtat.ownerId = owner_id; obEtat.buildingId = res.building_id; obEtat.adresse = address;
+  document.getElementById('ob-unit-building').value = res.building_id;
+  await obLoadUnitsForTenant(res.building_id);
+  obEtape(3);
 }
 
 async function obLoadBuildingsForUnit(owner_id){
@@ -1556,6 +1639,8 @@ async function obAddUnit(){
   document.getElementById('ob-unit-number').value = '';
   document.getElementById('ob-unit-rent').value = '';
   await obLoadUnitsForTenant(building_id);
+  obEtat.unites.push({ numero: unit_number, statut: status, loyer: rent });
+  obListe('ob-unites-ajoutees', obEtat.unites.map(u => `Unité ${esc(u.numero)} — ${OB_STATUTS[u.statut] || esc(u.statut)}${u.loyer ? ' — ' + u.loyer + ' $' : ''}`));
 }
 
 async function obLoadUnitsForTenant(building_id){
@@ -1585,6 +1670,9 @@ async function obCreateTenant(){
   document.getElementById('ob-tenant-rent').value = '';
   const building_id = document.getElementById('ob-unit-building').value;
   if(building_id) await obLoadUnitsForTenant(building_id);
+  obEtat.locataires.push({ nom: full_name, courriel: email || null });
+  if(email) obEtat.courriels.push(email);
+  obListe('ob-locataires-ajoutes', obEtat.locataires.map(l => `${esc(l.nom)}${l.courriel ? ' — identifiants envoyés à ' + esc(l.courriel) : ' — dossier seulement, sans accès'}`));
 }
 
 const auditActionLabel = {
