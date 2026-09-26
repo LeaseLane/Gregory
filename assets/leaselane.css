@@ -1003,3 +1003,9 @@ body.ll-verif::after{
 .md-ia b{ color:var(--bleu-600); font-weight:600; margin-right:4px; }
 a.ll-bouton{ display:inline-flex; align-items:center; text-decoration:none; }
 @media (max-width:640px){ .md-details{ grid-template-columns:1fr; gap:2px; } .md-details dd{ margin-bottom:8px; } }
+/* Cartes « À traiter » de même hauteur : 3 éléments max chacune, le lien
+   collé en bas pour qu'il tombe au même niveau d'une carte à l'autre. */
+.vo-grille{ align-items:stretch; }
+.vo-carte{ display:flex; flex-direction:column; }
+.vo-carte ul{ flex:1; }
+.vo-carte > .vo-lien, .vo-carte > .vo-plus{ align-self:flex-start; margin-top:auto; padding-top:10px; }
