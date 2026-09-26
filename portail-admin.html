@@ -2630,10 +2630,7 @@ function trTrier(col){
   trEtat.tri = col;
   renderTravailleurs();
 }
-function trBasculer(id){
-  trEtat.ouverts.has(id) ? trEtat.ouverts.delete(id) : trEtat.ouverts.add(id);
-  renderTravailleurs();
-}
+function trBasculer(id){ ouvrirFicheTravailleur(id); }
 
 function renderTravailleurs(){
   const container = document.getElementById('workers-body');
@@ -2711,9 +2708,9 @@ function renderTravailleurs(){
         <td data-libelle="Statut">${pastilleStatut(w)}</td>
         <td data-libelle="Complétés" class="num">${w.completed_jobs_count ?? 0}${w.declined_jobs_count ? `<small>${w.declined_jobs_count} refusé${w.declined_jobs_count > 1 ? 's' : ''}</small>` : ''}</td>
         <td data-libelle="Note" class="num">${w.ratings_count ? `★ ${w.avg_rating}<small>${w.ratings_count} avis</small>` : '—'}</td>
-        <td class="tr-chev"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-down"/></svg></td>
+        <td class="tr-chev"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-right"/></svg></td>
       </tr>
-      ${ouvert ? `<tr class="tr-detail"><td colspan="7">${trDetail(w)}</td></tr>` : ''}`;
+`;
     }).join('')}</tbody>
   </table>`;
 }
@@ -2743,6 +2740,145 @@ function trDetail(w){
         ? `<button class="ll-bouton ll-bouton--secondaire" onclick="toggleWorkerActive('${w.id}', true)">Réactiver</button>`
         : `<button class="tr-lien-danger" onclick="toggleWorkerActive('${w.id}', false)">Désactiver</button>`}
     </footer>`;
+}
+
+// ── Fiche travailleur ───────────────────────────────────────────────
+// Tout ce qui s'est passé avec un travailleur, au même endroit : offres
+// envoyées, réponses (ou silences), relances, travaux faits, avis, notes
+// de l'équipe. Les travailleurs répondent par lien, pas par courriel :
+// la « conversation » est donc reconstituée à partir de ces événements.
+let ficheTr = { id: null, onglet: 'activite', data: null };
+const trReponse = { accepted: 'a accepté', declined: 'a refusé', proposed_other_time: 'propose une autre heure' };
+const trStatutMandat = { open: 'Ouvert', assigned: 'Assigné', in_progress: 'En cours', completed: 'Terminé', cancelled: 'Annulé' };
+const trAudit = {
+  'worker.create': 'Fiche créée', 'worker.self_registered': 'Inscription via le portail Pro',
+  'worker.verification_updated': 'Vérification RBQ / assurance mise à jour', 'worker.document_uploaded': 'Document téléversé',
+  'worker.profile_updated': 'Profil modifié par le travailleur', 'worker.note_added': null,
+  'worker_verification.non_compliant': 'Signalé non conforme', 'worker.pro_verified': 'Dossier Pro approuvé', 'worker.pro_rejected': 'Dossier Pro refusé',
+};
+const quand = d => new Date(d).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' });
+
+async function ouvrirFicheTravailleur(id, onglet){
+  ficheTr = { id, onglet: onglet || ficheTr.onglet || 'activite', data: null };
+  let tiroir = document.getElementById('fiche-tr');
+  if(!tiroir){
+    document.body.insertAdjacentHTML('beforeend', '<div id="fiche-tr-fond" class="fi-fond" onclick="fermerFicheTravailleur()"></div><aside id="fiche-tr" class="fi-tiroir" role="dialog" aria-modal="true" aria-label="Fiche travailleur"></aside>');
+    document.addEventListener('keydown', e => { if(e.key === 'Escape' && ficheTr.id) fermerFicheTravailleur(); });
+    tiroir = document.getElementById('fiche-tr');
+  }
+  document.body.classList.add('fi-ouvert');
+  renderFicheTravailleur();
+  const res = await callOpsApi({ action: 'get_worker_profile', worker_id: id });
+  if(ficheTr.id !== id) return;
+  ficheTr.data = res && !res.error ? res : { erreur: true };
+  renderFicheTravailleur();
+}
+
+function fermerFicheTravailleur(){
+  ficheTr.id = null;
+  document.body.classList.remove('fi-ouvert');
+}
+
+function trEvenements(d){
+  const ev = [];
+  const lieu = m => m.units ? `${m.units.buildings?.address || ''}, unité ${m.units.unit_number || ''}` : '';
+  (d.mandats || []).forEach(m => {
+    const titre = `« ${m.description} » — ${lieu(m)}`;
+    if(m.worker_notified_at) ev.push({ t: m.worker_notified_at, ic: 'send', ton: 'info', txt: `Offre envoyée par courriel`, sous: titre });
+    if(m.response_reminder_sent) ev.push({ t: m.worker_notified_at, ic: 'bell', ton: 'att', txt: 'Relance envoyée (pas de réponse)', sous: titre, approx: true });
+    if(m.worker_response && m.worker_response_at) ev.push({ t: m.worker_response_at, ic: m.worker_response === 'declined' ? 'circle-x' : 'message-circle', ton: m.worker_response === 'declined' ? 'ko' : 'ok', txt: `Le travailleur ${trReponse[m.worker_response] || m.worker_response}`, sous: titre, citation: m.worker_response_note });
+    else if(m.worker_notified_at && !m.worker_response && Date.now() - new Date(m.worker_notified_at) > 864e5) ev.push({ t: new Date(new Date(m.worker_notified_at).getTime() + 864e5).toISOString(), ic: 'clock', ton: 'ko', txt: 'Toujours sans réponse après 24 h', sous: titre });
+    if(m.worker_reported_done_at) ev.push({ t: m.worker_reported_done_at, ic: 'check', ton: 'ok', txt: 'A signalé le travail terminé', sous: titre, citation: m.worker_completion_note });
+    if(m.tenant_confirmed) ev.push({ t: m.worker_reported_done_at || m.created_at, ic: 'circle-check', ton: 'ok', txt: 'Le locataire a confirmé la réparation', sous: titre, approx: true });
+  });
+  (d.refuses || []).forEach(m => ev.push({ t: m.created_at, ic: 'circle-x', ton: 'ko', txt: 'Offre refusée (passée au suivant)', sous: `« ${m.description} » — ${lieu(m)}`, approx: true }));
+  (d.evaluations || []).forEach(r => ev.push({ t: r.created_at, ic: 'star', ton: 'info', txt: `Évaluation ${'★'.repeat(r.stars || 0)}${'☆'.repeat(5 - (r.stars || 0))} par ${r.rated_by_type === 'tenant' ? 'le locataire' : r.rated_by_type === 'owner' ? 'le propriétaire' : 'l\'équipe'}`, citation: r.comment }));
+  (d.notes || []).forEach(n => ev.push({ t: n.created_at, ic: 'pencil', ton: 'note', txt: `Note de ${esc(n.users?.email?.split('@')[0] || 'l\'équipe')}`, citation: n.body }));
+  (d.audit || []).filter(a => a.entity_id === undefined || a.action.startsWith('worker')).forEach(a => {
+    const libelle = trAudit[a.action];
+    if(libelle === null) return;
+    ev.push({ t: a.created_at, ic: 'info', ton: 'neutre', txt: libelle || a.action });
+  });
+  return ev.sort((x, y) => new Date(y.t) - new Date(x.t));
+}
+
+function renderFicheTravailleur(){
+  const tiroir = document.getElementById('fiche-tr');
+  if(!tiroir || !ficheTr.id) return;
+  const w = ficheTr.data?.worker || workersDirectory.find(x => x.id === ficheTr.id) || {};
+  const d = ficheTr.data;
+  const mandats = d?.mandats || [];
+  const offres = mandats.filter(m => m.worker_notified_at).length + (d?.refuses?.length || 0);
+  const repondues = mandats.filter(m => m.worker_response).length + (d?.refuses?.length || 0);
+  const initiales = (w.name || '?').split(/\s+/).map(m => m[0]).join('').slice(0, 2).toUpperCase();
+  const onglet = (id, libelle, n) => `<button class="fi-onglet${ficheTr.onglet === id ? ' actif' : ''}" onclick="ficheTr.onglet='${id}';renderFicheTravailleur()">${libelle}${n ? ` <span>${n}</span>` : ''}</button>`;
+  let corps;
+  if(!d) corps = '<p class="tr-vide">Chargement de l\'historique…</p>';
+  else if(d.erreur && ficheTr.onglet !== 'conformite') corps = '<p class="tr-vide">Historique indisponible pour le moment.</p>';
+  else if(ficheTr.onglet === 'activite'){
+    const ev = trEvenements(d);
+    corps = ev.length ? `<ol class="fi-fil">${ev.map(e => `
+      <li class="fi-ev fi-ev--${e.ton}">
+        <span class="fi-point"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#${e.ic}"/></svg></span>
+        <div>
+          <div class="fi-txt">${e.txt}</div>
+          ${e.sous ? `<div class="fi-sous">${esc(e.sous)}</div>` : ''}
+          ${e.citation ? `<blockquote class="fi-cit">${esc(e.citation)}</blockquote>` : ''}
+          <time>${e.approx ? 'vers le ' : ''}${quand(e.t)}</time>
+        </div>
+      </li>`).join('')}</ol>` : '<p class="tr-vide">Aucune activité pour l\'instant : ce travailleur n\'a encore reçu aucune offre.</p>';
+  } else if(ficheTr.onglet === 'mandats'){
+    corps = mandats.length ? `<table class="fi-table"><thead><tr><th>Travail</th><th>Statut</th><th class="num">Paie</th><th>Reçu le</th></tr></thead><tbody>${mandats.map(m => `
+      <tr><td><b>${esc(m.description)}</b>${m.is_urgent ? ' <span class="tr-pastille tr-pastille--ko">Urgent</span>' : ''}<small>${esc(m.units?.buildings?.address || '')}${m.units ? ', unité ' + esc(m.units.unit_number) : ''}</small></td>
+      <td>${trStatutMandat[m.status] || esc(m.status)}${m.worker_response ? `<small>${trReponse[m.worker_response] || esc(m.worker_response)}</small>` : m.worker_notified_at ? '<small class="tr-manque">sans réponse</small>' : ''}</td>
+      <td class="num">${m.worker_pay != null ? Number(m.worker_pay).toLocaleString('fr-CA') + ' $' : '—'}</td>
+      <td>${new Date(m.created_at).toLocaleDateString('fr-CA')}</td></tr>`).join('')}</tbody></table>` : '<p class="tr-vide">Aucun mandat pour l\'instant.</p>';
+  } else if(ficheTr.onglet === 'notes'){
+    corps = `
+      <div class="fi-note-form">
+        <textarea id="fi-note" rows="3" placeholder="Ex. Appelé le 26/09, disponible les soirs. Préfère être contacté par texto."></textarea>
+        <button class="ll-bouton ll-bouton--primaire" onclick="ajouterNoteTravailleur()">Ajouter la note</button>
+      </div>
+      ${w.verification_notes ? `<div class="fi-note"><div class="fi-sous">Note de vérification</div>${esc(w.verification_notes)}</div>` : ''}
+      ${(d.notes || []).map(n => `<div class="fi-note"><div class="fi-sous">${esc(n.users?.email || 'Équipe')} · ${quand(n.created_at)}</div>${esc(n.body)}</div>`).join('') || (w.verification_notes ? '' : '<p class="tr-vide">Aucune note. Garde ici tes appels, ententes et préférences du travailleur.</p>')}`;
+  } else {
+    corps = trDetail(w);
+  }
+  tiroir.innerHTML = `
+    <header class="fi-tete">
+      <span class="tr-avatar" aria-hidden="true">${esc(initiales)}</span>
+      <div class="tr-ident">
+        <h2>${esc(w.name || '')}</h2>
+        <div class="tr-specs">${trSpecs(w).map(x => `<span class="tr-spec">${esc(libelleSpecialite[x] || x)}</span>`).join('')}</div>
+      </div>
+      <button class="fi-fermer" onclick="fermerFicheTravailleur()" aria-label="Fermer"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#x"/></svg></button>
+    </header>
+    <div class="fi-contact">
+      ${w.phone ? `<a class="ll-bouton ll-bouton--secondaire" href="tel:${esc(w.phone)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>${esc(w.phone)}</a>` : ''}
+      ${w.email ? `<a class="ll-bouton ll-bouton--secondaire" href="mailto:${esc(w.email)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>Écrire</a>` : '<span class="tr-manque">Aucun courriel : ne reçoit pas les offres</span>'}
+      <span class="tr-espace"></span>
+      ${w.id ? ({ ok: '<span class="tr-pastille tr-pastille--ok">Conforme</span>', ko: '<span class="tr-pastille tr-pastille--ko">Non conforme</span>', inactif: '<span class="tr-pastille">Désactivé</span>' })[trStatut(w)] : ''}
+    </div>
+    <div class="fi-stats">
+      <div><b>${w.completed_jobs_count ?? 0}</b><span>complétés</span></div>
+      <div><b>${w.declined_jobs_count ?? 0}</b><span>refusés</span></div>
+      <div><b>${offres ? Math.round(100 * repondues / offres) + ' %' : '—'}</b><span>taux de réponse</span></div>
+      <div><b>${w.ratings_count ? '★ ' + w.avg_rating : '—'}</b><span>${w.ratings_count ? w.ratings_count + ' avis' : 'pas d\'avis'}</span></div>
+    </div>
+    <div class="fi-onglets" role="tablist">
+      ${onglet('activite', 'Activité')}${onglet('mandats', 'Mandats', mandats.length)}${onglet('notes', 'Notes', (d?.notes?.length || 0) + (w.verification_notes ? 1 : 0))}${onglet('conformite', 'Conformité')}
+    </div>
+    <div class="fi-corps">${corps}</div>`;
+}
+
+async function ajouterNoteTravailleur(){
+  const champ = document.getElementById('fi-note');
+  const note = champ.value.trim();
+  if(!note) return;
+  const res = await callOpsApi({ action: 'add_worker_note', worker_id: ficheTr.id, note });
+  if(!res?.ok) return;
+  llToast('Note ajoutée.', 'succes');
+  ouvrirFicheTravailleur(ficheTr.id, 'notes');
 }
 
 async function verifyWorkerPro(worker_id, decision){
@@ -2858,6 +2994,7 @@ async function saveWorkerVerification(worker_id){
   if(!res?.ok){ alert('Erreur : ' + (res?.error || 'enregistrement impossible')); return; }
   llToast('Vérification enregistrée.', 'succes');
   await loadWorkersAdmin();
+  if(ficheTr.id) ouvrirFicheTravailleur(ficheTr.id, 'conformite');
 }
 
 const disbursementCategoryLabel = { depot_tal: 'Dépôt TAL', huissier: 'Huissier', avocat: 'Avocat/professionnel', autre: 'Autre' };

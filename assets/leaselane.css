@@ -1098,3 +1098,52 @@ h3.sous-titre{ font-size:1.15em !important; margin:26px 0 10px !important; }
   .tr-table td[data-libelle]:not(:first-child)::before{ content:attr(data-libelle); font-size:12.5px; color:var(--texte-discret); }
   .tr-chev{ position:absolute; top:18px; right:6px; width:auto; }
 }
+
+/* ═══════ FICHE TRAVAILLEUR (tiroir latéral) ═══════ */
+.fi-fond{ position:fixed; inset:0; background:rgba(10,32,56,.35); opacity:0; pointer-events:none; transition:opacity .2s; z-index:900; }
+.fi-tiroir{
+  position:fixed; top:0; right:0; bottom:0; width:min(640px, 100vw); z-index:901;
+  background:var(--surface-carte); box-shadow:-12px 0 40px rgba(10,32,56,.18);
+  transform:translateX(100%); transition:transform .22s ease; overflow-y:auto;
+  padding:24px 28px 40px; box-sizing:border-box;
+}
+body.fi-ouvert .fi-fond{ opacity:1; pointer-events:auto; }
+body.fi-ouvert .fi-tiroir{ transform:none; }
+.fi-tete{ display:flex; align-items:center; gap:14px; }
+.fi-tete .tr-avatar{ width:52px; height:52px; font-size:17px; }
+.fi-tete h2{ margin:0 0 6px; font-size:1.7em; }
+.fi-fermer{ margin-left:auto; align-self:flex-start; width:36px; height:36px; border-radius:50%; border:1px solid var(--bordure); background:var(--surface-carte); cursor:pointer; display:grid; place-items:center; color:var(--marine-900); }
+.fi-fermer .ic{ width:18px; height:18px; }
+.fi-contact{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:18px 0 0; }
+.fi-contact .ll-bouton .ic{ width:15px; height:15px; margin-right:6px; vertical-align:-2px; }
+.fi-stats{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin:18px 0 0; }
+.fi-stats div{ background:var(--surface-enfoncee); border-radius:var(--rayon-champ); padding:12px 14px; display:flex; flex-direction:column; gap:3px; }
+.fi-stats b{ font:600 20px/1.1 var(--police-texte); color:var(--marine-900); }
+.fi-stats span{ font-size:12px; color:var(--texte-discret); }
+.fi-onglets{ display:flex; gap:4px; margin:22px 0 0; border-bottom:1px solid var(--bordure-fine); overflow-x:auto; }
+.fi-onglet{ background:none; border:none; border-bottom:2px solid transparent; padding:10px 14px; cursor:pointer; font:500 14px/1 var(--police-texte); color:var(--texte-discret); white-space:nowrap; margin-bottom:-1px; }
+.fi-onglet span{ display:inline-block; min-width:18px; padding:2px 6px; margin-left:4px; border-radius:var(--rayon-pilule); background:var(--surface-enfoncee); font-size:11.5px; color:var(--marine-900); }
+.fi-onglet.actif{ color:var(--marine-900); border-bottom-color:var(--action-primaire); }
+.fi-corps{ padding-top:18px; }
+
+.fi-fil{ list-style:none; margin:0; padding:0; position:relative; }
+.fi-fil::before{ content:""; position:absolute; left:15px; top:8px; bottom:8px; width:2px; background:var(--bordure-fine); }
+.fi-ev{ display:flex; gap:14px; padding:0 0 18px; position:relative; }
+.fi-point{ width:32px; height:32px; border-radius:50%; flex:none; display:grid; place-items:center; background:var(--surface-enfoncee); color:var(--texte-discret); position:relative; z-index:1; border:2px solid var(--surface-carte); }
+.fi-point .ic{ width:15px; height:15px; }
+.fi-ev--ok .fi-point{ background:var(--succes-100); color:var(--succes-600); }
+.fi-ev--ko .fi-point{ background:var(--urgence-100); color:var(--urgence-600); }
+.fi-ev--att .fi-point{ background:var(--alerte-100); color:var(--alerte-600); }
+.fi-ev--info .fi-point, .fi-ev--note .fi-point{ background:var(--info-100); color:var(--bleu-600); }
+.fi-txt{ font-weight:600; font-size:14px; color:var(--marine-900); padding-top:6px; }
+.fi-sous{ font-size:13px; color:var(--texte-discret); margin-top:2px; }
+.fi-cit{ margin:8px 0 0; padding:8px 12px; border-left:3px solid var(--bordure); background:var(--surface-enfoncee); border-radius:0 var(--rayon-champ) var(--rayon-champ) 0; font-size:13.5px; color:var(--texte-corps); white-space:pre-wrap; }
+.fi-ev time{ display:block; font-size:12px; color:var(--texte-discret); margin-top:6px; }
+
+.fi-table{ width:100%; }
+.fi-table td small{ display:block; font-size:12px; color:var(--texte-discret); margin-top:2px; }
+.fi-note-form{ display:flex; flex-direction:column; gap:10px; align-items:flex-end; margin-bottom:18px; }
+.fi-note-form textarea{ width:100%; box-sizing:border-box; resize:vertical; }
+.fi-note{ padding:12px 14px; border:1px solid var(--bordure-fine); border-radius:var(--rayon-champ); margin-bottom:10px; font-size:14px; white-space:pre-wrap; color:var(--texte-corps); }
+.fi-note .fi-sous{ margin:0 0 6px; }
+@media (max-width:640px){ .fi-tiroir{ padding:18px 16px 32px; } .fi-stats{ grid-template-columns:repeat(2, 1fr); } }

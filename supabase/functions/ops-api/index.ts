@@ -148,6 +148,52 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ workers: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Fiche complète d'un travailleur : tout ce qui s'est passé avec lui,
+    // reconstitué à partir des mandats, des refus, des évaluations, des
+    // notes de l'équipe et du journal d'audit.
+    if (action === "get_worker_profile") {
+      const { worker_id } = body;
+      if (!worker_id || !/^[0-9a-f-]{36}$/i.test(worker_id)) {
+        return new Response(JSON.stringify({ error: "worker_id invalide" }), { status: 400, headers: corsHeaders });
+      }
+      const lire = (chemin: string) => fetch(`${supabaseUrl}/rest/v1/${chemin}`, { headers: adminHeaders }).then((r) => r.ok ? r.json() : []);
+      const champsMandat = "id,description,status,estimated_cost,worker_pay,created_at,is_urgent,worker_notified_at,worker_response,worker_response_at,worker_response_note,response_reminder_sent,response_escalated,appointment_at,worker_reported_done_at,worker_completion_note,tenant_confirmed,units(unit_number,buildings(address))";
+      const [[worker], mandats, refuses, evaluations, notes, auditTravailleur] = await Promise.all([
+        lire(`worker_verification_status?id=eq.${worker_id}&select=*`),
+        lire(`work_orders?worker_id=eq.${worker_id}&select=${champsMandat}&order=created_at.desc&limit=100`),
+        lire(`work_orders?declined_worker_ids=cs.{${worker_id}}&select=id,description,created_at,units(unit_number,buildings(address))&order=created_at.desc&limit=50`),
+        lire(`worker_ratings?worker_id=eq.${worker_id}&select=*&order=created_at.desc`),
+        lire(`worker_notes?worker_id=eq.${worker_id}&select=id,body,created_at,users(email)&order=created_at.desc`),
+        lire(`audit_log?entity_id=eq.${worker_id}&select=action,actor_type,details,created_at&order=created_at.desc&limit=100`),
+      ]);
+      if (!worker) {
+        return new Response(JSON.stringify({ error: "Travailleur introuvable" }), { status: 404, headers: corsHeaders });
+      }
+      const idsMandats = mandats.map((m: { id: string }) => m.id);
+      const auditMandats = idsMandats.length
+        ? await lire(`audit_log?entity_id=in.(${idsMandats.join(",")})&select=action,actor_type,entity_id,details,created_at&order=created_at.desc&limit=200`)
+        : [];
+      return new Response(JSON.stringify({ worker, mandats, refuses, evaluations, notes, audit: [...auditTravailleur, ...auditMandats] }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "add_worker_note") {
+      const { worker_id, note } = body;
+      const texte = String(note ?? "").trim();
+      if (!worker_id || !texte || texte.length > 4000) {
+        return new Response(JSON.stringify({ error: "Note vide ou trop longue" }), { status: 400, headers: corsHeaders });
+      }
+      const res = await fetch(`${supabaseUrl}/rest/v1/worker_notes`, {
+        method: "POST",
+        headers: { ...adminHeaders, Prefer: "return=minimal" },
+        body: JSON.stringify({ worker_id, body: texte, author_user_id: userId }),
+      });
+      if (!res.ok) {
+        return new Response(JSON.stringify({ error: `Note non enregistrée : ${(await res.text()).slice(0, 200)}` }), { status: 502, headers: corsHeaders });
+      }
+      await logAudit("worker.note_added", "workers", worker_id, {});
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "create_worker") {
       const { name, specialty, phone, email, rbq_license, requires_rbq } = body;
       if (!name) {
@@ -170,7 +216,10 @@ Deno.serve(async (req) => {
 
       let insuranceDocumentId: string | null = null;
       if (insurance_base64) {
-        const path = `workers/${worker_id}/${Date.now()}-${insurance_filename || "assurance"}`;
+        // Nom de fichier réduit à l'ASCII : Storage refuse les clés avec
+        // accents ou espaces (« Preuve d'assurance.pdf »).
+        const nom = (insurance_filename || "assurance").normalize("NFD").replace(/[^\w.-]+/g, "_");
+        const path = `workers/${worker_id}/${Date.now()}-${nom}`;
         const bytes = Uint8Array.from(atob(insurance_base64), (c) => c.charCodeAt(0));
         const uploadRes = await fetch(`${supabaseUrl}/storage/v1/object/documents/${path}`, {
           method: "POST",
@@ -181,15 +230,22 @@ Deno.serve(async (req) => {
           },
           body: bytes,
         });
-        if (uploadRes.ok) {
-          const docRes = await fetch(`${supabaseUrl}/rest/v1/documents`, {
-            method: "POST",
-            headers: { ...adminHeaders, Prefer: "return=representation" },
-            body: JSON.stringify({ title: `Preuve d'assurance — travailleur ${worker_id}`, doc_type: "assurance_travailleur", file_url: path }),
-          });
-          const [doc] = await docRes.json();
-          insuranceDocumentId = doc?.id ?? null;
+        // Un échec ici répondait quand même « ok » : l'écran confirmait,
+        // et le travailleur restait non conforme sans que personne le sache.
+        if (!uploadRes.ok) {
+          const detail = await uploadRes.text().catch(() => "");
+          return new Response(JSON.stringify({ error: `Téléversement de l'assurance refusé (${uploadRes.status}) ${detail}`.slice(0, 300) }), { status: 502, headers: corsHeaders });
         }
+        const docRes = await fetch(`${supabaseUrl}/rest/v1/documents`, {
+          method: "POST",
+          headers: { ...adminHeaders, Prefer: "return=representation" },
+          body: JSON.stringify({ title: `Preuve d'assurance — travailleur ${worker_id}`, doc_type: "assurance_travailleur", file_url: path }),
+        });
+        const docs = await docRes.json().catch(() => null);
+        if (!docRes.ok || !Array.isArray(docs) || !docs[0]?.id) {
+          return new Response(JSON.stringify({ error: `Fiche du document d'assurance non créée : ${JSON.stringify(docs).slice(0, 250)}` }), { status: 502, headers: corsHeaders });
+        }
+        insuranceDocumentId = docs[0].id;
       }
 
       const patch: Record<string, unknown> = {};
