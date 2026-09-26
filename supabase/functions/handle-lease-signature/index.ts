@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 
 Deno.serve(async (req) => {
@@ -140,12 +141,12 @@ Deno.serve(async (req) => {
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
+          body: JSON.stringify(avecHtml({
             from: EXPEDITEUR,
             to: [lease.tenants.email],
             subject: "Confirmation de signature — renouvellement de bail",
             text: `Bonjour ${lease.tenants.full_name || ""},\n\nNous confirmons la réception de votre signature électronique concernant le renouvellement de votre bail au ${lease.units?.buildings?.address || ""}, unité ${lease.units?.unit_number || ""}, signée le ${new Date(signedAt).toLocaleString("fr-CA")}.\n\nCeci constitue une confirmation officielle. Conservez ce courriel pour vos dossiers.\n\n— L'équipe Lease Lane`,
-          }),
+          })),
         }).catch((e) => console.error("Failed to send signature confirmation email", e));
       }
 

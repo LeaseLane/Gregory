@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 Deno.serve(async (req) => {
   try {
@@ -50,12 +51,12 @@ Deno.serve(async (req) => {
           await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
+            body: JSON.stringify(avecHtml({
               from: EXPEDITEUR,
               to: adminEmails,
               subject: `Suivi humain requis — loyer impayé, unité ${unit?.unit_number || ""}`,
               text: `${tenant.full_name} (${tenant.email}) n'a pas payé le loyer dû le ${payment.due_date} (${payment.amount} $) malgré 3 rappels automatiques envoyés à ${address || ""}, unité ${unit?.unit_number || ""}.\n\nAucun autre rappel automatique ne sera envoyé à ce locataire pour ce paiement. Un suivi humain (appel, entente, mise en demeure si applicable) est requis.`,
-            }),
+            }, { pied: POURQUOI.admin })),
           });
         }
       } catch (e) {
@@ -131,12 +132,12 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         Authorization: `Bearer ${resendKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
+      body: JSON.stringify(avecHtml({
         from: EXPEDITEUR,
         to: [tenant.email],
         subject: parsed.subject,
         text: parsed.body,
-      }),
+      })),
     });
 
     // Portail Concierge — en plus du courriel, un SMS pour un retard

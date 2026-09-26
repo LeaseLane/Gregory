@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 // L'IA classe le sentiment d'un texte déjà écrit par un humain — elle
@@ -145,12 +146,12 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
           await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
+            body: JSON.stringify(avecHtml({
               from: EXPEDITEUR,
               to: adminEmails,
               subject: `⚠ Signal d'insatisfaction à traiter (${subject_type === "owner" ? "propriétaire" : "locataire"})`,
               text: `Un signal d'insatisfaction a été détecté et nécessite ton attention.\n\nSource : ${source}\nExtrait : "${content.slice(0, 500)}"\n\nAnalyse IA (sentiment : ${sentiment}) : ${parsed.reasoning || "aucune explication fournie"}\n\nCeci est une classification automatique à titre indicatif — la décision d'action revient à l'équipe. Voir la section "Signaux d'insatisfaction" du portail admin.`,
-            }),
+            }, { pied: POURQUOI.admin })),
           });
         }
       } catch (e) {

@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 
@@ -106,7 +107,7 @@ Deno.serve(async (req) => {
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ from: EXPEDITEUR, to: emails, subject, text }),
+          body: JSON.stringify(avecHtml({ from: EXPEDITEUR, to: emails, subject, text }, { pied: POURQUOI.admin })),
         });
       } catch (e) {
         console.error("Failed to notify admins", e);
