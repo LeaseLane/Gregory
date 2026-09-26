@@ -1,4 +1,5 @@
 import { corsHeadersFor } from "../_shared/auth.ts";
+import { IA_MESSAGES_URL, IA_CLE } from "../_shared/ia.ts";
 // find-prospects-ai : recherche web réelle (jamais inventée) de
 // propriétaires-gestionnaires (immeubles à logements qu'ils gèrent
 // eux-mêmes) au Québec, via Claude + l'outil serveur web_search.
@@ -138,10 +139,10 @@ Une fois ta recherche terminée, appelle l'outil "submit_prospects" avec les pro
       },
     ];
 
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(IA_MESSAGES_URL, {
       method: "POST",
       headers: {
-        "x-api-key": anthropicKey ?? "",
+        "x-api-key": IA_CLE,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
