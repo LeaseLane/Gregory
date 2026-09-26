@@ -1,5 +1,6 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 // L'IA classe le sentiment d'un texte déjà écrit par un humain — elle
 // n'invente jamais un motif d'insatisfaction et ne décide jamais seule
 // d'escalader. La décision d'escalade est un seuil fixe et
@@ -14,7 +15,7 @@ import { corsHeadersFor } from "../_shared/auth.ts";
 // serveur (cron, webhooks, autre fonction edge) n'envoient pas
 // d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
 
-const MODEL_VERSION = "claude-haiku-4-5-20251001";
+const MODEL_VERSION = MODELE_RAPIDE;
 const PROMPT_VERSION = "satisfaction-signal-v1";
 const ESCALATION_WINDOW_DAYS = 14;
 const NEGATIVE_PATTERN_THRESHOLD = 2;
@@ -52,9 +53,9 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 }`;
 
     const aiStartedAt = Date.now();
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(IA_MESSAGES_URL, {
       method: "POST",
-      headers: { "x-api-key": anthropicKey ?? "", "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({ model: MODEL_VERSION, max_tokens: 300, messages: [{ role: "user", content: prompt }] }),
     });
     const aiData = await aiRes.json();

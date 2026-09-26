@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 Deno.serve(async (req) => {
   try {
     const { payment_id, reminder_type } = await req.json();
@@ -101,15 +102,15 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
   "body": "un courriel bref, poli et professionnel en français (3-4 phrases). Si c'est un retard, reste courtois mais clair sur l'importance de régulariser rapidement et d'entrer en contact si besoin. Si c'est préventif, ton simplement informatif et amical. Signé 'L'équipe Lease Lane'."
 }`;
 
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(IA_MESSAGES_URL, {
       method: "POST",
       headers: {
-        "x-api-key": anthropicKey ?? "",
+        "x-api-key": IA_CLE,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: MODELE_RAPIDE,
         max_tokens: 512,
         messages: [{ role: "user", content: prompt }],
       }),

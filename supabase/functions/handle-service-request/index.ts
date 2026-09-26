@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 // Règles de sécurité déterministes : ne dépendent JAMAIS de l'IA.
 // Si l'une de ces situations est détectée dans la description du
 // locataire, l'urgence est forcée à "urgence" même si Claude évalue
@@ -18,7 +19,7 @@ function checkSafetyOverride(description: string) {
   return SAFETY_RULES.filter((r) => r.pattern.test(text));
 }
 
-const MODEL_VERSION = "claude-haiku-4-5-20251001";
+const MODEL_VERSION = MODELE_RAPIDE;
 const PROMPT_VERSION = "service-request-v3-photos";
 const MAX_PHOTOS = 5;
 
@@ -138,10 +139,10 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
   "risk_if_no_action": "le risque concret en une phrase si la situation n'est pas traitée rapidement"
 }`;
 
-      const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+      const aiRes = await fetch(IA_MESSAGES_URL, {
         method: "POST",
         headers: {
-          "x-api-key": anthropicKey ?? "",
+          "x-api-key": IA_CLE,
           "anthropic-version": "2023-06-01",
           "content-type": "application/json",
         },

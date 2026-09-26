@@ -1,5 +1,6 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 
 const AMOUNT_TOLERANCE = 3; // écart en dollars toléré comme "exact" (frais/arrondis bancaires)
 
@@ -363,10 +364,10 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
   "confidence": un nombre entre 0 et 100,
   "note": "une phrase expliquant ton raisonnement, ou pourquoi ce dépôt ne peut pas être identifié"
 }`;
-            const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+            const aiRes = await fetch(IA_MESSAGES_URL, {
               method: "POST",
-              headers: { "x-api-key": anthropicKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-              body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 300, messages: [{ role: "user", content: prompt }] }),
+              headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+              body: JSON.stringify({ model: MODELE_RAPIDE, max_tokens: 300, messages: [{ role: "user", content: prompt }] }),
             });
             const aiData = await aiRes.json();
             const rawText = aiData.content?.[0]?.text ?? "{}";
@@ -380,7 +381,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
               method: "POST", headers: adminHeaders,
               body: JSON.stringify({
                 function_name: "reconcile-bank-transactions", trigger_source: "admin_csv_import", entity_type: "bank_transactions",
-                prompt_version: "bank-reconciliation-v2-scored", model_version: "claude-haiku-4-5-20251001",
+                prompt_version: "bank-reconciliation-v2-scored", model_version: MODELE_RAPIDE,
                 input_summary: `${description} — ${amount} $`, output_summary: parsed.suggested_tenant_name ?? "aucune piste",
                 confidence: typeof parsed.confidence === "number" ? parsed.confidence : null,
                 needs_escalation: true,
