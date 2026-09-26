@@ -2,7 +2,7 @@
 //
 // POURQUOI CE MODULE. Le domaine était écrit en dur 85 fois dans le dépôt :
 // 12 constantes SITE_BASE_URL/*_PORTAL_URL réparties dans 9 fonctions, et
-// 31 expéditeurs « onboarding@mail.portailgestion.ca ». Renommer Portail en
+// 31 expéditeurs « onboarding@ » sur l'ancien domaine. Renommer Portail en
 // Lease Lane supposait donc 85 modifications, chacune une occasion d'en
 // oublier une — et une URL oubliée dans un courriel envoie l'usager sur un
 // domaine mort.
@@ -23,9 +23,9 @@
 //
 // POURQUOI BASCULER MAINTENANT plutôt que de vérifier l'ancien domaine.
 // Constaté le 2026-09-11 dans audit_log : Resend refuse TOUS les envois
-// avec « The mail.portailgestion.ca domain is not verified ». Aucun
+// avec « domain is not verified » (ancien domaine d'envoi). Aucun
 // courriel n'est donc jamais parti — ni alertes, ni rappels de loyer, ni
-// mandats travailleur. Vérifier mail.portailgestion.ca aurait été du
+// mandats travailleur. Vérifier l'ancien domaine d'envoi aurait été du
 // travail jetable puisque le produit s'appelle Lease Lane.
 // ───────────────────────────────────────────────────────────────────
 
@@ -35,12 +35,8 @@ export const DOMAINE = "leaselane.ca";
 // Nom affiché dans les courriels et les pages. Bascule AVANT le domaine :
 // renommer la marque visible ne dépend d'aucun DNS.
 //
-// Basculé le 2026-09-11. Les clients lisent donc « Lease Lane » dans les
-// courriels, alors que les LIENS de ces courriels pointent encore vers
-// portailgestion.ca — c'est voulu et c'est le seul état cohérent tant que
-// P9 n'est pas fait : un lien vers leaselane.ca mènerait aujourd'hui à une
-// page stationnée chez Namecheap (vérifié à nouveau le 2026-09-11,
-// mail.leaselane.ca est toujours en NXDOMAIN).
+// Basculé le 2026-09-11, avec le domaine (lot P9). L'ancien domaine a été
+// retiré du dépôt et de la configuration Supabase Auth le 2026-09-26.
 //
 // L'alternative — garder « Portail » — était pire : Grégory signe déjà
 // greg@leaselane.ca et communique sous ce nom à ses clients.

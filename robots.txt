@@ -5,4 +5,4 @@ Disallow: /confirmer-visite.html
 Disallow: /reponse-travailleur.html
 Disallow: /signer-bail.html
 
-Sitemap: https://portailgestion.ca/sitemap.xml
+Sitemap: https://leaselane.ca/sitemap.xml

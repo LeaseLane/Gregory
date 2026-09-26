@@ -115,6 +115,26 @@ jobs:
         with:
           version: latest
 
+      - name: Vérifier l'URL de Supabase Auth
+        # Le réglage « Site URL » vit dans le tableau de bord Supabase, pas
+        # dans le dépôt. Resté sur l'ancien domaine après la bascule, il
+        # renvoyait tous les liens de connexion (impersonation, mot de
+        # passe oublié, invitations) vers un site mort — constaté le
+        # 2026-09-26, trois semaines plus tard. On lit donc la vraie
+        # valeur à chaque déploiement.
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          cfg=$(curl -sf "https://api.supabase.com/v1/projects/${REF}/config/auth" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}")
+          site=$(printf '%s' "$cfg" | python3 -c "import json,sys;print(json.load(sys.stdin).get('site_url') or '')")
+          liste=$(printf '%s' "$cfg" | python3 -c "import json,sys;print(json.load(sys.stdin).get('uri_allow_list') or '')")
+          echo "site_url : $site"
+          echo "redirections : $liste"
+          [ "$site" = "https://leaselane.ca" ] || { echo "::error::Site URL de Supabase Auth = « $site », attendu https://leaselane.ca"; exit 1; }
+          case "$liste" in *leaselane.ca*) ;; *) echo "::error::leaselane.ca absent des redirections autorisées de Supabase Auth"; exit 1;; esac
+
       - name: Déployer en production
         # Les sources vivent dans supabase/functions/<nom>/index.ts —
         # la structure attendue nativement par la CLI Supabase, donc

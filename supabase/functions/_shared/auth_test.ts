@@ -14,7 +14,7 @@ const req = (auth?: string) =>
 
 Deno.test("origine non autorisée retombe sur l'origine canonique", () => {
   // L'origine canonique se DÉDUIT de la liste plutôt que d'être écrite en
-  // dur : ce test figeait « portailgestion.ca » et a échoué à la bascule
+  // dur : ce test figeait l'ancien domaine et a échoué à la bascule
   // du 2026-09-11, alors que le comportement testé n'avait pas changé.
   const canonique = ALLOWED_ORIGINS[0];
   assertEquals(corsHeadersFor("https://evil.test")["Access-Control-Allow-Origin"], canonique);
@@ -29,12 +29,11 @@ Deno.test("origine autorisée est reflétée, avec Vary: Origin", () => {
   }
 });
 
-Deno.test("l'ancien domaine reste accepté pendant la transition", () => {
-  // Les liens déjà envoyés par courriel pointent encore vers
-  // portailgestion.ca. Les retirer de la liste ferait échouer les appels
-  // des pages atteintes par un ancien lien, sans message compréhensible.
-  assert(ALLOWED_ORIGINS.includes("https://portailgestion.ca"));
+Deno.test("seules les origines leaselane.ca sont acceptées", () => {
+  // L'ancien domaine a été retiré le 2026-09-26 : il n'héberge plus rien,
+  // et le garder ouvrait une origine sans propriétaire actif.
   assert(ALLOWED_ORIGINS.includes("https://leaselane.ca"));
+  for (const o of ALLOWED_ORIGINS) assert(/^https:\/\/(www\.)?leaselane\.ca$/.test(o), `origine inattendue : ${o}`);
 });
 
 Deno.test("jeton falsifié est rejeté (critère d'acceptation P3)", async () => {

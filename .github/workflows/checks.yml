@@ -27,6 +27,9 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Aucune mention de l'ancien domaine
+        run: node scripts/check-ancien-domaine.mjs
+
       - name: Règles d'accès — audit statique (lot P6)
         # Interdit de réintroduire les défauts trouvés à l'audit : policy
         # UPDATE sans WITH CHECK, table sans RLS, helper sans

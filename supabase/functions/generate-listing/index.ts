@@ -1,4 +1,4 @@
-import { EXPEDITEUR } from "../_shared/branding.ts";
+import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 // Marketplace (Facebook) n'a pas d'API publique de publication — cette
 // fonction ne publie donc rien elle-même. Dès qu'une annonce est
@@ -6,7 +6,6 @@ import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 // Marketplace (titre/prix/description, assemblés déterministiquement à
 // partir du même contenu déjà validé par l'IA — pas un second appel
 // IA) et avise l'équipe par courriel qu'il ne reste qu'à publier.
-const SITE_BASE_URL = "https://portailgestion.ca";
 
 Deno.serve(async (req) => {
   try {

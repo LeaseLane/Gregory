@@ -720,7 +720,7 @@ Deno.serve(async (req) => {
     // unité fictifs partagés — pour accéder à chaque portail directement
     // avec un vrai mot de passe permanent, sans repasser par tous les
     // formulaires d'onboarding un par un à chaque fois. Idempotent : repéré
-    // par courriel fixe (demo-*@portailgestion.ca) — si le compte existe
+    // par courriel fixe (demo-*@leaselane.test) — si le compte existe
     // déjà, son mot de passe est simplement régénéré plutôt que d'en créer
     // un doublon.
     if (action === "seed_demo_accounts") {
@@ -757,7 +757,7 @@ Deno.serve(async (req) => {
       try {
         const DEMO_ZONE = "Démo";
 
-        const ownerAuth = await upsertAuthUser("demo-proprietaire@portailgestion.ca");
+        const ownerAuth = await upsertAuthUser("demo-proprietaire@leaselane.test");
         const ownerRowRes = await fetch(`${supabaseUrl}/rest/v1/owners?user_id=eq.${ownerAuth.id}&select=id`, { headers: adminHeaders });
         let [owner] = await ownerRowRes.json().catch(() => [null]);
         if (!owner) {
@@ -790,13 +790,13 @@ Deno.serve(async (req) => {
           [unit] = await insertRes.json();
         }
 
-        const tenantAuth = await upsertAuthUser("demo-locataire@portailgestion.ca", "tenant");
+        const tenantAuth = await upsertAuthUser("demo-locataire@leaselane.test", "tenant");
         const tenantRowRes = await fetch(`${supabaseUrl}/rest/v1/tenants?user_id=eq.${tenantAuth.id}&select=id`, { headers: adminHeaders });
         const [existingTenant] = await tenantRowRes.json().catch(() => [null]);
         if (!existingTenant) {
           const insertRes = await fetch(`${supabaseUrl}/rest/v1/tenants`, {
             method: "POST", headers: { ...adminHeaders, Prefer: "return=representation" },
-            body: JSON.stringify({ user_id: tenantAuth.id, full_name: "Locataire Démo", email: "demo-locataire@portailgestion.ca" }),
+            body: JSON.stringify({ user_id: tenantAuth.id, full_name: "Locataire Démo", email: "demo-locataire@leaselane.test" }),
           });
           const [newTenant] = await insertRes.json();
           await fetch(`${supabaseUrl}/rest/v1/leases`, {
@@ -805,27 +805,27 @@ Deno.serve(async (req) => {
           });
         }
 
-        const callerAuth = await upsertAuthUser("demo-cold-caller@portailgestion.ca", "caller");
+        const callerAuth = await upsertAuthUser("demo-cold-caller@leaselane.test", "caller");
         const callerRowRes = await fetch(`${supabaseUrl}/rest/v1/cold_callers?user_id=eq.${callerAuth.id}&select=id`, { headers: adminHeaders });
         const [existingCaller] = await callerRowRes.json().catch(() => [null]);
         if (!existingCaller) {
           await fetch(`${supabaseUrl}/rest/v1/cold_callers`, {
             method: "POST", headers: adminHeaders,
-            body: JSON.stringify({ user_id: callerAuth.id, full_name: "Prospecteur Démo", email: "demo-cold-caller@portailgestion.ca" }),
+            body: JSON.stringify({ user_id: callerAuth.id, full_name: "Prospecteur Démo", email: "demo-cold-caller@leaselane.test" }),
           });
         }
 
         // Créé directement par un admin (pas une auto-inscription publique
         // via pro.html) donc auto-vérifié — sinon aucun mandat ne lui
         // serait jamais envoyé par le moteur de dispatch.
-        const workerAuth = await upsertAuthUser("demo-travailleur@portailgestion.ca", "worker");
+        const workerAuth = await upsertAuthUser("demo-travailleur@leaselane.test", "worker");
         const workerRowRes = await fetch(`${supabaseUrl}/rest/v1/workers?user_id=eq.${workerAuth.id}&select=id`, { headers: adminHeaders });
         const [existingWorker] = await workerRowRes.json().catch(() => [null]);
         if (!existingWorker) {
           await fetch(`${supabaseUrl}/rest/v1/workers`, {
             method: "POST", headers: adminHeaders,
             body: JSON.stringify({
-              user_id: workerAuth.id, name: "Travailleur Démo", email: "demo-travailleur@portailgestion.ca",
+              user_id: workerAuth.id, name: "Travailleur Démo", email: "demo-travailleur@leaselane.test",
               specialties: ["plomberie", "electricite", "serrurerie", "cvac"], zones: [DEMO_ZONE],
               hourly_rate: 65, handles_urgent: true, verification_status: "verified",
               verified_at: new Date().toISOString(), verified_by: userId, availability_status: "maintenant",
@@ -838,16 +838,16 @@ Deno.serve(async (req) => {
         }
 
         await logAudit("admin.seed_demo_accounts", "users", null, {
-          emails: ["demo-proprietaire@portailgestion.ca", "demo-locataire@portailgestion.ca", "demo-cold-caller@portailgestion.ca", "demo-travailleur@portailgestion.ca"],
+          emails: ["demo-proprietaire@leaselane.test", "demo-locataire@leaselane.test", "demo-cold-caller@leaselane.test", "demo-travailleur@leaselane.test"],
         });
 
         return new Response(JSON.stringify({
           ok: true,
           accounts: [
-            { role: "Propriétaire", email: "demo-proprietaire@portailgestion.ca", temp_password: ownerAuth.password, portal_url: PORTAILS.proprietaire },
-            { role: "Locataire", email: "demo-locataire@portailgestion.ca", temp_password: tenantAuth.password, portal_url: PORTAILS.locataire },
-            { role: "Prospecteur téléphonique", email: "demo-cold-caller@portailgestion.ca", temp_password: callerAuth.password, portal_url: PORTAILS.coldCaller },
-            { role: "Travailleur", email: "demo-travailleur@portailgestion.ca", temp_password: workerAuth.password, portal_url: PORTAILS.travailleur },
+            { role: "Propriétaire", email: "demo-proprietaire@leaselane.test", temp_password: ownerAuth.password, portal_url: PORTAILS.proprietaire },
+            { role: "Locataire", email: "demo-locataire@leaselane.test", temp_password: tenantAuth.password, portal_url: PORTAILS.locataire },
+            { role: "Prospecteur téléphonique", email: "demo-cold-caller@leaselane.test", temp_password: callerAuth.password, portal_url: PORTAILS.coldCaller },
+            { role: "Travailleur", email: "demo-travailleur@leaselane.test", temp_password: workerAuth.password, portal_url: PORTAILS.travailleur },
           ],
         }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (e) {

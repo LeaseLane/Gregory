@@ -1,4 +1,4 @@
-import { EXPEDITEUR } from "../_shared/branding.ts";
+import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
@@ -493,7 +493,7 @@ Deno.serve(async (req) => {
 
       if (tenant?.email && confirmationToken) {
         const address = wo.units?.buildings?.address;
-        const confirmUrl = `https://portailgestion.ca/confirmer-reparation.html?wo=${work_order_id}&token=${confirmationToken}`;
+        const confirmUrl = `${SITE_BASE_URL}/confirmer-reparation.html?wo=${work_order_id}&token=${confirmationToken}`;
         try {
           await fetch("https://api.resend.com/emails", {
             method: "POST",
@@ -708,7 +708,7 @@ Deno.serve(async (req) => {
       });
       const [visit] = await insertRes.json();
 
-      const confirmUrl = `https://portailgestion.ca/confirmer-visite.html?visit=${visit?.id}&token=${visit?.confirmation_token}`;
+      const confirmUrl = `${SITE_BASE_URL}/confirmer-visite.html?visit=${visit?.id}&token=${visit?.confirmation_token}`;
       const whenLabel = new Date(proposed_at).toLocaleString("fr-CA", { dateStyle: "full", timeStyle: "short" });
       await fetch("https://api.resend.com/emails", {
         method: "POST",

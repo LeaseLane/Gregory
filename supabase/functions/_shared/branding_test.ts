@@ -36,7 +36,7 @@ Deno.test("les adresses Reply-To restent sur le domaine racine", () => {
 });
 
 Deno.test("le domaine et le CNAME de GitHub Pages restent d'accord", () => {
-  // La garde d'origine figeait DOMAINE sur portailgestion.ca tant que P9
+  // La garde d'origine figeait DOMAINE sur l'ancien domaine tant que P9
   // n'était pas fait. P9 étant fait (2026-09-11), elle est remplacée
   // plutôt que supprimée : ce qui compte maintenant n'est plus « ne pas
   // basculer » mais « ne pas basculer À MOITIÉ ».

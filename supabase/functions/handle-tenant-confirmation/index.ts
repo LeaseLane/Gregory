@@ -1,4 +1,4 @@
-import { EXPEDITEUR } from "../_shared/branding.ts";
+import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 // Ferme la dernière étape manquante du cycle de réparation : le
 // locataire confirme que le travail est bien réglé avant que le
@@ -12,7 +12,6 @@ import { corsHeadersFor } from "../_shared/auth.ts";
 // serveur (cron, webhooks, autre fonction edge) n'envoient pas
 // d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
 
-const SITE_BASE_URL = "https://portailgestion.ca";
 
 Deno.serve(async (req) => {
   const corsHeaders = corsHeadersFor(req.headers.get("origin"));

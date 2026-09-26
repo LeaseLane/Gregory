@@ -35,8 +35,8 @@ SaaS de gestion immobilière résidentielle, construit sur Supabase (Postgres + 
 
 ## Domaine et hébergement
 
-- Domaine : `portailgestion.ca`, configuré via le fichier `CNAME` à la racine + GitHub Pages.
-- DNS géré chez Namecheap (courriel transactionnel via Resend, domaine expéditeur `mail.portailgestion.ca`).
+- Domaine : `leaselane.ca`, configuré via le fichier `CNAME` à la racine + GitHub Pages.
+- DNS géré chez Namecheap (courriel transactionnel via Resend, domaine expéditeur `mail.leaselane.ca`).
 - Sauvegardes de la base de données : voir [`docs/BACKUPS.md`](./docs/BACKUPS.md).
 
 ## Secrets requis (configurés dans Supabase → Edge Functions → Secrets, jamais commités dans ce repo)

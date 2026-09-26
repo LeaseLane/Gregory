@@ -11,7 +11,7 @@ Ce document pose le plan. L'exécution se fait par étapes séparées, chacune v
 - 13 portails/pages en HTML statique avec JavaScript inline (`<script>` dans la page), aucune étape de build, aucun bundler, aucun système de types.
 - `portail-admin.html` à lui seul fait 2930 lignes (le plus gros morceau — normal, c'est lui qui contient le plus d'actions).
 - 38 fonctions edge Supabase (Deno, TypeScript déjà) — celles-ci n'ont **pas** besoin d'être réécrites en Next.js ; Next.js est un framework frontend/serveur web, pas un remplacement pour des edge functions Deno.
-- Hébergement statique actuel (CNAME → `portailgestion.ca`), pas de serveur Node en production aujourd'hui.
+- Hébergement statique actuel (CNAME → `leaselane.ca`), pas de serveur Node en production aujourd'hui.
 - Aucun `package.json`, aucune dépendance npm dans le repo actuellement.
 - Chaque portail appelle Supabase directement via le client JS (`@supabase/supabase-js` chargé par CDN), sans couche d'abstraction ni de types partagés.
 
@@ -19,7 +19,7 @@ Ce document pose le plan. L'exécution se fait par étapes séparées, chacune v
 
 Ne pas réécrire les 13 portails d'un coup. À la place :
 
-1. **Un seul nouveau projet Next.js**, déployé à côté de l'existant (ex: sous-domaine `app.portailgestion.ca` ou un chemin distinct), qui ne remplace RIEN au départ.
+1. **Un seul nouveau projet Next.js**, déployé à côté de l'existant (ex: sous-domaine `app.leaselane.ca` ou un chemin distinct), qui ne remplace RIEN au départ.
 2. **Migrer un portail à la fois**, en commençant par l'admin (`portail-admin.html`) puisque c'est explicitement "refonte admin" dans la roadmap, et que c'est le portail interne (pas client-facing) — le risque d'une régression y est moins grave qu'un bris du portail locataire ou propriétaire.
 3. **Chaque portail migré reste optionnel/basculable** tant que la nouvelle version n'a pas prouvé sa fiabilité en usage réel — garder l'ancien fichier HTML accessible en secours pendant la transition, ne pas supprimer tant que la nouvelle version n'a pas tourné sans incident pendant au moins quelques semaines.
 4. **Les edge functions ne changent pas.** Le frontend Next.js les appelle exactement comme le fait le HTML actuel aujourd'hui (`supabase.functions.invoke(...)`) — aucune migration de logique métier requise à cette étape.

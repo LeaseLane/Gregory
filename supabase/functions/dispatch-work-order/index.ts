@@ -1,4 +1,4 @@
-import { EXPEDITEUR } from "../_shared/branding.ts";
+import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 // Moteur de dispatch Lease Lane Pro — trouve automatiquement les travailleurs
 // admissibles à un work_order et leur diffuse le mandat par paliers de
@@ -23,7 +23,6 @@ import { corsHeadersFor } from "../_shared/auth.ts";
 // serveur (cron, webhooks, autre fonction edge) n'envoient pas
 // d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
 
-const SITE_BASE_URL = "https://portailgestion.ca";
 const NORMAL_TIER_TIMEOUT_MINUTES = 20;
 const URGENT_TIMEOUT_MINUTES = 8;
 const WORKERS_PER_TIER = 3;

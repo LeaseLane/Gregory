@@ -16,8 +16,6 @@
 export const ALLOWED_ORIGINS = [
   "https://leaselane.ca",
   "https://www.leaselane.ca",
-  "https://portailgestion.ca",
-  "https://www.portailgestion.ca",
 ];
 
 export function corsHeadersFor(origin: string | null) {
