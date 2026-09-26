@@ -53,7 +53,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Historique complet : le commit visé est probablement ancien, et
           # un clone superficiel ne le contiendrait pas.
