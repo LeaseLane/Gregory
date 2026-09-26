@@ -111,6 +111,7 @@
   }
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
+<script src="assets/ui.js"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -756,7 +757,7 @@ async function saveSpendingCap(){
 async function decideApproval(id, decision){
   let rejection_note = null;
   if(decision === 'rejected'){
-    rejection_note = prompt("Optionnel — précise la raison du refus ou une solution temporaire à proposer au locataire (laisse vide si aucune) :") || null;
+    rejection_note = await llDemander("Optionnel — précise la raison du refus ou une solution temporaire à proposer au locataire (laisse vide si aucune) :") || null;
   }
   await supabaseClient.from('approvals').update({ status: decision, decided_at: new Date().toISOString(), rejection_note }).eq('id', id);
   await loadApprovals();
@@ -790,7 +791,7 @@ async function loadAutomatedDecisions(){
 }
 
 async function requestDecisionReview(id){
-  const note = prompt("Explique brièvement pourquoi tu demandes une révision de cette décision (optionnel) :") || null;
+  const note = await llDemander("Explique brièvement pourquoi tu demandes une révision de cette décision (optionnel) :") || null;
   await supabaseClient.from('automated_decisions').update({ review_requested_at: new Date().toISOString(), review_note: note }).eq('id', id);
   await loadAutomatedDecisions();
 }
@@ -850,7 +851,7 @@ async function requestAnotherQuote(approvalId){
 }
 
 async function askApprovalQuestion(approvalId){
-  const question = prompt('Ta question au sujet de cette approbation :');
+  const question = await llDemander('Ta question au sujet de cette approbation :');
   if(!question) return;
   await supabaseClient.from('messages').insert({
     owner_id: ownerRecord.id,

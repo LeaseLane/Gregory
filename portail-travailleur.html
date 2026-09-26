@@ -111,6 +111,7 @@
   }
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
+<script src="assets/ui.js"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -511,7 +512,7 @@ async function loadAutomatedDecisions(){
 }
 
 async function requestDecisionReview(id){
-  const note = prompt("Explique brièvement pourquoi tu demandes une révision de cette décision (optionnel) :") || null;
+  const note = await llDemander("Explique brièvement pourquoi tu demandes une révision de cette décision (optionnel) :") || null;
   await supabaseClient.from('automated_decisions').update({ review_requested_at: new Date().toISOString(), review_note: note }).eq('id', id);
   await loadAutomatedDecisions();
 }
