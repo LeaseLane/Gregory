@@ -1220,3 +1220,13 @@ body.fi-ouvert .fi-tiroir{ transform:none; }
   .pp-demande{ flex-direction:column; }
   .pp-large{ grid-column:auto; }
 }
+
+/* Bouton « Parcourir » natif des champs fichier, aux couleurs de la charte (tous les portails). */
+input[type=file]{ font:400 13px/1.2 var(--police-texte); color:var(--texte-discret); cursor:pointer; }
+input[type=file]::file-selector-button{
+  margin-right:10px; padding:6px 12px; cursor:pointer;
+  border:1px solid var(--bordure); border-radius:var(--rayon-pilule);
+  background:var(--bleu-025); color:var(--marine-900); font:500 12.5px/1 var(--police-texte);
+  transition:border-color .15s, color .15s;
+}
+input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire); color:var(--action-primaire); }
