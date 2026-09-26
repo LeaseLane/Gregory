@@ -1062,3 +1062,39 @@ h3.sous-titre{ font-size:1.15em !important; margin:26px 0 10px !important; }
 }
 .tr-pied .ll-bouton:disabled{ opacity:.6; cursor:wait; }
 .tr-entete{ margin-bottom:18px; }
+
+/* ═══════ TRAVAILLEURS — TABLEAU ═══════ */
+.tr-outils{ display:flex; flex-wrap:wrap; gap:10px; margin:0 0 14px; }
+.tr-recherche{ flex:1 1 280px; display:flex; align-items:center; gap:8px; padding:0 12px; border:1px solid var(--bordure); border-radius:var(--rayon-champ); background:var(--surface-carte); }
+.tr-recherche:focus-within{ border-color:var(--bordure-focus); box-shadow:var(--lueur-focus); }
+.tr-recherche .ic{ width:16px; height:16px; color:var(--texte-discret); flex:none; }
+.tr-recherche input{ border:none; box-shadow:none !important; flex:1; min-width:0; padding:10px 0; background:transparent; }
+.tr-outils select{ flex:0 1 220px; }
+.tr-triable{ cursor:pointer; user-select:none; white-space:nowrap; }
+.tr-triable:hover{ color:var(--marine-900); }
+.tr-fleche{ margin-left:6px; font-size:9px; opacity:.45; }
+.tr-trie{ color:var(--marine-900); }
+.tr-trie .tr-fleche{ opacity:1; color:var(--action-primaire); }
+.tr-table td{ vertical-align:middle; }
+.tr-table td small{ display:block; font-size:12px; color:var(--texte-discret); }
+.tr-contact{ font-size:13.5px; overflow-wrap:anywhere; }
+.tr-ligne{ cursor:pointer; }
+.tr-ligne--inactive{ opacity:.6; }
+.tr-ligne--ouverte{ background:var(--bleu-025); }
+.tr-ligne--ouverte td{ border-bottom-color:transparent; }
+.tr-chev{ width:36px; text-align:right; color:var(--texte-discret); }
+.tr-chev .ic{ width:16px; height:16px; transition:transform .15s; }
+.tr-ligne--ouverte .tr-chev .ic{ transform:rotate(180deg); }
+.tr-detail > td{ background:var(--bleu-025); padding:4px 20px 18px !important; }
+.tr-detail .tr-alerte{ margin-top:0; }
+.tr-sous{ margin:14px 0 12px; font:600 13.5px/1.3 var(--police-texte); letter-spacing:0; text-transform:none; color:var(--marine-900); }
+.tr-detail tbody tr:hover, .tr-detail:hover{ background:none; }
+@media (max-width:760px){
+  .tr-table thead{ display:none; }
+  .tr-table, .tr-table tbody, .tr-table tr, .tr-table td{ display:block; width:100%; }
+  .tr-table tr.tr-ligne{ padding:10px 0; border-top:1px solid var(--bordure-fine); position:relative; }
+  .tr-table td{ border:none; padding:4px 16px; text-align:left !important; }
+  .tr-table td[data-libelle]:not(:first-child){ display:flex; justify-content:space-between; gap:12px; }
+  .tr-table td[data-libelle]:not(:first-child)::before{ content:attr(data-libelle); font-size:12.5px; color:var(--texte-discret); }
+  .tr-chev{ position:absolute; top:18px; right:6px; width:auto; }
+}

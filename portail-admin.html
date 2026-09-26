@@ -2609,9 +2609,33 @@ function basculerFormTravailleur(ouvrir){
   if(!f.hidden) document.getElementById('wk-name').focus();
 }
 
+const trEtat = { q: '', statut: '', spec: '', tri: 'nom', sens: 1, ouverts: new Set() };
+const trRaisons = w => [
+  w.missing_rbq_license && 'licence RBQ manquante',
+  w.rbq_expired && 'licence RBQ expirée',
+  w.missing_insurance_doc && 'preuve d\'assurance manquante',
+  w.insurance_expired && 'assurance expirée',
+].filter(Boolean);
+const trStatut = w => w.active === false ? 'inactif' : trRaisons(w).length ? 'ko' : 'ok';
+const trSpecs = w => [w.specialty, ...(w.specialties || [])].filter((v, i, a) => v && a.indexOf(v) === i);
+
 async function loadWorkersAdmin(){
   const data = await callOpsApi({ action: 'list_workers' });
   workersDirectory = data?.workers || [];
+  renderTravailleurs();
+}
+
+function trTrier(col){
+  trEtat.sens = trEtat.tri === col ? -trEtat.sens : (col === 'nom' || col === 'spec' ? 1 : -1);
+  trEtat.tri = col;
+  renderTravailleurs();
+}
+function trBasculer(id){
+  trEtat.ouverts.has(id) ? trEtat.ouverts.delete(id) : trEtat.ouverts.add(id);
+  renderTravailleurs();
+}
+
+function renderTravailleurs(){
   const container = document.getElementById('workers-body');
   if(!container) return;
   const resume = document.getElementById('tr-resume');
@@ -2621,82 +2645,104 @@ async function loadWorkersAdmin(){
     container.innerHTML = '<p class="tr-vide">Aucun travailleur pour l\'instant. Ajoute le premier ci-dessus.</p>';
     return;
   }
-  const raisons = w => [
-    w.missing_rbq_license && 'licence RBQ manquante',
-    w.rbq_expired && 'licence RBQ expirée',
-    w.missing_insurance_doc && 'preuve d\'assurance manquante',
-    w.insurance_expired && 'assurance expirée',
-  ].filter(Boolean);
-  const nbConformes = workersDirectory.filter(w => w.active !== false && !raisons(w).length).length;
+  const nb = st => workersDirectory.filter(w => trStatut(w) === st).length;
   const nbAttente = workersDirectory.filter(w => w.verification_status === 'pending').length;
   if(resume) resume.innerHTML = `
     <span><b>${workersDirectory.length}</b> travailleur${workersDirectory.length > 1 ? 's' : ''}</span>
-    <span class="tr-pastille tr-pastille--ok"><b>${nbConformes}</b> peu${nbConformes > 1 ? 'vent' : 't'} recevoir des mandats</span>
-    ${workersDirectory.length - nbConformes ? `<span class="tr-pastille tr-pastille--ko"><b>${workersDirectory.length - nbConformes}</b> à régulariser</span>` : ''}
+    <span class="tr-pastille tr-pastille--ok"><b>${nb('ok')}</b> peu${nb('ok') > 1 ? 'vent' : 't'} recevoir des mandats</span>
+    ${nb('ko') ? `<span class="tr-pastille tr-pastille--ko"><b>${nb('ko')}</b> à régulariser</span>` : ''}
     ${nbAttente ? `<span class="tr-pastille tr-pastille--att"><b>${nbAttente}</b> dossier${nbAttente > 1 ? 's' : ''} Pro en attente</span>` : ''}`;
 
-  container.innerHTML = workersDirectory.map(w => {
-    const r = raisons(w);
-    const inactif = w.active === false;
-    const initiales = (w.name || '?').split(/\s+/).map(m => m[0]).join('').slice(0, 2).toUpperCase();
-    const specialites = [w.specialty, ...(w.specialties || [])].filter((v, i, a) => v && a.indexOf(v) === i);
-    const pastilles = [
-      inactif ? '<span class="tr-pastille tr-pastille--ko">Désactivé</span>'
-        : r.length ? '<span class="tr-pastille tr-pastille--ko">Non conforme</span>'
-        : '<span class="tr-pastille tr-pastille--ok"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg>Conforme</span>',
-      (w.rbq_expiring_soon || w.insurance_expiring_soon) ? '<span class="tr-pastille tr-pastille--att">Expire bientôt</span>' : '',
-      w.verification_status === 'pending' ? '<span class="tr-pastille tr-pastille--att">Pro — en attente</span>'
-        : w.verification_status === 'rejected' ? '<span class="tr-pastille tr-pastille--ko">Pro — refusé</span>'
-        : w.verification_status === 'verified' ? '<span class="tr-pastille tr-pastille--info">Pro — vérifié</span>' : '',
-    ].join('');
-    const infos = [
-      w.phone && `<span><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>${esc(w.phone)}</span>`,
-      w.email ? `<span><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>${esc(w.email)}</span>`
-        : '<span class="tr-manque"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>Aucun courriel — ne recevra pas les offres</span>',
-      (w.zones || []).length && `<span><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#map-pin"/></svg>${esc(w.zones.join(', '))}</span>`,
-      w.hourly_rate != null && `<span>${Number(w.hourly_rate).toLocaleString('fr-CA')} $/h</span>`,
-    ].filter(Boolean).join('');
-    return `
-    <article class="tr-carte${inactif ? ' tr-carte--inactif' : ''}">
-      <header class="tr-tete">
-        <span class="tr-avatar" aria-hidden="true">${esc(initiales)}</span>
-        <div class="tr-ident">
-          <h3>${esc(w.name)}${w.company_name ? ` <small>${esc(w.company_name)}</small>` : ''}</h3>
-          <div class="tr-specs">${specialites.length ? specialites.map(s => `<span class="tr-spec">${esc(libelleSpecialite[s] || s)}</span>`).join('') : '<span class="tr-manque">Spécialité non précisée</span>'}</div>
-        </div>
-        <div class="tr-pastilles">${pastilles}</div>
-      </header>
-      <div class="tr-infos">${infos}</div>
-      <div class="tr-stats">
-        <div><b>${w.completed_jobs_count ?? 0}</b><span>complétés</span></div>
-        <div><b>${w.declined_jobs_count ?? 0}</b><span>refusés</span></div>
-        <div><b>${w.ratings_count ? '★ ' + w.avg_rating : '—'}</b><span>${w.ratings_count ? w.ratings_count + ' avis' : 'pas d\'avis'}</span></div>
-      </div>
-      ${r.length && !inactif ? `<div class="tr-alerte"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg><span>Ne peut pas recevoir de mandats : ${esc(r.join(', '))}.</span></div>` : ''}
-      <details class="tr-verif"${r.length && !inactif ? ' open' : ''}>
-        <summary><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg>Licence RBQ et assurance<svg class="ic tr-chevron" aria-hidden="true"><use href="assets/icones.svg#chevron-down"/></svg></summary>
-        <div class="tr-grille">
-          <label>Licence RBQ<input type="text" id="wk-lic-${w.id}" value="${esc(w.rbq_license) || ''}"></label>
-          <label>Expiration RBQ<input type="date" id="wk-licexp-${w.id}" value="${w.rbq_license_expiry || ''}"></label>
-          <label>Expiration assurance<input type="date" id="wk-insexp-${w.id}" value="${w.insurance_expiry || ''}"></label>
-          <label>Preuve d'assurance${w.insurance_document_id ? ' <em>✓ au dossier</em>' : ''}<input type="file" id="wk-insfile-${w.id}" accept=".pdf,image/*"></label>
-          <label class="tr-large">Notes<input type="text" id="wk-notes-${w.id}" value="${esc(w.verification_notes) || ''}"></label>
-          <label class="tr-case"><input type="checkbox" id="wk-req-${w.id}" ${w.requires_rbq ? 'checked' : ''}> Métier réglementé (RBQ requise)</label>
-        </div>
-        <div class="tr-actions"><button class="ll-bouton ll-bouton--primaire" onclick="saveWorkerVerification('${w.id}')">Enregistrer la vérification</button></div>
-      </details>
-      <footer class="tr-pied">
-        ${w.verification_status === 'pending' ? `
-          <button class="ll-bouton ll-bouton--primaire" onclick="verifyWorkerPro('${w.id}','verified')">Approuver le dossier Pro</button>
-          <button class="ll-bouton ll-bouton--secondaire" onclick="verifyWorkerPro('${w.id}','rejected')">Refuser</button>` : ''}
-        ${w.user_id ? `<button class="ll-bouton ll-bouton--secondaire" data-role="worker" data-target-id="${esc(w.id)}" onclick="impersonateFromButton(this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#eye"/></svg>Voir son portail</button>` : ''}
-        <span class="tr-espace"></span>
-        ${inactif
-          ? `<button class="ll-bouton ll-bouton--secondaire" onclick="toggleWorkerActive('${w.id}', true)">Réactiver</button>`
-          : `<button class="tr-lien-danger" onclick="toggleWorkerActive('${w.id}', false)">Désactiver</button>`}
-      </footer>
-    </article>`;
-  }).join('');
+  const toutesSpecs = [...new Set(workersDirectory.flatMap(trSpecs))].sort();
+  const q = trEtat.q.trim().toLowerCase();
+  const rangStatut = { ko: 0, ok: 1, inactif: 2 };
+  const cle = {
+    nom: w => (w.name || '').toLowerCase(),
+    spec: w => (trSpecs(w)[0] || '~').toLowerCase(),
+    statut: w => rangStatut[trStatut(w)],
+    jobs: w => w.completed_jobs_count || 0,
+    note: w => w.ratings_count ? Number(w.avg_rating) : -1,
+  }[trEtat.tri];
+  const liste = workersDirectory
+    .filter(w => !q || [w.name, w.email, w.phone, w.company_name, ...trSpecs(w)].some(v => (v || '').toLowerCase().includes(q)))
+    .filter(w => !trEtat.statut || (trEtat.statut === 'pro' ? w.verification_status === 'pending' : trStatut(w) === trEtat.statut))
+    .filter(w => !trEtat.spec || trSpecs(w).includes(trEtat.spec))
+    .sort((x, y) => { const a = cle(x), b = cle(y); return (a < b ? -1 : a > b ? 1 : 0) * trEtat.sens; });
+
+  const entete = (col, libelle, cls = '') => `<th class="tr-triable ${cls}${trEtat.tri === col ? ' tr-trie' : ''}" onclick="trTrier('${col}')" aria-sort="${trEtat.tri === col ? (trEtat.sens > 0 ? 'ascending' : 'descending') : 'none'}">${libelle}<span class="tr-fleche">${trEtat.tri === col ? (trEtat.sens > 0 ? '▲' : '▼') : '↕'}</span></th>`;
+  const pastilleStatut = w => ({
+    inactif: '<span class="tr-pastille">Désactivé</span>',
+    ko: `<span class="tr-pastille tr-pastille--ko" title="${esc(trRaisons(w).join(', '))}">Non conforme</span>`,
+    ok: '<span class="tr-pastille tr-pastille--ok"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg>Conforme</span>',
+  })[trStatut(w)] + (w.verification_status === 'pending' ? ' <span class="tr-pastille tr-pastille--att">Pro en attente</span>' : '');
+
+  // La saisie de recherche n'est pas recréée : sinon elle perd le focus
+  // à chaque frappe.
+  if(!document.getElementById('tr-outils')){
+    container.insertAdjacentHTML('beforebegin', `
+    <div id="tr-outils" class="tr-outils">
+      <label class="tr-recherche"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#search"/></svg><input type="search" id="tr-q" placeholder="Rechercher un nom, un courriel, un téléphone…" oninput="trEtat.q=this.value;renderTravailleurs()"></label>
+      <select id="tr-f-statut" onchange="trEtat.statut=this.value;renderTravailleurs()">
+        <option value="">Tous les statuts</option><option value="ok">Conformes</option><option value="ko">À régulariser</option><option value="pro">Dossier Pro en attente</option><option value="inactif">Désactivés</option>
+      </select>
+      <select id="tr-f-spec" onchange="trEtat.spec=this.value;renderTravailleurs()"></select>
+    </div>`);
+  }
+  const selSpec = document.getElementById('tr-f-spec');
+  selSpec.innerHTML = '<option value="">Toutes les spécialités</option>' + toutesSpecs.map(x => `<option value="${esc(x)}"${x === trEtat.spec ? ' selected' : ''}>${esc(libelleSpecialite[x] || x)}</option>`).join('');
+
+  if(!liste.length){
+    container.innerHTML = '<p class="tr-vide">Aucun travailleur ne correspond à ces critères.</p>';
+    return;
+  }
+  container.innerHTML = `
+  <table class="tr-table">
+    <thead><tr>
+      ${entete('nom', 'Travailleur')}${entete('spec', 'Spécialité')}<th>Contact</th>${entete('statut', 'Statut')}${entete('jobs', 'Complétés', 'num')}${entete('note', 'Note', 'num')}<th></th>
+    </tr></thead>
+    <tbody>${liste.map(w => {
+      const ouvert = trEtat.ouverts.has(w.id);
+      const initiales = (w.name || '?').split(/\s+/).map(m => m[0]).join('').slice(0, 2).toUpperCase();
+      return `
+      <tr class="tr-ligne${ouvert ? ' tr-ligne--ouverte' : ''}${w.active === false ? ' tr-ligne--inactive' : ''}" onclick="trBasculer('${w.id}')">
+        <td data-libelle="Travailleur"><div class="cl-client"><span class="tr-avatar" aria-hidden="true">${esc(initiales)}</span><div><b>${esc(w.name)}</b>${w.company_name ? `<small>${esc(w.company_name)}</small>` : ''}</div></div></td>
+        <td data-libelle="Spécialité"><div class="tr-specs">${trSpecs(w).map(x => `<span class="tr-spec">${esc(libelleSpecialite[x] || x)}</span>`).join('') || '<span class="tr-manque">—</span>'}</div></td>
+        <td data-libelle="Contact" class="tr-contact">${w.email ? esc(w.email) : '<span class="tr-manque">aucun courriel</span>'}${w.phone ? `<small>${esc(w.phone)}</small>` : ''}</td>
+        <td data-libelle="Statut">${pastilleStatut(w)}</td>
+        <td data-libelle="Complétés" class="num">${w.completed_jobs_count ?? 0}${w.declined_jobs_count ? `<small>${w.declined_jobs_count} refusé${w.declined_jobs_count > 1 ? 's' : ''}</small>` : ''}</td>
+        <td data-libelle="Note" class="num">${w.ratings_count ? `★ ${w.avg_rating}<small>${w.ratings_count} avis</small>` : '—'}</td>
+        <td class="tr-chev"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-down"/></svg></td>
+      </tr>
+      ${ouvert ? `<tr class="tr-detail"><td colspan="7">${trDetail(w)}</td></tr>` : ''}`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+function trDetail(w){
+  const r = trRaisons(w);
+  const inactif = w.active === false;
+  return `
+    ${r.length && !inactif ? `<div class="tr-alerte"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg><span>Ne peut pas recevoir de mandats : ${esc(r.join(', '))}.</span></div>` : ''}
+    <h4 class="tr-sous">Licence RBQ et assurance</h4>
+    <div class="tr-grille">
+      <label>Licence RBQ<input type="text" id="wk-lic-${w.id}" value="${esc(w.rbq_license) || ''}"></label>
+      <label>Expiration RBQ<input type="date" id="wk-licexp-${w.id}" value="${w.rbq_license_expiry || ''}"></label>
+      <label>Expiration assurance<input type="date" id="wk-insexp-${w.id}" value="${w.insurance_expiry || ''}"></label>
+      <label>Preuve d'assurance${w.insurance_document_id ? ' <em>✓ au dossier</em>' : ''}<input type="file" id="wk-insfile-${w.id}" accept=".pdf,image/*"></label>
+      <label class="tr-large">Notes<input type="text" id="wk-notes-${w.id}" value="${esc(w.verification_notes) || ''}"></label>
+      <label class="tr-case"><input type="checkbox" id="wk-req-${w.id}" ${w.requires_rbq ? 'checked' : ''}> Métier réglementé (RBQ requise)</label>
+    </div>
+    <footer class="tr-pied">
+      <button class="ll-bouton ll-bouton--primaire" onclick="saveWorkerVerification('${w.id}')">Enregistrer la vérification</button>
+      ${w.verification_status === 'pending' ? `
+        <button class="ll-bouton ll-bouton--secondaire" onclick="verifyWorkerPro('${w.id}','verified')">Approuver le dossier Pro</button>
+        <button class="ll-bouton ll-bouton--secondaire" onclick="verifyWorkerPro('${w.id}','rejected')">Refuser</button>` : ''}
+      ${w.user_id ? `<button class="ll-bouton ll-bouton--secondaire" data-role="worker" data-target-id="${esc(w.id)}" onclick="impersonateFromButton(this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#eye"/></svg>Voir son portail</button>` : ''}
+      <span class="tr-espace"></span>
+      ${inactif
+        ? `<button class="ll-bouton ll-bouton--secondaire" onclick="toggleWorkerActive('${w.id}', true)">Réactiver</button>`
+        : `<button class="tr-lien-danger" onclick="toggleWorkerActive('${w.id}', false)">Désactiver</button>`}
+    </footer>`;
 }
 
 async function verifyWorkerPro(worker_id, decision){
