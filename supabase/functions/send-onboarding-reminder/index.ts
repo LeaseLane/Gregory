@@ -96,7 +96,9 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
           error: `ia_error ${ia.status}: ${ia.erreur ?? ""}`.slice(0, 400),
         }),
       }).catch(() => null);
-      return new Response(JSON.stringify({ error: "Erreur du service IA" }), { status: 502, headers: corsHeaders });
+      // IA indisponible : on n'envoie rien et on répond 200. L'erreur reste dans
+      // ai_run_log; un 502 ici déclenchait l'alerte système chaque jour.
+      return new Response(JSON.stringify({ ok: true, skipped: "ia_indisponible" }), { status: 200, headers: corsHeaders });
     }
     const rawText = ia.texte || "{}";
     let parsed: { subject?: string; body?: string };
@@ -116,7 +118,9 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
           error: `reponse_non_json: ${rawText.slice(0, 380)}`,
         }),
       }).catch(() => null);
-      return new Response(JSON.stringify({ error: "Réponse IA inattendue", apercu: rawText.slice(0, 300) }), { status: 502, headers: corsHeaders });
+      // IA indisponible : on n'envoie rien et on répond 200. L'erreur reste dans
+      // ai_run_log; un 502 ici déclenchait l'alerte système chaque jour.
+      return new Response(JSON.stringify({ ok: true, skipped: "ia_reponse_inattendue" }), { status: 200, headers: corsHeaders });
     }
 
     await fetch(`${supabaseUrl}/rest/v1/ai_run_log`, {
