@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     const whenLabel = new Date(visit.proposed_at).toLocaleString("fr-CA", { dateStyle: "full", timeStyle: "short" });
 
     if (action === "send_reminder") {
-      const confirmUrl = `${SITE_BASE_URL}/confirmer-visite.html?visit=${visit_id}&token=${visit.confirmation_token}`;
+      const confirmUrl = `${SITE_BASE_URL}/confirmer-visite?visit=${visit_id}&token=${visit.confirmation_token}`;
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },

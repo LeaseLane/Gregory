@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: false, error: "no worker email" }), { status: 200 });
     }
 
-    const responseUrl = `${SITE_BASE_URL}/reponse-travailleur.html?wo=${workOrder.id}&token=${workOrder.worker_response_token}`;
+    const responseUrl = `${SITE_BASE_URL}/reponse-travailleur?wo=${workOrder.id}&token=${workOrder.worker_response_token}`;
 
     const extraLines: string[] = [];
     if (workOrder.appointment_at) extraLines.push(`Rendez-vous proposé : ${new Date(workOrder.appointment_at).toLocaleString("fr-CA")}`);

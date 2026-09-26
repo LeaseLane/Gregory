@@ -141,7 +141,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
       // La signature électronique n'a de sens que si le locataire doit
       // manifester son accord (renouvellement, augmentation) — pas pour
       // un non-renouvellement, qui est une simple notification.
-      const signatureUrl = `${SITE_BASE_URL}/signer-bail.html?lease=${lease_id}&token=${signatureToken}`;
+      const signatureUrl = `${SITE_BASE_URL}/signer-bail?lease=${lease_id}&token=${signatureToken}`;
       const signatureLine = notice_type !== "non_renouvellement"
         ? `\n\nPour confirmer votre accord, signez électroniquement ici : ${signatureUrl}`
         : "";

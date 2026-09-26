@@ -1,8 +1,8 @@
 User-agent: *
 Allow: /
-Disallow: /confirmer-reparation.html
-Disallow: /confirmer-visite.html
-Disallow: /reponse-travailleur.html
-Disallow: /signer-bail.html
+Disallow: /confirmer-reparation
+Disallow: /confirmer-visite
+Disallow: /reponse-travailleur
+Disallow: /signer-bail
 
 Sitemap: https://leaselane.ca/sitemap.xml

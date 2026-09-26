@@ -45,13 +45,13 @@ export const MARQUE = "Lease Lane";
 export const SITE_BASE_URL = `https://${DOMAINE}`;
 
 export const PORTAILS = {
-  proprietaire: `${SITE_BASE_URL}/portail-proprietaire.html`,
-  locataire: `${SITE_BASE_URL}/portail-locataire.html`,
-  travailleur: `${SITE_BASE_URL}/portail-travailleur.html`,
-  coldCaller: `${SITE_BASE_URL}/portail-cold-caller.html`,
-  admin: `${SITE_BASE_URL}/portail-admin.html`,
-  app: `${SITE_BASE_URL}/app.html`,
-  pro: `${SITE_BASE_URL}/pro.html`,
+  proprietaire: `${SITE_BASE_URL}/app`,
+  locataire: `${SITE_BASE_URL}/app`,
+  travailleur: `${SITE_BASE_URL}/app`,
+  coldCaller: `${SITE_BASE_URL}/portail-cold-caller`,
+  admin: `${SITE_BASE_URL}/app`,
+  app: `${SITE_BASE_URL}/app`,
+  pro: `${SITE_BASE_URL}/pro`,
 } as const;
 
 // Sous-domaine d'envoi, distinct du domaine du site : c'est lui qui porte

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<base href="/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lease Lane — Admin</title>
@@ -93,7 +94,7 @@
   </div>
   <div class="login-box-wrap">
   <div class="login-box">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Admin</div>
     <div class="f"><label for="login-email">Courriel</label><input type="email" id="login-email"></div>
     <div class="f"><label for="login-password">Mot de passe</label><input type="password" id="login-password"></div>
@@ -103,7 +104,7 @@
   </div>
 
   <div class="login-box" id="reset-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Réinitialiser le mot de passe</div>
     <div class="f"><label for="reset-email">Courriel</label><input type="email" id="reset-email"></div>
     <button onclick="sendResetLink()">Envoyer le lien</button>
@@ -113,7 +114,7 @@
   </div>
 
   <div class="login-box" id="newpw-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Choisir un nouveau mot de passe</div>
     <div class="f"><label for="newpw-value">Nouveau mot de passe</label><input type="password" id="newpw-value"></div>
     <button onclick="confirmNewPassword()">Confirmer</button>
@@ -126,7 +127,7 @@
        anti-verrouillage (transitoire par conception) devient l'état
        permanent. -->
   <div class="login-box" id="mfa-enroll-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Activer la double authentification</div>
     <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Ouvre ton application d'authentification (Google Authenticator, Authy, 1Password…) et scanne ce code. Elle affichera ensuite un code à 6 chiffres qui change toutes les 30 secondes.</p>
     <div id="mfa-qr" style="text-align:center;margin-bottom:12px;"></div>
@@ -142,7 +143,7 @@
 
   <!-- Défi : le compte a déjà un facteur vérifié. -->
   <div class="login-box" id="mfa-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Vérification en deux étapes</div>
     <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Entre le code affiché par ton application d'authentification.</p>
     <div class="f"><label for="mfa-code">Code à 6 chiffres</label><input type="text" id="mfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}"></div>
@@ -616,14 +617,14 @@
 
       <section id="blog" class="section">
     <div class="toolbar"><h1 >Articles</h1><button onclick="openBlogForm()" class="ll-bouton ll-bouton--primaire">Nouvel article</button></div>
-    <p class="subtitle" style="margin-bottom:16px;">Publiés sur <a href="blog.html" target="_blank">le blogue public</a>. Un brouillon n'est visible que dans cet onglet.</p>
+    <p class="subtitle" style="margin-bottom:16px;">Publiés sur <a href="/blog" target="_blank">le blogue public</a>. Un brouillon n'est visible que dans cet onglet.</p>
 
     <div id="blog-form-box" style="display:none;background:var(--paper-2);border:1px solid var(--line);padding:16px 18px;margin-bottom:24px;">
       <h2 id="blog-form-title" style="font-size:15px;margin-bottom:14px;">Nouvel article</h2>
       <input type="hidden" id="blog-post-id">
       <div style="margin-bottom:10px;"><label class="ch-label">Titre</label>
         <input id="blog-title" type="text" oninput="blogAutoSlug()" style="width:100%;padding:9px;border:1px solid var(--line);font-size:13.5px;"></div>
-      <div style="margin-bottom:10px;"><label class="ch-label">Slug (URL — blog.html?article=...)</label>
+      <div style="margin-bottom:10px;"><label class="ch-label">Slug (URL — /blog?article=...)</label>
         <input id="blog-slug" type="text" oninput="blogSlugManuallyEdited = true" style="width:100%;padding:9px;border:1px solid var(--line);font-size:13.5px;font-family:var(--police-mono);"></div>
       <div style="margin-bottom:10px;"><label class="ch-label">Résumé (optionnel — affiché dans la liste des articles)</label>
         <textarea id="blog-excerpt" style="width:100%;padding:9px;border:1px solid var(--line);font-size:13.5px;min-height:50px;"></textarea></div>
@@ -927,7 +928,7 @@ function showNewPasswordForm(){
 async function sendResetLink(){
   const email = document.getElementById('reset-email').value;
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.href.split('#')[0].split('?')[0],
+    redirectTo: window.location.origin + '/portail-admin.html',
   });
   const errEl = document.getElementById('reset-error');
   const okEl = document.getElementById('reset-success');
@@ -4065,5 +4066,6 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
+<script src="assets/url-propre.js"></script>
 </body>
 </html>

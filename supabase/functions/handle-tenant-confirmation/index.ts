@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       if (!tenant?.email) {
         return new Response(JSON.stringify({ ok: true, skipped: "no tenant email" }), { status: 200, headers: corsHeaders });
       }
-      const confirmUrl = `${SITE_BASE_URL}/confirmer-reparation.html?wo=${work_order_id}&token=${wo.tenant_confirmation_token}`;
+      const confirmUrl = `${SITE_BASE_URL}/confirmer-reparation?wo=${work_order_id}&token=${wo.tenant_confirmation_token}`;
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },

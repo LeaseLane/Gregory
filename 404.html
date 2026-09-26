@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lease Lane</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/assets/leaselane.css">
+<script src="/assets/charger-portail.js"></script>
+<script>
+// /app/<onglet> n'existe pas comme fichier : on recharge le dernier portail
+// ouvert, qui lit l'onglet dans l'adresse (assets/url-propre.js).
+(function () {
+  if (!/^\/app\//.test(location.pathname)) return;
+  var p = null;
+  try { p = localStorage.getItem('ll-portail'); } catch (e) {}
+  document.documentElement.style.visibility = 'hidden';
+  if (p) llCharger(p).catch(function () { location.replace('/app'); });
+  else location.replace('/app');
+})();
+</script>
+</head>
+<body style="font-family:var(--police-texte);background:var(--surface-page,#f7f8fa);display:grid;place-items:center;min-height:100vh;margin:0;text-align:center;">
+  <main>
+    <h1>Page introuvable</h1>
+    <p><a href="/">Retour à l'accueil</a> · <a href="/app">Mon espace</a></p>
+  </main>
+</body>
+</html>

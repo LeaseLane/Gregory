@@ -129,7 +129,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 
     const address = unit.buildings?.address || "";
     const finalRent = parsed.suggested_rent ?? avgRent ?? unit.rent ?? null;
-    const visitUrl = `${SITE_BASE_URL}/formulaires-gestion-immobiliere.html?type=visite&unit=${unit_id}`;
+    const visitUrl = `${SITE_BASE_URL}/formulaires-gestion-immobiliere?type=visite&unit=${unit_id}`;
 
     // Assemblage déterministe — pas un second appel IA. Le contenu vient
     // entièrement de "parsed" (déjà validé par les règles anti-

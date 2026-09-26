@@ -68,13 +68,13 @@
 
 <header>
   <nav class="wrap">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:34px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:34px;width:auto;display:block;"></a></div>
     <button class="nav-toggle" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="navlinks"><span></span><span></span><span></span></button>
     <div class="navlinks" id="navlinks">
-      <a href="index.html">Accueil</a>
-      <a href="index.html#tarification">Tarification</a>
-      <a href="index.html#apropos">À propos</a>
-      <a href="blog.html" class="current">Blog</a>
+      <a href="/">Accueil</a>
+      <a href="/#tarification">Tarification</a>
+      <a href="/#apropos">À propos</a>
+      <a href="/blog" class="current">Blog</a>
     </div>
   </nav>
 </header>
@@ -95,7 +95,7 @@
 <div id="article-view" style="display:none;">
   <div class="article-head">
     <div class="wrap">
-      <a class="back" href="blog.html">&larr; Tous les articles</a>
+      <a class="back" href="/blog">&larr; Tous les articles</a>
       <p class="meta" id="article-meta"></p>
       <h1 id="article-title"></h1>
     </div>
@@ -107,7 +107,7 @@
 <footer>
   <div class="wrap">
     <span>Lease Lane — gestion immobilière · Grande région de Québec</span>
-    <span><a href="index.html">Retour à l'accueil</a></span>
+    <span><a href="/">Retour à l'accueil</a></span>
   </div>
 </footer>
 
@@ -145,7 +145,7 @@ async function loadPostsList(){
     const cover = coverUrl(p.cover_photo_path);
     const card = document.createElement('a');
     card.className = 'post-card';
-    card.href = `blog.html?article=${encodeURIComponent(p.slug)}`;
+    card.href = `/blog?article=${encodeURIComponent(p.slug)}`;
     card.innerHTML = `
       ${cover ? `<div class="thumb"><img src="${cover}" alt=""></div>` : `<div class="thumb">Lease Lane</div>`}
       <div class="body">

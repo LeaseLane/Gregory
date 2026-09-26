@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<base href="/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lease Lane propriétaire</title>
@@ -127,7 +128,7 @@
   </div>
   <div class="login-box-wrap">
   <div class="login-box">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Espace propriétaire</div>
     <div class="config-warning" id="config-warning">
       SUPABASE_URL / SUPABASE_ANON_KEY ne sont pas configurés dans ce fichier — remplace les valeurs en haut du &lt;script&gt; avant de tester la connexion.
@@ -140,7 +141,7 @@
   </div>
 
   <div class="login-box" id="reset-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Réinitialiser le mot de passe</div>
     <div class="f"><label for="reset-email">Courriel</label><input type="email" id="reset-email"></div>
     <button onclick="sendResetLink()">Envoyer le lien</button>
@@ -150,7 +151,7 @@
   </div>
 
   <div class="login-box" id="newpw-box" style="display:none;">
-    <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+    <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
     <div class="sub">Choisir un nouveau mot de passe</div>
     <div class="f"><label for="newpw-value">Nouveau mot de passe</label><input type="password" id="newpw-value"></div>
     <button onclick="confirmNewPassword()">Confirmer</button>
@@ -163,7 +164,7 @@
 <div id="app-shell">
   <div class="shell">
     <aside>
-      <div class="brand"><a href="index.html" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+      <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
       <span class="brand-sub">Espace propriétaire</span>
       <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#layout-grid"/></svg><span>Vue d'ensemble</span></button>
       <button class="tab-btn" data-tab="buildings" onclick="showTab('buildings')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#building-2"/></svg><span>Immeubles</span></button>
@@ -441,7 +442,7 @@ function showNewPasswordForm(){
 async function sendResetLink(){
   const email = document.getElementById('reset-email').value;
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.href.split('#')[0].split('?')[0],
+    redirectTo: window.location.origin + '/portail-proprietaire.html',
   });
   const errEl = document.getElementById('reset-error');
   const okEl = document.getElementById('reset-success');
@@ -472,7 +473,7 @@ async function handleLogin(){
 
 async function handleSignOut(){
   if(supabaseClient) await supabaseClient.auth.signOut();
-  window.location.replace('app.html');
+  llQuitterPortail();
 }
 
 function showLoginError(msg){
@@ -1308,5 +1309,6 @@ function showTab(id){
 
 init();
 </script>
+<script src="assets/url-propre.js"></script>
 </body>
 </html>
