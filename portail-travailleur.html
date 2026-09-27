@@ -112,9 +112,9 @@
     main{padding:20px 16px;max-width:100%;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609272033">
-<script src="assets/charger-portail.js?v=202609272033"></script>
-<script src="assets/ui.js?v=202609272033"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609272040">
+<script src="assets/charger-portail.js?v=202609272040"></script>
+<script src="assets/ui.js?v=202609272040"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -236,55 +236,71 @@
         <p class="subtitle" id="profile-status-note">—</p>
 
         <div class="lo-conf" id="conf-etat"></div>
-        <div class="profile-form pp-carte">
-          <div class="row">
-            <div class="f"><label for="pf-company">Nom / entreprise</label><input type="text" id="pf-company" placeholder="Optionnel si tu travailles à ton nom"></div>
-            <div class="f"><label for="pf-neq">NEQ</label><input type="text" id="pf-neq" placeholder="Si applicable"></div>
+        <div class="pf-grille">
+          <div class="pp-carte">
+            <h3 class="pf-titre"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#building-2"/></svg>Mon entreprise</h3>
+            <div class="fo-ligne">
+              <div><label class="ch-label" for="pf-company">Nom ou entreprise</label><input type="text" id="pf-company" placeholder="Optionnel si tu travailles à ton nom"></div>
+              <div><label class="ch-label" for="pf-neq">NEQ</label><input type="text" id="pf-neq" placeholder="Si applicable"></div>
+            </div>
           </div>
-          <div class="f">
-            <label for="pf-specialties">Métiers (séparés par des virgules)</label>
-            <input type="text" id="pf-specialties" placeholder="ex. plomberie, electricite">
-            <p class="hint">Utilise les catégories exactes que Lease Lane utilise : plomberie, electricite, cvac, serrurerie, structure.</p>
-          </div>
-          <div class="f">
-            <label for="pf-zones">Zones desservies (séparées par des virgules)</label>
-            <input type="text" id="pf-zones" placeholder="ex. Limoilou, Vieux-Québec">
-          </div>
-          <div class="row">
-            <div class="f"><label for="pf-hourly-rate">Taux horaire ($)</label><input type="number" id="pf-hourly-rate" step="0.01"></div>
-            <div class="f"><label for="pf-travel-fee">Frais de déplacement ($)</label><input type="number" id="pf-travel-fee" step="0.01"></div>
-          </div>
-          <div class="checkbox-row"><input type="checkbox" id="pf-urgent"><label for="pf-urgent" style="margin:0;">Je prends des mandats urgents</label></div>
-          <div class="f"><label for="pf-payout-email">Courriel de versement (Interac)</label><input type="email" id="pf-payout-email"></div>
 
-          <h2>Disponibilité hebdomadaire</h2>
-          <p class="hint" style="margin-bottom:10px;">Laisse vide un jour où tu n'es pas disponible.</p>
-          <div class="schedule-grid" id="schedule-grid"></div>
+          <div class="pp-carte">
+            <h3 class="pf-titre"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wrench"/></svg>Mes métiers</h3>
+            <p class="pf-aide">Coche ce que tu fais : on t'envoie seulement les travaux qui correspondent.</p>
+            <div class="pf-puces" id="pf-metiers"></div>
+            <label class="ch-label" for="pf-zones" style="margin-top:14px">Zones desservies <small>(séparées par des virgules)</small></label>
+            <input type="text" id="pf-zones" placeholder="Ex. : Lévis, Québec, Saint-Nicolas">
+          </div>
 
-          <button class="submit" onclick="saveProfile()">Enregistrer le profil</button>
+          <div class="pp-carte">
+            <h3 class="pf-titre"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#banknote"/></svg>Tarifs et versements</h3>
+            <div class="fo-ligne">
+              <div><label class="ch-label" for="pf-hourly-rate">Taux horaire ($)</label><input type="number" id="pf-hourly-rate" step="0.01" min="0"></div>
+              <div><label class="ch-label" for="pf-travel-fee">Frais de déplacement ($)</label><input type="number" id="pf-travel-fee" step="0.01" min="0"></div>
+            </div>
+            <label class="ch-label" for="pf-payout-email" style="margin-top:12px">Courriel de versement Interac</label>
+            <input type="email" id="pf-payout-email" placeholder="Où on t'envoie tes paiements">
+            <label class="pf-bascule"><input type="checkbox" id="pf-urgent"><span>J'accepte les travaux urgents (soirs, fins de semaine)</span></label>
+          </div>
+
+          <div class="pp-carte">
+            <h3 class="pf-titre"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#calendar"/></svg>Disponibilité de la semaine</h3>
+            <p class="pf-aide">Active les jours où tu travailles et indique tes heures.</p>
+            <div class="pf-horaire" id="schedule-grid"></div>
+          </div>
+        </div>
+        <div class="pf-pied">
           <p class="msg" id="profile-msg"></p>
+          <button class="ll-bouton ll-bouton--primaire" onclick="saveProfile()">Enregistrer mon profil</button>
+        </div>
 
-          <h2>Documents</h2>
-          <div class="f"><label for="pf-insurance-file">Preuve d'assurance responsabilité</label><input type="file" id="pf-insurance-file" accept="image/*,application/pdf"></div>
-          <button class="submit" onclick="uploadInsurance()">Téléverser</button>
+        <div class="pp-carte" style="margin-top:18px">
+          <h3 class="pf-titre"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg>Assurance responsabilité</h3>
+          <p class="pf-aide">Envoie ta preuve d'assurance à jour (PDF ou photo). L'équipe la vérifie avant de t'envoyer des travaux.</p>
+          <div class="fo-ligne">
+            <div><label class="ch-label" for="pf-insurance-file">Fichier</label><input type="file" id="pf-insurance-file" accept="image/*,application/pdf"></div>
+            <button class="ll-bouton ll-bouton--secondaire" onclick="uploadInsurance()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#upload"/></svg>Téléverser</button>
+          </div>
           <p class="msg" id="doc-msg"></p>
         </div>
       </section>
 
       <section id="decisions" class="section">
         <h1>Décisions automatisées</h1>
-        <p class="subtitle">Certaines décisions te concernant sont prises automatiquement par le système, selon des règles fixes (ex. : un mandat retiré et réassigné après un délai de non-réponse). Voici l'historique — tu peux demander qu'un humain la révise.</p>
-        <div id="decisions-body"><p class="empty-note">Chargement...</p></div>
+        <p class="subtitle">Certaines décisions te concernant sont prises automatiquement, selon des règles fixes (ex. : un travail réassigné après un délai sans réponse). Tu vois chacune d'elles ici et tu peux demander qu'un humain la révise.</p>
+        <div id="decisions-body"><p class="tr-vide">Chargement…</p></div>
 
-        <h2 style="margin-top:32px;">Mes renseignements personnels</h2>
-        <p class="subtitle">Demande d'accès à tes renseignements, de rectification ou d'effacement — conformément à la Loi 25. Une réponse te sera communiquée sous 30 jours.</p>
-        <div class="f"><label for="pdr-type">Type de demande</label>
-          <select id="pdr-type"><option value="access">Accès à mes renseignements</option><option value="rectification">Rectification</option><option value="deletion">Effacement</option></select>
+        <h3 class="sous-titre">Mes renseignements personnels</h3>
+        <p class="subtitle">Demande d'accès, de rectification ou d'effacement de tes renseignements (Loi 25). Réponse sous 30 jours.</p>
+        <div class="fo-carte">
+          <div><label class="ch-label" for="pdr-type">Type de demande</label>
+            <select id="pdr-type"><option value="access">Accès à mes renseignements</option><option value="rectification">Rectification</option><option value="deletion">Effacement</option></select></div>
+          <div class="pp-large"><label class="ch-label" for="pdr-details">Précisions <small>(optionnel)</small></label><input type="text" id="pdr-details" placeholder="Ex. : préciser ce qui doit être corrigé"></div>
+          <button class="ll-bouton ll-bouton--primaire" onclick="submitPersonalDataRequest()">Envoyer la demande</button>
+          <p class="msg" id="pdr-error"></p>
         </div>
-        <div class="f"><label for="pdr-details">Précisions (optionnel)</label><input type="text" id="pdr-details" placeholder="Ex. : préciser ce qui doit être corrigé"></div>
-        <button class="submit" onclick="submitPersonalDataRequest()">Envoyer la demande</button>
-        <p class="msg" id="pdr-error"></p>
-        <div id="pdr-body" style="margin-top:14px;"><p class="empty-note">Chargement...</p></div>
+        <div id="pdr-body"><p class="tr-vide">Chargement…</p></div>
       </section>
     </main>
   </div>
@@ -651,14 +667,14 @@ async function loadAutomatedDecisions(){
 
   const container = document.getElementById('decisions-body');
   if(!data || !data.length){
-    container.innerHTML = '<p class="empty-note">Aucune décision automatisée enregistrée pour le moment.</p>';
+    container.innerHTML = '<p class="tr-vide">Aucune décision automatisée pour le moment.</p>';
     return;
   }
   container.innerHTML = data.map(d => `
     <div class="job-card">
       <div class="desc">${esc(d.summary)}</div>
       <div class="meta">${new Date(d.decided_at).toLocaleString('fr-CA')}${d.review_requested_at ? ` — révision demandée le ${new Date(d.review_requested_at).toLocaleDateString('fr-CA')}${d.review_outcome ? ` — réponse : ${esc(d.review_outcome === 'annulee' ? 'décision annulée' : 'décision maintenue')}${d.review_response ? ' — ' + esc(d.review_response) : ''}` : ' — en attente de traitement'}` : ''}</div>
-      ${!d.review_requested_at ? `<div class="actions"><button class="primary" onclick="requestDecisionReview('${esc(d.id)}')">Demander une révision humaine</button></div>` : ''}
+      ${!d.review_requested_at ? `<div class="actions"><button class="ll-bouton ll-bouton--secondaire lo-petit" onclick="requestDecisionReview('${esc(d.id)}')">Demander une révision humaine</button></div>` : ''}
     </div>`).join('');
 }
 
@@ -678,7 +694,7 @@ async function loadPersonalDataRequests(){
 
   const container = document.getElementById('pdr-body');
   if(!data || !data.length){
-    container.innerHTML = '<p class="empty-note">Aucune demande envoyée.</p>';
+    container.innerHTML = '<p class="tr-vide">Aucune demande envoyée.</p>';
     return;
   }
   const typeLabel = { access: 'Accès', rectification: 'Rectification', deletion: 'Effacement' };
@@ -741,23 +757,33 @@ async function submitCompletion(jobId, btn){
   ouvrirJob(jobId, 'terminer');
 }
 
+const METIERS = [['plomberie','Plomberie'],['electricite','Électricité'],['cvac','Chauffage / climatisation'],['serrurerie','Serrurerie'],['menuiserie','Menuiserie'],['peinture','Peinture'],['toiture','Toiture'],['structure','Structure'],['entretien','Entretien général']];
+
 function buildScheduleGrid(){
-  const grid = document.getElementById('schedule-grid');
   const schedule = workerRecord.availability_schedule || {};
-  grid.innerHTML = DAYS.map(([key, label]) => {
+  document.getElementById('schedule-grid').innerHTML = DAYS.map(([key, label]) => {
     const slot = schedule[key];
-    return `
-      <div class="day">${label}</div>
-      <input type="time" id="sched-${key}-start" value="${slot?.start || ''}">
-      <input type="time" id="sched-${key}-end" value="${slot?.end || ''}">
-    `;
+    return `<div class="pf-jour${slot ? ' actif' : ''}" id="jour-${key}">
+      <label class="pf-bascule"><input type="checkbox" id="sched-${key}-on" ${slot ? 'checked' : ''} onchange="basculerJour('${key}', this.checked)"><span>${label}</span></label>
+      <input type="time" id="sched-${key}-start" value="${slot?.start || '08:00'}" ${slot ? '' : 'disabled'} aria-label="${label} : début">
+      <span class="pf-a">à</span>
+      <input type="time" id="sched-${key}-end" value="${slot?.end || '17:00'}" ${slot ? '' : 'disabled'} aria-label="${label} : fin">
+    </div>`;
   }).join('');
+}
+function basculerJour(key, on){
+  document.getElementById('jour-' + key).classList.toggle('actif', on);
+  ['start', 'end'].forEach(x => document.getElementById(`sched-${key}-${x}`).disabled = !on);
 }
 
 function renderProfileForm(){
   document.getElementById('pf-company').value = workerRecord.company_name || '';
   document.getElementById('pf-neq').value = workerRecord.neq || '';
-  document.getElementById('pf-specialties').value = (workerRecord.specialties || []).join(', ');
+  const mes = [workerRecord.specialty, ...(workerRecord.specialties || [])].filter(Boolean).map(x => String(x).toLowerCase());
+  const connus = METIERS.map(m => m[0]);
+  const autres = [...new Set(mes.filter(x => !connus.includes(x)))];
+  document.getElementById('pf-metiers').innerHTML = [...METIERS, ...autres.map(x => [x, x])].map(([v, l]) =>
+    `<label class="pf-puce"><input type="checkbox" value="${esc(v)}" ${mes.includes(v) ? 'checked' : ''}><span>${esc(l)}</span></label>`).join('');
   document.getElementById('pf-zones').value = (workerRecord.zones || []).join(', ');
   document.getElementById('pf-hourly-rate').value = workerRecord.hourly_rate ?? '';
   document.getElementById('pf-travel-fee').value = workerRecord.travel_fee ?? '';
@@ -766,13 +792,14 @@ function renderProfileForm(){
 }
 
 async function saveProfile(){
-  const specialties = document.getElementById('pf-specialties').value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const specialties = [...document.querySelectorAll('#pf-metiers input:checked')].map(i => i.value);
   const zones = document.getElementById('pf-zones').value.split(',').map(s => s.trim()).filter(Boolean);
   const availability_schedule = {};
   for(const [key] of DAYS){
+    const on = document.getElementById(`sched-${key}-on`).checked;
     const start = document.getElementById(`sched-${key}-start`).value;
     const end = document.getElementById(`sched-${key}-end`).value;
-    availability_schedule[key] = (start && end) ? { start, end } : null;
+    availability_schedule[key] = (on && start && end) ? { start, end } : null;
   }
   const payload = {
     action: 'update_my_profile',
@@ -787,9 +814,9 @@ async function saveProfile(){
   };
   const msgEl = document.getElementById('profile-msg');
   const res = await callWorkerApi(payload);
-  if(res?.error){ msgEl.style.color = 'var(--rust)'; msgEl.textContent = 'Erreur : ' + res.error; return; }
-  msgEl.style.color = 'var(--sage)';
-  msgEl.textContent = 'Profil enregistré.';
+  if(res?.error){ llToast('Erreur : ' + res.error, 'erreur'); return; }
+  msgEl.textContent = '';
+  llToast('Profil enregistré.', 'succes');
   Object.assign(workerRecord, { specialties, zones, availability_schedule });
 }
 
@@ -821,7 +848,7 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/compte.js?v=202609272033"></script>
-<script src="assets/url-propre.js?v=202609272033"></script>
+<script src="assets/compte.js?v=202609272040"></script>
+<script src="assets/url-propre.js?v=202609272040"></script>
 </body>
 </html>

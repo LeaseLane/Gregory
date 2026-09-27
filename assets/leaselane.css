@@ -1421,3 +1421,28 @@ body.ll-mdp-actif{ overflow:hidden; }
 .ll-mdp-carte input{ width:100%; box-sizing:border-box; margin-bottom:14px; }
 .ll-mdp-carte .ll-bouton{ margin-top:6px; padding:13px 18px; }
 @media (max-width:860px){ .ll-mdp-page{ grid-template-columns:1fr; grid-template-rows:auto 1fr; } .ll-mdp-cote{ padding:24px 20px; } .ll-mdp-cote img{ margin-bottom:8px; } .ll-mdp-cote p{ margin:0; } }
+/* Portail travailleur : profil */
+.pf-grille{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:16px; }
+.pf-grille > .pp-carte{ margin:0; }
+.pf-titre{ display:flex; align-items:center; gap:8px; margin:0 0 12px; font:600 15px/1.3 var(--police-texte); letter-spacing:0; text-transform:none; color:var(--marine-900); }
+.pf-titre .ic{ width:17px; height:17px; color:var(--bleu-600); }
+.pf-aide{ margin:-6px 0 12px; font-size:13px; color:var(--texte-discret); }
+.pf-puces{ display:flex; flex-wrap:wrap; gap:8px; }
+.pf-puce input{ position:absolute; opacity:0; pointer-events:none; }
+.pf-puce span{ display:inline-block; padding:7px 13px; border-radius:var(--rayon-pilule); border:1px solid var(--bordure); background:var(--surface-carte); font:500 13px/1 var(--police-texte); color:var(--texte-corps); cursor:pointer; }
+.pf-puce input:checked + span{ background:var(--marine-900); border-color:var(--marine-900); color:#fff; }
+.pf-puce input:focus-visible + span{ box-shadow:var(--lueur-focus); }
+.pf-bascule{ display:flex; align-items:center; gap:10px; margin-top:14px; font-size:14px; color:var(--texte-corps); cursor:pointer; }
+.pf-bascule input{ width:18px; height:18px; accent-color:var(--action-primaire); flex:none; }
+.pf-horaire{ display:flex; flex-direction:column; gap:6px; }
+.pf-jour{ display:grid; grid-template-columns:130px 1fr auto 1fr; align-items:center; gap:8px; padding:4px 0; opacity:.55; }
+.pf-jour.actif{ opacity:1; }
+.pf-jour .pf-bascule{ margin:0; font-weight:500; }
+.pf-jour input[type=time]{ width:100%; box-sizing:border-box; }
+.pf-a{ font-size:13px; color:var(--texte-discret); }
+.pf-pied{ display:flex; justify-content:flex-end; align-items:center; gap:12px; margin-top:16px; }
+.pf-pied .msg{ margin:0; }
+@media (max-width:900px){ .pf-grille{ grid-template-columns:1fr; } }
+@media (max-width:480px){ .pf-jour{ grid-template-columns:1fr 1fr; } .pf-jour .pf-bascule{ grid-column:1/-1; } .pf-a{ display:none; } }
+.pf-grille{ align-items:start; }
+.pf-grille input:not([type=checkbox]):not([type=radio]), .pf-grille select{ width:100%; box-sizing:border-box; }
