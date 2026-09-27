@@ -3704,14 +3704,21 @@ function renderFicheLocataire(){
   if(!d) corps = '<p class="tr-vide">Chargement…</p>';
   else if(d.erreur) corps = '<p class="tr-vide">Fiche indisponible pour le moment.</p>';
   else if(ficheLo.onglet === 'paiements'){
-    corps = paiements.length ? `<table class="fi-table"><thead><tr><th>Échéance</th><th class="num">Montant</th><th>Statut</th><th></th></tr></thead><tbody>${paiements.map(p => {
+    const mois = dt => new Date(dt + 'T12:00').toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' });
+    const jour = dt => new Date(dt + 'T12:00').toLocaleDateString('fr-CA', { dateStyle: 'medium' });
+    corps = paiements.length ? `<ul class="lo-paiements">${paiements.map(p => {
       const [lib, ton] = loStatutPaiement[p.status] || [esc(p.status), ''];
-      return `<tr><td>${esc(p.due_date || '')}${p.paid_date ? `<small>payé le ${esc(p.paid_date)}</small>` : ''}</td><td class="num">${argent(p.amount)}</td>
-        <td><span class="tr-pastille tr-pastille--${ton}">${lib}</span>${p.reminder_paused ? '<small>relances suspendues</small>' : ''}</td>
-        <td class="fi-actions">${p.status !== 'paid' ? `<div>
-          <button class="vo-action" onclick="loMarquerPaye('${p.id}')">Marquer payé</button>
-          <button class="vo-action" onclick="loPauseRelances('${p.id}', ${!p.reminder_paused})">${p.reminder_paused ? 'Reprendre les relances' : 'Suspendre les relances'}</button></div>` : ''}</td></tr>`;
-    }).join('')}</tbody></table>` : '<p class="tr-vide">Aucun paiement enregistré.</p>';
+      return `<li class="lo-paiement lo-paiement--${ton}">
+        <div class="lo-p-quand"><b>Loyer de ${p.due_date ? mois(p.due_date) : '—'}</b>
+          <small>${p.paid_date ? 'Payé le ' + jour(p.paid_date) : p.due_date ? 'Échéance le ' + jour(p.due_date) : ''}${p.reminder_paused ? ' · relances suspendues' : ''}</small></div>
+        <div class="lo-p-montant">${argent(p.amount)}</div>
+        <span class="tr-pastille tr-pastille--${ton}">${lib}</span>
+        ${p.status !== 'paid' ? `<div class="lo-p-actions">
+          <button class="ll-bouton ll-bouton--secondaire lo-petit" onclick="loMarquerPaye('${p.id}')">Marquer payé</button>
+          <button class="lo-lien" onclick="loPauseRelances('${p.id}', ${!p.reminder_paused})">${p.reminder_paused ? 'Reprendre les relances' : 'Suspendre les relances'}</button>
+        </div>` : '<div class="lo-p-actions"></div>'}
+      </li>`;
+    }).join('')}</ul>` : '<p class="tr-vide">Aucun paiement enregistré.</p>';
   } else if(ficheLo.onglet === 'demandes'){
     corps = demandes.length ? `<table class="fi-table"><thead><tr><th>Demande</th><th>Statut</th><th>Reçue le</th></tr></thead><tbody>${demandes.map(x => `
       <tr><td><b>${esc(x.description)}</b>${x.ai_category ? `<small>${esc(x.ai_category)}${x.ai_urgency ? ' · ' + esc(x.ai_urgency) : ''}</small>` : ''}</td>

@@ -1239,3 +1239,25 @@ input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire
 .fi-table td.num, .fi-table .tr-pastille{ white-space:nowrap; }
 .fi-actions > div{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
 .fi-actions .vo-action + .vo-action{ margin-left:0; }
+/* Fiche locataire : liste des loyers (remplace le tableau serré). */
+.lo-paiements{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.lo-paiement{
+  display:grid; grid-template-columns:minmax(0,1fr) auto auto auto; align-items:center; gap:14px;
+  padding:14px 16px; border:1px solid var(--bordure-portail); border-radius:var(--rayon-carte);
+  background:var(--surface-carte); border-left:4px solid var(--bordure);
+}
+.lo-paiement--ok{ border-left-color:var(--succes-600); }
+.lo-paiement--ko{ border-left-color:var(--urgence-600); }
+.lo-paiement--att{ border-left-color:var(--alerte-600); }
+.lo-p-quand b{ display:block; font:600 14px/1.3 var(--police-texte); color:var(--marine-900); }
+.lo-p-quand b::first-letter{ text-transform:uppercase; }
+.lo-p-quand small{ display:block; margin-top:3px; font-size:12.5px; color:var(--texte-discret); }
+.lo-p-montant{ font:600 16px/1 var(--police-texte); color:var(--marine-900); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.lo-p-actions{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; min-width:0; }
+.lo-petit{ padding:7px 14px; font-size:12.5px; white-space:nowrap; }
+.lo-lien{ background:none; border:none; padding:2px 0; cursor:pointer; font:500 12px/1.2 var(--police-texte); color:var(--texte-discret); text-decoration:underline; white-space:nowrap; }
+.lo-lien:hover{ color:var(--action-primaire); }
+@media (max-width:640px){
+  .lo-paiement{ grid-template-columns:minmax(0,1fr) auto; }
+  .lo-p-actions{ grid-column:1/-1; flex-direction:row; justify-content:flex-start; align-items:center; gap:12px; }
+}
