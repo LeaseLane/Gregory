@@ -568,9 +568,11 @@ aside .tab-btn:hover .ic{ opacity:1; }
    Le système fait l'inverse (portail.css : body{overflow:hidden}) —
    la coquille occupe exactement la hauteur de l'écran et c'est la
    zone principale qui défile, seule. La barre latérale reste donc en
-   place, et défile elle-même si ses onglets dépassent. */
-html,body{ height:100%; }
-body{ overflow:hidden; }
+   place, et défile elle-même si ses onglets dépassent.
+   Limité aux pages qui ont une .shell (les portails) : sur les
+   formulaires publics, body{overflow:hidden} empêchait tout défilement. */
+html:has(.shell), body:has(.shell){ height:100%; }
+body:has(.shell){ overflow:hidden; }
 
 .shell{
   height:100vh;
@@ -586,7 +588,7 @@ aside{
   scrollbar-width:thin;
 }
 
-main{
+.shell main{
   height:100%;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
