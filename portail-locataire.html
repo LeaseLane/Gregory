@@ -491,7 +491,9 @@ async function submitServiceRequest(event){
 
   const photoUrls = [];
   for (const file of files) {
-    const path = `${tenantRecord.id}/${Date.now()}_${file.name}`;
+    // Noms avec accents ou espaces refusés par le stockage : on les nettoie.
+    const nom = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9._-]+/g, '_').slice(-80);
+    const path = `${tenantRecord.id}/${Date.now()}_${nom}`;
     const { error: uploadError } = await supabaseClient.storage.from('service-request-photos').upload(path, file);
     if (uploadError) {
       noteEl.textContent = "Erreur lors de l'envoi d'une photo : " + uploadError.message;
