@@ -3874,8 +3874,14 @@ async function envoyerCourrielLocataire(){
 // Locataire enregistré sans courriel : on crée son compte et on lui envoie
 // le courriel de bienvenue avec un mot de passe temporaire.
 async function donnerAccesLocataire(btn){
-  const email = (await llDemander("Courriel du locataire (il recevra ses accès) :", btn.dataset.email) || '').trim();
-  if(!email) return;
+  // Courriel déjà connu : une simple confirmation suffit.
+  let email = btn.dataset.email;
+  if(email){
+    if(!await llConfirmer(`Créer l'accès portail et envoyer les identifiants à ${email} ?`, { libelle: "Donner l'accès" })) return;
+  } else {
+    email = (await llDemander("Courriel du locataire (il recevra ses accès) :") || '').trim();
+    if(!email) return;
+  }
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ llToast('Courriel invalide.', 'erreur'); return; }
   btn.disabled = true;
   const res = await callOnboardingApi({ action: 'grant_tenant_access', tenant_id: btn.dataset.tenantId, email });
