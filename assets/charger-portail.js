@@ -31,6 +31,13 @@ window.llCharger = function (nom) {
       }
       var r = await client.functions.invoke('whoami');
       var cible = PAR_ROLE[r.data && r.data.role];
+      // Ni propriétaire, ni locataire, ni travailleur : peut-être un admin
+      // (la politique « self » laisse chacun lire sa propre ligne users).
+      if (!cible && ici !== 'portail-admin') {
+        var moi = (await client.auth.getUser()).data.user;
+        var ligne = moi && (await client.from('users').select('is_admin').eq('id', moi.id).maybeSingle()).data;
+        if (ligne && ligne.is_admin) cible = 'portail-admin';
+      }
       if (!cible || cible === ici) return false;
       localStorage.setItem(CLE[cible], localStorage.getItem(CLE[ici]));
       localStorage.removeItem(CLE[ici]);
