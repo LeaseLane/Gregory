@@ -9,98 +9,130 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <style>
-  /* Palette retirée : voir assets/leaselane.css (couleurs du logo). */
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--paper);color:var(--ink);font-family:var(--police-texte);line-height:1.55;}
-  .wrap{max-width:560px;margin:0 auto;padding:48px 28px;}
-  .brand{font-family:var(--police-titre);font-weight:600;font-size:20px;margin-bottom:32px;}
-  h1{font-family:var(--police-titre);font-weight:600;font-size:24px;margin-bottom:8px;}
-  .subtitle{color:var(--muted);font-size:14px;margin-bottom:24px;}
-  .card{background:var(--paper-2);border:1px solid var(--line);padding:20px;margin-bottom:24px;font-size:14px;line-height:1.7;}
-  .card b{display:block;margin-bottom:2px;}
-  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
-  button{font-family:var(--police-texte);font-size:13.5px;padding:12px 18px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;}
-  button.primary{background:var(--ink);color:var(--paper);}
-  button:hover{background:var(--brass-dark);color:#fff;border-color:var(--brass-dark);}
-  button:disabled{opacity:0.5;cursor:default;}
-  textarea{width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--paper-2);font-size:13.5px;font-family:var(--police-texte);min-height:90px;margin-bottom:10px;resize:vertical;}
-  .panel{display:none;}
-  .panel.active{display:block;}
-  .result{display:none;background:var(--paper-2);border-left:2px solid var(--sage);padding:20px;font-size:14px;}
+  /* Pensée pour le téléphone : le travailleur ouvre ce lien depuis son courriel. */
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--surface-page);color:var(--texte-corps);font-family:var(--police-texte);line-height:1.55;}
+  .wrap{max-width:640px;margin:0 auto;padding:28px 16px 48px;}
+  .brand img{height:28px;width:auto;display:block;margin-bottom:22px;}
+  h1{font-family:var(--police-titre);font-weight:600;font-size:30px;line-height:1.1;margin:0 0 6px;color:var(--marine-900);}
+  .subtitle{color:var(--texte-discret);font-size:14.5px;margin:0 0 18px;}
+  .carte{background:var(--surface-carte);border:1px solid var(--bordure-portail);border-radius:var(--rayon-carte);box-shadow:var(--ombre-2);padding:18px 18px;margin-bottom:14px;}
+  .urgent{display:inline-flex;align-items:center;gap:6px;background:var(--urgence-100);color:var(--urgence-600);font:600 12.5px/1 var(--police-texte);padding:6px 11px;border-radius:var(--rayon-pilule);margin-bottom:10px;}
+  .urgent .ic{width:14px;height:14px;}
+  .titre{font:600 18px/1.3 var(--police-texte);color:var(--marine-900);margin:0 0 4px;}
+  .adresse{display:inline-flex;align-items:center;gap:6px;color:var(--texte-lien, var(--action-primaire));font-size:14px;text-decoration:none;}
+  .adresse .ic{width:15px;height:15px;}
+  .faits{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  .faits div{background:var(--surface-enfoncee);border-radius:var(--rayon-champ);padding:10px 12px;min-width:0;}
+  .faits span{display:block;font:600 10.5px/1.2 var(--police-texte);letter-spacing:.1em;text-transform:uppercase;color:var(--texte-discret);margin-bottom:4px;}
+  .faits b{font-size:15px;color:var(--marine-900);overflow-wrap:anywhere;}
+  .faits .large{grid-column:1/-1;}
+  .etiquette{font:600 11px/1.3 var(--police-texte);letter-spacing:.1em;text-transform:uppercase;color:var(--texte-discret);margin:0 0 8px;}
+  .citation{margin:0;padding:10px 14px;border-left:3px solid var(--bordure);background:var(--surface-douce,#f6f8fb);border-radius:0 var(--rayon-champ) var(--rayon-champ) 0;font-size:14.5px;white-space:pre-wrap;}
+  .galerie{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:12px;}
+  .galerie img, .galerie video{width:100%;height:130px;object-fit:cover;border-radius:10px;background:#000;cursor:zoom-in;display:block;}
+  .galerie video{cursor:default;}
+  .note-ia{display:flex;gap:8px;margin-top:12px;padding:10px 12px;border-radius:var(--rayon-champ);background:var(--info-100);font-size:13.5px;}
+  .note-ia .ic{width:16px;height:16px;flex:none;margin-top:2px;color:var(--bleu-600);}
+  .actions{display:grid;gap:10px;}
+  .actions .ll-bouton{width:100%;justify-content:center;padding:14px 18px;font-size:15px;}
+  .actions .ll-bouton .ic{width:18px;height:18px;margin-right:8px;vertical-align:-3px;}
+  .actions .btn-ok{background:var(--succes-600);color:#fff;border:none;}
+  .btn-ok:hover{filter:brightness(.95);}
+  .actions .btn-refus{background:transparent;color:var(--urgence-600);border:1px solid var(--urgence-600);}
+  .deux{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  textarea, input[type=file]{width:100%;}
+  textarea{min-height:96px;resize:vertical;margin-bottom:10px;}
+  label.ch{display:block;font:500 13px/1.3 var(--police-texte);color:var(--marine-900);margin:10px 0 6px;}
+  .volet{display:none;}
+  .volet.active{display:block;}
+  .result{display:none;text-align:center;padding:26px 18px;}
   .result.active{display:block;}
-  .result.error{border-left-color:var(--rust);}
-  .muted{color:var(--muted);font-size:12.5px;}
+  .result .rond{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;margin:0 auto 10px;background:var(--succes-100);color:var(--succes-600);}
+  .result.error .rond{background:var(--urgence-100);color:var(--urgence-600);}
+  .result .rond .ic{width:24px;height:24px;}
+  .result p{margin:0;font-size:15px;}
+  .muted{color:var(--texte-discret);font-size:13px;}
+  dialog.zoom{border:none;padding:0;background:transparent;max-width:95vw;}
+  dialog.zoom::backdrop{background:rgba(6,18,32,.88);}
+  dialog.zoom img{max-width:95vw;max-height:88vh;border-radius:10px;display:block;}
+  @media (max-width:420px){ .faits, .deux{grid-template-columns:1fr;} }
 </style>
 <link rel="stylesheet" href="assets/leaselane.css?v=202609271810">
 <script src="assets/ui.js?v=202609271810"></script>
 </head>
 <body>
 <div class="wrap">
-  <div class="brand"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></div>
-  <div id="loading"><p class="muted">Chargement...</p></div>
-
+  <div class="brand"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane"></div>
+  <div id="loading"><p class="muted">Chargement…</p></div>
   <div id="main" style="display:none;">
-    <h1>Réponse à une assignation</h1>
-    <p class="subtitle">Bonjour <span id="worker-name"></span>, voici les détails du travail proposé.</p>
+    <h1>Nouveau travail</h1>
+    <p class="subtitle">Bonjour <span id="worker-name"></span>, voici le travail proposé. Réponds en un clic plus bas.</p>
 
-    <div class="card">
-      <b id="wo-description"></b>
-      <span id="wo-address"></span><br>
-      <span id="wo-pay"></span><br>
-      <span id="wo-extra"></span>
+    <div class="carte">
+      <div id="wo-urgent" class="urgent" hidden><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg>Urgent</div>
+      <p class="titre" id="wo-description"></p>
+      <a class="adresse" id="wo-address" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#map-pin"/></svg><span></span></a>
+      <div class="faits" id="wo-faits"></div>
     </div>
 
-    <div id="panel-choices" class="panel active">
-      <div class="actions">
-        <button class="primary" onclick="respond('accept')">Accepter</button>
-        <button onclick="respond('decline')">Refuser</button>
-        <button onclick="showPanel('propose_time')">Proposer une autre heure</button>
-        <button onclick="showPanel('request_info')">Demander plus d'infos</button>
+    <div class="carte" id="bloc-demande" hidden>
+      <p class="etiquette">Ce que le locataire a signalé</p>
+      <p class="citation" id="wo-demande"></p>
+      <div class="galerie" id="wo-galerie"></div>
+      <div class="note-ia" id="wo-video" hidden><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#video"/></svg><div><b>Dans la vidéo : </b><span></span></div></div>
+      <div class="note-ia" id="wo-categorie" hidden><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg><div><b>Type de travail : </b><span></span></div></div>
+    </div>
+
+    <div class="carte">
+      <div id="panel-choices" class="volet active">
+        <div class="actions">
+          <button class="ll-bouton btn-ok" onclick="respond('accept')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg>Accepter le travail</button>
+          <div class="deux">
+            <button class="ll-bouton ll-bouton--secondaire" onclick="showPanel('propose_time')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#clock"/></svg>Autre heure</button>
+            <button class="ll-bouton ll-bouton--secondaire" onclick="showPanel('request_info')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-help"/></svg>Poser une question</button>
+          </div>
+          <button class="ll-bouton btn-refus" onclick="respond('decline')">Refuser</button>
+        </div>
       </div>
-    </div>
 
-    <div id="panel-propose_time" class="panel">
-      <p class="muted" style="margin-bottom:8px;">Précise quelle heure te conviendrait mieux :</p>
-      <textarea id="propose_time-message" placeholder="Ex: Je suis disponible seulement après 14h jeudi."></textarea>
-      <div class="actions">
-        <button class="primary" onclick="respond('propose_time')">Envoyer</button>
-        <button onclick="showPanel('choices')">Annuler</button>
+      <div id="panel-propose_time" class="volet">
+        <label class="ch" for="propose_time-message">Quelle heure te conviendrait ?</label>
+        <textarea id="propose_time-message" placeholder="Ex. : Disponible jeudi après 14 h, ou vendredi matin."></textarea>
+        <div class="deux"><button class="ll-bouton ll-bouton--primaire" onclick="respond('propose_time')">Envoyer</button><button class="ll-bouton ll-bouton--secondaire" onclick="showPanel('choices')">Retour</button></div>
       </div>
-    </div>
 
-    <div id="panel-request_info" class="panel">
-      <p class="muted" style="margin-bottom:8px;">Quelle information te manque-t-il ?</p>
-      <textarea id="request_info-message" placeholder="Ex: Le locataire sera-t-il présent ? Y a-t-il un stationnement ?"></textarea>
-      <div class="actions">
-        <button class="primary" onclick="respond('request_info')">Envoyer</button>
-        <button onclick="showPanel('choices')">Annuler</button>
+      <div id="panel-request_info" class="volet">
+        <label class="ch" for="request_info-message">Quelle information te manque-t-il ?</label>
+        <textarea id="request_info-message" placeholder="Ex. : Le locataire sera-t-il présent ? Y a-t-il un stationnement ?"></textarea>
+        <div class="deux"><button class="ll-bouton ll-bouton--primaire" onclick="respond('request_info')">Envoyer</button><button class="ll-bouton ll-bouton--secondaire" onclick="showPanel('choices')">Retour</button></div>
       </div>
-    </div>
 
-    <div id="panel-completion" class="panel">
-      <p class="muted" style="margin-bottom:8px;">Prends au moins une photo avant et une photo après le travail (jusqu'à 5 par catégorie).</p>
-      <label style="display:block;font-size:12.5px;margin-bottom:4px;">Photos avant</label>
-      <input type="file" id="completion-before" accept="image/*" multiple style="margin-bottom:10px;">
-      <label style="display:block;font-size:12.5px;margin-bottom:4px;">Photos après</label>
-      <input type="file" id="completion-after" accept="image/*" multiple style="margin-bottom:10px;">
-      <label style="display:block;font-size:12.5px;margin-bottom:4px;">Note (optionnel)</label>
-      <textarea id="completion-message" placeholder="Ex: Pièce remplacée, tout fonctionne normalement."></textarea>
-      <div class="actions">
-        <button class="primary" id="completion-submit-btn" onclick="submitCompletion()">Signaler le travail terminé</button>
+      <div id="panel-completion" class="volet">
+        <p class="etiquette">Signaler le travail terminé</p>
+        <p class="muted">Au moins une photo avant et une photo après (jusqu'à 5 de chaque).</p>
+        <label class="ch" for="completion-before">Photos avant</label>
+        <input type="file" id="completion-before" accept="image/*" multiple>
+        <label class="ch" for="completion-after">Photos après</label>
+        <input type="file" id="completion-after" accept="image/*" multiple>
+        <label class="ch" for="completion-message">Note (optionnel)</label>
+        <textarea id="completion-message" placeholder="Ex. : Joint remplacé sous l'évier, plus de fuite."></textarea>
+        <div class="actions"><button class="ll-bouton btn-ok" id="completion-submit-btn" onclick="submitCompletion()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg>Signaler le travail terminé</button></div>
       </div>
-    </div>
 
-    <div id="panel-already-done" class="panel">
-      <p class="muted">Merci ! Tu as déjà signalé ce travail comme terminé. L'équipe Lease Lane va confirmer la fermeture du dossier.</p>
-    </div>
+      <div id="panel-already-done" class="volet">
+        <p class="muted" style="text-align:center">Merci ! Tu as déjà signalé ce travail comme terminé. L'équipe Lease Lane va confirmer la fermeture du dossier.</p>
+      </div>
 
-    <div id="result" class="result"></div>
+      <div id="result" class="result"><div class="rond"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg></div><p></p></div>
+    </div>
   </div>
 
   <div id="not-found" style="display:none;">
     <h1>Lien invalide</h1>
-    <p class="subtitle">Ce lien n'est plus valide — une réponse a peut-être déjà été enregistrée, ou le lien a expiré. Contacte l'équipe Lease Lane si tu as des questions.</p>
+    <p class="subtitle">Ce lien n'est plus valide : une réponse a peut-être déjà été enregistrée, ou le lien a expiré. Contacte l'équipe Lease Lane si tu as des questions.</p>
   </div>
+  <dialog class="zoom" id="zoom" onclick="this.close()"><img alt=""></dialog>
 </div>
 
 <script>
@@ -130,7 +162,7 @@ async function callResponseApi(payload){
 }
 
 function showPanel(name){
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.volet').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
 }
 
@@ -172,10 +204,10 @@ async function submitCompletion(){
     btn.disabled = false;
     btn.textContent = 'Envoyer';
     result.className = 'result error active';
-    result.textContent = data?.error || "Une erreur est survenue — réessaie, ou contacte l'équipe Lease Lane si ça persiste.";
+    result.querySelector('p').textContent = data?.error || "Une erreur est survenue. Réessaie, ou contacte l'équipe Lease Lane si ça persiste.";
     return;
   }
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.volet').forEach(p => p.classList.remove('active'));
   result.className = 'result active';
   result.textContent = "Merci ! Le travail a été signalé comme terminé avec tes photos. L'équipe Lease Lane va confirmer la fermeture du dossier.";
   if(data?.skipped_photos){
@@ -195,11 +227,11 @@ async function respond(action){
   if(!ok){
     buttons.forEach(b => b.disabled = false);
     result.className = 'result error active';
-    result.textContent = data?.error || "Une erreur est survenue — réessaie, ou contacte l'équipe Lease Lane si ça persiste.";
+    result.querySelector('p').textContent = data?.error || "Une erreur est survenue. Réessaie, ou contacte l'équipe Lease Lane si ça persiste.";
     return;
   }
 
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.volet').forEach(p => p.classList.remove('active'));
   const messages = {
     accept: "Merci ! Ta disponibilité est confirmée pour ce travail.",
     decline: data.reassigned ? "Compris, ce travail a été réassigné à un autre travailleur." : "Compris. L'équipe Lease Lane a été avisée qu'aucun autre travailleur n'est disponible.",
@@ -207,8 +239,10 @@ async function respond(action){
     request_info: "Ta question a été transmise à l'équipe Lease Lane — tu recevras une réponse bientôt.",
   };
   result.className = 'result active';
-  result.textContent = messages[action] || "Réponse enregistrée.";
+  result.querySelector('p').textContent = messages[action] || "Réponse enregistrée.";
 }
+
+function zoomer(src){ const d = document.getElementById('zoom'); d.querySelector('img').src = src; d.showModal(); }
 
 async function init(){
   if(!workOrderId || !token){
@@ -233,17 +267,31 @@ async function init(){
 
   document.getElementById('worker-name').textContent = data.worker_name || '';
   document.getElementById('wo-description').textContent = data.description || '';
-  document.getElementById('wo-address').textContent = `${data.address || ''} — Unité ${data.unit_number || ''}`;
-  document.getElementById('wo-pay').textContent = `Paie prévue : ${data.worker_pay != null ? Number(data.worker_pay).toLocaleString('fr-CA') + ' $' : 'à confirmer'}`;
+  const adresse = `${data.address || ''}, unité ${data.unit_number || ''}`;
+  const lien = document.getElementById('wo-address');
+  lien.querySelector('span').textContent = adresse;
+  lien.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(data.address || '');
+  document.getElementById('wo-urgent').hidden = !data.urgent;
+  const faits = [
+    ['Paie prévue', data.worker_pay != null ? Number(data.worker_pay).toLocaleString('fr-CA') + ' $' : 'À confirmer'],
+    ['Rendez-vous', data.appointment_at ? new Date(data.appointment_at).toLocaleString('fr-CA', { dateStyle: 'long', timeStyle: 'short' }) : 'À convenir'],
+    ['Échéance', data.due_by ? new Date(data.due_by + 'T12:00').toLocaleDateString('fr-CA', { dateStyle: 'long' }) : '—'],
+    ['Accès au logement', data.entry_permission || 'À confirmer'],
+  ];
+  if(data.billing_terms) faits.push(['Facturation', data.billing_terms, 'large']);
+  if(data.consignes) faits.push(['Consignes', data.consignes, 'large']);
+  document.getElementById('wo-faits').innerHTML = faits.map(([k, v, c]) => `<div class="${c || ''}"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+  if(data.demande || (data.pieces || []).length){
+    document.getElementById('bloc-demande').hidden = false;
+    document.getElementById('wo-demande').textContent = data.demande || data.description || '';
+    document.getElementById('wo-galerie').innerHTML = (data.pieces || []).map(p => p.video
+      ? `<video src="${esc(p.url)}" controls playsinline preload="metadata"></video>`
+      : `<img src="${esc(p.url)}" alt="Photo du locataire" loading="lazy" onclick="zoomer(this.src)">`).join('');
+    if(data.resume_video){ const v = document.getElementById('wo-video'); v.hidden = false; v.querySelector('span').textContent = data.resume_video; }
+    if(data.categorie){ const c = document.getElementById('wo-categorie'); c.hidden = false; c.querySelector('span').textContent = data.categorie; }
+  }
 
-  const extra = [];
-  if(data.appointment_at) extra.push('Rendez-vous proposé : ' + new Date(data.appointment_at).toLocaleString('fr-CA'));
-  if(data.entry_permission) extra.push('Accès au logement : ' + data.entry_permission);
-  if(data.due_by) extra.push('Échéance : ' + data.due_by);
-  if(data.billing_terms) extra.push('Conditions de facturation : ' + data.billing_terms);
-  document.getElementById('wo-extra').innerHTML = extra.map(esc).join('<br>');
-
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.volet').forEach(p => p.classList.remove('active'));
   if(canRespond){
     document.getElementById('panel-choices').classList.add('active');
   } else if(canReportDone){

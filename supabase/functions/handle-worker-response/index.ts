@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     }
 
     const woRes = await fetch(
-      `${supabaseUrl}/rest/v1/work_orders?id=eq.${work_order_id}&select=*,workers(name,email,specialty),units(unit_number,buildings(address))`,
+      `${supabaseUrl}/rest/v1/work_orders?id=eq.${work_order_id}&select=*,workers(name,email,specialty),units(unit_number,buildings(address)),service_requests(description,photo_urls,ai_category,ai_subcategory,ai_recommended_trade,ai_video_summary,ai_urgency,safety_override)`,
       { headers: adminHeaders },
     );
     const [wo] = await woRes.json();
@@ -56,7 +56,24 @@ Deno.serve(async (req) => {
     };
 
     if (action === "get") {
+      // Pièces jointes du locataire : liens signés valables 1 h (le
+      // travailleur n'a pas de compte, le jeton du lien fait foi).
+      const sr = wo.service_requests || {};
+      const chemins: string[] = (Array.isArray(sr.photo_urls) ? sr.photo_urls : []).slice(0, 10);
+      const pieces = (await Promise.all(chemins.map(async (chemin: string) => {
+        const r = await fetch(`${supabaseUrl}/storage/v1/object/sign/service-request-photos/${chemin}`, {
+          method: "POST", headers: adminHeaders, body: JSON.stringify({ expiresIn: 3600 }),
+        }).catch(() => null);
+        const d = r?.ok ? await r.json().catch(() => null) : null;
+        return d?.signedURL ? { url: `${supabaseUrl}/storage/v1${d.signedURL}`, video: /\.(mp4|mov|m4v|webm|3gp)$/i.test(chemin) } : null;
+      }))).filter(Boolean);
       return new Response(JSON.stringify({
+        demande: sr.description ?? null,
+        pieces,
+        categorie: sr.ai_category ? `${sr.ai_category}${sr.ai_subcategory ? " — " + sr.ai_subcategory : ""}` : null,
+        resume_video: sr.ai_video_summary ?? null,
+        urgent: !!(wo.is_urgent || sr.safety_override || sr.ai_urgency === "urgence"),
+        consignes: wo.safety_instructions ?? null,
         description: wo.description,
         address,
         unit_number: unit?.unit_number,
