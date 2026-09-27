@@ -36,8 +36,13 @@ export async function signatureValide(corps: string, id: string, horodatage: str
 // Garde la réponse, pas tout l'historique cité en dessous (« Le … a écrit : », lignes « > »).
 export function sansCitation(texte: string): string {
   const lignes = texte.replace(/\r\n/g, "\n").split("\n");
-  const fin = lignes.findIndex((l) =>
-    /^>/.test(l.trim()) || /^(Le|On) .{5,200}(a écrit|wrote)\s*:?\s*$/i.test(l.trim()) || /^-{2,}\s*(Original|Message d'origine)/i.test(l.trim()) || /^(De|From)\s*:/.test(l.trim())
+  // Gmail coupe souvent l'en-tête de citation sur deux lignes
+  // (« On Sun, … <adresse> » puis « wrote: ») : on teste aussi chaque
+  // ligne jointe à la suivante.
+  const entete = (l: string) => /^(Le|On) .{5,250}(a écrit|wrote)\s*:?\s*$/i.test(l);
+  const fin = lignes.findIndex((l, i) =>
+    /^>/.test(l.trim()) || entete(l.trim()) || entete(`${l.trim()} ${(lignes[i + 1] ?? "").trim()}`) ||
+    /^-{2,}\s*(Original|Message d'origine)/i.test(l.trim()) || /^(De|From)\s*:/.test(l.trim())
   );
   return (fin === -1 ? lignes : lignes.slice(0, fin)).join("\n").trim();
 }

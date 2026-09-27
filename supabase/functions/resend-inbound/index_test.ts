@@ -19,4 +19,6 @@ Deno.test("signature Svix : valide acceptée, altérée ou périmée refusée", 
 Deno.test("la citation du message d'origine est retirée", () => {
   assertEquals(sansCitation("Oui je passe demain.\n\nLe 26 sept. 2026 à 10:00, Lease Lane a écrit :\n> Nouveau mandat"), "Oui je passe demain.");
   assertEquals(sansCitation("OK\n> ancien"), "OK");
+  // En-tête Gmail coupé sur deux lignes (cas réel du 2026-09-27).
+  assertEquals(sansCitation("done\n\nOn Sun, Sep 27, 2026 at 4:30 PM Lease Lane <onboarding@mail.leaselane.ca>\nwrote:\n> Bonjour"), "done");
 });
