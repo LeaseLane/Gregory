@@ -9,120 +9,203 @@
 <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
 <style>
-  /* Palette retirée : voir assets/leaselane.css (couleurs du logo). */
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--paper);color:var(--ink);font-family:var(--police-texte);line-height:1.55;}
-  a{color:inherit;}
-  .wrap{max-width:640px;margin:0 auto;padding:48px 28px;}
-  .brand{font-family:var(--police-titre);font-weight:600;font-size:20px;margin-bottom:32px;}
-  .brand a{text-decoration:none;}
+  /* Palette : assets/leaselane.css. Mise en page reprise des écrans de
+     connexion : panneau marine à gauche, formulaire en carte à droite. */
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--surface-page);color:var(--texte-corps);font-family:var(--police-texte);line-height:1.55;}
+  .page{min-height:100vh;display:grid;grid-template-columns:minmax(300px,420px) 1fr;}
+  .cote{background:var(--marine-900);color:#fff;padding:48px 44px;display:flex;flex-direction:column;gap:28px;position:sticky;top:0;height:100vh;}
+  .cote .logo img{height:30px;width:auto;display:block;}
+  .cote h2{font-family:var(--police-titre);font-weight:600;font-size:30px;line-height:1.15;margin:0;letter-spacing:.01em;color:#fff;}
+  .cote p{margin:0;color:rgba(255,255,255,.72);font-size:14.5px;max-width:34ch;}
+  .cote ul{list-style:none;margin:0 0 auto;padding:0;display:flex;flex-direction:column;gap:14px;}
+  .cote li{display:flex;gap:12px;align-items:flex-start;font-size:14px;color:rgba(255,255,255,.88);}
+  .cote li .ic{width:18px;height:18px;flex:none;margin-top:2px;color:#7FB0F0;}
+  .cote-panneau{display:none;flex-direction:column;gap:14px;margin-top:auto;}
+  .cote-panneau.active{display:flex;}
 
-  .tabs{display:flex;border-bottom:1px solid var(--ink);margin-bottom:28px;}
-  .tab-btn{background:none;border:none;padding:12px 20px;font-size:14px;font-family:var(--police-texte);cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;}
-  .tab-btn.active{color:var(--ink);font-weight:500;border-bottom-color:var(--brass);}
-
-  h1{font-family:var(--police-titre);font-weight:600;font-size:26px;margin-bottom:8px;}
-  .subtitle{color:var(--muted);font-size:14px;margin-bottom:28px;}
+  .zone{padding:48px 40px 64px;display:flex;justify-content:center;}
+  .colonne{width:100%;max-width:680px;min-width:0;}
+  .onglets{display:inline-flex;gap:4px;padding:4px;border-radius:var(--rayon-pilule);background:var(--surface-enfoncee);margin-bottom:28px;}
+  .tab-btn{border:none;background:none;cursor:pointer;padding:10px 18px;border-radius:var(--rayon-pilule);font:500 14px/1 var(--police-texte);color:var(--texte-discret);}
+  .tab-btn.active{background:var(--surface-carte);color:var(--marine-900);box-shadow:var(--ombre-2);}
+  h1{font-family:var(--police-titre);font-weight:600;font-size:34px;line-height:1.1;margin:0 0 8px;color:var(--marine-900);}
+  .subtitle{color:var(--texte-discret);font-size:15px;margin:0 0 24px;}
 
   .form-panel{display:none;}
   .form-panel.active{display:block;}
-  .f{margin-bottom:16px;}
-  label{display:block;font-size:12.5px;font-weight:500;margin-bottom:6px;}
-  input, textarea{width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--paper-2);font-size:13.5px;font-family:var(--police-texte);}
-  input:focus, textarea:focus{outline:none;border-color:var(--brass);}
-  textarea{resize:vertical;min-height:100px;}
-  button.submit{background:var(--ink);color:var(--paper);border:none;padding:13px 26px;font-size:14px;font-weight:500;cursor:pointer;margin-top:6px;}
-  button.submit:hover{background:var(--brass-dark);}
-  button.submit:disabled{opacity:0.6;cursor:default;}
+  .carte{background:var(--surface-carte);border:1px solid var(--bordure-portail);border-radius:var(--rayon-carte);box-shadow:var(--ombre-2);padding:26px 28px;}
+  .groupe + .groupe{margin-top:26px;padding-top:22px;border-top:1px solid var(--bordure-fine);}
+  .groupe-titre{margin:0 0 14px;font:600 11px/1.3 var(--police-texte);letter-spacing:.12em;text-transform:uppercase;color:var(--texte-discret);}
+  .grille{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+  .grille > div{min-width:0;}
+  .plein{grid-column:1/-1;}
+  label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--marine-900);}
+  label small{font-weight:400;color:var(--texte-discret);}
+  input, textarea, select{width:100%;}
+  textarea{resize:vertical;min-height:96px;}
+  .accord{display:flex;align-items:flex-start;gap:10px;margin-top:22px;font-size:13px;color:var(--texte-corps);}
+  .accord input{width:auto;margin-top:3px;flex:none;}
+  .accord label{font-weight:400;margin:0;color:inherit;font-size:13px;}
+  .accord a{color:var(--texte-lien, var(--action-primaire));}
+  .envoi{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:18px;}
+  button.submit{min-width:220px;padding:14px 26px;}
+  button.submit:disabled{opacity:.6;cursor:default;}
+  .error{color:var(--urgence-600);font-size:13px;margin:12px 0 0;display:none;}
 
-  .confirm{display:none;background:var(--paper-2);border-left:2px solid var(--sage);padding:20px;font-size:14px;}
+  .contexte{display:none;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:var(--rayon-champ);margin-bottom:18px;font-size:13.5px;background:var(--info-100);color:var(--texte-corps);}
+  .contexte .ic{width:17px;height:17px;flex:none;margin-top:2px;color:var(--bleu-600);}
+  .contexte--att{background:var(--alerte-100);}
+  .contexte--att .ic{color:var(--alerte-600);}
+
+  .confirm{display:none;text-align:center;padding:40px 28px;}
   .confirm.active{display:block;}
-  .error{color:var(--rust);font-size:12.5px;margin-top:10px;display:none;}
+  .confirm .rond{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:0 auto 14px;background:var(--succes-100);color:var(--succes-600);}
+  .confirm .rond .ic{width:26px;height:26px;}
+  .confirm h2{font-family:var(--police-titre);font-weight:600;font-size:26px;margin:0 0 6px;color:var(--marine-900);}
+  .confirm p{margin:0 0 18px;color:var(--texte-discret);}
+
+  @media (max-width:900px){
+    .page{grid-template-columns:minmax(0,1fr);align-content:start;}
+    .cote{position:static;height:auto;padding:24px 20px;gap:14px;}
+    .cote h2{font-size:24px;}
+    .cote-panneau{margin-top:0;}
+    .cote ul{display:none;}
+    .zone{padding:24px 16px 48px;}
+  }
+  @media (max-width:560px){
+    .grille{grid-template-columns:1fr;}
+    .carte{padding:20px 18px;}
+    .onglets{display:flex;}
+    .tab-btn{flex:1;padding:10px 8px;font-size:13px;}
+    button.submit{width:100%;}
+  }
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
-<div class="wrap">
-  <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
-
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="visite" onclick="showFormTab('visite')">Demander une visite</button>
-    <button class="tab-btn" data-tab="mandat" onclick="showFormTab('mandat')">Obtenir une évaluation gratuite</button>
-  </div>
-
-  <div id="form-visite" class="form-panel active">
-    <h1>Demander une visite</h1>
-    <p class="subtitle">Remplis ce formulaire et notre équipe te contactera pour proposer des créneaux de visite.</p>
-    <div id="unit-context" style="display:none;background:var(--paper-2);border:1px solid var(--line);padding:12px 16px;margin-bottom:20px;font-size:13.5px;"></div>
-    <form onsubmit="submitInquiry(event, 'visite')">
-      <div class="f"><label for="visite-full_name">Nom complet</label><input id="visite-full_name" type="text" name="full_name" required></div>
-      <div class="f"><label for="visite-email">Courriel</label><input id="visite-email" type="email" name="email" required></div>
-      <div class="f"><label for="visite-phone">Téléphone</label><input id="visite-phone" type="tel" name="phone"></div>
-      <div class="f"><label for="visite-message">Message (optionnel)</label><textarea id="visite-message" name="message" placeholder="Dates préférées, questions sur le logement, etc."></textarea></div>
-      <div style="position:absolute;left:-9999px;" aria-hidden="true">
-        <label for="visite-website">Site web</label><input id="visite-website" type="text" name="website" tabindex="-1" autocomplete="off">
-      </div>
-      <div class="f" style="display:flex;align-items:flex-start;gap:8px;">
-        <input type="checkbox" name="consent" id="visite-consent" required style="width:auto;margin-top:3px;">
-        <label for="visite-consent" style="font-weight:400;">J'accepte que mes informations soient utilisées par Lease Lane pour me contacter au sujet de cette demande. Voir notre <a href="/politique-de-confidentialite" target="_blank">politique de confidentialité</a>.</label>
-      </div>
-      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEwdcNdTN1rCC_Jz" data-language="fr"
-           style="margin-bottom:12px;"></div>
-      <button class="submit" type="submit">Envoyer la demande</button>
-      <p class="error" id="error-visite"></p>
-    </form>
-    <div class="confirm" id="confirm-visite">
-      <b>Demande envoyée !</b><br>Tu recevras une réponse par courriel sous peu.
+<div class="page">
+  <div class="cote">
+    <a class="logo" href="/"><img src="assets/logo/leaselane-horizontal-marine.svg" alt="Lease Lane — Gestion immobilière"></a>
+    <div class="cote-panneau" data-cote="visite">
+      <h2>Trouve ton prochain logement.</h2>
+      <p>Une personne de notre équipe te répond et organise la visite avec toi.</p>
     </div>
+    <div class="cote-panneau" data-cote="mandat">
+      <h2>Ton immeuble, entre bonnes mains.</h2>
+      <p>Un premier appel sans engagement pour voir si on est faits pour travailler ensemble.</p>
+    </div>
+    <ul>
+      <li><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#clock"/></svg><span>Réponse en général sous 24 h ouvrables</span></li>
+      <li><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#user"/></svg><span>Un vrai interlocuteur, pas un centre d'appels</span></li>
+      <li><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg><span>Tes informations servent uniquement à te recontacter</span></li>
+    </ul>
   </div>
 
-  <div id="form-mandat" class="form-panel">
-    <h1>Obtenir une évaluation gratuite</h1>
-    <p class="subtitle">Dis-nous en plus sur ton immeuble — un membre de notre équipe te contactera, sans engagement, pour discuter d'un mandat de gestion.</p>
-    <form onsubmit="submitInquiry(event, 'mandat')">
-      <div class="f"><label for="mandat-full_name">Nom complet</label><input id="mandat-full_name" type="text" name="full_name" required></div>
-      <div class="f"><label for="mandat-email">Courriel</label><input id="mandat-email" type="email" name="email" required></div>
-      <div class="f"><label for="mandat-phone">Téléphone</label><input id="mandat-phone" type="tel" name="phone"></div>
-      <div class="f"><label for="sector">Adresse ou secteur de l'immeuble</label><input id="sector" type="text" name="sector" required></div>
-      <div class="f"><label for="num_doors">Nombre de logements</label><input id="num_doors" type="number" name="num_doors" min="1"></div>
-      <div class="f"><label for="avg_rent">Loyer mensuel moyen approximatif ($)</label><input id="avg_rent" type="number" name="avg_rent" min="0"></div>
-      <div class="f"><label for="ownership">L'immeuble est détenu</label>
-        <select id="ownership" name="ownership">
-          <option value="">— Choisir —</option>
-          <option value="personnel">Personnellement</option>
-          <option value="societe">Par une société</option>
-        </select>
-      </div>
-      <div class="f"><label for="current_management">Actuellement</label>
-        <select id="current_management" name="current_management">
-          <option value="">— Choisir —</option>
-          <option value="autogere">Autogéré</option>
-          <option value="sous_gestion">Déjà sous gestion (autre entreprise)</option>
-        </select>
-      </div>
-      <div class="f"><label for="services_needed">Services recherchés</label><input id="services_needed" type="text" name="services_needed" placeholder="Ex. : gestion complète, location seulement, coordination des travaux..."></div>
-      <div class="f"><label for="main_problem">Principal problème à résoudre</label><input id="main_problem" type="text" name="main_problem" placeholder="Ex. : retards de loyer fréquents, roulement de locataires, manque de temps..."></div>
-      <div class="f"><label for="desired_start_date">Date souhaitée de début</label><input id="desired_start_date" type="date" name="desired_start_date"></div>
-      <div class="f"><label for="best_call_time">Meilleur moment pour t'appeler</label><input id="best_call_time" type="text" name="best_call_time" placeholder="Ex. : en soirée, jour de semaine en après-midi..."></div>
-      <div class="f"><label for="mandat-message">Autre chose à ajouter (optionnel)</label><textarea id="mandat-message" name="message" placeholder="Tout autre détail utile"></textarea></div>
-      <div style="position:absolute;left:-9999px;" aria-hidden="true">
-        <label for="mandat-website">Site web</label><input id="mandat-website" type="text" name="website" tabindex="-1" autocomplete="off">
-      </div>
-      <div class="f" style="display:flex;align-items:flex-start;gap:8px;">
-        <input type="checkbox" name="consent" id="mandat-consent" required style="width:auto;margin-top:3px;">
-        <label for="mandat-consent" style="font-weight:400;">J'accepte que mes informations soient utilisées par Lease Lane pour me contacter au sujet de cette demande. Voir notre <a href="/politique-de-confidentialite" target="_blank">politique de confidentialité</a>.</label>
-      </div>
-      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEwdcNdTN1rCC_Jz" data-language="fr"
-           style="margin-bottom:12px;"></div>
-      <button class="submit" type="submit">Envoyer ma demande</button>
-      <p class="error" id="error-mandat"></p>
-    </form>
-    <div class="confirm" id="confirm-mandat">
-      <b>Demande envoyée !</b><br>Tu recevras une réponse par courriel sous peu.
+  <main class="zone">
+   <div class="colonne">
+    <div class="onglets" role="tablist">
+      <button class="tab-btn active" data-tab="visite" onclick="showFormTab('visite')">Demander une visite</button>
+      <button class="tab-btn" data-tab="mandat" onclick="showFormTab('mandat')">Évaluation gratuite</button>
     </div>
-  </div>
+
+    <div id="form-visite" class="form-panel active">
+      <h1>Demander une visite</h1>
+      <p class="subtitle">Laisse-nous tes coordonnées : on te propose des créneaux de visite.</p>
+      <div id="unit-context" class="contexte"></div>
+      <form class="carte" onsubmit="submitInquiry(event, 'visite')">
+        <div class="grille">
+          <div class="plein"><label for="visite-full_name">Nom complet</label><input id="visite-full_name" type="text" name="full_name" autocomplete="name" required></div>
+          <div><label for="visite-email">Courriel</label><input id="visite-email" type="email" name="email" autocomplete="email" required></div>
+          <div><label for="visite-phone">Téléphone <small>(optionnel)</small></label><input id="visite-phone" type="tel" name="phone" autocomplete="tel"></div>
+          <div class="plein"><label for="visite-message">Message <small>(optionnel)</small></label><textarea id="visite-message" name="message" placeholder="Dates préférées, questions sur le logement, etc."></textarea></div>
+        </div>
+        <div style="position:absolute;left:-9999px;" aria-hidden="true">
+          <label for="visite-website">Site web</label><input id="visite-website" type="text" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <div class="accord">
+          <input type="checkbox" name="consent" id="visite-consent" required>
+          <label for="visite-consent">J'accepte que mes informations soient utilisées par Lease Lane pour me contacter au sujet de cette demande. Voir notre <a href="/politique-de-confidentialite" target="_blank">politique de confidentialité</a>.</label>
+        </div>
+        <div class="envoi">
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAAEwdcNdTN1rCC_Jz" data-language="fr"></div>
+          <button class="submit ll-bouton ll-bouton--primaire" type="submit">Envoyer la demande</button>
+        </div>
+        <p class="error" id="error-visite"></p>
+      </form>
+    <div class="carte confirm" id="confirm-visite">
+      <div class="rond"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg></div>
+      <h2>Demande envoyée</h2>
+      <p>On te répond par courriel sous peu pour fixer la visite.</p>
+      <a class="ll-bouton ll-bouton--secondaire" href="/">Retour à l'accueil</a>
+    </div>
+    </div>
+
+    <div id="form-mandat" class="form-panel">
+      <h1>Obtenir une évaluation gratuite</h1>
+      <p class="subtitle">Parle-nous de ton immeuble : on te rappelle, sans engagement, pour discuter d'un mandat de gestion.</p>
+      <form class="carte" onsubmit="submitInquiry(event, 'mandat')">
+        <div class="groupe"><p class="groupe-titre">Toi</p>
+          <div class="grille">
+            <div class="plein"><label for="mandat-full_name">Nom complet</label><input id="mandat-full_name" type="text" name="full_name" autocomplete="name" required></div>
+            <div><label for="mandat-email">Courriel</label><input id="mandat-email" type="email" name="email" autocomplete="email" required></div>
+            <div><label for="mandat-phone">Téléphone</label><input id="mandat-phone" type="tel" name="phone" autocomplete="tel"></div>
+            <div class="plein"><label for="best_call_time">Meilleur moment pour t'appeler</label><input id="best_call_time" type="text" name="best_call_time" placeholder="Ex. : en soirée, en semaine l'après-midi…"></div>
+          </div>
+        </div>
+        <div class="groupe"><p class="groupe-titre">Ton immeuble</p>
+          <div class="grille">
+            <div class="plein"><label for="sector">Adresse ou secteur</label><input id="sector" type="text" name="sector" required></div>
+            <div><label for="num_doors">Nombre de logements</label><input id="num_doors" type="number" name="num_doors" min="1"></div>
+            <div><label for="avg_rent">Loyer moyen par mois ($)</label><input id="avg_rent" type="number" name="avg_rent" min="0"></div>
+            <div><label for="ownership">L'immeuble est détenu</label>
+              <select id="ownership" name="ownership">
+                <option value="">— Choisir —</option>
+                <option value="personnel">Personnellement</option>
+                <option value="societe">Par une société</option>
+              </select>
+            </div>
+            <div><label for="current_management">Actuellement</label>
+              <select id="current_management" name="current_management">
+                <option value="">— Choisir —</option>
+                <option value="autogere">Autogéré</option>
+                <option value="sous_gestion">Déjà sous gestion (autre entreprise)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="groupe"><p class="groupe-titre">Tes besoins</p>
+          <div class="grille">
+            <div class="plein"><label for="services_needed">Services recherchés</label><input id="services_needed" type="text" name="services_needed" placeholder="Ex. : gestion complète, location seulement, coordination des travaux…"></div>
+            <div class="plein"><label for="main_problem">Principal problème à résoudre</label><input id="main_problem" type="text" name="main_problem" placeholder="Ex. : retards de loyer, roulement de locataires, manque de temps…"></div>
+            <div><label for="desired_start_date">Début souhaité</label><input id="desired_start_date" type="date" name="desired_start_date"></div>
+            <div class="plein"><label for="mandat-message">Autre chose à ajouter <small>(optionnel)</small></label><textarea id="mandat-message" name="message" placeholder="Tout autre détail utile"></textarea></div>
+          </div>
+        </div>
+        <div style="position:absolute;left:-9999px;" aria-hidden="true">
+          <label for="mandat-website">Site web</label><input id="mandat-website" type="text" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <div class="accord">
+          <input type="checkbox" name="consent" id="mandat-consent" required>
+          <label for="mandat-consent">J'accepte que mes informations soient utilisées par Lease Lane pour me contacter au sujet de cette demande. Voir notre <a href="/politique-de-confidentialite" target="_blank">politique de confidentialité</a>.</label>
+        </div>
+        <div class="envoi">
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAAEwdcNdTN1rCC_Jz" data-language="fr"></div>
+          <button class="submit ll-bouton ll-bouton--primaire" type="submit">Envoyer ma demande</button>
+        </div>
+        <p class="error" id="error-mandat"></p>
+      </form>
+    <div class="carte confirm" id="confirm-mandat">
+      <div class="rond"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg></div>
+      <h2>Demande envoyée</h2>
+      <p>Un membre de l'équipe te rappelle au moment que tu as indiqué.</p>
+      <a class="ll-bouton ll-bouton--secondaire" href="/">Retour à l'accueil</a>
+    </div>
+    </div>
+   </div>
+  </main>
 </div>
 
 <script>
@@ -142,8 +225,8 @@ function esc(s){ const d = document.createElement('div'); d.textContent = s ?? '
 async function loadUnitContext(){
   const box = document.getElementById('unit-context');
   if(!unitId){
-    box.style.display = 'block';
-    box.innerHTML = '<span style="color:var(--rust);">Aucun logement précisé — si tu réponds à une annonce, utilise le lien "Demander une visite" affiché sur cette annonce pour qu\'on sache de quel logement il s\'agit.</span>';
+    box.className = 'contexte contexte--att'; box.style.display = 'flex';
+    box.innerHTML = '<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#info"/></svg><span>Tu réponds à une annonce ? Utilise le bouton « Demander une visite » de l\'annonce : on saura de quel logement il s\'agit.</span>';
     return;
   }
   const { data: unit, error } = await supabaseClient
@@ -151,12 +234,13 @@ async function loadUnitContext(){
     .select('unit_number, unit_type, rent, buildings(address)')
     .eq('id', unitId)
     .single();
-  box.style.display = 'block';
+  box.style.display = 'flex';
   if(error || !unit){
-    box.innerHTML = '<span style="color:var(--rust);">Logement introuvable — le lien utilisé n\'est peut-être plus valide.</span>';
+    box.className = 'contexte contexte--att';
+    box.innerHTML = '<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#info"/></svg><span>Logement introuvable : le lien utilisé n\'est peut-être plus valide.</span>';
     return;
   }
-  box.innerHTML = `Visite demandée pour : <b>${esc(unit.unit_type) || 'Logement'} — Unité ${esc(unit.unit_number)}</b><br>${esc(unit.buildings?.address) || ''} — ${Number(unit.rent).toLocaleString('fr-CA')} $/mois`;
+  box.innerHTML = `<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#house"/></svg><span>Visite demandée pour : <b>${esc(unit.unit_type) || 'Logement'} — Unité ${esc(unit.unit_number)}</b><br>${esc(unit.buildings?.address) || ''} — ${Number(unit.rent).toLocaleString('fr-CA')} $/mois</span>`;
 }
 if(initialTab === 'visite') loadUnitContext();
 
@@ -166,6 +250,7 @@ function showFormTab(tab){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('form-' + tab).classList.add('active');
   document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+  document.querySelectorAll('.cote-panneau').forEach(p => p.classList.toggle('active', p.dataset.cote === tab));
   if(tab === 'visite' && !unitContextLoaded){
     unitContextLoaded = true;
     loadUnitContext();
