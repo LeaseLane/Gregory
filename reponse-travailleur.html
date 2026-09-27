@@ -59,8 +59,8 @@
   dialog.zoom img{max-width:95vw;max-height:88vh;border-radius:10px;display:block;}
   @media (max-width:420px){ .faits, .deux{grid-template-columns:1fr;} }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609272052">
-<script src="assets/ui.js?v=202609272052"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609272103">
+<script src="assets/ui.js?v=202609272103"></script>
 </head>
 <body>
 <div class="wrap">
@@ -98,8 +98,10 @@
       </div>
 
       <div id="panel-propose_time" class="volet">
-        <label class="ch" for="propose_time-message">Quelle heure te conviendrait ?</label>
-        <textarea id="propose_time-message" placeholder="Ex. : Disponible jeudi après 14 h, ou vendredi matin."></textarea>
+        <label class="ch" for="propose_time-date">Date et heure qui te conviennent</label>
+        <input type="datetime-local" id="propose_time-date" style="width:100%;margin-bottom:10px">
+        <label class="ch" for="propose_time-message">Note <small>(optionnel)</small></label>
+        <textarea id="propose_time-message" placeholder="Ex. : je peux aussi vendredi matin."></textarea>
         <div class="deux"><button class="ll-bouton ll-bouton--primaire" onclick="respond('propose_time')">Envoyer</button><button class="ll-bouton ll-bouton--secondaire" onclick="showPanel('choices')">Retour</button></div>
       </div>
 
@@ -222,7 +224,13 @@ async function respond(action){
   const buttons = Array.from(document.querySelectorAll('button'));
   buttons.forEach(b => b.disabled = true);
 
-  const { ok, data } = await callResponseApi({ action, message });
+  let proposed_at;
+  if(action === 'propose_time'){
+    const v = document.getElementById('propose_time-date').value;
+    if(!v){ buttons.forEach(b => b.disabled = false); const r = document.getElementById('result'); r.className = 'result error active'; r.querySelector('p').textContent = 'Choisis une date et une heure.'; return; }
+    proposed_at = new Date(v).toISOString();
+  }
+  const { ok, data } = await callResponseApi({ action, message, proposed_at });
   const result = document.getElementById('result');
 
   if(!ok){

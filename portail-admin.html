@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609272052">
-<script src="assets/charger-portail.js?v=202609272052"></script>
-<script src="assets/ui.js?v=202609272052"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609272103">
+<script src="assets/charger-portail.js?v=202609272103"></script>
+<script src="assets/ui.js?v=202609272103"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -3415,7 +3415,7 @@ function woEtape(wo){
   if(wo.worker_response === 'declined') return { cle: 'refus', lib: 'Refusé par le travailleur', ton: 'ko' };
   if(wo.appointment_at && wo.worker_response === 'accepted') return { cle: 'rdv', lib: 'Rendez-vous fixé', ton: 'ok' };
   if(wo.worker_response === 'accepted') return { cle: 'accepte', lib: 'Accepté', ton: 'ok' };
-  if(wo.worker_response === 'proposed_other_time') return { cle: 'offre', lib: 'Autre heure proposée', ton: 'att' };
+  if(wo.worker_response === 'proposed_other_time') return { cle: 'offre', lib: wo.proposed_appointment_at ? 'Heure proposée : à confirmer' : 'Autre heure proposée', ton: 'att' };
   if(wo.worker_response === 'info_requested') return { cle: 'offre', lib: 'Question du travailleur', ton: 'att' };
   if(!wo.worker_id) return { cle: 'offre', lib: 'Recherche d\'un travailleur', ton: 'att' };
   return { cle: 'offre', lib: 'Offre envoyée, sans réponse', ton: 'att' };
@@ -3508,6 +3508,7 @@ function renderFicheTravail(){
       ${photoLinksHtml('service-request-photos', wo.photo_before_urls, 'Photos avant')}
       ${photoLinksHtml('service-request-photos', wo.photo_after_urls, 'Photos après')}
       ${wo.worker_reported_done_at ? `<div class="lo-conseil lo-conseil--ok"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-check"/></svg><div><b>Le travailleur a signalé le travail terminé</b>${quand(wo.worker_reported_done_at)}${wo.worker_completion_note ? ' · ' + esc(wo.worker_completion_note) : ''}</div></div>` : ''}
+      ${wo.proposed_appointment_at ? `<div class="lo-conseil lo-conseil--prop"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#clock"/></svg><div><b>Le travailleur propose le ${quand(wo.proposed_appointment_at)}</b>${wo.worker_response_note ? esc(wo.worker_response_note) + '<br>' : ''}<button class="ll-bouton ll-bouton--primaire lo-petit" style="margin-top:8px" onclick="accepterHeureProposee('${wo.id}')">Accepter cette heure</button> <button class="vo-action" style="margin-top:8px" onclick="ficheWo.onglet='echanges';renderFicheTravail()">Répondre au travailleur</button></div></div>` : ''}
       ${ap ? `<div class="lo-conseil"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg><div><b>Approbation du propriétaire : ${ap.status === 'pending' ? 'en attente' : ap.status === 'approved' ? 'accordée' : 'refusée'}</b>${argentF(ap.requested_amount)} demandés, plafond ${argentF(ap.spending_cap_at_request)}${ap.rejection_note ? ' · ' + esc(ap.rejection_note) : ''}</div></div>` : ''}
       <div class="lo-infos">
         <div><span>Travailleur</span><b>${woTravailleur(wo) ? esc(woTravailleur(wo)) : 'Aucun'}</b>${wo.workers?.phone ? `<small>${esc(wo.workers.phone)}</small>` : ''}</div>
@@ -3599,6 +3600,14 @@ async function envoyerMessageTravailleurTravail(id){
   if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'non envoyé'), 'erreur'); return; }
   llToast('Message envoyé au travailleur.', 'succes');
   ficheWo.data = null; ouvrirFicheTravail(id, 'echanges');
+}
+
+async function accepterHeureProposee(id){
+  if(!await llConfirmer('Confirmer ce rendez-vous ? Le travailleur et le locataire seront avisés.', { libelle: 'Confirmer' })) return;
+  const res = await callOpsApi({ action: 'accept_proposed_time', work_order_id: id });
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'non enregistré'), 'erreur'); return; }
+  llToast('Rendez-vous confirmé.', 'succes');
+  ficheWo.data = null; await loadWorkOrdersAdmin();
 }
 
 async function reassignerDepuisFiche(id){
@@ -4678,8 +4687,8 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609272052"></script>
-<script src="assets/compte.js?v=202609272052"></script>
-<script src="assets/url-propre.js?v=202609272052"></script>
+<script src="assets/mobile.js?v=202609272103"></script>
+<script src="assets/compte.js?v=202609272103"></script>
+<script src="assets/url-propre.js?v=202609272103"></script>
 </body>
 </html>

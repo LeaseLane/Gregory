@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     };
 
     const body = await req.json().catch(() => ({}));
-    const { work_order_id, token, action, message } = body;
+    const { work_order_id, token, action, message, proposed_at } = body;
     if (!work_order_id || !token || !action) {
       return new Response(JSON.stringify({ error: "Paramètres manquants" }), { status: 400, headers: corsHeaders });
     }
@@ -230,7 +230,10 @@ Deno.serve(async (req) => {
       await fetch(`${supabaseUrl}/rest/v1/work_orders?id=eq.${work_order_id}`, {
         method: "PATCH",
         headers: adminHeaders,
-        body: JSON.stringify({ worker_response: responseValue, worker_response_at: new Date().toISOString(), worker_response_note: message || null }),
+        body: JSON.stringify({
+          worker_response: responseValue, worker_response_at: new Date().toISOString(), worker_response_note: message || null,
+          ...(action === "propose_time" && proposed_at && !isNaN(Date.parse(proposed_at)) ? { proposed_appointment_at: new Date(proposed_at).toISOString() } : {}),
+        }),
       });
 
       await notifyAdmins(
@@ -244,7 +247,7 @@ Deno.serve(async (req) => {
       await fetch(`${supabaseUrl}/rest/v1/worker_messages`, {
         method: "POST", headers: { ...adminHeaders, Prefer: "return=minimal" },
         body: JSON.stringify({ worker_id: wo.worker_id, work_order_id, direction: "entrant", origine: "lien",
-          sujet: action === "propose_time" ? "Propose une autre heure" : "Question", corps: (message || "(aucun message)").slice(0, 10000) }),
+          sujet: action === "propose_time" ? `Propose une autre heure${proposed_at && !isNaN(Date.parse(proposed_at)) ? " : " + new Date(proposed_at).toLocaleString("fr-CA", { dateStyle: "full", timeStyle: "short", timeZone: "America/Toronto" }) : ""}` : "Question", corps: (message || (action === "propose_time" ? "(sans note)" : "(aucun message)")).slice(0, 10000) }),
       }).catch(() => null);
       await logAudit(`work_order.worker_${responseValue}`, { message: message || null });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });

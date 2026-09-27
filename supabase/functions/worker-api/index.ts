@@ -4,7 +4,7 @@ import { corsHeadersFor, requireUser } from "../_shared/auth.ts";
 
 // Ce que le travailleur voit d'un travail : jamais les frais de coordination
 // ni les coordonnées du locataire.
-const CHAMPS_JOB = "id,description,worker_pay,status,created_at,appointment_at,due_by,entry_permission,billing_terms,safety_instructions,is_urgent,worker_response,worker_response_note,worker_reported_done_at,worker_completion_note,tenant_confirmed,photo_before_urls,photo_after_urls,worker_paid_at,worker_paid_amount,units(unit_number,buildings(address)),service_requests(description,photo_urls,ai_category,ai_subcategory,ai_video_summary,safety_override)";
+const CHAMPS_JOB = "id,description,worker_pay,status,created_at,appointment_at,due_by,entry_permission,billing_terms,safety_instructions,is_urgent,worker_response,worker_response_note,worker_reported_done_at,worker_completion_note,tenant_confirmed,proposed_appointment_at,photo_before_urls,photo_after_urls,worker_paid_at,worker_paid_amount,units(unit_number,buildings(address)),service_requests(description,photo_urls,ai_category,ai_subcategory,ai_video_summary,safety_override)";
 const ALLOWED_AVAILABILITY = ["maintenant", "aujourdhui", "semaine", "indisponible"];
 
 
@@ -237,7 +237,7 @@ Deno.serve(async (req) => {
       if (!["accept", "decline", "propose_time", "request_info"].includes(body.reponse)) return json({ error: "Réponse inconnue" }, 400);
       const r = await fetch(`${supabaseUrl}/functions/v1/handle-worker-response`, {
         method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey ?? "" },
-        body: JSON.stringify({ work_order_id: wo.id, token: wo.worker_response_token, action: body.reponse, message: body.message || undefined }),
+        body: JSON.stringify({ work_order_id: wo.id, token: wo.worker_response_token, action: body.reponse, message: body.message || undefined, proposed_at: body.proposed_at || undefined }),
       });
       const d = await r.json().catch(() => ({}));
       return json(d, r.status);

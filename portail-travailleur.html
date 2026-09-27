@@ -112,9 +112,9 @@
     main{padding:20px 16px;max-width:100%;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609272052">
-<script src="assets/charger-portail.js?v=202609272052"></script>
-<script src="assets/ui.js?v=202609272052"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609272103">
+<script src="assets/charger-portail.js?v=202609272103"></script>
+<script src="assets/ui.js?v=202609272103"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -623,6 +623,7 @@ function renderJob(){
   const [lib, ton] = etapeJob(j);
   const peutRepondre = enAttente(j);
   const peutTerminer = j.worker_response === 'accepted' && !j.worker_reported_done_at && j.status !== 'completed';
+  if(peutRepondre && !['details', 'echanges'].includes(ficheJob.onglet)) ficheJob.onglet = 'details';
   const galerie = (groupe, titre) => { const g = (d?.pieces || []).filter(p => p.groupe === groupe); return g.length ? `<p class="lo-fil-titre">${titre}</p><div class="galerie-t">${g.map(p => p.video ? `<video src="${esc(p.url)}" controls playsinline preload="metadata"></video>` : `<img src="${esc(p.url)}" alt="" loading="lazy" onclick="zoomT(this.src)">`).join('')}</div>` : ''; };
   const onglet = (id, l, n) => `<button class="fi-onglet${ficheJob.onglet === id ? ' actif' : ''}" onclick="ficheJob.onglet='${id}';renderJob()">${l}${n ? ` <span>${n}</span>` : ''}</button>`;
   let corps;
@@ -631,7 +632,7 @@ function renderJob(){
   else if(ficheJob.onglet === 'echanges'){
     const m = d.messages || [];
     corps = `<div class="ms-fil">${m.length ? m.map(x => `<div class="ms-bulle ${x.direction === 'entrant' ? 'ms-bulle--sortant' : 'ms-bulle--entrant'}"><div class="ms-meta">${x.direction === 'entrant' ? 'Toi' : x.origine === 'automatique' ? 'Courriel automatique' : 'Équipe Lease Lane'} · ${dateT(x.created_at)}</div>${x.sujet ? `<div class="ms-sujet">${esc(x.sujet)}</div>` : ''}${x.origine === 'automatique' ? `<details class="ms-corps"><summary>Voir le courriel</summary><div>${esc(x.corps)}</div></details>` : `<div class="ms-corps"><div>${esc(x.corps)}</div></div>`}</div>`).join('') : '<p class="tr-vide">Aucun échange sur ce travail.</p>'}</div>
-      <div class="ms-ecrire"><textarea id="job-msg" rows="3" placeholder="Une question sur ce travail ?"></textarea><div class="ms-actions"><span class="ms-dest">L'équipe te répond ici et par courriel.</span><button class="ll-bouton ll-bouton--primaire lo-petit" onclick="envoyerMessage('${j.id}', 'job-msg')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div></div>`;
+      <div class="ms-ecrire"><textarea id="job-msg" rows="3" placeholder="${peutRepondre ? 'Ta question avant d\'accepter (accès, matériel, horaire…)' : 'Une question sur ce travail ?'}"></textarea><div class="ms-actions"><span class="ms-dest">L'équipe te répond ici et par courriel.</span><button class="ll-bouton ll-bouton--primaire lo-petit" onclick="${j.worker_response === 'pending' ? `poserQuestion('${j.id}')` : `envoyerMessage('${j.id}', 'job-msg')`}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div></div>`;
   } else if(ficheJob.onglet === 'terminer'){
     corps = peutTerminer ? `<p class="muted-t">Ajoute au moins une photo avant et une photo après (jusqu'à 5 de chaque).</p>
       <div class="fo-ligne"><div><label class="ch-label" for="before-${j.id}">Photos avant</label><input type="file" accept="image/*" multiple id="before-${j.id}"></div><div><label class="ch-label" for="after-${j.id}">Photos après</label><input type="file" accept="image/*" multiple id="after-${j.id}"></div></div>
@@ -653,7 +654,17 @@ function renderJob(){
       ${sr.ai_category ? `<div class="md-ia"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg><div><b>Type de travail</b> ${esc(sr.ai_category)}${sr.ai_subcategory ? ' — ' + esc(sr.ai_subcategory) : ''}</div></div>` : ''}
       ${peutRepondre ? `<div class="lo-repondre">
         <button class="ll-bouton btn-ok-t" onclick="repondreJob('${j.id}', 'accept')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg>Accepter le travail</button>
-        <div class="lo-deux"><button class="ll-bouton ll-bouton--secondaire" onclick="repondreJob('${j.id}', 'propose_time')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#clock"/></svg>Autre heure</button><button class="ll-bouton ll-bouton--secondaire" onclick="repondreJob('${j.id}', 'request_info')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-help"/></svg>Poser une question</button></div>
+        ${j.proposed_appointment_at ? `<div class="lo-conseil"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#clock"/></svg><div><b>Tu as proposé le ${dateT(j.proposed_appointment_at)}</b>En attente de la confirmation de l'équipe. Tu peux quand même accepter l'horaire initial.</div></div>` : ''}
+        <div class="lo-deux"><button class="ll-bouton ll-bouton--secondaire" onclick="basculerAutreHeure(true)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#clock"/></svg>Autre heure</button><button class="ll-bouton ll-bouton--secondaire" onclick="ficheJob.onglet='echanges';renderJob();setTimeout(()=>document.getElementById('job-msg')?.focus(),50)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-help"/></svg>Poser une question</button></div>
+        <form class="pp-carte autre-heure" id="autre-heure" hidden onsubmit="event.preventDefault();proposerHeure('${j.id}')">
+          <p class="lo-fil-titre" style="margin-top:0">Proposer une autre date et heure</p>
+          <div class="fo-ligne">
+            <div><label class="ch-label" for="ah-date">Date et heure</label><input type="datetime-local" id="ah-date" required min="${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}"></div>
+          </div>
+          <label class="ch-label" for="ah-note" style="margin-top:10px">Note <small>(optionnel)</small></label>
+          <textarea id="ah-note" rows="2" placeholder="Ex. : je peux aussi vendredi matin."></textarea>
+          <div class="lo-deux" style="margin-top:10px"><button class="ll-bouton ll-bouton--primaire" type="submit">Envoyer la proposition</button><button class="ll-bouton ll-bouton--secondaire" type="button" onclick="basculerAutreHeure(false)">Annuler</button></div>
+        </form>
         <button class="ll-bouton btn-refus-t" onclick="repondreJob('${j.id}', 'decline')">Refuser</button></div>` : ''}`;
   }
   t.innerHTML = `
@@ -661,8 +672,34 @@ function renderJob(){
       <div class="tr-ident"><h2>${esc((j.description || '').slice(0, 70))}</h2><div class="tr-specs"><span class="tr-spec">${jobAddress(j)}</span> <span class="tag ${ton}">${lib}</span></div></div>
       <button class="fi-fermer" onclick="fermerJob()" aria-label="Fermer"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#x"/></svg></button></header>
     ${j.units?.buildings?.address ? `<div class="fi-contact"><a class="ll-bouton ll-bouton--secondaire" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.units.buildings.address)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#map-pin"/></svg>Itinéraire</a></div>` : ''}
-    <div class="fi-onglets" role="tablist">${onglet('details', 'Détails')}${onglet('echanges', 'Échanges', (d?.messages || []).length)}${onglet('terminer', peutTerminer ? 'Terminer' : 'Photos')}${onglet('paiement', 'Paiement')}</div>
+    <div class="fi-onglets" role="tablist">${peutRepondre
+      ? onglet('details', 'Détails') + onglet('echanges', 'Questions', (d?.messages || []).length)
+      : onglet('details', 'Détails') + onglet('echanges', 'Échanges', (d?.messages || []).length) + onglet('terminer', peutTerminer ? 'Terminer' : 'Photos') + onglet('paiement', 'Paiement')}</div>
     <div class="fi-corps lo-fiche">${corps}</div>`;
+}
+
+function basculerAutreHeure(o){
+  const f = document.getElementById('autre-heure');
+  if(!f) return;
+  f.hidden = !o;
+  if(o){ f.scrollIntoView({ behavior: 'smooth', block: 'center' }); document.getElementById('ah-date').focus(); }
+}
+async function proposerHeure(id){
+  const v = document.getElementById('ah-date').value;
+  if(!v){ llToast('Choisis une date et une heure.', 'erreur'); return; }
+  const res = await callWorkerApi({ action: 'respond_job', work_order_id: id, reponse: 'propose_time', proposed_at: new Date(v).toISOString(), message: document.getElementById('ah-note').value.trim() || undefined });
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'proposition non envoyée'), 'erreur'); return; }
+  llToast('Proposition envoyée : l\'équipe te confirme l\'horaire.', 'succes');
+  ficheJob.data = null; await loadJobs(); await loadOffers(); loadDashboard(); ouvrirJob(id, 'details');
+}
+async function poserQuestion(id){
+  const el = document.getElementById('job-msg');
+  const t = el.value.trim();
+  if(!t) return;
+  const res = await callWorkerApi({ action: 'respond_job', work_order_id: id, reponse: 'request_info', message: t });
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'question non envoyée'), 'erreur'); return; }
+  llToast('Question envoyée : l\'équipe te répond ici.', 'succes');
+  ficheJob.data = null; await loadJobs(); await loadOffers(); loadDashboard(); ouvrirJob(id, 'echanges');
 }
 
 async function repondreJob(id, reponse){
@@ -922,8 +959,8 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609272052"></script>
-<script src="assets/compte.js?v=202609272052"></script>
-<script src="assets/url-propre.js?v=202609272052"></script>
+<script src="assets/mobile.js?v=202609272103"></script>
+<script src="assets/compte.js?v=202609272103"></script>
+<script src="assets/url-propre.js?v=202609272103"></script>
 </body>
 </html>

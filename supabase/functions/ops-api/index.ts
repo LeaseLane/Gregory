@@ -687,6 +687,30 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // L'équipe accepte l'heure proposée par le travailleur : elle devient le
+    // rendez-vous, le travail est confirmé, travailleur et locataire avisés.
+    if (action === "accept_proposed_time") {
+      const { work_order_id } = body;
+      const r = await fetch(`${supabaseUrl}/rest/v1/work_orders?id=eq.${work_order_id}&select=description,worker_id,service_request_id,proposed_appointment_at,workers(email,name),units(unit_number,buildings(address))`, { headers: adminHeaders });
+      const [w] = await r.json().catch(() => []);
+      if (!w?.proposed_appointment_at) return new Response(JSON.stringify({ error: "Aucune heure proposée" }), { status: 400, headers: corsHeaders });
+      const up = await fetch(`${supabaseUrl}/rest/v1/work_orders?id=eq.${work_order_id}`, {
+        method: "PATCH", headers: adminHeaders,
+        body: JSON.stringify({ appointment_at: w.proposed_appointment_at, proposed_appointment_at: null, worker_response: "accepted", worker_response_at: new Date().toISOString(), status: "in_progress" }),
+      });
+      if (!up.ok) return new Response(JSON.stringify({ error: `Non enregistré : ${(await up.text()).slice(0, 200)}` }), { status: 502, headers: corsHeaders });
+      const quand = new Date(w.proposed_appointment_at).toLocaleString("fr-CA", { dateStyle: "full", timeStyle: "short", timeZone: "America/Toronto" });
+      if (w.workers?.email) {
+        await courrielTravailleur({ workerId: w.worker_id, to: w.workers.email, origine: "manuel", auteurId: userId, workOrderId: work_order_id,
+          sujet: `Rendez-vous confirmé — ${w.units?.buildings?.address ?? ""}`,
+          texte: `Bonjour ${w.workers.name?.split(" ")[0] || ""},\n\nC'est confirmé : ton rendez-vous pour « ${w.description} » (${w.units?.buildings?.address ?? ""}, unité ${w.units?.unit_number ?? ""}) est fixé au ${quand}.\n\nL'équipe Lease Lane`,
+          habillage: { pied: POURQUOI.travailleur } });
+      }
+      if (w.service_request_id) await ajouterMessageDemande({ demandeId: w.service_request_id, sender: "system", corps: `Rendez-vous confirmé avec le professionnel : ${quand}.` });
+      await logAudit("work_order.proposed_time_accepted", "work_orders", work_order_id, { appointment_at: w.proposed_appointment_at });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "reassign_work_order") {
       const { work_order_id, worker_id } = body;
 
