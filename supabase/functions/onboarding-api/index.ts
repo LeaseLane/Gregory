@@ -88,6 +88,29 @@ Deno.serve(async (req) => {
         body: JSON.stringify(avecHtml({ from: EXPEDITEUR, to: [to], subject, text })),
       });
 
+    // Compte Auth d'un locataire, partagé par create_tenant et grant_tenant_access.
+    const creerCompteLocataire = async (email: string): Promise<{ userId: string; motDePasse: string } | { erreur: string }> => {
+      const motDePasse = randomPassword();
+      const authRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+        method: "POST",
+        headers: adminHeaders,
+        body: JSON.stringify({ email, password: motDePasse, email_confirm: true }),
+      });
+      const authData = await authRes.json();
+      if (!authRes.ok || !authData.id) {
+        return { erreur: authData.msg || authData.error_description || "Impossible de créer le compte" };
+      }
+      // Le déclencheur d'inscription met "owner" par défaut — on corrige pour "tenant".
+      await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${authData.id}`, {
+        method: "PATCH", headers: adminHeaders, body: JSON.stringify({ role: "tenant" }),
+      });
+      return { userId: authData.id, motDePasse };
+    };
+
+    const courrielBienvenueLocataire = (email: string, nom: string, motDePasse: string) =>
+      sendEmail(email, "Bienvenue sur Lease Lane — ton accès locataire",
+        `Bonjour ${nom},\n\nTon compte locataire Lease Lane est prêt.\n\nConnexion : ${PORTAILS.locataire}\nCourriel : ${email}\nMot de passe temporaire : ${motDePasse}\n\nConnecte-toi pour voir ton bail, tes paiements et signaler un problème dans ton logement. Tu peux changer ton mot de passe via « Mot de passe oublié » sur la page de connexion.\n\nL'équipe Lease Lane`);
+
     const body = await req.json().catch(() => ({}));
     const action = body.action;
 
@@ -534,22 +557,11 @@ Deno.serve(async (req) => {
       let authUserId: string | null = null;
       let tempPassword: string | null = null;
       if (email) {
-        tempPassword = randomPassword();
-        const authRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
-          method: "POST",
-          headers: adminHeaders,
-          body: JSON.stringify({ email, password: tempPassword, email_confirm: true }),
-        });
-        const authData = await authRes.json();
-        if (!authRes.ok || !authData.id) {
-          return new Response(JSON.stringify({ error: authData.msg || authData.error_description || "Impossible de créer le compte" }), { status: 400, headers: corsHeaders });
+        const acces = await creerCompteLocataire(email);
+        if ("erreur" in acces) {
+          return new Response(JSON.stringify({ error: acces.erreur }), { status: 400, headers: corsHeaders });
         }
-        authUserId = authData.id;
-
-        // Le déclencheur d'inscription met "owner" par défaut — on corrige pour "tenant".
-        await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${authUserId}`, {
-          method: "PATCH", headers: adminHeaders, body: JSON.stringify({ role: "tenant" }),
-        });
+        ({ userId: authUserId, motDePasse: tempPassword } = acces);
       }
 
       const tenantRes = await fetch(`${supabaseUrl}/rest/v1/tenants`, {
@@ -577,13 +589,39 @@ Deno.serve(async (req) => {
         method: "PATCH", headers: adminHeaders, body: JSON.stringify({ status: "occupied" }),
       });
 
-      if (email) {
-        await sendEmail(email, "Bienvenue sur Portail — ton accès locataire",
-          `Bonjour ${full_name},\n\nTon compte locataire Portail est prêt.\n\nPortail : ${PORTAILS.locataire}\nCourriel : ${email}\nMot de passe temporaire : ${tempPassword}\n\nConnecte-toi pour voir ton bail, tes paiements et faire une demande de service. Tu peux changer ton mot de passe via "Mot de passe oublié" sur la page de connexion.\n\nL'équipe Lease Lane`);
-      }
+      if (email) await courrielBienvenueLocataire(email, full_name, tempPassword!);
 
       await logAudit("tenant.create", "tenants", tenant?.id ?? null, { email: email || null, unit_id, has_login: !!authUserId });
       return new Response(JSON.stringify({ ok: true, tenant_id: tenant?.id, temp_password: tempPassword }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Donner un accès portail à un locataire enregistré sans courriel
+    // (create_tenant le permet) : même compte et même courriel de
+    // bienvenue qu'à la création.
+    if (action === "grant_tenant_access") {
+      const { tenant_id, email } = body;
+      if (!tenant_id || !email) {
+        return new Response(JSON.stringify({ error: "Locataire et courriel requis" }), { status: 400, headers: corsHeaders });
+      }
+      const tRes = await fetch(`${supabaseUrl}/rest/v1/tenants?id=eq.${tenant_id}&select=id,full_name,user_id`, { headers: adminHeaders });
+      const [t] = await tRes.json();
+      if (!t) return new Response(JSON.stringify({ error: "Locataire introuvable" }), { status: 404, headers: corsHeaders });
+      if (t.user_id) return new Response(JSON.stringify({ error: "Ce locataire a déjà un accès portail" }), { status: 409, headers: corsHeaders });
+
+      const acces = await creerCompteLocataire(email);
+      if ("erreur" in acces) {
+        return new Response(JSON.stringify({ error: acces.erreur }), { status: 400, headers: corsHeaders });
+      }
+      const upd = await fetch(`${supabaseUrl}/rest/v1/tenants?id=eq.${tenant_id}`, {
+        method: "PATCH", headers: adminHeaders, body: JSON.stringify({ user_id: acces.userId, email }),
+      });
+      if (!upd.ok) {
+        console.error("grant_tenant_access: fiche non liée", await upd.text());
+        return new Response(JSON.stringify({ error: "Compte créé mais fiche locataire non liée." }), { status: 500, headers: corsHeaders });
+      }
+      await courrielBienvenueLocataire(email, t.full_name, acces.motDePasse);
+      await logAudit("tenant.access_granted", "tenants", tenant_id, { email });
+      return new Response(JSON.stringify({ ok: true, temp_password: acces.motDePasse }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "create_cold_caller") {

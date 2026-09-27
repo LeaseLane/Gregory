@@ -3593,9 +3593,23 @@ async function loadTenants(){
     <tr>
       <td>${esc(t.full_name)}<br><span style="color:var(--muted);font-size:11.5px;">${esc(t.email) || ''} ${esc(t.phone) || ''}</span></td>
       <td>${logement}</td>
-      <td>${t.user_id ? `<button data-role="tenant" data-target-id="${esc(t.id)}" onclick="impersonateFromButton(this)" class="vo-action">Voir son portail</button>` : '<span style="color:var(--muted);font-size:11.5px;">Aucun accès portail</span>'}</td>
+      <td>${t.user_id ? `<button data-role="tenant" data-target-id="${esc(t.id)}" onclick="impersonateFromButton(this)" class="vo-action">Voir son portail</button>` : `<button data-tenant-id="${esc(t.id)}" data-email="${esc(t.email || '')}" onclick="donnerAccesLocataire(this)" class="vo-action">Donner l'accès</button>`}</td>
     </tr>`;
   }).join('');
+}
+
+// Locataire enregistré sans courriel : on crée son compte et on lui envoie
+// le courriel de bienvenue avec un mot de passe temporaire.
+async function donnerAccesLocataire(btn){
+  const email = (await llDemander("Courriel du locataire (il recevra ses accès) :", btn.dataset.email) || '').trim();
+  if(!email) return;
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ llToast('Courriel invalide.', 'erreur'); return; }
+  btn.disabled = true;
+  const res = await callOnboardingApi({ action: 'grant_tenant_access', tenant_id: btn.dataset.tenantId, email });
+  btn.disabled = false;
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'accès impossible'), 'erreur'); return; }
+  llToast('Accès créé — courriel de bienvenue envoyé à ' + email + '.', 'succes');
+  await loadTenants();
 }
 
 async function seedDemoAccounts(){
