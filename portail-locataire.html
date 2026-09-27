@@ -93,9 +93,9 @@
     table{display:block;overflow-x:auto;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609272154">
-<script src="assets/charger-portail.js?v=202609272154"></script>
-<script src="assets/ui.js?v=202609272154"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609272205">
+<script src="assets/charger-portail.js?v=202609272205"></script>
+<script src="assets/ui.js?v=202609272205"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -479,7 +479,8 @@ const dateLongue = d => new Date(d).toLocaleString('fr-CA', { dateStyle: 'long',
 // Où en est la demande, vu par le locataire (du plus avancé au moins avancé).
 function etapeDemande(r, sv){
   if(sv?.termine_le && sv?.confirme) return { libelle: 'Réglée', ton: 'ok' };
-  if(sv?.termine_le) return { libelle: 'Travail terminé', ton: 'ok' };
+  if(sv?.termine_le && sv?.confirme === false) return { libelle: 'Problème signalé', ton: 'warn' };
+  if(sv?.termine_le) return { libelle: 'À confirmer', ton: 'warn' };
   if(sv?.rendez_vous) return { libelle: 'Rendez-vous fixé', ton: 'warn' };
   if(sv?.professionnel && sv?.reponse_travailleur === 'accepted') return { libelle: 'Professionnel confirmé', ton: 'warn' };
   if(sv?.professionnel) return { libelle: 'Professionnel assigné', ton: 'warn' };
@@ -505,14 +506,66 @@ function detailDemande(r, sv){
   if(sv?.rendez_vous) ev.push({ t: sv.rendez_vous, txt: `Rendez-vous : ${dateLongue(sv.rendez_vous)}`, ic: 'calendar' });
   if(sv?.termine_le) ev.push({ t: sv.termine_le, txt: 'Le professionnel a signalé le travail terminé', ic: 'circle-check' });
   if(sv?.confirme) ev.push({ t: sv.termine_le, txt: 'Tu as confirmé que c\'est réglé', ic: 'circle-check' });
+  if(sv?.confirme === false) ev.push({ t: sv.termine_le, txt: 'Tu as signalé que le problème persiste : l\'équipe s\'en occupe', ic: 'triangle-alert' });
   ev.sort((a, b) => new Date(a.t) - new Date(b.t));
   return `
+    ${sv?.jeton_confirmation ? blocConfirmation(sv) : ''}
     ${r.ai_immediate_action ? `<div class="lo-conseil"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg><div><b>En attendant l'intervention</b>${esc(r.ai_immediate_action)}</div></div>` : ''}
     <div class="lo-infos">${infos.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('')}</div>
     ${infoDemandee(r) ? `<button class="ll-bouton ll-bouton--secondaire lo-petit" onclick="ficheDemande.onglet='echanges';renderFicheDemande()">On t'a demandé une info : répondre</button>` : ''}
     <h4 class="lo-fil-titre">Historique</h4>
     <ol class="lo-histo">${ev.map(e => `<li><span class="lo-histo-pt"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#${e.ic}"/></svg></span><div><b>${e.txt}</b><time>${dateLongue(e.t)}</time></div></li>`).join('')}</ol>`;
 }
+// Confirmation de la réparation dans le portail (même fonction que le lien
+// « Confirmer la réparation » du courriel, avec le même jeton).
+let etoilesConf = 0;
+function blocConfirmation(sv){
+  etoilesConf = 0;
+  return `<div class="cf-carte" id="cf-carte">
+    <div class="cf-tete"><span class="cf-ic"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-check"/></svg></span>
+      <div><b>Le travail est terminé. Tout est réglé ?</b><small>${esc(sv.professionnel || 'Le professionnel')} a signalé la réparation terminée le ${dateLongue(sv.termine_le)}.</small></div></div>
+    <div id="cf-choix">
+      ${sv.professionnel ? `<p class="cf-label">Note son travail (optionnel)</p>
+      <div class="cf-etoiles" role="radiogroup" aria-label="Note">${[1,2,3,4,5].map(n => `<button type="button" role="radio" aria-label="${n} sur 5" onclick="noterConf(${n})">★</button>`).join('')}</div>
+      <textarea id="cf-com" rows="2" placeholder="Un commentaire sur son travail ? (optionnel)"></textarea>` : ''}
+      <div class="cf-boutons">
+        <button class="ll-bouton ll-bouton--primaire" onclick="confirmerReparation('confirm')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg>Oui, c'est réglé</button>
+        <button class="ll-bouton ll-bouton--secondaire" onclick="document.getElementById('cf-choix').hidden=true;document.getElementById('cf-reouvrir').hidden=false">Non, il y a encore un problème</button>
+      </div>
+    </div>
+    <div id="cf-reouvrir" hidden>
+      <p class="cf-label">Qu'est-ce qui ne va pas ?</p>
+      <textarea id="cf-msg" rows="3" placeholder="Ex. : la fuite a repris deux jours plus tard."></textarea>
+      <div class="cf-boutons">
+        <button class="ll-bouton ll-bouton--primaire" onclick="confirmerReparation('reopen')">Envoyer à l'équipe</button>
+        <button class="ll-bouton ll-bouton--secondaire" onclick="document.getElementById('cf-choix').hidden=false;document.getElementById('cf-reouvrir').hidden=true">Annuler</button>
+      </div>
+    </div>
+    <p class="form-note" id="cf-note"></p>
+  </div>`;
+}
+function noterConf(n){
+  etoilesConf = n;
+  document.querySelectorAll('.cf-etoiles button').forEach((b, i) => { b.classList.toggle('on', i < n); b.setAttribute('aria-checked', i < n ? 'true' : 'false'); });
+}
+async function confirmerReparation(action){
+  const sv = suiviDe(ficheDemande.id), note = document.getElementById('cf-note');
+  const message = action === 'reopen' ? document.getElementById('cf-msg').value.trim() : undefined;
+  if(action === 'reopen' && !message){ note.textContent = 'Explique-nous en quelques mots ce qui ne va pas.'; note.style.display = 'block'; return; }
+  document.querySelectorAll('#cf-carte button').forEach(b => b.disabled = true);
+  const extra = action === 'confirm' && etoilesConf ? { stars: etoilesConf, comment: (document.getElementById('cf-com')?.value || '').trim() } : {};
+  const { data, error } = await supabaseClient.functions.invoke('handle-tenant-confirmation', {
+    body: { work_order_id: sv.work_order_id, token: sv.jeton_confirmation, action, message, ...extra },
+  });
+  if(error || data?.error){
+    note.textContent = data?.error || 'Une erreur est survenue. Réessaie dans un instant.'; note.style.display = 'block';
+    document.querySelectorAll('#cf-carte button').forEach(b => b.disabled = false);
+    return;
+  }
+  llToast(action === 'confirm' ? 'Merci ! Le dossier est fermé.' : 'Merci, l\'équipe a été avisée et va s\'en occuper.', 'succes');
+  await loadRequests();
+}
+
 // Réponse ou précision du locataire dans le fil d'une demande, avec photos
 // ou vidéos (réduites / 50 Mo max comme à la création).
 async function repondreDemande(id){
@@ -787,8 +840,8 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609272154"></script>
-<script src="assets/compte.js?v=202609272154"></script>
-<script src="assets/url-propre.js?v=202609272154"></script>
+<script src="assets/mobile.js?v=202609272205"></script>
+<script src="assets/compte.js?v=202609272205"></script>
+<script src="assets/url-propre.js?v=202609272205"></script>
 </body>
 </html>

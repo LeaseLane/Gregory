@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609272154">
-<script src="assets/charger-portail.js?v=202609272154"></script>
-<script src="assets/ui.js?v=202609272154"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609272205">
+<script src="assets/charger-portail.js?v=202609272205"></script>
+<script src="assets/ui.js?v=202609272205"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -2916,11 +2916,19 @@ function renderFicheTravailleur(){
         </div>
       </li>`).join('')}</ol>` : '<p class="tr-vide">Aucune activité pour l\'instant : ce travailleur n\'a encore reçu aucune offre.</p>';
   } else if(ficheTr.onglet === 'mandats'){
-    corps = mandats.length ? `<table class="fi-table"><thead><tr><th>Travail</th><th>Statut</th><th class="num">Paie</th><th>Paiement</th></tr></thead><tbody>${mandats.map(m => `
-      <tr><td><b>${esc(m.description)}</b>${m.is_urgent ? ' <span class="tr-pastille tr-pastille--ko">Urgent</span>' : ''}<small>${esc(m.units?.buildings?.address || '')}${m.units ? ', unité ' + esc(m.units.unit_number) : ''}</small></td>
-      <td>${trStatutMandat[m.status] || esc(m.status)}${aRepondu(m) ? `<small>${trReponse[m.worker_response] || esc(m.worker_response)}</small>` : m.worker_notified_at ? '<small class="tr-manque">sans réponse</small>' : ''}</td>
-      <td class="num">${m.worker_pay != null ? Number(m.worker_pay).toLocaleString('fr-CA') + ' $' : '—'}<small>${new Date(m.created_at).toLocaleDateString('fr-CA')}</small></td>
-      <td>${m.worker_paid_at ? `<span class="tr-pastille tr-pastille--ok">Payé</span><small>${Number(m.worker_paid_amount ?? m.worker_pay ?? 0).toLocaleString('fr-CA')} $ · ${new Date(m.worker_paid_at).toLocaleDateString('fr-CA')}</small>` : (m.worker_reported_done_at || m.status === 'completed') ? `<button class="vo-action" onclick="marquerTravailleurPaye('${m.id}', ${m.worker_pay ?? 'null'})">Marquer payé</button>` : '<span class="tr-manque">—</span>'}</td></tr>`).join('')}</tbody></table>` : '<p class="tr-vide">Aucun mandat pour l\'instant.</p>';
+    const aPayer = m => !m.worker_paid_at && (m.worker_reported_done_at || m.status === 'completed');
+    const total = f => mandats.filter(f).reduce((t, m) => t + Number((m.worker_paid_at ? m.worker_paid_amount : null) ?? m.worker_pay ?? 0), 0);
+    corps = mandats.length ? `
+      <div class="md-resume"><div><span>À payer</span><b>${total(aPayer).toLocaleString('fr-CA')} $</b></div><div><span>Déjà payé</span><b>${total(m => m.worker_paid_at).toLocaleString('fr-CA')} $</b></div></div>
+      <ul class="lo-dem-admin">${mandats.map(m => `
+      <li><span class="lo-dem-ic${m.is_urgent ? ' lo-dem-ic--urgent' : ''}" aria-hidden="true"><svg class="ic"><use href="assets/icones.svg#wrench"/></svg></span>
+        <div class="lo-dem-txt"><b>${esc(m.description)}</b>
+          <small>${esc(m.units?.buildings?.address || '')}${m.units ? ', unité ' + esc(m.units.unit_number) : ''} · ${new Date(m.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</small>
+          <small>${m.is_urgent ? '<em>Urgent</em> · ' : ''}${trStatutMandat[m.status] || esc(m.status)}${aRepondu(m) ? ' · ' + (trReponse[m.worker_response] || esc(m.worker_response)) : m.worker_notified_at ? ' · <em>sans réponse</em>' : ''}</small></div>
+        <div class="md-paie"><b>${m.worker_pay != null ? Number(m.worker_pay).toLocaleString('fr-CA') + ' $' : '—'}</b>
+          ${m.worker_paid_at ? `<span class="tr-pastille tr-pastille--ok">Payé le ${new Date(m.worker_paid_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</span>`
+            : aPayer(m) ? `<button class="ll-bouton ll-bouton--primaire lo-petit" onclick="marquerTravailleurPaye('${m.id}', ${m.worker_pay ?? 'null'})">Marquer payé</button>`
+            : '<small>pas encore dû</small>'}</div></li>`).join('')}</ul>` : '<p class="tr-vide">Aucun mandat pour l\'instant.</p>';
   } else if(ficheTr.onglet === 'notes'){
     corps = `
       <div class="fi-note-form">
@@ -4043,10 +4051,13 @@ function renderFicheLocataire(){
       </li>`;
     }).join('')}</ul>` : '<p class="tr-vide">Aucun paiement enregistré.</p>';
   } else if(ficheLo.onglet === 'demandes'){
-    corps = demandes.length ? `<table class="fi-table"><thead><tr><th>Demande</th><th>Statut</th><th>Reçue le</th></tr></thead><tbody>${demandes.map(x => `
-      <tr><td><b>${esc(x.description)}</b>${x.ai_category ? `<small>${esc(x.ai_category)}${x.ai_urgency ? ' · ' + esc(x.ai_urgency) : ''}</small>` : ''}</td>
-      <td>${loStatutDemande[x.status] || esc(x.status)}</td><td>${new Date(x.created_at).toLocaleDateString('fr-CA')}</td></tr>`).join('')}</tbody></table>
-      <p><button class="vo-lien" onclick="fermerFicheTravailleur();showTab('work-requests')">Gérer les demandes dans « Travaux à assigner » →</button></p>` : '<p class="tr-vide">Aucune demande de réparation.</p>';
+    const tonDemande = { open: 'att', new: 'att', in_progress: 'info', assigned: 'info', resolved: 'ok', closed: 'ok', cancelled: '' };
+    corps = demandes.length ? `<ul class="lo-dem-admin">${demandes.map(x => `
+      <li><span class="lo-dem-ic${x.ai_urgency === 'urgence' ? ' lo-dem-ic--urgent' : ''}" aria-hidden="true"><svg class="ic"><use href="assets/icones.svg#wrench"/></svg></span>
+        <div class="lo-dem-txt"><b>${esc(x.description)}</b>
+          <small>${x.ai_category ? esc(x.ai_category) + ' · ' : ''}${x.ai_urgency === 'urgence' ? '<em>Urgent</em> · ' : ''}Reçue le ${new Date(x.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</small></div>
+        <span class="tr-pastille tr-pastille--${tonDemande[x.status] || ''}">${loStatutDemande[x.status] || esc(x.status)}</span></li>`).join('')}</ul>
+      <button class="vo-lien" onclick="fermerFicheTravailleur();showTab('work-requests')">Gérer les demandes dans « Travaux à assigner » →</button>` : '<p class="tr-vide">Aucune demande de réparation.</p>';
   } else if(ficheLo.onglet === 'bail'){
     corps = baux.length ? baux.map(b => `
       <div class="fi-note">
@@ -4687,8 +4698,8 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609272154"></script>
-<script src="assets/compte.js?v=202609272154"></script>
-<script src="assets/url-propre.js?v=202609272154"></script>
+<script src="assets/mobile.js?v=202609272205"></script>
+<script src="assets/compte.js?v=202609272205"></script>
+<script src="assets/url-propre.js?v=202609272205"></script>
 </body>
 </html>

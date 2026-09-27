@@ -1591,3 +1591,38 @@ body.ll-mdp-actif{ overflow:hidden; }
 .fin-envoyer:disabled{ background:var(--surface-enfoncee); color:var(--texte-discret); cursor:not-allowed; }
 .fin-aide{ margin:-4px 0 0; text-align:center; font-size:12.5px; color:var(--texte-discret); }
 @media (max-width:420px){ .fin-zones{ grid-template-columns:1fr; } }
+
+/* Fiche locataire (admin) — onglet Demandes : liste en cartes. */
+.lo-dem-admin{ list-style:none; margin:0 0 14px; padding:0; display:flex; flex-direction:column; gap:8px; }
+.lo-dem-admin li{ display:flex; align-items:center; gap:14px; padding:14px 16px; background:var(--surface, #fff); border:1px solid var(--bordure, #E3E8EF); border-radius:var(--rayon-carte, 12px); }
+.lo-dem-ic{ flex:none; width:38px; height:38px; border-radius:10px; display:grid; place-items:center; background:var(--surface-enfoncee); color:var(--marine-900); }
+.lo-dem-ic--urgent{ background:var(--urgence-100); color:var(--urgence-600); }
+.lo-dem-txt{ flex:1; min-width:0; }
+.lo-dem-txt b{ display:block; font-weight:600; color:var(--marine-900); overflow-wrap:anywhere; }
+.lo-dem-txt small{ display:block; margin-top:3px; font-size:12.5px; color:var(--texte-discret); }
+.lo-dem-txt em{ font-style:normal; font-weight:600; color:var(--urgence-600); }
+.lo-dem-admin .tr-pastille{ flex:none; white-space:nowrap; }
+
+/* Confirmation de réparation (portail locataire + page du lien courriel). */
+.cf-carte{ border:1px solid var(--succes-500); background:var(--succes-100); border-radius:var(--rayon-carte, 12px); padding:18px; display:flex; flex-direction:column; gap:12px; }
+.cf-tete{ display:flex; gap:12px; align-items:flex-start; }
+.cf-tete b{ display:block; font-size:15.5px; color:var(--marine-900); }
+.cf-tete small{ display:block; margin-top:3px; font-size:13px; color:var(--texte-corps); }
+.cf-ic{ flex:none; width:38px; height:38px; border-radius:50%; display:grid; place-items:center; background:var(--succes-500); color:#fff; }
+.cf-label{ margin:4px 0 6px; font-size:13px; font-weight:600; color:var(--marine-900); }
+.cf-etoiles{ display:flex; gap:4px; margin-bottom:10px; }
+.cf-etoiles button{ background:none; border:none; padding:2px; font-size:30px; line-height:1; color:#C9D2DE; cursor:pointer; transition:transform .1s, color .1s; }
+.cf-etoiles button:hover{ transform:scale(1.12); }
+.cf-etoiles button.on{ color:#E3A008; }
+.cf-carte textarea{ width:100%; background:#fff; }
+.cf-boutons{ display:flex; flex-wrap:wrap; gap:10px; margin-top:4px; }
+.cf-boutons .ll-bouton{ flex:1 1 200px; justify-content:center; }
+.cf-carte .ll-bouton--secondaire{ background:#fff; }
+.md-resume{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.md-resume div{ background:var(--surface-enfoncee); border-radius:var(--rayon-champ); padding:10px 14px; }
+.md-resume span{ display:block; font:600 10.5px/1.2 var(--police-texte); letter-spacing:.1em; text-transform:uppercase; color:var(--texte-discret); margin-bottom:4px; }
+.md-resume b{ font-size:18px; color:var(--marine-900); }
+.md-paie{ flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:6px; text-align:right; }
+.md-paie > b{ font-size:16px; color:var(--marine-900); }
+.md-paie small{ font-size:12px; color:var(--texte-discret); }
+@media (max-width:520px){ .lo-dem-admin li{ flex-wrap:wrap; } .md-paie{ width:100%; flex-direction:row; justify-content:space-between; align-items:center; } }
