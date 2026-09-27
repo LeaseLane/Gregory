@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271755">
-<script src="assets/charger-portail.js?v=202609271755"></script>
-<script src="assets/ui.js?v=202609271755"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271810">
+<script src="assets/charger-portail.js?v=202609271810"></script>
+<script src="assets/ui.js?v=202609271810"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -243,10 +243,19 @@
       </section>
 
       <section id="work-orders" class="section">
-    <h1>Travaux — en cours</h1>
-    <p class="subtitle" style="margin-bottom:16px;">Complétion, facture et dépense</p>
+    <div class="tr-entete"><div>
+      <h1>Travaux en cours</h1>
+      <p class="subtitle">Chaque travail assigné, où il en est et qui s'en occupe. Clique sur une ligne pour ouvrir la fiche.</p>
+    </div></div>
+    <div id="wo-resume" class="tr-resume"></div>
+    <div class="tr-outils">
+      <label class="tr-recherche"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#search"/></svg><input type="search" id="wo-q" placeholder="Rechercher une adresse, un travail, un travailleur, un locataire…" oninput="woEtat.q=this.value;renderTravauxEnCours()"></label>
+      <select id="wo-f-etape" onchange="woEtat.etape=this.value;renderTravauxEnCours()">
+        <option value="">Toutes les étapes</option><option value="approbation">Accord du propriétaire en attente</option><option value="offre">Offre sans réponse</option><option value="refus">Refusé par le travailleur</option><option value="accepte">Accepté</option><option value="rdv">Rendez-vous fixé</option><option value="termine">Signalé terminé</option>
+      </select>
+      <select id="wo-f-travailleur" onchange="woEtat.travailleur=this.value;renderTravauxEnCours()"></select>
+    </div>
     <div id="work-orders-body" style="margin-bottom:32px;"><p class="tr-vide">Chargement...</p></div>
-
       </section>
 
       <section id="visits" class="section">
@@ -2832,6 +2841,7 @@ const quand = d => new Date(d).toLocaleString('fr-CA', { dateStyle: 'medium', ti
 
 async function ouvrirFicheTravailleur(id, onglet){
   ficheLo.id = null;
+  if(typeof ficheWo !== 'undefined') ficheWo.id = null;
   ficheTr = { id, onglet: onglet || ficheTr.onglet || 'messages', data: null };
   let tiroir = document.getElementById('fiche-tr');
   if(!tiroir){
@@ -2850,6 +2860,7 @@ async function ouvrirFicheTravailleur(id, onglet){
 function fermerFicheTravailleur(){
   ficheTr.id = null;
   ficheLo.id = null;
+  if(typeof ficheWo !== 'undefined') ficheWo.id = null;
   document.body.classList.remove('fi-ouvert');
 }
 
@@ -3370,35 +3381,179 @@ async function dispatchServiceRequestAuto(serviceRequestId, unitId){
   if(res?.ok){ await loadOps(); } else { alert(res?.error || 'Échec du dispatch automatique.'); }
 }
 
+// ── Travaux en cours : tableau + fiche latérale ─────────────────────
+let workOrdersCache = [];
+const woEtat = { q: '', etape: '', travailleur: '', tri: 'cree', sens: -1 };
+let ficheWo = { id: null, onglet: 'resume', data: null };
+function woEtape(wo){
+  const ap = (wo.approvals || []).slice().sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))[0];
+  if(wo.worker_reported_done_at) return { cle: 'termine', lib: 'Signalé terminé', ton: 'ok' };
+  if(ap?.status === 'pending') return { cle: 'approbation', lib: 'Accord du propriétaire en attente', ton: 'att' };
+  if(ap?.status === 'rejected') return { cle: 'approbation', lib: 'Refusé par le propriétaire', ton: 'ko' };
+  if(wo.worker_response === 'declined') return { cle: 'refus', lib: 'Refusé par le travailleur', ton: 'ko' };
+  if(wo.appointment_at && wo.worker_response === 'accepted') return { cle: 'rdv', lib: 'Rendez-vous fixé', ton: 'ok' };
+  if(wo.worker_response === 'accepted') return { cle: 'accepte', lib: 'Accepté', ton: 'ok' };
+  if(wo.worker_response === 'proposed_other_time') return { cle: 'offre', lib: 'Autre heure proposée', ton: 'att' };
+  if(!wo.worker_id) return { cle: 'offre', lib: 'Recherche d\'un travailleur', ton: 'att' };
+  return { cle: 'offre', lib: 'Offre envoyée, sans réponse', ton: 'att' };
+}
+const woLieu = wo => `${wo.units?.buildings?.address || ''}, unité ${wo.units?.unit_number || ''}`;
+const woTravailleur = wo => wo.workers ? (wo.workers.company_name || wo.workers.name) : '';
+
 async function loadWorkOrdersAdmin(){
   const data = await callOpsApi({ action: 'list_work_orders' });
-  const container = document.getElementById('work-orders-body');
-  const orders = data?.work_orders || [];
-  if(!orders.length){
-    container.innerHTML = '<p class="tr-vide">Aucun travail en cours.</p>';
-    return;
+  workOrdersCache = data?.work_orders || [];
+  renderTravauxEnCours();
+  if(ficheWo.id) ouvrirFicheTravail(ficheWo.id, ficheWo.onglet);
+}
+
+function woTrier(col){
+  woEtat.sens = woEtat.tri === col ? -woEtat.sens : (col === 'travail' || col === 'travailleur' ? 1 : -1);
+  woEtat.tri = col; renderTravauxEnCours();
+}
+
+function renderTravauxEnCours(){
+  const body = document.getElementById('work-orders-body');
+  if(!body) return;
+  const L = workOrdersCache;
+  const n = cle => L.filter(w => woEtape(w).cle === cle).length;
+  document.getElementById('wo-resume').innerHTML = L.length ? `
+    <span><b>${L.length}</b> ${L.length > 1 ? 'travaux' : 'travail'} en cours</span>
+    ${n('approbation') ? `<span class="tr-pastille tr-pastille--att"><b>${n('approbation')}</b> en attente du propriétaire</span>` : ''}
+    ${n('offre') ? `<span class="tr-pastille tr-pastille--att"><b>${n('offre')}</b> sans réponse du travailleur</span>` : ''}
+    ${n('refus') ? `<span class="tr-pastille tr-pastille--ko"><b>${n('refus')}</b> refusé${n('refus') > 1 ? 's' : ''} : à réassigner</span>` : ''}
+    ${n('termine') ? `<span class="tr-pastille tr-pastille--ok"><b>${n('termine')}</b> à clôturer</span>` : ''}` : '';
+  const noms = [...new Set(L.map(woTravailleur).filter(Boolean))].sort();
+  document.getElementById('wo-f-travailleur').innerHTML = '<option value="">Tous les travailleurs</option>' + noms.map(x => `<option value="${esc(x)}"${x === woEtat.travailleur ? ' selected' : ''}>${esc(x)}</option>`).join('');
+  if(!L.length){ body.innerHTML = '<p class="tr-vide">Aucun travail en cours.</p>'; return; }
+  const q = woEtat.q.trim().toLowerCase();
+  const cle = { travail: w => (w.description || '').toLowerCase(), travailleur: w => woTravailleur(w).toLowerCase() || '~', etape: w => woEtape(w).lib, rdv: w => w.appointment_at || '9999', paie: w => Number(w.worker_pay || 0), cree: w => w.created_at || '' }[woEtat.tri];
+  const liste = L
+    .filter(w => !q || [w.description, woLieu(w), woTravailleur(w), w.service_requests?.tenants?.full_name, w.units?.buildings?.owners?.full_name].some(v => (v || '').toLowerCase().includes(q)))
+    .filter(w => !woEtat.etape || woEtape(w).cle === woEtat.etape)
+    .filter(w => !woEtat.travailleur || woTravailleur(w) === woEtat.travailleur)
+    .sort((x, y) => { const a = cle(x), b = cle(y); return (a < b ? -1 : a > b ? 1 : 0) * woEtat.sens; });
+  if(!liste.length){ body.innerHTML = '<p class="tr-vide">Aucun travail ne correspond à ces critères.</p>'; return; }
+  const th = (c, lib, cls = '') => `<th class="tr-triable ${cls}${woEtat.tri === c ? ' tr-trie' : ''}" onclick="woTrier('${c}')">${lib}<span class="tr-fleche">${woEtat.tri === c ? (woEtat.sens > 0 ? '▲' : '▼') : '↕'}</span></th>`;
+  body.innerHTML = `<table class="tr-table">
+    <thead><tr>${th('travail', 'Travail')}${th('travailleur', 'Travailleur')}${th('etape', 'Étape')}${th('rdv', 'Rendez-vous')}${th('paie', 'Paie', 'num')}${th('cree', 'Créé le')}<th></th></tr></thead>
+    <tbody>${liste.map(w => { const e = woEtape(w); return `
+      <tr class="tr-ligne" onclick="ouvrirFicheTravail('${w.id}')">
+        <td data-libelle="Travail"><b>${esc(w.description)}</b>${w.is_urgent || w.service_requests?.safety_override ? ' <span class="tr-pastille tr-pastille--ko">Urgent</span>' : ''}<small>${esc(woLieu(w))}${w.service_requests?.tenants?.full_name ? ' · ' + esc(w.service_requests.tenants.full_name) : ''}</small></td>
+        <td data-libelle="Travailleur">${woTravailleur(w) ? esc(woTravailleur(w)) + (w.workers?.specialty ? `<small>${esc(libelleSpecialite[w.workers.specialty] || w.workers.specialty)}</small>` : '') : '<span class="tr-manque">Aucun</span>'}</td>
+        <td data-libelle="Étape"><span class="tr-pastille tr-pastille--${e.ton}">${e.lib}</span></td>
+        <td data-libelle="Rendez-vous">${w.appointment_at ? quand(w.appointment_at) : '<span class="tr-manque">—</span>'}</td>
+        <td data-libelle="Paie" class="num">${w.worker_pay != null ? Number(w.worker_pay).toLocaleString('fr-CA') + ' $' : '—'}</td>
+        <td data-libelle="Créé le">${new Date(w.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</td>
+        <td class="tr-chev"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-right"/></svg></td>
+      </tr>`; }).join('')}</tbody></table>`;
+}
+
+async function ouvrirFicheTravail(id, onglet){
+  ficheTr.id = null; if(typeof ficheLo !== 'undefined') ficheLo.id = null;
+  const deja = ficheWo.id === id && ficheWo.data;
+  ficheWo = { id, onglet: onglet || ficheWo.onglet || 'resume', data: deja ? ficheWo.data : null };
+  if(!document.getElementById('fiche-tr')){
+    document.body.insertAdjacentHTML('beforeend', '<div id="fiche-tr-fond" class="fi-fond" onclick="fermerFicheTravailleur()"></div><aside id="fiche-tr" class="fi-tiroir" role="dialog" aria-modal="true" aria-label="Fiche"></aside>');
   }
-  const statusLabel = { open:'Ouvert', assigned:'Assigné', in_progress:'En cours' };
-  container.innerHTML = orders.map(wo => `
-    <div class="tr-carte">
-      <b style="display:block;margin-bottom:4px;">${esc(wo.units?.buildings?.address) || ''}, unité ${esc(wo.units?.unit_number) || ''} — ${esc(wo.description)}</b>
-      <span style="font-size:12.5px;color:var(--muted);">Travailleur : ${wo.workers?.name != null ? esc(wo.workers.name) : '—'} (${wo.workers?.phone != null ? esc(wo.workers.phone) : '—'}) — Paie : ${wo.worker_pay != null ? Number(wo.worker_pay).toLocaleString('fr-CA') + ' $' : '—'} + coordination ${wo.coordination_fee != null ? Number(wo.coordination_fee).toLocaleString('fr-CA') + ' $' : '—'}${wo.coordination_fee_type === 'forfait' ? ' (forfait négocié)' : wo.coordination_rate != null ? ' (' + Number(wo.coordination_rate).toLocaleString('fr-CA') + '%)' : ''} — Statut : ${statusLabel[wo.status] || esc(wo.status)}</span>
-      ${wo.worker_reported_done_at ? `<div style="background:#e8f0e6;border-left:2px solid var(--sage);padding:8px 10px;margin-top:8px;font-size:12.5px;">✓ Travailleur : travail signalé terminé le ${new Date(wo.worker_reported_done_at).toLocaleString('fr-CA')}${wo.worker_completion_note ? '<br><b>Note :</b> ' + esc(wo.worker_completion_note) : ''}</div>` : ''}
+  document.body.classList.add('fi-ouvert');
+  renderFicheTravail();
+  const res = await callOpsApi({ action: 'get_work_order', work_order_id: id });
+  if(ficheWo.id !== id) return;
+  ficheWo.data = res && !res.error ? res : { erreur: true };
+  renderFicheTravail();
+}
+
+function renderFicheTravail(){
+  const t = document.getElementById('fiche-tr');
+  if(!t || !ficheWo.id) return;
+  const base = workOrdersCache.find(x => x.id === ficheWo.id) || {};
+  const d = ficheWo.data;
+  const wo = d?.work_order || base;
+  const sr = wo.service_requests || {};
+  const e = woEtape(wo);
+  const argentF = n => n != null ? Number(n).toLocaleString('fr-CA') + ' $' : '—';
+  const onglet = (id, lib, n) => `<button class="fi-onglet${ficheWo.onglet === id ? ' actif' : ''}" onclick="ficheWo.onglet='${id}';renderFicheTravail()">${lib}${n ? ` <span>${n}</span>` : ''}</button>`;
+  let corps;
+  if(!d) corps = '<p class="tr-vide">Chargement…</p>';
+  else if(d.erreur) corps = '<p class="tr-vide">Fiche indisponible pour le moment.</p>';
+  else if(ficheWo.onglet === 'resume'){
+    const ap = (wo.approvals || []).slice().sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))[0];
+    corps = `
+      <blockquote class="sr-desc">${esc(sr.description || wo.description)}</blockquote>
+      ${photoLinksHtml('service-request-photos', sr.photo_urls, 'Pièces jointes du locataire')}
       ${photoLinksHtml('service-request-photos', wo.photo_before_urls, 'Photos avant')}
       ${photoLinksHtml('service-request-photos', wo.photo_after_urls, 'Photos après')}
-      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-top:10px;">
-        <div><label class="ch-label">Réassigner</label>
-          <select onchange="reassignWorkOrder('${wo.id}', this.value)"><option value="">—</option>${workerOptionsHtml(wo.worker_id)}</select>
-        </div>
-        <div><label class="ch-label" for="wo-final-${wo.id}">Coût final réel ($)</label>
-          <input type="number" id="wo-final-${wo.id}" min="0" step="0.01" value="${wo.estimated_cost ?? ''}">
-        </div>
-        <div><label class="ch-label" for="wo-receipt-${wo.id}">Facture/reçu (optionnel)</label>
-          <input type="file" id="wo-receipt-${wo.id}" accept=".pdf,image/*">
-        </div>
-        <button onclick="completeWorkOrderAdmin('${wo.id}')" class="ll-bouton ll-bouton--primaire">Marquer complété</button>
+      ${wo.worker_reported_done_at ? `<div class="lo-conseil lo-conseil--ok"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-check"/></svg><div><b>Le travailleur a signalé le travail terminé</b>${quand(wo.worker_reported_done_at)}${wo.worker_completion_note ? ' · ' + esc(wo.worker_completion_note) : ''}</div></div>` : ''}
+      ${ap ? `<div class="lo-conseil"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg><div><b>Approbation du propriétaire : ${ap.status === 'pending' ? 'en attente' : ap.status === 'approved' ? 'accordée' : 'refusée'}</b>${argentF(ap.requested_amount)} demandés, plafond ${argentF(ap.spending_cap_at_request)}${ap.rejection_note ? ' · ' + esc(ap.rejection_note) : ''}</div></div>` : ''}
+      <div class="lo-infos">
+        <div><span>Travailleur</span><b>${woTravailleur(wo) ? esc(woTravailleur(wo)) : 'Aucun'}</b>${wo.workers?.phone ? `<small>${esc(wo.workers.phone)}</small>` : ''}</div>
+        <div><span>Réponse</span><b>${({ accepted: 'A accepté', declined: 'A refusé', proposed_other_time: 'Propose une autre heure', pending: 'Pas encore' })[wo.worker_response] || 'Pas encore'}</b>${wo.worker_response_note ? `<small>${esc(wo.worker_response_note)}</small>` : ''}</div>
+        <div><span>Rendez-vous</span><b>${wo.appointment_at ? quand(wo.appointment_at) : 'À fixer'}</b></div>
+        <div><span>Échéance</span><b>${wo.due_by ? esc(wo.due_by) : '—'}</b></div>
+        <div><span>Paie du travailleur</span><b>${argentF(wo.worker_pay)}</b></div>
+        <div><span>Coordination</span><b>${argentF(wo.coordination_fee)}</b><small>${wo.coordination_fee_type === 'forfait' ? 'forfait négocié' : wo.coordination_rate != null ? wo.coordination_rate + ' %' : ''}</small></div>
+        <div><span>Locataire</span><b>${esc(sr.tenants?.full_name || '—')}</b>${sr.tenants?.phone ? `<small>${esc(sr.tenants.phone)}</small>` : ''}</div>
+        <div><span>Propriétaire</span><b>${esc(wo.units?.buildings?.owners?.full_name || '—')}</b><small>plafond ${argentF(wo.units?.buildings?.owners?.spending_cap)}</small></div>
       </div>
-    </div>`).join('');
+      ${wo.entry_permission || wo.billing_terms ? `<p class="sr-sans-ia" style="font-style:normal">${wo.entry_permission ? '<b>Accès :</b> ' + esc(wo.entry_permission) + ' · ' : ''}${wo.billing_terms ? '<b>Facturation :</b> ' + esc(wo.billing_terms) : ''}</p>` : ''}
+      ${sr.ai_category ? `<div class="md-ia"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg><div><b>Analyse IA</b>${esc(sr.ai_category)}${sr.ai_subcategory ? ' — ' + esc(sr.ai_subcategory) : ''}${sr.ai_immediate_action ? `<br><small>À faire tout de suite : ${esc(sr.ai_immediate_action)}</small>` : ''}</div></div>` : ''}`;
+  } else if(ficheWo.onglet === 'echanges'){
+    corps = sr.id ? srFil({ ...sr, service_request_messages: sr.service_request_messages || [] }) : '<p class="tr-vide">Ce travail n\'est rattaché à aucune demande de locataire.</p>';
+  } else if(ficheWo.onglet === 'historique'){
+    const libs = { 'work_order.create': 'Travail créé et assigné', 'work_order.reassign': 'Travailleur changé', 'work_order.complete': 'Marqué complété', 'work_order.dispatch_auto': 'Sollicitation automatique lancée' };
+    const ev = [];
+    ev.push({ t: wo.created_at, txt: 'Travail créé', ic: 'plus' });
+    if(wo.worker_notified_at) ev.push({ t: wo.worker_notified_at, txt: 'Offre envoyée au travailleur', ic: 'send' });
+    if(wo.worker_response_at) ev.push({ t: wo.worker_response_at, txt: `Réponse du travailleur : ${({ accepted: 'accepté', declined: 'refusé', proposed_other_time: 'autre heure proposée' })[wo.worker_response] || wo.worker_response}`, ic: 'message-circle' });
+    (wo.approvals || []).forEach(a => { ev.push({ t: a.created_at, txt: `Accord demandé au propriétaire (${argentF(a.requested_amount)})`, ic: 'shield-check' }); if(a.decided_at) ev.push({ t: a.decided_at, txt: `Propriétaire : ${a.status === 'approved' ? 'accordé' : 'refusé'}`, ic: 'shield-check' }); });
+    if(wo.worker_reported_done_at) ev.push({ t: wo.worker_reported_done_at, txt: 'Travail signalé terminé par le travailleur', ic: 'circle-check' });
+    (d.audit || []).forEach(a => { if(libs[a.action]) ev.push({ t: a.created_at, txt: libs[a.action], ic: 'info' }); });
+    ev.sort((a, b) => new Date(b.t) - new Date(a.t));
+    corps = `<ol class="lo-histo">${ev.map(x => `<li><span class="lo-histo-pt"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#${x.ic}"/></svg></span><div><b>${esc(x.txt)}</b><time>${quand(x.t)}</time></div></li>`).join('')}</ol>`;
+  } else {
+    const specialite = sr.ai_recommended_trade || sr.ai_category || wo.workers?.specialty;
+    corps = `
+      <h4 class="lo-fil-titre">Changer de travailleur</h4>
+      <p class="sr-sans-ia" style="font-style:normal">Le nouveau travailleur reçoit l'offre par courriel ; sa réponse repart de zéro et le locataire est prévenu.</p>
+      <div class="fo-ligne">
+        <div><label class="ch-label" for="wo-nouveau-${wo.id}">Travailleur</label><select id="wo-nouveau-${wo.id}"><option value="">— Choisir —</option>${workerOptionsHtml(wo.worker_id)}</select></div>
+        <button class="ll-bouton ll-bouton--secondaire" onclick="reassignerDepuisFiche('${wo.id}')">Réassigner</button>
+      </div>
+      ${specialite ? `<p class="sr-sans-ia">Spécialité recherchée : ${esc(libelleSpecialite[specialite] || specialite)}</p>` : ''}
+      <h4 class="lo-fil-titre" style="margin-top:20px">Clôturer le travail</h4>
+      <div class="fo-ligne">
+        <div><label class="ch-label" for="wo-final-${wo.id}">Coût final réel ($)</label><input type="number" id="wo-final-${wo.id}" min="0" step="0.01" value="${wo.estimated_cost ?? ''}"></div>
+        <div><label class="ch-label" for="wo-receipt-${wo.id}">Facture / reçu (optionnel)</label><input type="file" id="wo-receipt-${wo.id}" accept=".pdf,image/*"></div>
+        <button class="ll-bouton ll-bouton--primaire" onclick="completeWorkOrderAdmin('${wo.id}')">Marquer complété</button>
+      </div>
+      <p class="sr-sans-ia">Le locataire reçoit ensuite « Ta réparation est complétée » pour confirmer.</p>`;
+  }
+  const nMsg = (sr.service_request_messages || []).length;
+  t.innerHTML = `
+    <header class="fi-tete">
+      <span class="tr-avatar" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#hammer"/></svg></span>
+      <div class="tr-ident"><h2>${esc((wo.description || '').slice(0, 70))}</h2>
+        <div class="tr-specs"><span class="tr-spec">${esc(woLieu(wo))}</span> <span class="tr-pastille tr-pastille--${e.ton}">${e.lib}</span></div></div>
+      <button class="fi-fermer" onclick="fermerFicheTravailleur()" aria-label="Fermer"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#x"/></svg></button>
+    </header>
+    <div class="fi-contact">
+      ${wo.workers?.phone ? `<a class="ll-bouton ll-bouton--secondaire" href="tel:${esc(wo.workers.phone)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>Appeler le travailleur</a>` : ''}
+      ${sr.tenants?.phone ? `<a class="ll-bouton ll-bouton--secondaire" href="tel:${esc(sr.tenants.phone)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>Appeler le locataire</a>` : ''}
+      ${wo.worker_id ? `<button class="ll-bouton ll-bouton--secondaire" onclick="fermerFicheTravailleur();ouvrirFicheTravailleur('${wo.worker_id}')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#user"/></svg>Fiche du travailleur</button>` : ''}
+    </div>
+    <div class="fi-onglets" role="tablist">${onglet('resume', 'Résumé')}${onglet('echanges', 'Échanges', nMsg)}${onglet('historique', 'Historique')}${onglet('actions', 'Actions')}</div>
+    <div class="fi-corps lo-fiche">${corps}</div>`;
+}
+
+async function reassignerDepuisFiche(id){
+  const worker_id = document.getElementById('wo-nouveau-' + id).value;
+  if(!worker_id){ llToast('Choisis un travailleur.', 'erreur'); return; }
+  const res = await callOpsApi({ action: 'reassign_work_order', work_order_id: id, worker_id });
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'réassignation impossible'), 'erreur'); return; }
+  llToast('Travailleur changé : l\'offre lui est envoyée.', 'succes');
+  ficheWo.data = null;
+  await loadWorkOrdersAdmin();
 }
 
 async function loadBuildingsForReceipts(){
@@ -3538,7 +3693,8 @@ async function confirmExpenseReceipt(){
 
 async function reassignWorkOrder(work_order_id, worker_id){
   if(!worker_id) return;
-  await callOpsApi({ action: 'reassign_work_order', work_order_id, worker_id });
+  const res = await callOpsApi({ action: 'reassign_work_order', work_order_id, worker_id });
+  if(res && !res.ok) llToast('Erreur : ' + (res.error || 'réassignation impossible'), 'erreur');
   await loadWorkOrdersAdmin();
 }
 
@@ -3564,7 +3720,7 @@ async function completeWorkOrderAdmin(work_order_id){
     payload.receipt_content_type = file.type;
   }
   const res = await callOpsApi(payload);
-  if(res?.ok){ await loadOps(); }
+  if(res?.ok){ llToast('Travail marqué complété : le locataire est invité à confirmer.', 'succes'); fermerFicheTravailleur(); await loadOps(); }
 }
 
 const stageLabel = { new:'Nouveau', contacted:'Contacté', interested:'Intéressé', proposal_sent:'Proposition envoyée', signed:'Signé', lost:'Perdu' };
@@ -3776,6 +3932,7 @@ const loStatutDemande = { open: 'Ouverte', new: 'Nouvelle', in_progress: 'En cou
 
 async function ouvrirFicheLocataire(id, onglet){
   ficheTr.id = null;
+  if(typeof ficheWo !== 'undefined') ficheWo.id = null;
   ficheLo = { id, onglet: onglet || ficheLo.onglet || 'paiements', data: null };
   if(!document.getElementById('fiche-tr')){
     document.body.insertAdjacentHTML('beforeend', '<div id="fiche-tr-fond" class="fi-fond" onclick="fermerFicheTravailleur()"></div><aside id="fiche-tr" class="fi-tiroir" role="dialog" aria-modal="true" aria-label="Fiche"></aside>');
@@ -4466,7 +4623,7 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/compte.js?v=202609271755"></script>
-<script src="assets/url-propre.js?v=202609271755"></script>
+<script src="assets/compte.js?v=202609271810"></script>
+<script src="assets/url-propre.js?v=202609271810"></script>
 </body>
 </html>

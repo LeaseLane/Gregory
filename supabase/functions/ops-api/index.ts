@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
 
     if (action === "list_work_orders") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/work_orders?status=in.(open,assigned,in_progress)&select=*,units(unit_number,building_id,buildings(address)),workers(name,phone)&order=created_at.desc`,
+        `${supabaseUrl}/rest/v1/work_orders?status=in.(open,assigned,in_progress)&select=*,units(unit_number,building_id,buildings(address,owners(full_name))),workers(name,phone,email,specialty,company_name),service_requests(id,description,ai_category,ai_urgency,safety_override,photo_urls,tenants(full_name,phone,email)),approvals(status,requested_amount,created_at)&order=created_at.desc`,
         { headers: adminHeaders },
       );
       return new Response(JSON.stringify({ work_orders: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -631,6 +631,22 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true, work_order_id: newWorkOrder.id, dispatch: dispatchData }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Fiche d'un travail : tout le dossier (demande, locataire, IA, fil,
+    // approbations, journal) pour la fiche latérale « Travaux en cours ».
+    if (action === "get_work_order") {
+      const { work_order_id } = body;
+      if (!work_order_id || !/^[0-9a-f-]{36}$/i.test(work_order_id)) {
+        return new Response(JSON.stringify({ error: "work_order_id invalide" }), { status: 400, headers: corsHeaders });
+      }
+      const lire = (chemin: string) => fetch(`${supabaseUrl}/rest/v1/${chemin}`, { headers: adminHeaders }).then((r) => r.ok ? r.json() : []);
+      const [[wo], audit] = await Promise.all([
+        lire(`work_orders?id=eq.${work_order_id}&select=*,units(unit_number,buildings(address,owners(full_name,phone,spending_cap))),workers(id,name,phone,email,specialty,company_name),approvals(status,requested_amount,spending_cap_at_request,rejection_note,created_at,decided_at),service_requests(*,tenants(full_name,phone,email),service_request_messages(id,sender,body,sujet,attachments,via,created_at))`),
+        lire(`audit_log?entity_id=eq.${work_order_id}&select=action,actor_type,details,created_at&order=created_at.desc&limit=100`),
+      ]);
+      if (!wo) return new Response(JSON.stringify({ error: "Travail introuvable" }), { status: 404, headers: corsHeaders });
+      return new Response(JSON.stringify({ work_order: wo, audit }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "reassign_work_order") {
       const { work_order_id, worker_id } = body;
 
@@ -646,12 +662,27 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: `Impossible d'assigner ce travailleur — ${blockingReasons.join(", ")}. Complète sa vérification d'abord.` }), { status: 400, headers: corsHeaders });
       }
 
-      await fetch(`${supabaseUrl}/rest/v1/work_orders?id=eq.${work_order_id}`, {
+      // Nouveau travailleur = nouvelle offre : sa réponse, ses relances et
+      // son signalement de fin repartent de zéro (sinon il « hériterait »
+      // de l'acceptation ou du refus du précédent).
+      const avantRes = await fetch(`${supabaseUrl}/rest/v1/work_orders?id=eq.${work_order_id}&select=worker_id,service_request_id`, { headers: adminHeaders });
+      const [avant] = await avantRes.json().catch(() => []);
+      const patchRes = await fetch(`${supabaseUrl}/rest/v1/work_orders?id=eq.${work_order_id}`, {
         method: "PATCH",
         headers: adminHeaders,
-        body: JSON.stringify({ worker_id, worker_notified: false }),
+        body: JSON.stringify({
+          worker_id, worker_notified: false, status: "assigned",
+          worker_response: "pending", worker_response_at: null, worker_response_note: null,
+          response_reminder_sent: false, response_escalated: false,
+        }),
       });
-      await logAudit("work_order.reassign", "work_orders", work_order_id, { new_worker_id: worker_id });
+      if (!patchRes.ok) {
+        return new Response(JSON.stringify({ error: `Réassignation impossible : ${(await patchRes.text()).slice(0, 200)}` }), { status: 502, headers: corsHeaders });
+      }
+      if (avant?.service_request_id && avant.worker_id !== worker_id) {
+        await ajouterMessageDemande({ demandeId: avant.service_request_id, sender: "system", corps: "Un autre professionnel a été assigné à ta demande. On te confirme le rendez-vous sous peu." });
+      }
+      await logAudit("work_order.reassign", "work_orders", work_order_id, { new_worker_id: worker_id, old_worker_id: avant?.worker_id ?? null });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
     }
 

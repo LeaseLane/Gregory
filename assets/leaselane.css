@@ -1380,3 +1380,6 @@ input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire
 body.avec-vue-admin .shell{ height:calc(100dvh - var(--vue-admin-h, 40px)); }
 body.avec-vue-admin .fi-tiroir, body.avec-vue-admin .fi-fond{ top:var(--vue-admin-h, 40px); }
 body.avec-vue-admin .fi-tiroir{ height:auto; bottom:0; }
+.lo-conseil--ok{ background:var(--succes-100); }
+.lo-conseil--ok .ic, .lo-conseil--ok b{ color:var(--succes-600); }
+.tr-table td small{ display:block; margin-top:2px; font-size:12px; color:var(--texte-discret); }
