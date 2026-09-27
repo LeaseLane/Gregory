@@ -143,7 +143,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
   "risk_if_no_action": "le risque concret en une phrase si la situation n'est pas traitée rapidement"
 }`;
 
-      const aiRes = await fetch(IA_MESSAGES_URL, {
+      const appelIA = (avecPhotos: boolean) => fetch(IA_MESSAGES_URL, {
         method: "POST",
         headers: {
           "x-api-key": IA_CLE,
@@ -153,9 +153,17 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
         body: JSON.stringify({
           model: MODEL_VERSION,
           max_tokens: 800,
-          messages: [{ role: "user", content: photoBlocks.length ? [...photoBlocks, { type: "text", text: prompt }] : prompt }],
+          messages: [{ role: "user", content: avecPhotos && photoBlocks.length ? [...photoBlocks, { type: "text", text: prompt }] : prompt }],
         }),
       });
+      let aiRes = await appelIA(true);
+      // Photo refusée (trop grande, format non lu…) : on analyse le texte
+      // seul plutôt que de laisser la demande sans diagnostic. Le 2026-09-27,
+      // une photo de téléphone > 8000 px a fait échouer tout le triage.
+      if (aiRes.status === 400 && photoBlocks.length) {
+        console.error("Photo refusée par l'IA, nouvel essai sans photo", await aiRes.clone().text());
+        aiRes = await appelIA(false);
+      }
 
       const aiData = await aiRes.json();
       aiUsage = aiData?.usage ?? null;

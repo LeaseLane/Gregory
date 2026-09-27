@@ -472,6 +472,23 @@ async function submitPersonalDataRequest(){
   await loadPersonalDataRequests();
 }
 
+// Photos de téléphone : souvent > 8000 px et plusieurs Mo, refusées par
+// l'analyse IA. On les ramène à 2000 px de côté (JPEG) avant l'envoi ;
+// les vidéos et les formats non lisibles par le navigateur passent tels quels.
+async function reduireImage(file){
+  if(!file.type.startsWith('image/') || file.type === 'image/gif') return file;
+  try {
+    const img = await createImageBitmap(file);
+    const echelle = Math.min(1, 2000 / Math.max(img.width, img.height));
+    if(echelle === 1 && file.size < 2 * 1024 * 1024) return file;
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.width * echelle); c.height = Math.round(img.height * echelle);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+    return blob ? new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' }) : file;
+  } catch(e){ return file; }
+}
+
 async function submitServiceRequest(event){
   event.preventDefault();
   const noteEl = document.getElementById('request-note');
@@ -497,7 +514,8 @@ async function submitServiceRequest(event){
   btn.textContent = files.length ? 'Envoi des fichiers…' : 'Envoi…';
 
   const photoUrls = [];
-  for (const file of files) {
+  for (const brut of files) {
+    const file = await reduireImage(brut);
     // Noms avec accents ou espaces refusés par le stockage : on les nettoie.
     const nom = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9._-]+/g, '_').slice(-80);
     const path = `${tenantRecord.id}/${Date.now()}_${nom}`;
