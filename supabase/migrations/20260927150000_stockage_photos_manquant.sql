@@ -20,6 +20,10 @@ alter table public.service_requests add column if not exists photo_urls jsonb de
 insert into storage.buckets (id, name, public)
 values ('service-request-photos', 'service-request-photos', false)
 on conflict (id) do nothing;
+-- Photos ET vidéos, 50 Mo max par fichier (plafond du forfait).
+update storage.buckets
+  set file_size_limit = 52428800, allowed_mime_types = array['image/*', 'video/*']
+  where id = 'service-request-photos';
 
 drop policy if exists "tenant upload own service request photos" on storage.objects;
 create policy "tenant upload own service request photos" on storage.objects for insert

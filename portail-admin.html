@@ -2004,7 +2004,7 @@ function viewPhotoFromLink(el){
 function photoLinksHtml(bucket, paths, label){
   const list = Array.isArray(paths) ? paths : [];
   if(!list.length) return '';
-  const links = list.map((p, i) => `<a href="#" data-bucket="${esc(bucket)}" data-path="${esc(p)}" onclick="viewPhotoFromLink(this); return false;" style="margin-right:8px;">Photo ${i + 1}</a>`).join('');
+  const links = list.map((p, i) => `<a href="#" data-bucket="${esc(bucket)}" data-path="${esc(p)}" onclick="viewPhotoFromLink(this); return false;" style="margin-right:8px;">${/\.(mp4|mov|m4v|webm|avi|3gp)$/i.test(p) ? 'Vidéo' : 'Photo'} ${i + 1}</a>`).join('');
   return `<div style="font-size:12.5px;margin-top:4px;"><b>${esc(label)} :</b> ${links}</div>`;
 }
 

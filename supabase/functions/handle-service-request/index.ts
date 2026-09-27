@@ -101,7 +101,10 @@ Deno.serve(async (req) => {
     // Récupère les photos jointes par le locataire (si présentes) pour les
     // envoyer à l'IA en plus du texte — c'est ce qui manquait pour que
     // l'analyse porte vraiment sur "texte ET photos", pas juste le texte.
-    const photoPaths: string[] = Array.isArray(record.photo_urls) ? record.photo_urls.slice(0, MAX_PHOTOS) : [];
+    // Les vidéos sont gardées pour l'équipe et le travailleur, mais l'IA
+    // n'analyse que les images : on ne télécharge pas les vidéos ici.
+    const estImage = (p: string) => /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(p);
+    const photoPaths: string[] = Array.isArray(record.photo_urls) ? record.photo_urls.filter(estImage).slice(0, MAX_PHOTOS) : [];
     const photoBlocks: Record<string, unknown>[] = [];
     for (const path of photoPaths) {
       try {

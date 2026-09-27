@@ -183,8 +183,8 @@
         <form class="pp-carte lo-form" onsubmit="submitServiceRequest(event)">
           <label class="ch-label" for="request-message">Qu'est-ce qui se passe ?</label>
           <textarea id="request-message" required rows="4" placeholder="Ex. : Fuite d'eau sous l'évier de la cuisine depuis ce matin."></textarea>
-          <label class="ch-label" for="request-photos" style="margin-top:14px;">Photos <small>(optionnel, ça aide beaucoup à diagnostiquer vite)</small></label>
-          <input type="file" id="request-photos" accept="image/*" multiple>
+          <label class="ch-label" for="request-photos" style="margin-top:14px;">Photos ou vidéos <small>(optionnel, ça aide beaucoup à diagnostiquer vite · 50 Mo max par fichier)</small></label>
+          <input type="file" id="request-photos" accept="image/*,video/*" multiple>
           <div class="lo-form-pied">
             <p class="form-note" id="request-note"></p>
             <button class="ll-bouton ll-bouton--primaire" type="submit" id="request-submit-btn"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer la demande</button>
@@ -486,8 +486,15 @@ async function submitServiceRequest(event){
   const fileInput = document.getElementById('request-photos');
   const files = Array.from(fileInput.files || []);
 
+  const tropGros = files.find(f => f.size > 50 * 1024 * 1024);
+  if(tropGros){
+    noteEl.textContent = `« ${tropGros.name} » dépasse 50 Mo. Envoie une vidéo plus courte.`;
+    noteEl.style.color = 'var(--urgence-600)';
+    noteEl.style.display = 'block';
+    return;
+  }
   btn.disabled = true;
-  btn.textContent = files.length ? 'Envoi des photos...' : 'Envoi...';
+  btn.textContent = files.length ? 'Envoi des fichiers…' : 'Envoi…';
 
   const photoUrls = [];
   for (const file of files) {
@@ -496,7 +503,7 @@ async function submitServiceRequest(event){
     const path = `${tenantRecord.id}/${Date.now()}_${nom}`;
     const { error: uploadError } = await supabaseClient.storage.from('service-request-photos').upload(path, file);
     if (uploadError) {
-      noteEl.textContent = "Erreur lors de l'envoi d'une photo : " + uploadError.message;
+      noteEl.textContent = "Erreur lors de l'envoi d'un fichier : " + uploadError.message;
       noteEl.style.color = 'var(--rust)';
       noteEl.style.display = 'block';
       btn.disabled = false;
