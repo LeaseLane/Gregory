@@ -35,6 +35,14 @@
   .error{color:var(--rust);font-size:12.5px;margin-top:10px;display:none;}
   .loading{text-align:center;color:var(--muted);font-size:13.5px;}
   .aide{font-size:12.5px;color:var(--muted);margin-top:14px;line-height:1.5;}
+  .succes{color:var(--succes-600);font-size:12.5px;margin-top:10px;display:none;}
+  .liens{font-size:12.5px;text-align:center;margin-top:16px;color:var(--muted);}
+  .liens a{color:var(--muted);text-decoration:underline;}
+  .choix{display:block;padding:12px 14px;margin-bottom:10px;border:1px solid var(--line);background:var(--paper);text-decoration:none;color:var(--ink);font-size:12.5px;line-height:1.45;}
+  .choix b{display:block;font-size:13.5px;margin-bottom:2px;}
+  .choix span{color:var(--muted);}
+  a.choix:hover{border-color:var(--brass);}
+  .choix--info{background:transparent;border-style:dashed;}
 </style>
 <link rel="stylesheet" href="assets/leaselane.css">
 </head>
@@ -55,7 +63,27 @@
       <div class="f"><label for="login-password">Mot de passe</label><input type="password" id="login-password" autocomplete="current-password" onkeydown="if(event.key==='Enter') handleLogin();"></div>
       <button onclick="handleLogin()" id="login-btn">Se connecter</button>
       <p class="error" id="login-error"></p>
-      <p class="aide">Mot de passe oublié ? Utilise le lien reçu dans ton courriel de bienvenue, ou écris-nous à <a href="mailto:admin@leaselane.ca">admin@leaselane.ca</a>.</p>
+      <p class="liens"><a href="#" onclick="voir('reset-box');return false;">Mot de passe oublié ?</a> · <a href="#" onclick="voir('signup-box');return false;">Créer un compte</a></p>
+    </div>
+
+    <div class="box" id="reset-box" style="display:none;">
+      <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+      <div class="sub">Mot de passe oublié</div>
+      <p class="aide" style="margin:0 0 16px;">Entre ton courriel : on t'envoie un lien pour choisir un nouveau mot de passe.</p>
+      <div class="f"><label for="reset-email">Courriel</label><input type="email" id="reset-email" autocomplete="username" onkeydown="if(event.key==='Enter') envoyerLien();"></div>
+      <button onclick="envoyerLien()" id="reset-btn">Envoyer le lien</button>
+      <p class="error" id="reset-error"></p>
+      <p class="succes" id="reset-ok"></p>
+      <p class="liens"><a href="#" onclick="voir('login-box');return false;">← Retour à la connexion</a></p>
+    </div>
+
+    <div class="box" id="signup-box" style="display:none;">
+      <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+      <div class="sub">Créer un compte</div>
+      <a class="choix" href="/formulaires-gestion-immobiliere?type=mandat"><b>Je suis propriétaire</b><span>Demande une évaluation gratuite : on crée ton espace après un premier appel.</span></a>
+      <a class="choix" href="/pro"><b>Je suis entrepreneur ou travailleur</b><span>Inscris-toi à Lease Lane Pro pour recevoir des mandats.</span></a>
+      <div class="choix choix--info"><b>Je suis locataire</b><span>Ton accès est créé par ton gestionnaire : tu reçois un courriel d'invitation pour choisir ton mot de passe.</span></div>
+      <p class="liens"><a href="#" onclick="voir('login-box');return false;">← J'ai déjà un compte</a></p>
     </div>
     <div class="box" id="loading-box" style="display:none;">
       <p class="loading">Ouverture de ton espace...</p>
@@ -129,6 +157,28 @@ async function routeToPortal(){
   await llCharger(nom);
   return true;
 }
+
+window.voir = function(id){
+  ['login-box','reset-box','signup-box'].forEach(b => document.getElementById(b).style.display = b === id ? 'block' : 'none');
+};
+
+// Le lien ramène sur l'écran propriétaire, qui sait déjà afficher « choisir
+// un nouveau mot de passe » ; un locataire ou un travailleur qui s'y
+// reconnecte est ensuite renvoyé vers son propre portail (llBonPortail).
+// ponytail: adresse déjà acceptée par Supabase ; /app demanderait de
+// l'ajouter à la liste des redirections autorisées.
+window.envoyerLien = async function(){
+  const email = document.getElementById('reset-email').value.trim();
+  const err = document.getElementById('reset-error'), ok = document.getElementById('reset-ok'), btn = document.getElementById('reset-btn');
+  err.style.display = ok.style.display = 'none';
+  if(!email){ err.textContent = 'Entre ton courriel.'; err.style.display = 'block'; return; }
+  btn.disabled = true;
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/portail-proprietaire.html' });
+  btn.disabled = false;
+  if(error){ err.textContent = error.message; err.style.display = 'block'; return; }
+  ok.textContent = 'Si un compte existe pour ce courriel, le lien vient de partir. Vérifie ta boîte (et les indésirables).';
+  ok.style.display = 'block';
+};
 
 window.handleLogin = async function(){
   const btn = document.getElementById('login-btn');
