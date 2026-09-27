@@ -3183,6 +3183,7 @@ async function loadServiceRequestsAdmin(){
       <h3 class="sr-titre">${esc(sr.units?.buildings?.address) || ''}, unité ${esc(sr.units?.unit_number) || ''}<small>${esc(sr.tenants?.full_name) || ''}</small></h3>
       <blockquote class="sr-desc">${esc(sr.description)}</blockquote>
       ${photoLinksHtml('service-request-photos', sr.photo_urls, 'Pièces jointes')}
+      ${(sr.video_analysis || []).filter(x => !x.video).map(x => `<p class="sr-sans-ia">Vidéo « ${esc(x.nom || '')} » trop lourde pour être jointe (plus de 50 Mo) : analysée à partir de ${(x.images || []).length} images et ${x.audio ? 'du son' : 'sans son'}.</p>${photoLinksHtml('service-request-photos', (x.images || []).slice(0, 6), 'Images de la vidéo')}`).join('')}
       ${sr.ai_video_summary ? `<div class="md-ia sr-video"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#video"/></svg><div><b>Dans la vidéo</b>${esc(sr.ai_video_summary)}</div></div>` : ''}
       ${sr.ai_category ? `<div class="md-ia"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg><div>
         <b>Analyse IA</b>${esc(sr.ai_category)}${sr.ai_subcategory ? ' — ' + esc(sr.ai_subcategory) : ''}${costRange ? ' · ' + costRange : ''}${sr.ai_confidence != null ? ' · confiance ' + Math.round(sr.ai_confidence) + ' %' : ''}

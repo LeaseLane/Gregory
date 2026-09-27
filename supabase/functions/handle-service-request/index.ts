@@ -1,6 +1,6 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, MODELE_VIDEO, decrireVideo, versBase64 } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, MODELE_VIDEO, decrireVideo, decrireMedias, versBase64, type PartieGemini } from "../_shared/ia.ts";
 // Règles de sécurité déterministes : ne dépendent JAMAIS de l'IA.
 // Si l'une de ces situations est détectée dans la description du
 // locataire, l'urgence est forcée à "urgence" même si Claude évalue
@@ -129,38 +129,68 @@ Deno.serve(async (req) => {
     // Vidéos : Gemini (via Tonia) les décrit — image ET son — et ce texte
     // est donné à Claude avec le reste. Claude ne lit pas la vidéo.
     const estVideo = (p: string) => /\.(mp4|mov|m4v|webm|3gp)$/i.test(p);
-    const cheminsVideos: string[] = Array.isArray(record.photo_urls) ? record.photo_urls.filter(estVideo).slice(0, MAX_VIDEOS) : [];
+    const CONSIGNE_VIDEO = "Un locataire a filmé un problème dans son logement. Décris objectivement, en français, en 3 à 5 phrases : ce qu'on voit (pièce, appareil, dégât, étendue, eau, fumée, étincelles…) et ce qu'on entend (bruits, et ce que dit le locataire). Pas de diagnostic ni de coût.";
+    const lireStockage = async (chemin: string) => {
+      const f = await fetch(`${supabaseUrl}/storage/v1/object/service-request-photos/${chemin}`, {
+        headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey ?? "" },
+      });
+      return f.ok ? { octets: new Uint8Array(await f.arrayBuffer()), type: f.headers.get("content-type") || "" } : null;
+    };
+    // Vidéos longues (> 18 Mo) : le portail locataire en a extrait une image
+    // toutes les quelques secondes et la bande son (video_analysis). Gemini
+    // reçoit ces images + le son — c'est ce qu'il échantillonne de toute
+    // façon dans une vraie vidéo (~1 image/s + audio).
+    type Extrait = { video: string | null; images: string[]; audio: string | null; pas: number; duree: number; nom?: string };
+    const extraits: Extrait[] = Array.isArray(record.video_analysis) ? record.video_analysis.slice(0, MAX_VIDEOS) : [];
+    const couvertes = new Set(extraits.map((e) => e.video).filter(Boolean));
+    const directes: string[] = (Array.isArray(record.photo_urls) ? record.photo_urls.filter(estVideo) : [])
+      .filter((p: string) => !couvertes.has(p)).slice(0, Math.max(0, MAX_VIDEOS - extraits.length));
     const resumesVideo: string[] = [];
-    for (const chemin of cheminsVideos) {
+    const journaliser = (source: string, debut: number, erreur: string | null) => fetch(`${supabaseUrl}/rest/v1/ai_run_log`, {
+      method: "POST", headers: adminHeaders,
+      body: JSON.stringify({
+        function_name: "handle-service-request", trigger_source: "db_webhook", entity_type: "service_requests", entity_id: record.id,
+        prompt_version: "service-request-video-v2", model_version: MODELE_VIDEO, input_summary: source.slice(0, 300),
+        output_summary: erreur ? null : resumesVideo.at(-1)?.slice(0, 300) ?? null, duration_ms: Date.now() - debut,
+        error: erreur ? `video: ${erreur}`.slice(0, 400) : null,
+      }),
+    }).catch(() => null);
+
+    for (const chemin of directes) {
       const debut = Date.now();
-      let erreurVideo: string | null = null;
+      let erreur: string | null = null;
       try {
-        const fichier = await fetch(`${supabaseUrl}/storage/v1/object/service-request-photos/${chemin}`, {
-          headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey ?? "" },
-        });
-        const octets = fichier.ok ? new Uint8Array(await fichier.arrayBuffer()) : null;
-        if (!octets) erreurVideo = `lecture stockage ${fichier.status}`;
-        else if (octets.length > MAX_OCTETS_VIDEO) erreurVideo = `vidéo trop lourde (${Math.round(octets.length / 1048576)} Mo)`;
+        const f = await lireStockage(chemin);
+        if (!f) erreur = "lecture stockage impossible";
+        else if (f.octets.length > MAX_OCTETS_VIDEO) erreur = `vidéo trop lourde (${Math.round(f.octets.length / 1048576)} Mo) et sans extrait`;
         else {
-          const mime = fichier.headers.get("content-type")?.startsWith("video/") ? fichier.headers.get("content-type")! : "video/mp4";
-          const r = await decrireVideo({
-            base64: versBase64(octets), mime,
-            consigne: "Un locataire a filmé un problème dans son logement. Décris objectivement, en français, en 3 à 5 phrases : ce qu'on voit (pièce, appareil, dégât, étendue, eau, fumée, étincelles…) et ce qu'on entend (bruits, et ce que dit le locataire). Pas de diagnostic ni de coût.",
-          });
-          if (r.ok) resumesVideo.push(r.texte); else erreurVideo = r.erreur;
+          const r = await decrireVideo({ base64: versBase64(f.octets), mime: f.type.startsWith("video/") ? f.type : "video/mp4", consigne: CONSIGNE_VIDEO });
+          if (r.ok) resumesVideo.push(r.texte); else erreur = r.erreur;
         }
-      } catch (e) {
-        erreurVideo = String(e);
-      }
-      await fetch(`${supabaseUrl}/rest/v1/ai_run_log`, {
-        method: "POST", headers: adminHeaders,
-        body: JSON.stringify({
-          function_name: "handle-service-request", trigger_source: "db_webhook", entity_type: "service_requests", entity_id: record.id,
-          prompt_version: "service-request-video-v1", model_version: MODELE_VIDEO, input_summary: `vidéo ${chemin}`.slice(0, 300),
-          output_summary: resumesVideo.at(-1)?.slice(0, 300) ?? null, duration_ms: Date.now() - debut,
-          error: erreurVideo ? `video: ${erreurVideo}`.slice(0, 400) : null,
-        }),
-      }).catch(() => null);
+      } catch (e) { erreur = String(e); }
+      await journaliser(`vidéo ${chemin}`, debut, erreur);
+    }
+
+    for (const ex of extraits) {
+      const debut = Date.now();
+      let erreur: string | null = null;
+      try {
+        const parties: PartieGemini[] = [{ type: "text", text: `${CONSIGNE_VIDEO}\n\nLa vidéo (${Math.round(ex.duree)} s) t'est fournie sous forme d'images extraites toutes les ${Math.round(ex.pas)} secondes, dans l'ordre${ex.audio ? ", et de sa bande son" : " (pas de son disponible)"}.` }];
+        for (const img of (ex.images || []).slice(0, 80)) {
+          const f = await lireStockage(img);
+          if (f) parties.push({ type: "image", data: versBase64(f.octets), mime_type: "image/jpeg" });
+        }
+        if (ex.audio) {
+          const a = await lireStockage(ex.audio);
+          if (a) parties.push({ type: "audio", data: versBase64(a.octets), mime_type: "audio/wav" });
+        }
+        if (parties.length < 2) erreur = "extrait vide";
+        else {
+          const r = await decrireMedias(parties);
+          if (r.ok) resumesVideo.push(r.texte); else erreur = r.erreur;
+        }
+      } catch (e) { erreur = String(e); }
+      await journaliser(`extrait ${ex.nom || ex.video || ""} (${ex.images?.length || 0} images${ex.audio ? " + son" : ""})`, debut, erreur);
     }
 
     try {

@@ -98,7 +98,9 @@ export async function appelerIA(opts: {
 // sans elle, Tonia répond 200 avec un blocage « audio_not_in_plan ».
 export const MODELE_VIDEO = Deno.env.get("IA_MODELE_VIDEO") || "gemini/gemini-3.5-flash-lite";
 
-export async function decrireVideo(opts: { base64: string; mime: string; consigne: string }): Promise<ReponseIA> {
+export type PartieGemini = { type: "text"; text: string } | { type: "video" | "image" | "audio"; data: string; mime_type: string };
+
+export async function decrireMedias(parties: PartieGemini[]): Promise<ReponseIA> {
   if (!Deno.env.get("IA_BASE_URL")) {
     return { ok: false, status: 0, texte: "", erreur: "passerelle absente (IA_BASE_URL) : lecture vidéo indisponible", data: null };
   }
@@ -107,10 +109,7 @@ export async function decrireVideo(opts: { base64: string; mime: string; consign
     res = await fetch(`${BASE_URL}/v1/interactions`, {
       method: "POST",
       headers: { "x-api-key": CLE, Authorization: `Bearer ${CLE}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        model: MODELE_VIDEO,
-        input: [{ type: "text", text: opts.consigne }, { type: "video", data: opts.base64, mime_type: opts.mime }],
-      }),
+      body: JSON.stringify({ model: MODELE_VIDEO, input: parties }),
     });
   } catch (e) {
     return { ok: false, status: 0, texte: "", erreur: `reseau: ${String(e)}`, data: null };
@@ -122,6 +121,11 @@ export async function decrireVideo(opts: { base64: string; mime: string; consign
   }
   const texte = (data?.steps ?? []).flatMap((s: any) => s?.content ?? []).map((p: any) => p?.text ?? "").join("").trim();
   return { ok: !!texte, status: res.status, texte, erreur: texte ? null : "reponse vide", data };
+}
+
+/** Vidéo envoyée telle quelle (limite pratique : ~18 Mo, voir handle-service-request). */
+export function decrireVideo(opts: { base64: string; mime: string; consigne: string }): Promise<ReponseIA> {
+  return decrireMedias([{ type: "text", text: opts.consigne }, { type: "video", data: opts.base64, mime_type: opts.mime }]);
 }
 
 /** Base64 d'un gros fichier sans dépasser la pile (String.fromCharCode par blocs). */

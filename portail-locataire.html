@@ -183,7 +183,7 @@
         <form class="pp-carte lo-form" onsubmit="submitServiceRequest(event)">
           <label class="ch-label" for="request-message">Qu'est-ce qui se passe ?</label>
           <textarea id="request-message" required rows="4" placeholder="Ex. : Fuite d'eau sous l'évier de la cuisine depuis ce matin."></textarea>
-          <label class="ch-label" for="request-photos" style="margin-top:14px;">Photos ou vidéos <small>(optionnel, ça aide beaucoup à diagnostiquer vite · 50 Mo max par fichier)</small></label>
+          <label class="ch-label" for="request-photos" style="margin-top:14px;">Photos ou vidéos <small>(optionnel, ça aide beaucoup à diagnostiquer vite · vidéo de 5 minutes max)</small></label>
           <input type="file" id="request-photos" accept="image/*,video/*" multiple>
           <div class="lo-form-pied">
             <p class="form-note" id="request-note"></p>
@@ -489,6 +489,68 @@ async function reduireImage(file){
   } catch(e){ return file; }
 }
 
+// Vidéos : jusqu'à ~18 Mo, envoyées telles quelles à l'analyse. Au-delà,
+// la passerelle IA les refuse : on en extrait ici une image toutes les
+// quelques secondes et la bande son (12 kHz mono), analysées à la place.
+const LIMITE_VIDEO_DIRECTE = 18 * 1024 * 1024, LIMITE_STOCKAGE = 50 * 1024 * 1024;
+
+function attendre(el, evenement, ms){
+  return new Promise((ok, ko) => {
+    const t = setTimeout(() => ko(new Error(evenement + ' : délai dépassé')), ms);
+    el.addEventListener(evenement, () => { clearTimeout(t); ok(); }, { once: true });
+  });
+}
+
+async function extraireVideo(file){
+  const url = URL.createObjectURL(file);
+  const v = document.createElement('video');
+  v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+  const images = [];
+  let duree = 0, pas = 2;
+  try {
+    await attendre(v, 'loadeddata', 15000);
+    duree = Math.min(v.duration || 0, 300);        // 5 minutes analysées au plus
+    pas = Math.max(2, duree / 60);                 // 60 images au plus
+    const e = Math.min(1, 640 / Math.max(v.videoWidth || 640, v.videoHeight || 360));
+    const c = document.createElement('canvas');
+    c.width = Math.round((v.videoWidth || 640) * e); c.height = Math.round((v.videoHeight || 360) * e);
+    for(let t = Math.min(0.5, duree / 2); t < duree; t += pas){
+      v.currentTime = t;
+      await attendre(v, 'seeked', 5000);
+      c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+      const b = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.7));
+      if(b) images.push(b);
+    }
+  } catch(e){ console.warn('Extraction des images', e); }
+  URL.revokeObjectURL(url);
+
+  let audio = null;
+  if(file.size <= 250 * 1024 * 1024){              // au-delà, trop lourd pour un téléphone
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new Ctx();
+      const tampon = await ctx.decodeAudioData(await file.arrayBuffer());
+      ctx.close();
+      const n = Math.min(tampon.duration, 300), taux = 12000;
+      const hors = new OfflineAudioContext(1, Math.ceil(n * taux), taux);
+      const src = hors.createBufferSource(); src.buffer = tampon; src.connect(hors.destination); src.start(0);
+      audio = versWav((await hors.startRendering()).getChannelData(0), taux);
+    } catch(e){ console.warn('Extraction du son', e); }
+  }
+  return { images, audio, duree, pas };
+}
+
+function versWav(ech, taux){
+  const buf = new ArrayBuffer(44 + ech.length * 2), d = new DataView(buf);
+  const txt = (o, s) => [...s].forEach((c, i) => d.setUint8(o + i, c.charCodeAt(0)));
+  txt(0, 'RIFF'); d.setUint32(4, 36 + ech.length * 2, true); txt(8, 'WAVE'); txt(12, 'fmt ');
+  d.setUint32(16, 16, true); d.setUint16(20, 1, true); d.setUint16(22, 1, true);
+  d.setUint32(24, taux, true); d.setUint32(28, taux * 2, true); d.setUint16(32, 2, true); d.setUint16(34, 16, true);
+  txt(36, 'data'); d.setUint32(40, ech.length * 2, true);
+  for(let i = 0; i < ech.length; i++) d.setInt16(44 + i * 2, Math.max(-1, Math.min(1, ech[i])) * 0x7fff, true);
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
 async function submitServiceRequest(event){
   event.preventDefault();
   const noteEl = document.getElementById('request-note');
@@ -503,9 +565,9 @@ async function submitServiceRequest(event){
   const fileInput = document.getElementById('request-photos');
   const files = Array.from(fileInput.files || []);
 
-  const tropGros = files.find(f => f.size > 50 * 1024 * 1024);
+  const tropGros = files.find(f => !f.type.startsWith('video/') && f.size > LIMITE_STOCKAGE);
   if(tropGros){
-    noteEl.textContent = `« ${tropGros.name} » dépasse 50 Mo. Envoie une vidéo plus courte.`;
+    noteEl.textContent = `« ${tropGros.name} » dépasse 50 Mo.`;
     noteEl.style.color = 'var(--urgence-600)';
     noteEl.style.display = 'block';
     return;
@@ -513,22 +575,40 @@ async function submitServiceRequest(event){
   btn.disabled = true;
   btn.textContent = files.length ? 'Envoi des fichiers…' : 'Envoi…';
 
-  const photoUrls = [];
-  for (const brut of files) {
-    const file = await reduireImage(brut);
-    // Noms avec accents ou espaces refusés par le stockage : on les nettoie.
-    const nom = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9._-]+/g, '_').slice(-80);
-    const path = `${tenantRecord.id}/${Date.now()}_${nom}`;
-    const { error: uploadError } = await supabaseClient.storage.from('service-request-photos').upload(path, file);
-    if (uploadError) {
-      noteEl.textContent = "Erreur lors de l'envoi d'un fichier : " + uploadError.message;
-      noteEl.style.color = 'var(--rust)';
-      noteEl.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Envoyer la demande';
-      return;
+  const photoUrls = [], analyses = [];
+  const nettoyer = n => n.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9._-]+/g, '_').slice(-80);
+  const televerser = async (path, fichier) => {
+    const { error: e } = await supabaseClient.storage.from('service-request-photos').upload(path, fichier);
+    if(e) throw new Error(e.message);
+    return path;
+  };
+  try {
+    for (const [i, brut] of files.entries()) {
+      const pile = `${tenantRecord.id}/${Date.now()}_${i}`;
+      if(brut.type.startsWith('video/') && brut.size > LIMITE_VIDEO_DIRECTE){
+        // Vidéo longue : on prépare images + son pour l'analyse, et on joint
+        // l'original seulement s'il tient dans le stockage (50 Mo).
+        btn.textContent = 'Préparation de la vidéo…';
+        const ex = await extraireVideo(brut);
+        btn.textContent = 'Envoi des fichiers…';
+        const images = [];
+        for (const [k, img] of ex.images.entries()) images.push(await televerser(`${pile}_analyse/img_${String(k).padStart(2, '0')}.jpg`, img));
+        const audio = ex.audio ? await televerser(`${pile}_analyse/son.wav`, ex.audio) : null;
+        let video = null;
+        if(brut.size <= LIMITE_STOCKAGE){ video = await televerser(`${pile}_${nettoyer(brut.name)}`, brut); photoUrls.push(video); }
+        analyses.push({ video, images, audio, pas: ex.pas, duree: ex.duree, nom: brut.name });
+        continue;
+      }
+      const file = await reduireImage(brut);
+      photoUrls.push(await televerser(`${pile}_${nettoyer(file.name)}`, file));
     }
-    photoUrls.push(path);
+  } catch(e){
+    noteEl.textContent = "Erreur lors de l'envoi d'un fichier : " + e.message;
+    noteEl.style.color = 'var(--rust)';
+    noteEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Envoyer la demande';
+    return;
   }
 
   btn.textContent = 'Envoi...';
@@ -537,6 +617,7 @@ async function submitServiceRequest(event){
     tenant_id: tenantRecord.id,
     description: message,
     photo_urls: photoUrls,
+    video_analysis: analyses.length ? analyses : null,
   });
   if(error){
     noteEl.textContent = "Une erreur est survenue, réessaie.";
