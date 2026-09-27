@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609272040">
-<script src="assets/charger-portail.js?v=202609272040"></script>
-<script src="assets/ui.js?v=202609272040"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609272047">
+<script src="assets/charger-portail.js?v=202609272047"></script>
+<script src="assets/ui.js?v=202609272047"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -3511,7 +3511,7 @@ function renderFicheTravail(){
       ${ap ? `<div class="lo-conseil"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg><div><b>Approbation du propriétaire : ${ap.status === 'pending' ? 'en attente' : ap.status === 'approved' ? 'accordée' : 'refusée'}</b>${argentF(ap.requested_amount)} demandés, plafond ${argentF(ap.spending_cap_at_request)}${ap.rejection_note ? ' · ' + esc(ap.rejection_note) : ''}</div></div>` : ''}
       <div class="lo-infos">
         <div><span>Travailleur</span><b>${woTravailleur(wo) ? esc(woTravailleur(wo)) : 'Aucun'}</b>${wo.workers?.phone ? `<small>${esc(wo.workers.phone)}</small>` : ''}</div>
-        <div><span>Réponse</span><b>${({ accepted: 'A accepté', declined: 'A refusé', proposed_other_time: 'Propose une autre heure', pending: 'Pas encore' })[wo.worker_response] || 'Pas encore'}</b>${wo.worker_response_note ? `<small>${esc(wo.worker_response_note)}</small>` : ''}</div>
+        <div><span>Réponse</span><b>${({ accepted: 'A accepté', declined: 'A refusé', proposed_other_time: 'Propose une autre heure', info_requested: 'A posé une question', pending: 'Pas encore' })[wo.worker_response] || 'Pas encore'}</b>${wo.worker_response_note ? `<small>${esc(wo.worker_response_note)}</small>` : ''}</div>
         <div><span>Rendez-vous</span><b>${wo.appointment_at ? quand(wo.appointment_at) : 'À fixer'}</b></div>
         <div><span>Échéance</span><b>${wo.due_by ? esc(wo.due_by) : '—'}</b></div>
         <div><span>Paie du travailleur</span><b>${argentF(wo.worker_pay)}</b></div>
@@ -4678,7 +4678,8 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/compte.js?v=202609272040"></script>
-<script src="assets/url-propre.js?v=202609272040"></script>
+<script src="assets/mobile.js?v=202609272047"></script>
+<script src="assets/compte.js?v=202609272047"></script>
+<script src="assets/url-propre.js?v=202609272047"></script>
 </body>
 </html>

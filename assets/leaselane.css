@@ -1446,3 +1446,68 @@ body.ll-mdp-actif{ overflow:hidden; }
 @media (max-width:480px){ .pf-jour{ grid-template-columns:1fr 1fr; } .pf-jour .pf-bascule{ grid-column:1/-1; } .pf-a{ display:none; } }
 .pf-grille{ align-items:start; }
 .pf-grille input:not([type=checkbox]):not([type=radio]), .pf-grille select{ width:100%; box-sizing:border-box; }
+
+/* ═══════ NAVIGATION TÉLÉPHONE (assets/mobile.js) ═══════
+   Remplace la bande d'onglets horizontale : barre du haut (☰ + onglet
+   courant) et menu latéral qui glisse. Les !important l'emportent sur les
+   anciennes règles mobiles des portails (onglets en ligne). */
+.ll-barre-mobile, .ll-nav-fond{ display:none; }
+@media (max-width:860px){
+  .shell{ flex-direction:column !important; }
+  .ll-barre-mobile{
+    display:flex; align-items:center; gap:10px; flex:none; height:56px; padding:0 10px 0 6px;
+    background:var(--surface-carte); border-bottom:1px solid var(--bordure-fine); position:relative; z-index:30;
+  }
+  .ll-menu-btn{ width:44px; height:44px; display:grid; place-items:center; border:none; background:none; border-radius:10px; color:var(--marine-900); cursor:pointer; }
+  .ll-menu-btn:hover, .ll-menu-btn:focus-visible{ background:var(--surface-enfoncee); outline:none; }
+  .ll-menu-btn .ic{ width:24px; height:24px; }
+  .ll-barre-titre{ flex:1; min-width:0; font:600 16px/1.2 var(--police-texte); color:var(--marine-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ll-barre-mobile img{ height:22px; width:auto; flex:none; }
+
+  .shell > aside{
+    position:fixed !important; top:0; left:0; bottom:0; z-index:960;
+    width:min(300px, 84vw) !important; height:100dvh !important;
+    display:flex !important; flex-direction:column !important; align-items:stretch !important; gap:2px !important;
+    overflow-y:auto !important; overflow-x:hidden !important; white-space:normal !important;
+    padding:18px 10px 24px !important; margin:0 !important;
+    background:var(--surface-carte) !important; border:0 !important; border-right:1px solid var(--bordure-fine) !important;
+    box-shadow:12px 0 40px rgba(10,32,56,.18);
+    transform:translateX(-105%); transition:transform .22s ease;
+  }
+  body.nav-ouverte .shell > aside{ transform:none; }
+  .shell > aside .brand, .shell > aside .brand-sub, .shell > aside .nav-group-label{ display:block !important; }
+  .shell > aside .tab-btn{
+    display:flex !important; align-items:center; width:100% !important; height:auto !important; min-height:46px;
+    padding:10px 14px !important; margin:0 !important; border-radius:var(--rayon-champ) !important;
+    font-size:15px !important; white-space:normal !important; text-align:left; border-left:0 !important; border-bottom:0 !important;
+  }
+  .shell > aside .signout{ display:block !important; margin:12px 0 0 !important; padding:10px 0 0 !important; border-top:1px solid var(--bordure-fine) !important; }
+  .ll-nav-fond{ display:block; position:fixed; inset:0; z-index:955; background:rgba(10,32,56,.4); opacity:0; pointer-events:none; transition:opacity .2s; }
+  body.nav-ouverte .ll-nav-fond{ opacity:1; pointer-events:auto; }
+  .shell > main{ flex:1; min-height:0; height:auto !important; padding:18px 16px 40px !important; }
+}
+@media (max-width:860px){
+  /* Les fiches latérales sont aussi des <aside> : l'ancienne règle mobile
+     (onglets en ligne) les mettait à l'horizontale et les rendait illisibles. */
+  aside.fi-tiroir{
+    display:block !important; flex-direction:column !important; white-space:normal !important;
+    overflow-y:auto !important; overflow-x:hidden !important; gap:0 !important;
+    position:fixed !important; top:var(--vue-admin-h, 0px) !important; right:0; bottom:0; left:auto;
+    width:100vw !important; height:auto !important; padding:16px 16px 40px !important;
+    border:0 !important; background:var(--surface-carte) !important;
+  }
+  .fi-tete h2{ font-size:22px; }
+  .fi-contact{ flex-wrap:wrap; gap:8px; }
+  .fi-contact .ll-bouton{ flex:1 1 auto; justify-content:center; }
+  .fi-onglets{ overflow-x:auto; white-space:nowrap; scrollbar-width:none; }
+  .fi-onglets::-webkit-scrollbar{ display:none; }
+  .fi-onglet{ flex:none; }
+  /* Tableaux en cartes : pas de flèche de ligne, filtres pleine largeur. */
+  .tr-table .tr-chev{ display:none; }
+  .tr-outils{ flex-direction:column; align-items:stretch; }
+  .tr-outils select, .tr-outils .tr-recherche{ width:100% !important; max-width:none; }
+  .lo-infos{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .sr-badges .sr-quand{ width:100%; margin-left:0; }
+}
+@media (max-width:860px){ .tr-outils > *{ flex:none !important; } }
+@media (max-width:640px){ .vo-kpi b{ font-size:22px !important; overflow-wrap:anywhere; } .vo-kpi{ padding:14px 14px; } }
