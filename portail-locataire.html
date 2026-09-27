@@ -396,7 +396,14 @@ let demandesCache = [], suivisCache = [];
 let ficheDemande = { id: null, onglet: 'suivi' };
 const suiviDe = id => suivisCache.filter(x => x.service_request_id === id).sort((a, b) => (b.cree_le || '').localeCompare(a.cree_le || ''))[0] || null;
 const filDe = r => (r.service_request_messages || []).slice().sort((a, b) => a.created_at.localeCompare(b.created_at));
-const infoDemandee = r => { const f = filDe(r), m = f[f.length - 1]; return !!m && m.sender !== 'tenant' && /fournir|photo|pourrais-tu|peux-tu|\?/i.test(m.body); };
+// « Info demandée » : la dernière question de l'équipe reste sans réponse, et
+// seulement tant que le dossier est ouvert — une fois le travail terminé, le
+// courriel « confirme que c'est réglé ? » est couvert par le bloc de confirmation.
+const infoDemandee = r => {
+  if(['closed', 'resolved', 'cancelled'].includes(r.status) || suiviDe(r.id)?.termine_le) return false;
+  const f = filDe(r), m = f[f.length - 1];
+  return !!m && m.sender !== 'tenant' && /fournir|photo|pourrais-tu|peux-tu|\?/i.test(m.body);
+};
 
 async function loadRequests(){
   const [{ data }, { data: suivis }] = await Promise.all([
