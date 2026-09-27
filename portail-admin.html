@@ -3527,7 +3527,8 @@ function renderFicheTravail(){
       mt.push({ direction: 'entrant', origine: 'lien', sujet: wo.worker_response === 'proposed_other_time' ? 'Propose une autre heure' : 'Réponse', corps: wo.worker_response_note, created_at: wo.worker_response_at || wo.created_at });
     mt.sort((a, b) => a.created_at.localeCompare(b.created_at));
     corps = `
-      <h4 class="lo-fil-titre">Avec le travailleur${woTravailleur(wo) ? ' · ' + esc(woTravailleur(wo)) : ''}</h4>
+      <details class="sr-fil"${mt.length && mt[mt.length - 1].direction === 'entrant' ? ' open' : ''}>
+      <summary><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#hammer"/></svg>Échanges avec le travailleur${woTravailleur(wo) ? ' · ' + esc(woTravailleur(wo)) : ''}${mt.length ? ` (${mt.length})` : ''}</summary>
       <div class="ms-fil">${mt.length ? mt.map(m => `
         <div class="ms-bulle ${m.direction === 'entrant' ? 'ms-bulle--entrant' : 'ms-bulle--sortant'}${m.origine === 'automatique' ? ' ms-bulle--auto' : ''}">
           <div class="ms-meta">${m.direction === 'entrant' ? esc(woTravailleur(wo) || 'Travailleur') + (m.origine === 'lien' ? ' · via son lien' : ' · par courriel') : m.origine === 'automatique' ? 'Courriel automatique' : 'Équipe' + (m.users?.email ? ' (' + esc(m.users.email.split('@')[0]) + ')' : '')} · ${quand(m.created_at)}</div>
@@ -3539,8 +3540,8 @@ function renderFicheTravail(){
         <div class="ms-actions"><span class="ms-dest">Par courriel à ${esc(wo.workers.email)} (sa réponse revient ici)</span>
           <button class="ll-bouton ll-bouton--primaire lo-petit" id="wom-btn-${wo.id}" onclick="envoyerMessageTravailleurTravail('${wo.id}')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div>
       </div>` : '<p class="tr-manque">Ce travailleur n\'a pas de courriel.</p>'}
-      <h4 class="lo-fil-titre" style="margin-top:22px">Avec le locataire${sr.tenants?.full_name ? ' · ' + esc(sr.tenants.full_name) : ''}</h4>
-      ${sr.id ? srFil({ ...sr, service_request_messages: sr.service_request_messages || [] }).replace('<details class="sr-fil"', '<details class="sr-fil" open') : '<p class="tr-vide">Ce travail n\'est rattaché à aucune demande de locataire.</p>'}`;
+      </details>
+      ${sr.id ? srFil({ ...sr, service_request_messages: sr.service_request_messages || [] }).replace('Échanges avec le locataire', 'Échanges avec le locataire' + (sr.tenants?.full_name ? ' · ' + esc(sr.tenants.full_name) : '')) : '<p class="tr-vide">Ce travail n\'est rattaché à aucune demande de locataire.</p>'}`;
   } else if(ficheWo.onglet === 'historique'){
     const libs = { 'work_order.create': 'Travail créé et assigné', 'work_order.reassign': 'Travailleur changé', 'work_order.complete': 'Marqué complété', 'work_order.dispatch_auto': 'Sollicitation automatique lancée' };
     const ev = [];
