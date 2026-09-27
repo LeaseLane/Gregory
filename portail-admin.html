@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271633">
-<script src="assets/charger-portail.js?v=202609271633"></script>
-<script src="assets/ui.js?v=202609271633"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271639">
+<script src="assets/charger-portail.js?v=202609271639"></script>
+<script src="assets/ui.js?v=202609271639"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -3232,6 +3232,7 @@ async function loadServiceRequestsAdmin(){
         ${sr.safety_override ? `<span class="tr-pastille tr-pastille--ko"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg>Urgence sécurité${(sr.safety_flags || []).length ? ' · ' + esc(sr.safety_flags.join(', ').replace(/_/g, ' ')) : ''}</span>` : ''}
         ${sr.pending_reassessment ? `<span class="tr-pastille sr-pastille--refus">Refusé par le propriétaire · nouvelle soumission d'ici le ${esc(sr.reassessment_due || '—')}</span>` : ''}
         ${(!sr.safety_override && sr.ai_needs_review) ? `<span class="tr-pastille tr-pastille--att">À valider${sr.ai_confidence != null ? ' · confiance IA ' + Math.round(sr.ai_confidence) + ' %' : ''}</span>` : ''}
+        ${srDerniere(sr)?.sender === 'tenant' ? '<span class="tr-pastille tr-pastille--att">Réponse du locataire</span>' : ''}
         ${sr.ai_urgency ? `<span class="tr-pastille">Urgence : ${esc(sr.ai_urgency)}</span>` : ''}
         <span class="sr-quand">${esc(recu)}</span>
       </div>
@@ -3248,6 +3249,7 @@ async function loadServiceRequestsAdmin(){
           ${sr.ai_risk_if_no_action ? '<li><span>Risque si rien n\'est fait</span>' + esc(sr.ai_risk_if_no_action) + '</li>' : ''}
           ${sr.ai_missing_info ? '<li><span>Infos manquantes</span>' + esc(sr.ai_missing_info) + (sr.ai_photos_needed ? ' (photos utiles)' : '') + '</li>' : ''}
         </ul></div></div>` : '<p class="sr-sans-ia">Pas d\'analyse IA pour cette demande : choisis le travailleur toi-même.</p>'}
+      ${srFil(sr)}
       <div class="sr-assigner">
         <div class="sr-grille">
           <div class="sr-large"><label class="ch-label" for="sr-worker-${sr.id}">Travailleur</label>
@@ -3281,6 +3283,39 @@ async function loadServiceRequestsAdmin(){
       </div>
     </article>`;
   }).join('');
+}
+
+// Fil d'échange avec le locataire, sur la carte de la demande.
+const srMessages = sr => (sr.service_request_messages || []).slice().sort((a, b) => a.created_at.localeCompare(b.created_at));
+const srDerniere = sr => srMessages(sr).at(-1);
+function srFil(sr){
+  const fil = srMessages(sr);
+  return `<details class="sr-fil"${srDerniere(sr)?.sender === 'tenant' ? ' open' : ''}>
+    <summary><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#message-circle"/></svg>Échanges avec le locataire${fil.length ? ` (${fil.length})` : ''}</summary>
+    <div class="ms-fil">${fil.length ? fil.map(m => `
+      <div class="ms-bulle ${m.sender === 'tenant' ? 'ms-bulle--entrant' : m.sender === 'team' ? 'ms-bulle--sortant' : 'ms-bulle--sortant ms-bulle--auto'}">
+        <div class="ms-meta">${m.sender === 'tenant' ? esc(sr.tenants?.full_name || 'Locataire') + (m.via === 'courriel' ? ' · par courriel' : '') : m.sender === 'team' ? 'Équipe' : 'Suivi automatique'} · ${quand(m.created_at)}</div>
+        <div class="ms-corps"><div>${esc(m.body)}</div></div>
+        ${(m.attachments || []).length ? photoLinksHtml('service-request-photos', m.attachments, 'Pièces jointes') : ''}
+      </div>`).join('') : '<p class="tr-vide">Aucun échange pour l\'instant.</p>'}</div>
+    <div class="ms-ecrire">
+      <textarea id="srm-${sr.id}" rows="3" placeholder="Écris au locataire (question, rendez-vous, mise à jour)…"></textarea>
+      <div class="ms-actions"><span class="ms-dest">${sr.tenants?.email ? 'Visible dans son portail et envoyé à ' + esc(sr.tenants.email) : 'Visible dans son portail (pas de courriel)'}</span>
+        <button class="ll-bouton ll-bouton--primaire lo-petit" id="srm-btn-${sr.id}" onclick="envoyerMessageDemande('${sr.id}')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div>
+    </div>
+  </details>`;
+}
+async function envoyerMessageDemande(id){
+  const texte = document.getElementById('srm-' + id).value.trim();
+  if(!texte) return;
+  const btn = document.getElementById('srm-btn-' + id);
+  btn.disabled = true;
+  const res = await callOpsApi({ action: 'send_request_message', service_request_id: id, texte });
+  btn.disabled = false;
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'non envoyé'), 'erreur'); return; }
+  llToast('Message envoyé au locataire.', 'succes');
+  await loadServiceRequestsAdmin();
+  document.querySelector(`#srm-${id}`)?.closest('details')?.setAttribute('open', '');
 }
 
 async function assignServiceRequest(serviceRequestId, unitId){
@@ -4430,6 +4465,6 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/url-propre.js?v=202609271633"></script>
+<script src="assets/url-propre.js?v=202609271639"></script>
 </body>
 </html>

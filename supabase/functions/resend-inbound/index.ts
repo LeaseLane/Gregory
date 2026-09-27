@@ -53,8 +53,26 @@ if (import.meta.main) Deno.serve(async (req) => {
   if (evt?.type !== "email.received") return new Response(JSON.stringify({ ok: true, ignore: evt?.type }), { status: 200 });
   const d = evt.data ?? {};
 
-  // Le travailleur est identifié par l'adresse de réponse ; à défaut, par l'expéditeur.
   const destinataires: string[] = [...(d.to ?? []), ...(d.received_for ?? [])];
+
+  // Réponse d'un locataire à un courriel de suivi : elle va dans le fil de la demande.
+  const demandeId = destinataires.map((a) => a.match(/demande-([0-9a-f-]{36})@/i)?.[1]).find(Boolean) ?? null;
+  if (demandeId && UUID.test(demandeId)) {
+    const recuD = await fetch(`https://api.resend.com/emails/receiving/${d.email_id}`, { headers: { Authorization: `Bearer ${resendKey}` } });
+    const courrielD = await recuD.json().catch(() => ({}));
+    const texteD = sansCitation(String(courrielD.text ?? "")) || "(message sans texte)";
+    const nbPJ = Array.isArray(courrielD.attachments) ? courrielD.attachments.length : 0;
+    const insD = await fetch(`${supabaseUrl}/rest/v1/service_request_messages`, {
+      method: "POST",
+      headers: { ...adminHeaders, Prefer: "return=minimal" },
+      body: JSON.stringify({ service_request_id: demandeId, sender: "tenant", via: "courriel",
+        body: (texteD + (nbPJ ? `\n\n(${nbPJ} pièce(s) jointe(s) au courriel : à ajouter depuis le portail pour qu'on les voie ici)` : "")).slice(0, 10000) }),
+    });
+    if (!insD.ok) return new Response(JSON.stringify({ error: "enregistrement impossible" }), { status: 500 });
+    return new Response(JSON.stringify({ ok: true, fil: "demande" }), { status: 200 });
+  }
+
+  // Le travailleur est identifié par l'adresse de réponse ; à défaut, par l'expéditeur.
   let workerId = destinataires.map((a) => a.match(/travailleur-([0-9a-f-]{36})@/i)?.[1]).find(Boolean) ?? null;
   const expediteur = String(d.from ?? "").match(/<([^>]+)>/)?.[1] ?? String(d.from ?? "");
   if (!workerId && expediteur) {

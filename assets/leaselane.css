@@ -1322,3 +1322,21 @@ input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire
 .vi-bas{ position:absolute; bottom:16px; left:0; right:0; display:flex; justify-content:center; gap:18px; font-size:13px; color:rgba(255,255,255,.8); }
 .vi-bas a{ color:rgba(255,255,255,.8); }
 @media (max-width:640px){ .vi-fond{ padding:56px 8px 48px; } .vi-prec{ left:6px; } .vi-suiv{ right:6px; } }
+/* Portail locataire : fil par demande */
+.lo-demande-bloc{ padding:0; overflow:hidden; list-style:none; margin-bottom:10px; }
+.lo-demande-bloc > .lo-demande{ width:100%; margin:0; padding:16px 18px; background:none; border:none; cursor:pointer; text-align:left; font:inherit; color:inherit; }
+.lo-demande-etat{ display:inline-flex; align-items:center; gap:8px; flex:none; }
+.lo-demande-etat .ic{ width:18px; height:18px; color:var(--texte-discret); transition:transform .2s; }
+.lo-demande-bloc.ouverte .lo-demande-etat .ic{ transform:rotate(180deg); }
+.lo-fil{ display:none; padding:4px 18px 18px; border-top:1px solid var(--bordure-fine); }
+.lo-demande-bloc.ouverte .lo-fil{ display:flex; flex-direction:column; gap:12px; padding-top:16px; }
+.lo-fil .ms-bulle{ max-width:88%; }
+.lo-fil .ms-ecrire{ margin-top:4px; }
+.lo-fil .ms-actions input[type=file]{ min-width:0; flex:1; }
+.lo-pj{ margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; }
+.sr-fil{ margin-top:14px; border:1px solid var(--bordure-fine); border-radius:var(--rayon-carte); padding:10px 14px; }
+.sr-fil summary{ cursor:pointer; font-weight:600; font-size:13.5px; color:var(--marine-900); display:flex; align-items:center; gap:8px; }
+.sr-fil summary .ic{ width:16px; height:16px; }
+.sr-fil[open] summary{ margin-bottom:12px; }
+.sr-fil .ms-fil{ max-height:360px; }
+.ms-actions .lo-petit .ic{ width:15px; height:15px; margin-right:6px; vertical-align:-2px; }

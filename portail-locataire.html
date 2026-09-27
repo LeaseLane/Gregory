@@ -93,9 +93,9 @@
     table{display:block;overflow-x:auto;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271633">
-<script src="assets/charger-portail.js?v=202609271633"></script>
-<script src="assets/ui.js?v=202609271633"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271639">
+<script src="assets/charger-portail.js?v=202609271639"></script>
+<script src="assets/ui.js?v=202609271639"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -384,7 +384,7 @@ function renderPayments(lease){
 async function loadRequests(){
   const { data } = await supabaseClient
     .from('service_requests')
-    .select('*')
+    .select('*, service_request_messages(id, sender, body, attachments, via, created_at)')
     .eq('tenant_id', tenantRecord.id)
     .order('created_at', { ascending: false });
 
@@ -394,10 +394,70 @@ async function loadRequests(){
   const enCours = (data || []).filter(r => !['closed', 'resolved', 'cancelled'].includes(r.status)).length;
   const k = document.getElementById('lo-kpi-demandes'); if(k) k.textContent = enCours;
   if(!data || !data.length){ body.innerHTML = '<p class="tr-vide">Aucune demande envoyée pour l\'instant.</p>'; return; }
-  body.innerHTML = '<ul class="lo-demandes">' + data.map(r => `<li class="pp-carte lo-demande">
-    <div><b>${esc(r.description)}</b><small>Envoyée le ${new Date(r.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</small></div>
-    <span class="tag ${tagClass[r.status] || 'neutral'}">${tagLabel[r.status] || esc(r.status)}</span>
-  </li>`).join('') + '</ul>';
+  body.innerHTML = '<ul class="lo-demandes">' + data.map(r => {
+    const fil = (r.service_request_messages || []).slice().sort((a, b) => a.created_at.localeCompare(b.created_at));
+    const attend = fil.length && fil[fil.length - 1].sender !== 'tenant' && /fournir|photo|pourrais-tu|peux-tu|\?/i.test(fil[fil.length - 1].body);
+    return `<li class="pp-carte lo-demande-bloc${demandesOuvertes.has(r.id) ? ' ouverte' : ''}" id="dem-${r.id}">
+    <button class="lo-demande" onclick="basculerDemande('${r.id}')" aria-expanded="${demandesOuvertes.has(r.id)}">
+      <div><b>${esc(r.description)}</b><small>Envoyée le ${new Date(r.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}${fil.length ? ` · ${fil.length} message${fil.length > 1 ? 's' : ''}` : ''}</small></div>
+      <span class="lo-demande-etat">${attend ? '<span class="tag warn">Info demandée</span>' : ''}<span class="tag ${tagClass[r.status] || 'neutral'}">${tagLabel[r.status] || esc(r.status)}</span><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-down"/></svg></span>
+    </button>
+    <div class="lo-fil">
+      ${fil.length ? fil.map(m => `
+        <div class="ms-bulle ${m.sender === 'tenant' ? 'ms-bulle--sortant' : 'ms-bulle--entrant'}">
+          <div class="ms-meta">${m.sender === 'tenant' ? 'Toi' + (m.via === 'courriel' ? ' (par courriel)' : '') : m.sender === 'team' ? 'Équipe Lease Lane' : 'Suivi automatique'} · ${new Date(m.created_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+          <div class="ms-corps"><div>${esc(m.body)}</div></div>
+          ${(m.attachments || []).length ? `<div class="lo-pj">${m.attachments.map((p, i) => `<span class="tag neutral">${/\.(mp4|mov|m4v|webm|3gp)$/i.test(p) ? 'Vidéo' : 'Photo'} ${i + 1}</span>`).join(' ')}</div>` : ''}
+        </div>`).join('') : '<p class="tr-vide">Pas encore de mise à jour. Tu peux ajouter des précisions ou des photos ci-dessous.</p>'}
+      <div class="ms-ecrire">
+        <textarea id="rep-${r.id}" rows="3" placeholder="Ajoute une précision, réponds à une question…"></textarea>
+        <div class="ms-actions">
+          <input type="file" id="rep-pj-${r.id}" accept="image/*,video/*" multiple>
+          <button class="ll-bouton ll-bouton--primaire lo-petit" id="rep-btn-${r.id}" onclick="repondreDemande('${r.id}')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button>
+        </div>
+        <p class="form-note" id="rep-note-${r.id}"></p>
+      </div>
+    </div>
+  </li>`;
+  }).join('') + '</ul>';
+}
+
+const demandesOuvertes = new Set();
+function basculerDemande(id){
+  const el = document.getElementById('dem-' + id);
+  const ouvre = !el.classList.contains('ouverte');
+  el.classList.toggle('ouverte', ouvre);
+  el.querySelector('.lo-demande').setAttribute('aria-expanded', ouvre);
+  ouvre ? demandesOuvertes.add(id) : demandesOuvertes.delete(id);
+}
+
+// Réponse ou précision du locataire dans le fil d'une demande, avec photos
+// ou vidéos (réduites / 50 Mo max comme à la création).
+async function repondreDemande(id){
+  const texte = document.getElementById('rep-' + id).value.trim();
+  const fichiers = Array.from(document.getElementById('rep-pj-' + id).files || []);
+  const note = document.getElementById('rep-note-' + id), btn = document.getElementById('rep-btn-' + id);
+  if(!texte && !fichiers.length){ note.textContent = 'Écris un message ou ajoute une photo.'; note.style.display = 'block'; return; }
+  const trop = fichiers.find(f => f.size > LIMITE_STOCKAGE);
+  if(trop){ note.textContent = `« ${trop.name} » dépasse 50 Mo.`; note.style.display = 'block'; return; }
+  btn.disabled = true;
+  const pj = [];
+  try {
+    for(const [i, brut] of fichiers.entries()){
+      const f = await reduireImage(brut);
+      const nom = f.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9._-]+/g, '_').slice(-80);
+      const path = `${tenantRecord.id}/${Date.now()}_${i}_${nom}`;
+      const { error } = await supabaseClient.storage.from('service-request-photos').upload(path, f);
+      if(error) throw new Error(error.message);
+      pj.push(path);
+    }
+    const { error } = await supabaseClient.from('service_request_messages').insert({ service_request_id: id, sender: 'tenant', via: 'portail', body: texte, attachments: pj });
+    if(error) throw new Error(error.message);
+  } catch(e){
+    note.textContent = "Envoi impossible : " + e.message; note.style.display = 'block'; btn.disabled = false; return;
+  }
+  demandesOuvertes.add(id);
+  await loadRequests();
 }
 
 async function loadAutomatedDecisions(){
@@ -643,6 +703,6 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/url-propre.js?v=202609271633"></script>
+<script src="assets/url-propre.js?v=202609271639"></script>
 </body>
 </html>

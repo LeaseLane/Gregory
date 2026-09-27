@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { adresseReponseDemande, ajouterMessageDemande } from "../_shared/fil-demande.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, MODELE_VIDEO, decrireVideo, decrireMedias, versBase64, type PartieGemini } from "../_shared/ia.ts";
 // Règles de sécurité déterministes : ne dépendent JAMAIS de l'IA.
@@ -314,9 +315,11 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
             lines.push("", `En attendant l'intervention, voici ce que tu peux faire dès maintenant : ${aiImmediateAction}`);
           }
           if (aiMissingInfo) {
-            lines.push("", `Pour traiter ta demande plus rapidement, pourrais-tu nous fournir : ${aiMissingInfo} ? Tu peux répondre directement à ce courriel ou ajouter une photo depuis ton portail locataire.`);
+            lines.push("", `Pour traiter ta demande plus rapidement, pourrais-tu nous fournir : ${aiMissingInfo} ? Tu peux répondre directement à ce courriel, ou ajouter un message et des photos à ta demande dans ton portail locataire (onglet « Signaler un problème »).`);
           }
           lines.push("", "L'équipe Lease Lane");
+          // Même contenu dans le fil de la demande (visible dans le portail).
+          await ajouterMessageDemande({ demandeId: record.id, sender: "system", corps: lines.slice(2, -2).join("\n").trim() });
           await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
@@ -325,6 +328,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
               to: [tenant.email],
               subject: "Ta demande de service — suivi",
               text: lines.join("\n"),
+              ...(adresseReponseDemande(record.id) ? { reply_to: adresseReponseDemande(record.id) } : {}),
             })),
           });
         }
