@@ -1406,3 +1406,18 @@ dialog.zoom-t img{ max-width:95vw; max-height:88vh; border-radius:10px; display:
 #fiche-job .tr-avatar .ic{ width:20px; height:20px; }
 #fiche-job .tr-ident h2{ font-size:20px; }
 @media (max-width:640px){ .lo-offre{ flex-direction:column; align-items:flex-start; } .lo-deux{ grid-template-columns:1fr; } }
+
+/* Premier accès : page « Choisis ton mot de passe » (plein écran) */
+body.ll-mdp-actif{ overflow:hidden; }
+.ll-mdp-page{ position:fixed; inset:0; z-index:2000; display:grid; grid-template-columns:minmax(300px, 440px) 1fr; background:var(--surface-page); }
+.ll-mdp-cote{ background:var(--marine-900); color:#fff; padding:48px 44px; display:flex; flex-direction:column; justify-content:center; gap:16px; }
+.ll-mdp-cote img{ height:30px; width:auto; align-self:flex-start; margin-bottom:auto; }
+.ll-mdp-cote h2{ font-family:var(--police-titre); font-weight:600; font-size:30px; line-height:1.15; margin:0; color:#fff; }
+.ll-mdp-cote p{ margin:0 0 auto; color:rgba(255,255,255,.75); font-size:14.5px; max-width:36ch; }
+.ll-mdp-zone{ display:flex; align-items:center; justify-content:center; padding:32px 16px; overflow-y:auto; }
+.ll-mdp-carte{ width:100%; max-width:420px; background:var(--surface-carte); border:1px solid var(--bordure-portail); border-radius:var(--rayon-carte); box-shadow:var(--ombre-2); padding:28px; display:flex; flex-direction:column; }
+.ll-mdp-carte h1{ margin:0 0 6px; font-size:28px; }
+.ll-mdp-carte .subtitle{ margin:0 0 18px; }
+.ll-mdp-carte input{ width:100%; box-sizing:border-box; margin-bottom:14px; }
+.ll-mdp-carte .ll-bouton{ margin-top:6px; padding:13px 18px; }
+@media (max-width:860px){ .ll-mdp-page{ grid-template-columns:1fr; grid-template-rows:auto 1fr; } .ll-mdp-cote{ padding:24px 20px; } .ll-mdp-cote img{ margin-bottom:8px; } .ll-mdp-cote p{ margin:0; } }

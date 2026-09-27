@@ -93,25 +93,32 @@
   }
 
   // ── Premier accès : mot de passe temporaire à remplacer ──────────────
+  // Page plein écran (pas une fenêtre) : même mise en page que l'écran de
+  // connexion. Rien n'est accessible tant que le mot de passe n'est pas choisi.
   function imposerNouveauMotDePasse() {
-    if (vueAdmin() || document.getElementById('dlg-mdp')) return;
-    var d = document.createElement('dialog');
-    d.id = 'dlg-mdp';
-    d.className = 'lo-dialog';
-    d.innerHTML =
-      '<form method="dialog" style="padding:24px">' +
-        '<h2 style="margin:0 0 6px">Choisis ton mot de passe</h2>' +
-        '<p class="subtitle" style="margin:0 0 16px">Tu t\'es connecté avec le mot de passe temporaire reçu par courriel. Choisis-en un à toi pour continuer.</p>' +
-        '<label class="ch-label" for="dlg-mdp1">Nouveau mot de passe (8 caractères minimum)</label><input type="password" id="dlg-mdp1" autocomplete="new-password" style="width:100%;box-sizing:border-box">' +
-        '<label class="ch-label" for="dlg-mdp2" style="margin-top:12px">Confirmer</label><input type="password" id="dlg-mdp2" autocomplete="new-password" style="width:100%;box-sizing:border-box">' +
-        '<div style="display:flex;justify-content:flex-end;margin-top:18px"><button class="ll-bouton ll-bouton--primaire" type="button" id="dlg-mdp-btn">Enregistrer mon mot de passe</button></div>' +
-      '</form>';
-    document.body.appendChild(d);
-    d.addEventListener('cancel', function (e) { e.preventDefault(); });   // pas de fermeture par Échap
+    if (vueAdmin() || document.getElementById('ll-mdp-page')) return;
+    var p = document.createElement('div');
+    p.id = 'll-mdp-page';
+    p.className = 'll-mdp-page';
+    p.setAttribute('role', 'main');
+    p.innerHTML =
+      '<div class="ll-mdp-cote"><img src="assets/logo/leaselane-horizontal-marine.svg" alt="Lease Lane">' +
+        '<h2>Bienvenue sur Lease Lane.</h2><p>Dernière étape avant d\'accéder à ton espace : choisis ton propre mot de passe. Le mot de passe temporaire reçu par courriel ne fonctionnera plus ensuite.</p></div>' +
+      '<div class="ll-mdp-zone"><form class="ll-mdp-carte" onsubmit="return false">' +
+        '<h1>Choisis ton mot de passe</h1>' +
+        '<p class="subtitle">8 caractères minimum. Mélange lettres et chiffres pour plus de sécurité.</p>' +
+        '<label class="ch-label" for="dlg-mdp1">Nouveau mot de passe</label><input type="password" id="dlg-mdp1" autocomplete="new-password">' +
+        '<label class="ch-label" for="dlg-mdp2">Confirmer le mot de passe</label><input type="password" id="dlg-mdp2" autocomplete="new-password">' +
+        '<button class="ll-bouton ll-bouton--primaire" type="submit" id="dlg-mdp-btn">Enregistrer et continuer</button>' +
+      '</form></div>';
+    document.body.appendChild(p);
+    document.body.classList.add('ll-mdp-actif');
+    setTimeout(function () { document.getElementById('dlg-mdp1').focus(); }, 50);
     document.getElementById('dlg-mdp-btn').onclick = async function () {
-      if (await changerMotDePasse(document.getElementById('dlg-mdp1'), document.getElementById('dlg-mdp2'), true)) { d.close(); d.remove(); }
+      if (await changerMotDePasse(document.getElementById('dlg-mdp1'), document.getElementById('dlg-mdp2'), true)) {
+        p.remove(); document.body.classList.remove('ll-mdp-actif');
+      }
     };
-    d.showModal();
   }
 
   function verifier(session) {
