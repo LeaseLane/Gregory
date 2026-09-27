@@ -31,7 +31,8 @@
   .citation{margin:0;padding:10px 14px;border-left:3px solid var(--bordure);background:var(--surface-douce,#f6f8fb);border-radius:0 var(--rayon-champ) var(--rayon-champ) 0;font-size:14.5px;white-space:pre-wrap;}
   .galerie{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:12px;}
   .galerie img, .galerie video{width:100%;height:130px;object-fit:cover;border-radius:10px;background:#000;cursor:zoom-in;display:block;}
-  .galerie video{cursor:default;}
+  /* Une vidéo prend toute la largeur, à sa taille naturelle (pas de vignette rognée). */
+  .galerie video{grid-column:1/-1;height:auto;max-height:70vh;object-fit:contain;cursor:default;}
   .note-ia{display:flex;gap:8px;margin-top:12px;padding:10px 12px;border-radius:var(--rayon-champ);background:var(--info-100);font-size:13.5px;}
   .note-ia .ic{width:16px;height:16px;flex:none;margin-top:2px;color:var(--bleu-600);}
   .actions{display:grid;gap:10px;}
