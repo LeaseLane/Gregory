@@ -1,5 +1,5 @@
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
 
 const MODEL_VERSION = MODELE_RAPIDE;
 const PROMPT_VERSION = "expense-receipt-extraction-v1";
@@ -109,11 +109,11 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après) :
       const aiRes = await fetch(IA_MESSAGES_URL, {
         method: "POST",
         headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify(avecContexte({
           model: MODEL_VERSION,
           max_tokens: 800,
           messages: [{ role: "user", content: [contentBlock, { type: "text", text: prompt }] }],
-        }),
+        })),
       });
       const aiData = await aiRes.json();
       if (!aiRes.ok) {

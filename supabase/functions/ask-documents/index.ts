@@ -1,5 +1,5 @@
 import { corsHeadersFor, requireUser } from "../_shared/auth.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
 // Au lieu d'envoyer uniquement les résumés (qui peuvent omettre une
 // clause importante), on r'envoie les documents sources pertinents
 // eux-mêmes à Claude (comme à l'extraction) et on exige une citation
@@ -118,11 +118,11 @@ Deno.serve(async (req) => {
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
-      body: JSON.stringify({
+      body: JSON.stringify(avecContexte({
         model: MODEL_VERSION,
         max_tokens: 700,
         messages: [{ role: "user", content: contentParts }],
-      }),
+      })),
     });
     const aiData = await aiRes.json();
     if (!aiRes.ok) {

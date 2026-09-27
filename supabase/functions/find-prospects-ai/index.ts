@@ -1,5 +1,5 @@
 import { corsHeadersFor } from "../_shared/auth.ts";
-import { IA_MESSAGES_URL, IA_CLE } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, avecContexte } from "../_shared/ia.ts";
 // find-prospects-ai : recherche web réelle (jamais inventée) de
 // propriétaires-gestionnaires (immeubles à logements qu'ils gèrent
 // eux-mêmes) au Québec, via Claude + l'outil serveur web_search.
@@ -146,12 +146,12 @@ Une fois ta recherche terminée, appelle l'outil "submit_prospects" avec les pro
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
-      body: JSON.stringify({
+      body: JSON.stringify(avecContexte({
         model: "claude-sonnet-5",
         max_tokens: 4096,
         tools,
         messages: [{ role: "user", content: prompt }],
-      }),
+      })),
     });
     const aiData = await aiRes.json();
     if (!aiRes.ok) {

@@ -1,7 +1,7 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
 
 const AMOUNT_TOLERANCE = 3; // écart en dollars toléré comme "exact" (frais/arrondis bancaires)
 
@@ -368,7 +368,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
             const aiRes = await fetch(IA_MESSAGES_URL, {
               method: "POST",
               headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-              body: JSON.stringify({ model: MODELE_RAPIDE, max_tokens: 300, messages: [{ role: "user", content: prompt }] }),
+              body: JSON.stringify(avecContexte({ model: MODELE_RAPIDE, max_tokens: 300, messages: [{ role: "user", content: prompt }] })),
             });
             const aiData = await aiRes.json();
             const rawText = aiData.content?.[0]?.text ?? "{}";

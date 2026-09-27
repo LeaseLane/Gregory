@@ -65,6 +65,7 @@ export async function appelerIA(opts: {
     messages: [{ role: "user", content: opts.prompt }],
   };
   if (opts.systeme) corps.system = opts.systeme;
+  Object.assign(corps, avecContexte(corps));
 
   let res: Response;
   try {
@@ -133,4 +134,22 @@ export function versBase64(octets: Uint8Array): string {
   let binaire = "";
   for (let i = 0; i < octets.length; i += 0x8000) binaire += String.fromCharCode(...octets.subarray(i, i + 0x8000));
   return btoa(binaire);
+}
+
+// Contexte commun à TOUS les appels IA : l'entreprise, ses locataires et ses
+// immeubles sont au Québec. Sans lui, un modèle raisonne par défaut en
+// dollars américains, avec des lois, des métiers et des numéros d'urgence
+// américains. Ajouté automatiquement par appelerIA() et avecContexte().
+export const CONTEXTE_QUEBEC = `Contexte fixe : tu travailles pour Lease Lane, entreprise de gestion immobilière résidentielle basée à Lévis, au Québec (Canada). Les immeubles, locataires, propriétaires et travailleurs sont au Québec.
+- Langue : français québécois, clair et simple ; tutoiement avec les locataires et travailleurs, sauf indication contraire.
+- Argent : dollars canadiens ($). Estime les coûts selon le marché québécois (main-d'œuvre, pièces, déplacement). Les taxes (TPS 5 % et TVQ 9,975 %) sont en sus sauf mention contraire.
+- Droit applicable : Code civil du Québec (le locateur doit maintenir le logement en bon état d'habitabilité et faire les réparations nécessaires ; réparations urgentes, art. 1865) ; litiges locatifs devant le Tribunal administratif du logement (TAL) ; travaux de construction, plomberie, électricité et gaz par des entreprises détenant une licence de la Régie du bâtiment du Québec (RBQ) ; renseignements personnels protégés par la Loi 25. N'invente jamais un article de loi : si tu n'es pas sûr, dis-le.
+- Climat : hivers rigoureux (gel des tuyaux, perte de chauffage = situation urgente, condensation et moisissure).
+- Urgences : danger immédiat → 911 ; odeur de gaz → sortir du logement puis appeler Énergir (1 800 361-8003) ou le 911 ; panne ou fils électriques endommagés → Hydro-Québec (1 800 790-2424) ; question de santé → Info-Santé 811.`;
+
+/** Ajoute le contexte québécois au prompt système d'une requête Messages. */
+export function avecContexte<T extends Record<string, unknown>>(corps: T): T {
+  const s = corps.system;
+  if (Array.isArray(s)) return { ...corps, system: [{ type: "text", text: CONTEXTE_QUEBEC }, ...s] };
+  return { ...corps, system: typeof s === "string" && s ? `${CONTEXTE_QUEBEC}\n\n${s}` : CONTEXTE_QUEBEC };
 }

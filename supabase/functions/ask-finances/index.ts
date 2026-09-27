@@ -1,5 +1,5 @@
 import { corsHeadersFor, requireUser } from "../_shared/auth.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
 // Portail Copilot — Q&A financier en langage naturel pour le propriétaire.
 // Principe non négociable du projet : l'IA ne calcule jamais elle-même
 // les montants. Toutes les sommes (revenus, dépenses par catégorie, par
@@ -179,11 +179,11 @@ Deno.serve(async (req) => {
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
-      body: JSON.stringify({
+      body: JSON.stringify(avecContexte({
         model: MODEL_VERSION,
         max_tokens: 500,
         messages: [{ role: "user", content: contentParts }],
-      }),
+      })),
     });
     const aiData = await aiRes.json();
     if (!aiRes.ok) {

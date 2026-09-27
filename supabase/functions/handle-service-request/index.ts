@@ -1,7 +1,7 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, MODELE_VIDEO, decrireVideo, decrireMedias, versBase64, type PartieGemini } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, MODELE_VIDEO, decrireVideo, decrireMedias, versBase64, type PartieGemini, avecContexte } from "../_shared/ia.ts";
 // Règles de sécurité déterministes : ne dépendent JAMAIS de l'IA.
 // Si l'une de ces situations est détectée dans la description du
 // locataire, l'urgence est forcée à "urgence" même si Claude évalue
@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
     // Vidéos : Gemini (via Tonia) les décrit — image ET son — et ce texte
     // est donné à Claude avec le reste. Claude ne lit pas la vidéo.
     const estVideo = (p: string) => /\.(mp4|mov|m4v|webm|3gp)$/i.test(p);
-    const CONSIGNE_VIDEO = "Un locataire a filmé un problème dans son logement. Décris objectivement, en français, en 3 à 5 phrases : ce qu'on voit (pièce, appareil, dégât, étendue, eau, fumée, étincelles…) et ce qu'on entend (bruits, et ce que dit le locataire). Pas de diagnostic ni de coût.";
+    const CONSIGNE_VIDEO = "Un locataire au Québec (Canada) a filmé un problème dans son logement. Décris objectivement, en français, en 3 à 5 phrases : ce qu'on voit (pièce, appareil, dégât, étendue, eau, fumée, étincelles…) et ce qu'on entend (bruits, et ce que dit le locataire). Pas de diagnostic ni de coût.";
     const lireStockage = async (chemin: string) => {
       const f = await fetch(`${supabaseUrl}/storage/v1/object/service-request-photos/${chemin}`, {
         headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey ?? "" },
@@ -223,11 +223,11 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
           "anthropic-version": "2023-06-01",
           "content-type": "application/json",
         },
-        body: JSON.stringify({
+        body: JSON.stringify(avecContexte({
           model: MODEL_VERSION,
           max_tokens: 800,
           messages: [{ role: "user", content: avecPhotos && photoBlocks.length ? [...photoBlocks, { type: "text", text: prompt }] : prompt }],
-        }),
+        })),
       });
       let aiRes = await appelIA(true);
       // Photo refusée (trop grande, format non lu…) : on analyse le texte

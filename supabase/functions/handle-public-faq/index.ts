@@ -1,6 +1,6 @@
 import { corsHeadersFor } from "../_shared/auth.ts";
 import { refuserSiRobot } from "../_shared/turnstile.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
 // FAQ publique en question libre — sur le modèle du Copilot du portail
 // propriétaire (ask-documents.ts / ask-finances.ts), mais sans authentification
 // et sans accès à aucune donnée d'un compte : l'IA répond uniquement à partir
@@ -100,12 +100,12 @@ Deno.serve(async (req) => {
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
-      body: JSON.stringify({
+      body: JSON.stringify(avecContexte({
         model: MODEL_VERSION,
         max_tokens: 350,
         system: KNOWLEDGE_BASE,
         messages: [{ role: "user", content: question.trim().slice(0, QUESTION_MAX_LENGTH) }],
-      }),
+      })),
     });
     const aiData = await aiRes.json();
     if (!aiRes.ok) {

@@ -1,6 +1,6 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
 Deno.serve(async (req) => {
   try {
     const payload = await req.json();
@@ -47,11 +47,11 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
-      body: JSON.stringify({
+      body: JSON.stringify(avecContexte({
         model: MODELE_RAPIDE,
         max_tokens: 1024,
         messages: [{ role: "user", content: prompt }],
-      }),
+      })),
     });
 
     const aiData = await aiRes.json();
