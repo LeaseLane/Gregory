@@ -1371,3 +1371,10 @@ input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire
 .lo-fiche .sr-desc{ margin:0; }
 #fiche-dem .tr-avatar .ic{ width:20px; height:20px; }
 #fiche-dem .tr-ident h2{ font-size:20px; }
+
+/* Bandeau « vue admin » dans le portail d'un client */
+.ll-vue-admin{ position:sticky; top:0; z-index:1100; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; padding:9px 16px; background:var(--alerte-100); color:var(--alerte-600); border-bottom:1px solid rgba(0,0,0,.06); font-size:13.5px; text-align:center; }
+.ll-vue-admin b{ font-weight:700; }
+.ll-vue-admin button{ border:1px solid currentColor; background:#fff; color:var(--alerte-600); border-radius:var(--rayon-pilule); padding:5px 14px; font:600 12.5px/1 var(--police-texte); cursor:pointer; }
+.ll-vue-admin button:hover{ background:var(--alerte-600); color:#fff; }
+body.avec-vue-admin .shell{ height:calc(100dvh - 40px); }

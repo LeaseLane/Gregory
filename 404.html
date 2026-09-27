@@ -6,15 +6,15 @@
 <title>Lease Lane</title>
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-<link rel="stylesheet" href="/assets/leaselane.css?v=202609271707">
-<script src="/assets/charger-portail.js?v=202609271707"></script>
+<link rel="stylesheet" href="/assets/leaselane.css?v=202609271722">
+<script src="/assets/charger-portail.js?v=202609271722"></script>
 <script>
 // /app/<onglet> n'existe pas comme fichier : on recharge le dernier portail
 // ouvert, qui lit l'onglet dans l'adresse (assets/url-propre.js).
 (function () {
   if (!/^\/app\//.test(location.pathname)) return;
   var p = null;
-  try { p = localStorage.getItem('ll-portail'); } catch (e) {}
+  try { p = sessionStorage.getItem('ll-portail') || localStorage.getItem('ll-portail'); } catch (e) {}
   document.documentElement.style.visibility = 'hidden';
   if (p) llCharger(p).catch(function () { location.replace('/app'); });
   else location.replace('/app');

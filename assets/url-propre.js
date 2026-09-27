@@ -9,9 +9,15 @@
  */
 (function () {
   var m = location.pathname.match(/portail-[a-z-]+/);
-  // Lien magique « Voir son portail » ouvert par un admin : on ne retient
-  // pas ce portail, sinon /app ouvrirait ensuite celui du client.
-  if (m && !/access_token|type=magiclink/.test(location.hash)) { try { localStorage.setItem('ll-portail', m[0]); } catch (e) {} }
+  // Lien magique « Voir son portail » ouvert par un admin : ce portail est
+  // retenu pour CET onglet seulement (sessionStorage), jamais pour /app
+  // dans les autres onglets de l'admin.
+  if (m && /access_token|type=magiclink/.test(location.hash)) {
+    try { sessionStorage.setItem('ll-portail', m[0]); sessionStorage.setItem('ll-vue-admin', '1'); } catch (e) {}
+  } else if (m) { try { localStorage.setItem('ll-portail', m[0]); } catch (e) {} }
+  var vueAdmin = false;
+  try { vueAdmin = sessionStorage.getItem('ll-vue-admin') === '1'; } catch (e) {}
+  if (vueAdmin) bandeauVueAdmin();
 
   // « Vue d'ensemble » → « vue-ensemble », « Loyers et paiements » → « loyers-et-paiements »
   function slug(t) {
@@ -50,7 +56,34 @@
 })();
 
 // Déconnexion : on oublie le portail, /app redevient l'écran de connexion.
+// En vue admin, on revient simplement au compte admin.
 function llQuitterPortail() {
-  try { localStorage.removeItem('ll-portail'); } catch (e) {}
+  var vue = false;
+  try { vue = sessionStorage.getItem('ll-vue-admin') === '1'; sessionStorage.removeItem('ll-portail'); sessionStorage.removeItem('ll-vue-admin'); } catch (e) {}
+  if (!vue) { try { localStorage.removeItem('ll-portail'); } catch (e) {} }
   location.replace('/app');
+}
+
+// Bandeau « vue admin » : rappelle qu'on regarde le portail d'un client et
+// ramène au compte admin (ferme la session du client dans cet onglet).
+function bandeauVueAdmin() {
+  var role = { 'portail-locataire': 'locataire', 'portail-proprietaire': 'propriétaire', 'portail-travailleur': 'travailleur', 'portail-cold-caller': 'prospecteur' }[sessionStorage.getItem('ll-portail')] || 'client';
+  var b = document.createElement('div');
+  b.className = 'll-vue-admin';
+  b.innerHTML = '<span>Tu consultes le portail <b>' + role + '</b> de <b id="ll-vue-nom">ce client</b>, tel qu\'il le voit. Les actions faites ici sont faites en son nom.</span>' +
+    '<button type="button">Revenir à mon compte admin</button>';
+  b.querySelector('button').onclick = async function () {
+    try { if (typeof supabaseClient !== 'undefined' && supabaseClient) await supabaseClient.auth.signOut(); } catch (e) {}
+    try { sessionStorage.removeItem('ll-portail'); sessionStorage.removeItem('ll-vue-admin'); } catch (e) {}
+    location.replace('/app');
+  };
+  document.body.prepend(b);
+  document.body.classList.add('avec-vue-admin');
+  // Le nom du client apparaît dans l'accueil du portail une fois chargé.
+  var essais = 0, t = setInterval(function () {
+    var g = document.querySelector('[id$="-greeting"]');
+    var nom = g && g.textContent.replace(/^Bonjour,?\s*/, '').trim();
+    if (nom && nom !== 'Bonjour') { document.getElementById('ll-vue-nom').textContent = nom; clearInterval(t); }
+    if (++essais > 40) clearInterval(t);
+  }, 250);
 }
