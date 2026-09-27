@@ -1568,3 +1568,26 @@ body.ll-mdp-actif{ overflow:hidden; }
    hauteur minimale. Aucun bloc de la fiche ne doit rétrécir. */
 .fi-tiroir > *{ flex-shrink:0; }
 .fi-onglets{ flex:none; min-height:max-content; }
+/* Portail travailleur : « Terminer » (photos avant / après) */
+.fin-zones{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.fin-zone{ border:1.5px dashed var(--bordure); border-radius:var(--rayon-carte); padding:12px; background:var(--surface-douce, #f6f8fb); display:flex; flex-direction:column; gap:10px; }
+.fin-zone.ok{ border-style:solid; border-color:#1f9d6a; background:var(--succes-100); }
+.fin-zone-tete{ display:flex; justify-content:space-between; align-items:center; }
+.fin-zone-tete b{ font-size:14px; color:var(--marine-900); }
+.fin-compte{ font:600 12px/1 var(--police-texte); color:var(--texte-discret); }
+.fin-vignettes{ display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }
+.fin-vignettes:empty{ display:none; }
+.fin-vign{ position:relative; aspect-ratio:1; }
+.fin-vign img{ width:100%; height:100%; object-fit:cover; border-radius:8px; display:block; }
+.fin-vign button{ position:absolute; top:3px; right:3px; width:22px; height:22px; border-radius:50%; border:none; background:rgba(6,18,32,.75); color:#fff; font-size:15px; line-height:22px; cursor:pointer; padding:0; }
+.fin-ajout{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; min-height:96px; border-radius:10px; background:var(--surface-carte); border:1px solid var(--bordure); cursor:pointer; color:var(--action-primaire); font:600 13px/1.2 var(--police-texte); text-align:center; }
+.fin-ajout:hover{ border-color:var(--action-primaire); }
+.fin-ajout .ic{ width:24px; height:24px; }
+.fin-ajout input{ position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+.fin-ajout[hidden]{ display:none; }
+.fin-note{ width:100%; box-sizing:border-box; resize:vertical; }
+.fin-envoyer{ width:100%; justify-content:center; padding:14px 18px; background:var(--succes-600); color:#fff; border:none; font-size:15px; }
+.fin-envoyer .ic{ width:18px; height:18px; margin-right:8px; vertical-align:-3px; }
+.fin-envoyer:disabled{ background:var(--surface-enfoncee); color:var(--texte-discret); cursor:not-allowed; }
+.fin-aide{ margin:-4px 0 0; text-align:center; font-size:12.5px; color:var(--texte-discret); }
+@media (max-width:420px){ .fin-zones{ grid-template-columns:1fr; } }

@@ -112,9 +112,9 @@
     main{padding:20px 16px;max-width:100%;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609272148">
-<script src="assets/charger-portail.js?v=202609272148"></script>
-<script src="assets/ui.js?v=202609272148"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609272154">
+<script src="assets/charger-portail.js?v=202609272154"></script>
+<script src="assets/ui.js?v=202609272154"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -600,6 +600,7 @@ function renderJobs(){
 // ── Fiche d'un travail (panneau latéral) ─────────────────────────────
 let ficheJob = { id: null, onglet: 'details', data: null };
 async function ouvrirJob(id, onglet){
+  if(ficheJob.id !== id){ photosFin.avant = []; photosFin.apres = []; }
   ficheJob = { id, onglet: onglet || 'details', data: ficheJob.id === id ? ficheJob.data : null };
   if(!document.getElementById('fiche-job')){
     document.body.insertAdjacentHTML('beforeend', '<div class="fi-fond" onclick="fermerJob()"></div><aside id="fiche-job" class="fi-tiroir" role="dialog" aria-modal="true" aria-label="Travail"></aside><dialog class="zoom-t" id="zoom-t" onclick="this.close()"><img alt=""></dialog>');
@@ -634,10 +635,20 @@ function renderJob(){
     corps = `<div class="ms-fil">${m.length ? m.map(x => `<div class="ms-bulle ${x.direction === 'entrant' ? 'ms-bulle--sortant' : 'ms-bulle--entrant'}"><div class="ms-meta">${x.direction === 'entrant' ? 'Toi' : x.origine === 'automatique' ? 'Courriel automatique' : 'Équipe Lease Lane'} · ${dateT(x.created_at)}</div>${x.sujet ? `<div class="ms-sujet">${esc(x.sujet)}</div>` : ''}${x.origine === 'automatique' ? `<details class="ms-corps"><summary>Voir le courriel</summary><div>${esc(x.corps)}</div></details>` : `<div class="ms-corps"><div>${esc(x.corps)}</div></div>`}</div>`).join('') : '<p class="tr-vide">Aucun échange sur ce travail.</p>'}</div>
       <div class="ms-ecrire"><textarea id="job-msg" rows="3" placeholder="${peutRepondre ? 'Ta question avant d\'accepter (accès, matériel, horaire…)' : 'Une question sur ce travail ?'}"></textarea><div class="ms-actions"><span class="ms-dest">L'équipe te répond ici et par courriel.</span><button class="ll-bouton ll-bouton--primaire lo-petit" onclick="${j.worker_response === 'pending' ? `poserQuestion('${j.id}')` : `envoyerMessage('${j.id}', 'job-msg')`}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div></div>`;
   } else if(ficheJob.onglet === 'terminer'){
-    corps = peutTerminer ? `<p class="muted-t">Ajoute au moins une photo avant et une photo après (jusqu'à 5 de chaque).</p>
-      <div class="fo-ligne"><div><label class="ch-label" for="before-${j.id}">Photos avant</label><input type="file" accept="image/*" multiple id="before-${j.id}"></div><div><label class="ch-label" for="after-${j.id}">Photos après</label><input type="file" accept="image/*" multiple id="after-${j.id}"></div></div>
-      <label class="ch-label" for="note-${j.id}" style="margin-top:12px">Note pour l'équipe (optionnel)</label><textarea id="note-${j.id}" rows="3" style="width:100%;box-sizing:border-box" placeholder="Ex. : joint remplacé, plus de fuite."></textarea>
-      <button class="ll-bouton ll-bouton--primaire" style="margin-top:12px" onclick="submitCompletion('${j.id}', this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg>Signaler le travail terminé</button>`
+    corps = peutTerminer ? `
+      <p class="muted-t" style="margin:0">Prends une photo <b>avant</b> et une photo <b>après</b> ton intervention (jusqu'à 5 de chaque). Elles servent de preuve au propriétaire et au locataire.</p>
+      <div class="fin-zones">
+        ${['avant', 'apres'].map(g => `<div class="fin-zone" id="zone-${g}">
+          <div class="fin-zone-tete"><b>${g === 'avant' ? 'Avant' : 'Après'}</b><span class="fin-compte" id="compte-${g}">0/5</span></div>
+          <div class="fin-vignettes" id="vign-${g}"></div>
+          <label class="fin-ajout"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#camera"/></svg><span>Ajouter des photos</span>
+            <input type="file" accept="image/*" multiple capture="environment" onchange="ajouterPhotosFin('${g}', this)"></label>
+        </div>`).join('')}
+      </div>
+      <label class="ch-label" for="note-${j.id}">Note pour l'équipe <small>(optionnel)</small></label>
+      <textarea id="note-${j.id}" rows="3" class="fin-note" placeholder="Ex. : joint remplacé sous l'évier, plus de fuite. Pièce : 12 $."></textarea>
+      <button class="ll-bouton fin-envoyer" id="fin-btn" disabled onclick="submitCompletion('${j.id}', this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg>Signaler le travail terminé</button>
+      <p class="fin-aide" id="fin-aide">Ajoute au moins une photo avant et une photo après.</p>`
       : j.worker_reported_done_at ? `<div class="lo-conseil lo-conseil--ok"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg><div><b>Travail signalé terminé</b>${dateT(j.worker_reported_done_at)}${j.worker_completion_note ? ' · ' + esc(j.worker_completion_note) : ''}</div></div>${galerie('avant', 'Photos avant')}${galerie('apres', 'Photos après')}` : '<p class="tr-vide">Accepte d\'abord le travail pour pouvoir le signaler terminé.</p>';
   } else if(ficheJob.onglet === 'paiement'){
     corps = `<div class="lo-infos"><div><span>Paie prévue</span><b>${argentT(j.worker_pay)}</b></div><div><span>Statut</span><b>${j.worker_paid_at ? 'Payé' : j.worker_reported_done_at ? 'À payer' : 'Travail pas encore terminé'}</b></div><div><span>Montant payé</span><b>${j.worker_paid_at ? argentT(j.worker_paid_amount ?? j.worker_pay) : '—'}</b></div><div><span>Payé le</span><b>${j.worker_paid_at ? new Date(j.worker_paid_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' }) : '—'}</b></div></div>
@@ -676,6 +687,7 @@ function renderJob(){
       ? onglet('details', 'Détails') + onglet('echanges', 'Questions', (d?.messages || []).length)
       : onglet('details', 'Détails') + onglet('echanges', 'Échanges', (d?.messages || []).length) + onglet('terminer', peutTerminer ? 'Terminer' : 'Photos') + onglet('paiement', 'Paiement')}</div>
     <div class="fi-corps lo-fiche">${corps}</div>`;
+  if(document.getElementById('vign-avant')) majPhotosFin();
 }
 
 function basculerAutreHeure(o){
@@ -836,6 +848,30 @@ async function submitPersonalDataRequest(){
   await loadPersonalDataRequests();
 }
 
+// Photos de fin de travail : gardées en mémoire (on peut en ajouter en
+// plusieurs fois et en retirer), envoyées au clic sur « Signaler ».
+const photosFin = { avant: [], apres: [] };
+function ajouterPhotosFin(groupe, input){
+  photosFin[groupe] = [...photosFin[groupe], ...Array.from(input.files || [])].slice(0, 5);
+  input.value = '';
+  majPhotosFin();
+}
+function retirerPhotoFin(groupe, i){ photosFin[groupe].splice(i, 1); majPhotosFin(); }
+function majPhotosFin(){
+  ['avant', 'apres'].forEach(g => {
+    const v = document.getElementById('vign-' + g);
+    if(!v) return;
+    v.querySelectorAll('img').forEach(im => URL.revokeObjectURL(im.src));
+    v.innerHTML = photosFin[g].map((f, i) => `<span class="fin-vign"><img src="${URL.createObjectURL(f)}" alt=""><button type="button" onclick="retirerPhotoFin('${g}', ${i})" aria-label="Retirer">×</button></span>`).join('');
+    document.getElementById('compte-' + g).textContent = photosFin[g].length + '/5';
+    document.getElementById('zone-' + g).classList.toggle('ok', photosFin[g].length > 0);
+    document.querySelector(`#zone-${g} .fin-ajout`).hidden = photosFin[g].length >= 5;
+  });
+  const pret = photosFin.avant.length > 0 && photosFin.apres.length > 0;
+  const b = document.getElementById('fin-btn'); if(b) b.disabled = !pret;
+  const a = document.getElementById('fin-aide'); if(a) a.textContent = pret ? 'Tout est prêt.' : !photosFin.avant.length ? 'Ajoute au moins une photo avant.' : 'Ajoute au moins une photo après.';
+}
+
 function filesToPayload(fileList){
   const files = Array.from(fileList || []).slice(0, 5);
   return Promise.all(files.map(f => new Promise((resolve) => {
@@ -847,11 +883,10 @@ function filesToPayload(fileList){
 
 async function submitCompletion(jobId, btn){
   btn.disabled = true;
-  const beforeFiles = document.getElementById('before-' + jobId).files;
-  const afterFiles = document.getElementById('after-' + jobId).files;
+  const beforeFiles = photosFin.avant, afterFiles = photosFin.apres;
   const message = document.getElementById('note-' + jobId).value.trim();
-  if(!beforeFiles.length && !afterFiles.length){
-    llToast('Ajoute au moins une photo (avant ou après).', 'erreur');
+  if(!beforeFiles.length || !afterFiles.length){
+    llToast('Ajoute au moins une photo avant et une photo après.', 'erreur');
     btn.disabled = false;
     return;
   }
@@ -863,6 +898,7 @@ async function submitCompletion(jobId, btn){
     return;
   }
   llToast('Travail signalé terminé : l\'équipe va confirmer et te payer.', 'succes');
+  photosFin.avant = []; photosFin.apres = [];
   ficheJob.data = null;
   await loadJobs(); loadDashboard(); loadPaiements();
   ouvrirJob(jobId, 'terminer');
@@ -959,8 +995,8 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609272148"></script>
-<script src="assets/compte.js?v=202609272148"></script>
-<script src="assets/url-propre.js?v=202609272148"></script>
+<script src="assets/mobile.js?v=202609272154"></script>
+<script src="assets/compte.js?v=202609272154"></script>
+<script src="assets/url-propre.js?v=202609272154"></script>
 </body>
 </html>
