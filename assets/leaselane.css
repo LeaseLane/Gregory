@@ -1511,3 +1511,51 @@ body.ll-mdp-actif{ overflow:hidden; }
 }
 @media (max-width:860px){ .tr-outils > *{ flex:none !important; } }
 @media (max-width:640px){ .vo-kpi b{ font-size:22px !important; overflow-wrap:anywhere; } .vo-kpi{ padding:14px 14px; } }
+/* Portail travailleur : disponibilité */
+.dispo{ margin-bottom:16px; }
+.dispo .pf-titre{ margin-bottom:4px; }
+.dispo-texte{ margin:0 0 14px; font-size:13.5px; color:var(--texte-discret); }
+.dispo-choix{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; }
+.dispo-choix .avail-btn{
+  display:grid !important; grid-template-columns:auto 1fr; grid-template-rows:auto auto; column-gap:10px; align-items:center; text-align:left;
+  padding:12px 14px !important; margin:0 !important; border:1px solid var(--bordure) !important; border-radius:var(--rayon-carte) !important;
+  background:var(--surface-carte) !important; color:var(--texte-corps) !important; cursor:pointer; font:inherit;
+}
+.dispo-choix .avail-btn:hover{ border-color:var(--action-primaire) !important; }
+.dispo-choix .avail-btn b{ font:600 14px/1.2 var(--police-texte); color:var(--marine-900); }
+.dispo-choix .avail-btn small{ grid-column:2; font-size:12px; color:var(--texte-discret); margin-top:2px; }
+.dispo-choix .avail-btn .point{ grid-row:1 / span 2; width:12px; height:12px; border-radius:50%; }
+.point--vert{ background:#1f9d6a; } .point--bleu{ background:var(--action-primaire); } .point--ambre{ background:#d9921a; } .point--gris{ background:#9aa5b1; }
+.dispo-choix .avail-btn.active{ border-color:var(--marine-900) !important; background:var(--marine-900) !important; box-shadow:var(--ombre-2); }
+.dispo-choix .avail-btn.active b{ color:#fff; }
+.dispo-choix .avail-btn.active small{ color:rgba(255,255,255,.75); }
+.dispo-choix .avail-btn.active .point{ box-shadow:0 0 0 3px rgba(255,255,255,.25); }
+@media (max-width:900px){ .dispo-choix{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+/* Portail travailleur : calendrier des rendez-vous */
+.cal-bloc{ display:grid; grid-template-columns:minmax(0, 380px) minmax(0,1fr); gap:16px; align-items:start; }
+.cal{ margin:0; }
+.cal-tete{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.cal-tete b{ font:600 15px/1 var(--police-texte); color:var(--marine-900); text-transform:capitalize; }
+.cal-nav{ width:36px; height:36px; border-radius:50%; border:1px solid var(--bordure); background:var(--surface-carte); display:grid; place-items:center; cursor:pointer; color:var(--marine-900); }
+.cal-nav .ic{ width:18px; height:18px; }
+.cal-grille{ display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; }
+.cal-js{ text-align:center; font:600 11px/2 var(--police-texte); color:var(--texte-discret); }
+.cal-j{ aspect-ratio:1; min-height:38px; border:none; border-radius:10px; background:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font:500 13.5px/1 var(--police-texte); color:var(--texte-corps); }
+.cal-j:hover{ background:var(--surface-enfoncee); }
+.cal-j.plein{ font-weight:700; color:var(--marine-900); background:var(--bleu-025); }
+.cal-j.auj span:first-child{ width:26px; height:26px; line-height:26px; border-radius:50%; box-shadow:inset 0 0 0 2px var(--action-primaire); }
+.cal-j.choisi{ background:var(--marine-900) !important; color:#fff; }
+.cal-pts{ display:flex; gap:3px; height:6px; }
+.cal-pt{ display:inline-block; width:6px; height:6px; border-radius:50%; }
+.cal-pt--ok{ background:#1f9d6a; } .cal-pt--att{ background:#d9921a; }
+.cal-j.choisi .cal-pt{ box-shadow:0 0 0 1.5px #fff; }
+.cal-legende{ display:flex; gap:14px; margin-top:12px; font-size:12px; color:var(--texte-discret); }
+.cal-legende span{ display:inline-flex; align-items:center; gap:6px; }
+.cal-jour .pf-titre{ text-transform:none; }
+.cal-jour .pf-titre::first-letter{ text-transform:uppercase; }
+.cal-rdv{ display:grid !important; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:14px; }
+.cal-heure{ display:flex; flex-direction:column; align-items:center; min-width:56px; padding:6px 8px; border-radius:10px; background:var(--surface-enfoncee); }
+.cal-heure b{ font-size:15px; color:var(--marine-900); }
+.cal-heure small{ font-size:11.5px; color:var(--texte-discret); margin:0 !important; }
+@media (max-width:900px){ .cal-bloc{ grid-template-columns:1fr; } }
+@media (max-width:480px){ .cal-rdv{ grid-template-columns:auto minmax(0,1fr); } .cal-rdv .tag{ grid-column:2; justify-self:start; } }

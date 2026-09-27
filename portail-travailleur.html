@@ -112,9 +112,9 @@
     main{padding:20px 16px;max-width:100%;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609272047">
-<script src="assets/charger-portail.js?v=202609272047"></script>
-<script src="assets/ui.js?v=202609272047"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609272052">
+<script src="assets/charger-portail.js?v=202609272052"></script>
+<script src="assets/ui.js?v=202609272052"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -182,16 +182,34 @@
           <h1 id="worker-greeting">Bonjour</h1>
           <p class="subtitle" id="verification-note">Ton espace Lease Lane Pro</p>
         </div></div>
-        <div class="avail-banner">
-          <span class="label">Disponibilité :</span>
-          <button class="avail-btn" data-status="maintenant" onclick="setAvailability('maintenant')">Maintenant</button>
-          <button class="avail-btn" data-status="aujourdhui" onclick="setAvailability('aujourdhui')">Aujourd'hui</button>
-          <button class="avail-btn" data-status="semaine" onclick="setAvailability('semaine')">Cette semaine</button>
-          <button class="avail-btn" data-status="indisponible" onclick="setAvailability('indisponible')">Indisponible</button>
+        <div class="pp-carte dispo">
+          <div class="dispo-tete">
+            <div><h3 class="pf-titre">Ta disponibilité</h3><p class="dispo-texte" id="dispo-texte">Dis-nous quand tu peux prendre des travaux.</p></div>
+          </div>
+          <div class="dispo-choix" role="radiogroup" aria-label="Disponibilité">
+            <button class="avail-btn" role="radio" data-status="maintenant" onclick="setAvailability('maintenant')"><i class="point point--vert"></i><b>Maintenant</b><small>Prêt à partir</small></button>
+            <button class="avail-btn" role="radio" data-status="aujourdhui" onclick="setAvailability('aujourdhui')"><i class="point point--bleu"></i><b>Aujourd'hui</b><small>Plus tard dans la journée</small></button>
+            <button class="avail-btn" role="radio" data-status="semaine" onclick="setAvailability('semaine')"><i class="point point--ambre"></i><b>Cette semaine</b><small>Dans les prochains jours</small></button>
+            <button class="avail-btn" role="radio" data-status="indisponible" onclick="setAvailability('indisponible')"><i class="point point--gris"></i><b>Indisponible</b><small>Pas d'offres pour l'instant</small></button>
+          </div>
         </div>
         <div class="vo-kpis" id="tb-kpis"><div class="vo-kpi"><span class="vo-kpi__label">Chargement</span><b>—</b></div></div>
-        <div class="vo-titre"><h2>Prochains rendez-vous</h2></div>
-        <div id="tb-prochains"><p class="tr-vide">Chargement…</p></div>
+        <div class="vo-titre"><h2>Mes rendez-vous</h2></div>
+        <div class="cal-bloc">
+          <div class="pp-carte cal">
+            <div class="cal-tete">
+              <button class="cal-nav" onclick="calMois(-1)" aria-label="Mois précédent"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-left"/></svg></button>
+              <b id="cal-titre"></b>
+              <button class="cal-nav" onclick="calMois(1)" aria-label="Mois suivant"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-right"/></svg></button>
+            </div>
+            <div class="cal-grille" id="cal-grille"></div>
+            <div class="cal-legende"><span><i class="cal-pt cal-pt--ok"></i>Confirmé</span><span><i class="cal-pt cal-pt--att"></i>Offre à répondre</span></div>
+          </div>
+          <div class="cal-jour">
+            <h3 class="pf-titre" id="cal-jour-titre">Prochains rendez-vous</h3>
+            <div id="tb-prochains"><p class="tr-vide">Chargement…</p></div>
+          </div>
+        </div>
       </section>
 
       <section id="offers" class="section">
@@ -430,9 +448,18 @@ function statusNote(){
   }
 }
 
+const DISPO_TEXTE = {
+  maintenant: 'Tu reçois toutes les offres, y compris les urgences.',
+  aujourdhui: 'Tu reçois les offres pour plus tard aujourd\'hui et les jours suivants.',
+  semaine: 'Tu reçois les offres planifiées dans la semaine.',
+  indisponible: 'Tu ne reçois pas d\'offres. Change quand tu es de nouveau disponible.',
+};
 function updateAvailabilityButtons(){
+  const t = document.getElementById('dispo-texte');
+  if(t) t.textContent = DISPO_TEXTE[workerRecord.availability_status] || 'Dis-nous quand tu peux prendre des travaux.';
   document.querySelectorAll('.avail-btn').forEach(b => {
     const on = b.dataset.status === workerRecord.availability_status;
+    b.setAttribute('aria-checked', on ? 'true' : 'false');
     b.classList.toggle('active', on);
     b.classList.toggle('dispo', on && b.dataset.status !== 'indisponible');
     b.classList.toggle('indispo', on && b.dataset.status === 'indisponible');
@@ -464,6 +491,53 @@ function etapeJob(j){
   return ['À répondre', 'urgent'];
 }
 
+// ── Calendrier des rendez-vous ───────────────────────────────────────
+let calRef = new Date(); calRef.setDate(1);
+let calJourChoisi = null;
+const cleJour = d => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; };
+function rdvs(){
+  return jobsCache.filter(j => j.appointment_at && !['cancelled'].includes(j.status) && j.worker_response !== 'declined' && !j.worker_reported_done_at)
+    .sort((a, b) => a.appointment_at.localeCompare(b.appointment_at));
+}
+function calMois(pas){ calRef.setMonth(calRef.getMonth() + pas); calJourChoisi = null; renderCalendrier(); }
+function calChoisir(cle){ calJourChoisi = calJourChoisi === cle ? null : cle; renderCalendrier(); }
+function renderCalendrier(){
+  const grille = document.getElementById('cal-grille');
+  if(!grille) return;
+  const liste = rdvs();
+  const parJour = {};
+  liste.forEach(j => (parJour[cleJour(j.appointment_at)] = parJour[cleJour(j.appointment_at)] || []).push(j));
+  const an = calRef.getFullYear(), mois = calRef.getMonth();
+  document.getElementById('cal-titre').textContent = calRef.toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' });
+  const premier = (new Date(an, mois, 1).getDay() + 6) % 7;     // lundi = 0
+  const nbJours = new Date(an, mois + 1, 0).getDate();
+  const aujourdhui = cleJour(new Date());
+  let html = ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(j => `<span class="cal-js">${j}</span>`).join('');
+  for(let i = 0; i < premier; i++) html += '<span></span>';
+  for(let d = 1; d <= nbJours; d++){
+    const cle = `${an}-${String(mois + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const jr = parJour[cle] || [];
+    const pts = jr.slice(0, 3).map(j => `<i class="cal-pt cal-pt--${enAttente(j) ? 'att' : 'ok'}"></i>`).join('');
+    html += `<button class="cal-j${cle === aujourdhui ? ' auj' : ''}${cle === calJourChoisi ? ' choisi' : ''}${jr.length ? ' plein' : ''}" onclick="calChoisir('${cle}')" aria-label="${d}${jr.length ? ', ' + jr.length + ' rendez-vous' : ''}"><span>${d}</span><span class="cal-pts">${pts}</span></button>`;
+  }
+  grille.innerHTML = html;
+  // Liste : le jour choisi, sinon les prochains rendez-vous.
+  const titre = document.getElementById('cal-jour-titre');
+  let affiches;
+  if(calJourChoisi){
+    affiches = parJour[calJourChoisi] || [];
+    titre.textContent = new Date(calJourChoisi + 'T12:00').toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long' });
+  } else {
+    affiches = liste.filter(j => j.appointment_at >= new Date().toISOString()).slice(0, 6);
+    titre.textContent = 'Prochains rendez-vous';
+  }
+  document.getElementById('tb-prochains').innerHTML = affiches.length ? '<ul class="lo-demandes">' + affiches.map(j => `<li><button class="pp-carte lo-demande lo-demande--lien cal-rdv" onclick="ouvrirJob('${j.id}')">
+      <span class="cal-heure"><b>${new Date(j.appointment_at).toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' })}</b><small>${new Date(j.appointment_at).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })}</small></span>
+      <div><b>${esc(j.description)}</b><small>${jobAddress(j)}</small></div>
+      <span class="tag ${enAttente(j) ? 'urgent' : 'ok'}">${enAttente(j) ? 'À répondre' : 'Confirmé'}</span></button></li>`).join('') + '</ul>'
+    : `<p class="tr-vide">${calJourChoisi ? 'Aucun rendez-vous ce jour-là.' : 'Aucun rendez-vous à venir.'}</p>`;
+}
+
 async function loadDashboard(){
   const d = await callWorkerApi({ action: 'get_dashboard' }) || {};
   document.getElementById('tb-kpis').innerHTML = `
@@ -471,8 +545,7 @@ async function loadDashboard(){
     <div class="vo-kpi"><span class="vo-kpi__label">Travaux en cours</span><b>${d.en_cours ?? 0}</b></div>
     <div class="vo-kpi"><span class="vo-kpi__label">Payé ce mois-ci</span><b>${argentT(d.gagne_ce_mois ?? 0)}</b></div>
     <div class="vo-kpi"><span class="vo-kpi__label">À recevoir</span><b>${argentT(d.a_payer ?? 0)}</b></div>`;
-  const p = d.prochains || [];
-  document.getElementById('tb-prochains').innerHTML = p.length ? '<ul class="lo-demandes">' + p.map(j => `<li><button class="pp-carte lo-demande lo-demande--lien" onclick="ouvrirJob('${j.id}')"><div><b>${esc(j.description)}</b><small>${jobAddress(j)}</small></div><span class="tag warn">${dateT(j.appointment_at)}</span></button></li>`).join('') + '</ul>' : '<p class="tr-vide">Aucun rendez-vous à venir.</p>';
+  renderCalendrier();
 }
 
 async function loadOffers(){
@@ -508,6 +581,7 @@ async function loadJobs(){
   const data = await callWorkerApi({ action: 'list_my_jobs' });
   jobsCache = Array.isArray(data?.jobs) ? data.jobs : [];
   renderJobs();
+  renderCalendrier();
 }
 function renderJobs(){
   const c = document.getElementById('jobs-list');
@@ -848,8 +922,8 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609272047"></script>
-<script src="assets/compte.js?v=202609272047"></script>
-<script src="assets/url-propre.js?v=202609272047"></script>
+<script src="assets/mobile.js?v=202609272052"></script>
+<script src="assets/compte.js?v=202609272052"></script>
+<script src="assets/url-propre.js?v=202609272052"></script>
 </body>
 </html>
