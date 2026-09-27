@@ -72,11 +72,11 @@
   .job-card button{font-size:12px;padding:8px 14px;border:1px solid var(--ink);background:none;color:var(--ink);cursor:pointer;font-family:var(--police-texte);}
   .job-card button.primary{background:var(--sage);color:#fff;border-color:var(--sage);}
   .job-card button.secondary{border-color:var(--line);color:var(--muted);}
-  .tag{font-size:11px;padding:3px 9px;font-family:var(--police-mono);text-transform:uppercase;letter-spacing:0.04em;display:inline-block;}
-  .tag.urgent{background:var(--rust);color:#fff;}
-  .tag.ok{background:var(--sage);color:#fff;}
-  .tag.warn{background:var(--amber);color:#fff;}
-  .tag.neutral{background:var(--line);color:var(--ink);}
+  .tag{display:inline-block;font:600 11.5px/1 var(--police-texte);padding:5px 10px;border-radius:var(--rayon-pilule);white-space:nowrap;text-transform:none;letter-spacing:0;}
+  .tag.ok{background:var(--succes-100);color:var(--succes-600);}
+  .tag.warn{background:var(--alerte-100);color:var(--alerte-600);}
+  .tag.urgent{background:var(--urgence-100);color:var(--urgence-600);}
+  .tag.neutral{background:var(--surface-enfoncee);color:var(--texte-discret);}
 
   .completion-form{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
   .completion-form.active{display:block;}
@@ -112,9 +112,9 @@
     main{padding:20px 16px;max-width:100%;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271845">
-<script src="assets/charger-portail.js?v=202609271845"></script>
-<script src="assets/ui.js?v=202609271845"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271850">
+<script src="assets/charger-portail.js?v=202609271850"></script>
+<script src="assets/ui.js?v=202609271850"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -163,9 +163,13 @@
     <aside>
       <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
       <span class="brand-sub">Lease Lane Pro</span>
-      <button class="tab-btn active" data-tab="offers" onclick="showTab('offers')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bell"/></svg><span>Jobs disponibles</span></button>
-      <button class="tab-btn" data-tab="jobs" onclick="showTab('jobs')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#hammer"/></svg><span>Mes jobs</span></button>
-      <button class="tab-btn" data-tab="profile" onclick="showTab('profile')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#user"/></svg><span>Mon profil</span></button>
+      <button class="tab-btn active" data-tab="accueil" onclick="showTab('accueil')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#layout-grid"/></svg><span>Tableau de bord</span></button>
+      <button class="tab-btn" data-tab="offers" onclick="showTab('offers')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bell"/></svg><span>Offres</span></button>
+      <button class="tab-btn" data-tab="jobs" onclick="showTab('jobs')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#hammer"/></svg><span>Mes travaux</span></button>
+      <button class="tab-btn" data-tab="paiements" onclick="showTab('paiements')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#banknote"/></svg><span>Paiements</span></button>
+      <button class="tab-btn" data-tab="messages" onclick="showTab('messages')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#message-circle"/></svg><span>Messages</span></button>
+      <button class="tab-btn" data-tab="avis" onclick="showTab('avis')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#star"/></svg><span>Évaluations</span></button>
+      <button class="tab-btn" data-tab="profile" onclick="showTab('profile')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg><span>Profil et conformité</span></button>
       <button class="tab-btn" data-tab="decisions" onclick="showTab('decisions')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bot"/></svg><span>Décisions automatisées</span></button>
       <div class="signout">
         <button class="tab-btn" onclick="handleSignOut()">Se déconnecter</button>
@@ -173,37 +177,66 @@
     </aside>
 
     <main>
-      <section id="offers" class="section active">
-        <h1 id="worker-greeting">Bonjour</h1>
-        <p class="subtitle" id="verification-note">Voici les mandats disponibles pour ton profil</p>
-
+      <section id="accueil" class="section active">
+        <div class="vo-entete"><div>
+          <h1 id="worker-greeting">Bonjour</h1>
+          <p class="subtitle" id="verification-note">Ton espace Lease Lane Pro</p>
+        </div></div>
         <div class="avail-banner">
           <span class="label">Disponibilité :</span>
-          <button class="avail-btn" data-status="maintenant" onclick="setAvailability('maintenant')">🟢 Maintenant</button>
+          <button class="avail-btn" data-status="maintenant" onclick="setAvailability('maintenant')">Maintenant</button>
           <button class="avail-btn" data-status="aujourdhui" onclick="setAvailability('aujourdhui')">Aujourd'hui</button>
           <button class="avail-btn" data-status="semaine" onclick="setAvailability('semaine')">Cette semaine</button>
-          <button class="avail-btn" data-status="indisponible" onclick="setAvailability('indisponible')">🔴 Indisponible</button>
+          <button class="avail-btn" data-status="indisponible" onclick="setAvailability('indisponible')">Indisponible</button>
         </div>
+        <div class="vo-kpis" id="tb-kpis"><div class="vo-kpi"><span class="vo-kpi__label">Chargement</span><b>—</b></div></div>
+        <div class="vo-titre"><h2>Prochains rendez-vous</h2></div>
+        <div id="tb-prochains"><p class="tr-vide">Chargement…</p></div>
+      </section>
 
-        <div class="stats-grid" id="stats-grid">
-          <div class="stat-box"><div class="num">—</div><div class="label">Chargement</div></div>
-        </div>
-
-        <h2 style="margin-top:28px;">Jobs disponibles</h2>
-        <div id="offers-list"><p class="empty-note">Chargement...</p></div>
+      <section id="offers" class="section">
+        <h1>Offres</h1>
+        <p class="subtitle">Les travaux qu'on te propose. Ouvre une offre pour voir les détails, les photos et les vidéos avant de répondre.</p>
+        <div id="offers-list"><p class="tr-vide">Chargement…</p></div>
       </section>
 
       <section id="jobs" class="section">
-        <h1>Mes jobs</h1>
-        <p class="subtitle">Tes mandats acceptés, en cours et complétés</p>
-        <div id="jobs-list"><p class="empty-note">Chargement...</p></div>
+        <h1>Mes travaux</h1>
+        <p class="subtitle">Tes travaux acceptés, en cours et terminés. Clique sur une ligne pour ouvrir la fiche.</p>
+        <div class="tr-outils">
+          <label class="tr-recherche"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#search"/></svg><input type="search" id="jobs-q" placeholder="Rechercher une adresse ou un travail…" oninput="jobsEtat.q=this.value;renderJobs()"></label>
+          <select id="jobs-f" onchange="jobsEtat.f=this.value;renderJobs()"><option value="">Tous</option><option value="encours">En cours</option><option value="termine">Signalés terminés</option><option value="apayer">À payer</option><option value="paye">Payés</option></select>
+        </div>
+        <div id="jobs-list"><p class="tr-vide">Chargement…</p></div>
+      </section>
+
+      <section id="paiements" class="section">
+        <h1>Paiements</h1>
+        <p class="subtitle" id="pay-interac">Ce que Lease Lane t'a payé et ce qui reste à payer.</p>
+        <div class="vo-kpis" id="pay-kpis"></div>
+        <div id="pay-list" style="margin-top:16px"><p class="tr-vide">Chargement…</p></div>
+      </section>
+
+      <section id="messages" class="section">
+        <h1>Messages</h1>
+        <p class="subtitle">Pour tes questions générales à l'équipe. Pour un travail précis, écris plutôt depuis sa fiche (onglet Échanges).</p>
+        <div class="pp-carte"><div class="ms-fil" id="msg-fil"><p class="tr-vide">Chargement…</p></div>
+          <div class="ms-ecrire"><textarea id="msg-texte" rows="3" placeholder="Ton message à l'équipe Lease Lane…"></textarea>
+            <div class="ms-actions"><span class="ms-dest">L'équipe te répond ici et par courriel.</span><button class="ll-bouton ll-bouton--primaire lo-petit" onclick="envoyerMessage(null, 'msg-texte')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div></div></div>
+      </section>
+
+      <section id="avis" class="section">
+        <h1>Évaluations</h1>
+        <p class="subtitle">Ce que les locataires, les propriétaires et l'équipe disent de ton travail.</p>
+        <div id="avis-list"><p class="tr-vide">Chargement…</p></div>
       </section>
 
       <section id="profile" class="section">
-        <h1>Mon profil</h1>
+        <h1>Profil et conformité</h1>
         <p class="subtitle" id="profile-status-note">—</p>
 
-        <div class="profile-form">
+        <div class="lo-conf" id="conf-etat"></div>
+        <div class="profile-form pp-carte">
           <div class="row">
             <div class="f"><label for="pf-company">Nom / entreprise</label><input type="text" id="pf-company" placeholder="Optionnel si tu travailles à ton nom"></div>
             <div class="f"><label for="pf-neq">NEQ</label><input type="text" id="pf-neq" placeholder="Si applicable"></div>
@@ -361,11 +394,9 @@ async function loadWorkerDashboard(userId){
   buildScheduleGrid();
   renderProfileForm();
   updateAvailabilityButtons();
-  await loadStats();
+  renderConformite();
+  await Promise.allSettled([loadDashboard(), loadJobs(), loadPaiements(), loadMessages(), loadAvis(), loadAutomatedDecisions(), loadPersonalDataRequests()]);
   await loadOffers();
-  await loadJobs();
-  await loadAutomatedDecisions();
-  await loadPersonalDataRequests();
 }
 
 function statusNote(){
@@ -378,7 +409,7 @@ function statusNote(){
     el.textContent = "Ton dossier n'a pas été approuvé. Contacte l'équipe Lease Lane.";
     statusEl.textContent = "Statut : dossier refusé" + (workerRecord.rejection_reason ? ' — ' + workerRecord.rejection_reason : '');
   } else {
-    el.textContent = "Voici les mandats disponibles pour ton profil";
+    el.textContent = "Ton espace Lease Lane Pro : offres, travaux, paiements et échanges avec l'équipe.";
     statusEl.textContent = "Statut : Vérifié ✓";
   }
 }
@@ -400,97 +431,213 @@ async function setAvailability(status){
   updateAvailabilityButtons();
 }
 
-async function loadStats(){
-  const data = await callWorkerApi({ action: 'get_my_stats' });
-  const grid = document.getElementById('stats-grid');
-  const s = data?.stats || {};
-  const acceptancePct = s.jobs_offered_count > 0 ? Math.round((s.jobs_accepted_count / s.jobs_offered_count) * 100) : null;
-  grid.innerHTML = `
-    <div class="stat-box"><div class="num">${s.completed_jobs_count ?? 0}</div><div class="label">Travaux complétés</div></div>
-    <div class="stat-box"><div class="num">${acceptancePct != null ? acceptancePct + '%' : '—'}</div><div class="label">Taux d'acceptation</div></div>
-    <div class="stat-box"><div class="num">${s.rating != null ? Number(s.rating).toFixed(1) : '—'}</div><div class="label">Note</div></div>
-    <div class="stat-box"><div class="num">${s.jobs_cancelled_count ?? 0}</div><div class="label">Annulations</div></div>
-  `;
+const argentT = n => n != null ? Number(n).toLocaleString('fr-CA') + ' $' : '—';
+const dateT = d => d ? new Date(d).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+function jobAddress(j){ const b = j.units?.buildings; return b ? `${esc(b.address)}, unité ${esc(j.units.unit_number)}` : ''; }
+let jobsCache = [];
+const jobsEtat = { q: '', f: '' };
+const enAttente = j => ['pending', 'info_requested', 'proposed_other_time'].includes(j.worker_response) && !['completed', 'cancelled'].includes(j.status);
+function etapeJob(j){
+  if(j.status === 'cancelled') return ['Annulé', 'neutral'];
+  if(j.worker_paid_at) return ['Payé', 'ok'];
+  if(j.worker_reported_done_at || j.status === 'completed') return ['Terminé, paiement à venir', 'ok'];
+  if(j.worker_response === 'accepted') return [j.appointment_at ? 'Rendez-vous fixé' : 'Accepté', 'warn'];
+  if(j.worker_response === 'info_requested') return ['Question envoyée', 'warn'];
+  if(j.worker_response === 'proposed_other_time') return ['Autre heure proposée', 'warn'];
+  if(j.worker_response === 'declined') return ['Refusé', 'neutral'];
+  return ['À répondre', 'urgent'];
 }
 
-function jobAddress(j){
-  const b = j.units?.buildings;
-  return b ? `${esc(b.address)} — unité ${esc(j.units.unit_number)}` : '';
+async function loadDashboard(){
+  const d = await callWorkerApi({ action: 'get_dashboard' }) || {};
+  document.getElementById('tb-kpis').innerHTML = `
+    <div class="vo-kpi vo-kpi--accent"><span class="vo-kpi__label">Offres à répondre</span><b>${d.offres_en_attente ?? 0}</b></div>
+    <div class="vo-kpi"><span class="vo-kpi__label">Travaux en cours</span><b>${d.en_cours ?? 0}</b></div>
+    <div class="vo-kpi"><span class="vo-kpi__label">Payé ce mois-ci</span><b>${argentT(d.gagne_ce_mois ?? 0)}</b></div>
+    <div class="vo-kpi"><span class="vo-kpi__label">À recevoir</span><b>${argentT(d.a_payer ?? 0)}</b></div>`;
+  const p = d.prochains || [];
+  document.getElementById('tb-prochains').innerHTML = p.length ? '<ul class="lo-demandes">' + p.map(j => `<li><button class="pp-carte lo-demande lo-demande--lien" onclick="ouvrirJob('${j.id}')"><div><b>${esc(j.description)}</b><small>${jobAddress(j)}</small></div><span class="tag warn">${dateT(j.appointment_at)}</span></button></li>`).join('') + '</ul>' : '<p class="tr-vide">Aucun rendez-vous à venir.</p>';
 }
 
 async function loadOffers(){
   const data = await callWorkerApi({ action: 'list_my_offers' });
-  const container = document.getElementById('offers-list');
-  const offers = data?.offers || [];
-  if(!offers.length){
-    container.innerHTML = '<p class="empty-note">Aucun mandat disponible pour le moment.</p>';
-    return;
-  }
-  container.innerHTML = offers.map(o => {
-    const wo = o.work_orders || {};
-    return `
-    <div class="job-card ${wo.is_urgent ? 'urgent' : ''}">
-      ${wo.is_urgent ? '<span class="tag urgent">Urgent</span>' : ''}
-      <div class="desc">${esc(wo.description)}</div>
-      <div class="meta">${jobAddress(wo)}<br>Rémunération : ${wo.worker_pay != null ? Number(wo.worker_pay).toLocaleString('fr-CA') + ' $' : 'à discuter (diagnostic requis)'}</div>
-      <div class="actions">
-        <button class="primary" onclick="acceptOffer('${o.id}', this)">Accepter</button>
-        <button class="secondary" onclick="declineOffer('${o.id}', this)">Refuser</button>
-      </div>
-    </div>`;
-  }).join('');
+  const auto = data?.offers || [];
+  const directes = jobsCache.filter(enAttente);
+  const c = document.getElementById('offers-list');
+  if(!auto.length && !directes.length){ c.innerHTML = '<p class="tr-vide">Aucune offre pour le moment. On t\'écrit dès qu\'un travail correspond à ton profil.</p>'; return; }
+  c.innerHTML = '<ul class="lo-demandes">' +
+    directes.map(j => { const [lib, ton] = etapeJob(j); return `<li><button class="pp-carte lo-demande lo-demande--lien" onclick="ouvrirJob('${j.id}')">
+      <div><b>${esc(j.description)}</b>${j.is_urgent || j.service_requests?.safety_override ? ' <span class="tag urgent">Urgent</span>' : ''}<small>${jobAddress(j)} · ${argentT(j.worker_pay)}${j.appointment_at ? ' · RDV ' + dateT(j.appointment_at) : ''}</small></div>
+      <span class="lo-demande-etat"><span class="tag ${ton}">${lib}</span><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-right"/></svg></span></button></li>`; }).join('') +
+    auto.map(o => { const wo = o.work_orders || {}; return `<li class="pp-carte lo-offre">
+      <div><b>${esc(wo.description)}</b>${wo.is_urgent ? ' <span class="tag urgent">Urgent</span>' : ''}<small>${jobAddress(wo)} · ${wo.worker_pay != null ? argentT(wo.worker_pay) : 'à discuter (diagnostic requis)'} · premier arrivé, premier servi</small></div>
+      <div class="lo-offre-btns"><button class="ll-bouton ll-bouton--primaire lo-petit" onclick="acceptOffer('${o.id}', this)">Accepter</button><button class="ll-bouton ll-bouton--secondaire lo-petit" onclick="declineOffer('${o.id}', this)">Refuser</button></div></li>`; }).join('') + '</ul>';
 }
 
 async function acceptOffer(offerId, btn){
   btn.disabled = true;
   const res = await callWorkerApi({ action: 'accept_offer', offer_id: offerId });
-  if(res?.error){ alert('Erreur : ' + res.error); btn.disabled = false; return; }
-  if(!res?.ok){ alert(res?.error || "Ce mandat n'est plus disponible."); }
-  await loadOffers();
-  await loadJobs();
-  await loadStats();
+  if(!res?.ok){ llToast(res?.error || "Ce travail n'est plus disponible.", 'erreur'); }
+  else llToast('Travail accepté : il est dans « Mes travaux ».', 'succes');
+  await loadJobs(); await loadOffers(); loadDashboard();
 }
-
 async function declineOffer(offerId, btn){
   btn.disabled = true;
   const res = await callWorkerApi({ action: 'decline_offer', offer_id: offerId });
-  if(res?.error){ alert('Erreur : ' + res.error); }
+  if(res?.error) llToast('Erreur : ' + res.error, 'erreur');
   await loadOffers();
 }
 
-const jobStatusLabel = { open:'En attente', assigned:'Assigné', in_progress:'En cours', completed:'Complété', cancelled:'Annulé' };
-const jobStatusTag = { open:'neutral', assigned:'warn', in_progress:'warn', completed:'ok', cancelled:'neutral' };
-
 async function loadJobs(){
   const data = await callWorkerApi({ action: 'list_my_jobs' });
-  const container = document.getElementById('jobs-list');
-  const jobs = data?.jobs || [];
-  if(!jobs.length){
-    container.innerHTML = '<p class="empty-note">Aucun job pour le moment.</p>';
-    return;
-  }
-  container.innerHTML = jobs.map(j => `
-    <div class="job-card" data-job-id="${esc(j.id)}">
-      <div class="desc">${esc(j.description)}</div>
-      <div class="meta">${jobAddress(j)}<br><span class="tag ${jobStatusTag[j.status] || 'neutral'}">${jobStatusLabel[j.status] || esc(j.status)}</span> ${j.worker_pay != null ? '· ' + Number(j.worker_pay).toLocaleString('fr-CA') + ' $' : ''}</div>
-      ${(!j.worker_reported_done_at && j.status !== 'completed' && j.status !== 'cancelled') ? `
-      <div class="actions">
-        <button class="primary" onclick="toggleCompletionForm('${esc(j.id)}')">Signaler la fin des travaux</button>
-      </div>
-      <div class="completion-form" id="completion-${esc(j.id)}">
-        <div class="row">
-          <div class="f"><label for="before-${esc(j.id)}">Photo(s) avant</label><input type="file" accept="image/*" multiple id="before-${esc(j.id)}"></div>
-          <div class="f"><label for="after-${esc(j.id)}">Photo(s) après</label><input type="file" accept="image/*" multiple id="after-${esc(j.id)}"></div>
-        </div>
-        <textarea id="note-${esc(j.id)}" placeholder="Note pour l'admin (optionnel)"></textarea>
-        <button class="primary" onclick="submitCompletion('${esc(j.id)}', this)">Envoyer</button>
-      </div>` : (j.worker_reported_done_at ? '<p class="empty-note" style="margin-top:8px;">Fin des travaux déjà signalée — en attente de confirmation.</p>' : '')}
-    </div>
-  `).join('');
+  jobsCache = Array.isArray(data?.jobs) ? data.jobs : [];
+  renderJobs();
+}
+function renderJobs(){
+  const c = document.getElementById('jobs-list');
+  const q = jobsEtat.q.trim().toLowerCase();
+  const filtre = { encours: j => j.worker_response === 'accepted' && !j.worker_reported_done_at && j.status !== 'completed', termine: j => !!(j.worker_reported_done_at || j.status === 'completed'),
+    apayer: j => !!(j.worker_reported_done_at || j.status === 'completed') && !j.worker_paid_at, paye: j => !!j.worker_paid_at }[jobsEtat.f] || (() => true);
+  const liste = jobsCache.filter(j => !enAttente(j) && j.worker_response !== 'declined').filter(filtre)
+    .filter(j => !q || [j.description, j.units?.buildings?.address].some(v => (v || '').toLowerCase().includes(q)));
+  if(!liste.length){ c.innerHTML = '<p class="tr-vide">Aucun travail ici pour le moment.</p>'; return; }
+  c.innerHTML = `<table class="tr-table"><thead><tr><th>Travail</th><th>Étape</th><th>Rendez-vous</th><th class="num">Paie</th><th></th></tr></thead><tbody>${liste.map(j => { const [lib, ton] = etapeJob(j); return `
+    <tr class="tr-ligne" onclick="ouvrirJob('${j.id}')"><td data-libelle="Travail"><b>${esc(j.description)}</b><small>${jobAddress(j)}</small></td>
+    <td data-libelle="Étape"><span class="tag ${ton}">${lib}</span></td><td data-libelle="Rendez-vous">${j.appointment_at ? dateT(j.appointment_at) : '—'}</td>
+    <td data-libelle="Paie" class="num">${argentT(j.worker_pay)}</td><td class="tr-chev"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-right"/></svg></td></tr>`; }).join('')}</tbody></table>`;
 }
 
-function toggleCompletionForm(jobId){
-  document.getElementById('completion-' + jobId)?.classList.toggle('active');
+// ── Fiche d'un travail (panneau latéral) ─────────────────────────────
+let ficheJob = { id: null, onglet: 'details', data: null };
+async function ouvrirJob(id, onglet){
+  ficheJob = { id, onglet: onglet || 'details', data: ficheJob.id === id ? ficheJob.data : null };
+  if(!document.getElementById('fiche-job')){
+    document.body.insertAdjacentHTML('beforeend', '<div class="fi-fond" onclick="fermerJob()"></div><aside id="fiche-job" class="fi-tiroir" role="dialog" aria-modal="true" aria-label="Travail"></aside><dialog class="zoom-t" id="zoom-t" onclick="this.close()"><img alt=""></dialog>');
+    document.addEventListener('keydown', e => { if(e.key === 'Escape' && ficheJob.id) fermerJob(); });
+  }
+  document.body.classList.add('fi-ouvert');
+  renderJob();
+  const d = await callWorkerApi({ action: 'get_job', work_order_id: id });
+  if(ficheJob.id !== id) return;
+  ficheJob.data = d && !d.error ? d : { erreur: true };
+  renderJob();
+}
+function fermerJob(){ ficheJob.id = null; document.body.classList.remove('fi-ouvert'); }
+function zoomT(src){ const z = document.getElementById('zoom-t'); z.querySelector('img').src = src; z.showModal(); }
+
+function renderJob(){
+  const t = document.getElementById('fiche-job');
+  if(!t || !ficheJob.id) return;
+  const d = ficheJob.data;
+  const j = d?.job || jobsCache.find(x => x.id === ficheJob.id) || {};
+  const [lib, ton] = etapeJob(j);
+  const peutRepondre = enAttente(j);
+  const peutTerminer = j.worker_response === 'accepted' && !j.worker_reported_done_at && j.status !== 'completed';
+  const galerie = (groupe, titre) => { const g = (d?.pieces || []).filter(p => p.groupe === groupe); return g.length ? `<p class="lo-fil-titre">${titre}</p><div class="galerie-t">${g.map(p => p.video ? `<video src="${esc(p.url)}" controls playsinline preload="metadata"></video>` : `<img src="${esc(p.url)}" alt="" loading="lazy" onclick="zoomT(this.src)">`).join('')}</div>` : ''; };
+  const onglet = (id, l, n) => `<button class="fi-onglet${ficheJob.onglet === id ? ' actif' : ''}" onclick="ficheJob.onglet='${id}';renderJob()">${l}${n ? ` <span>${n}</span>` : ''}</button>`;
+  let corps;
+  if(!d) corps = '<p class="tr-vide">Chargement…</p>';
+  else if(d.erreur) corps = '<p class="tr-vide">Fiche indisponible pour le moment.</p>';
+  else if(ficheJob.onglet === 'echanges'){
+    const m = d.messages || [];
+    corps = `<div class="ms-fil">${m.length ? m.map(x => `<div class="ms-bulle ${x.direction === 'entrant' ? 'ms-bulle--sortant' : 'ms-bulle--entrant'}"><div class="ms-meta">${x.direction === 'entrant' ? 'Toi' : x.origine === 'automatique' ? 'Courriel automatique' : 'Équipe Lease Lane'} · ${dateT(x.created_at)}</div>${x.sujet ? `<div class="ms-sujet">${esc(x.sujet)}</div>` : ''}${x.origine === 'automatique' ? `<details class="ms-corps"><summary>Voir le courriel</summary><div>${esc(x.corps)}</div></details>` : `<div class="ms-corps"><div>${esc(x.corps)}</div></div>`}</div>`).join('') : '<p class="tr-vide">Aucun échange sur ce travail.</p>'}</div>
+      <div class="ms-ecrire"><textarea id="job-msg" rows="3" placeholder="Une question sur ce travail ?"></textarea><div class="ms-actions"><span class="ms-dest">L'équipe te répond ici et par courriel.</span><button class="ll-bouton ll-bouton--primaire lo-petit" onclick="envoyerMessage('${j.id}', 'job-msg')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div></div>`;
+  } else if(ficheJob.onglet === 'terminer'){
+    corps = peutTerminer ? `<p class="muted-t">Ajoute au moins une photo avant et une photo après (jusqu'à 5 de chaque).</p>
+      <div class="fo-ligne"><div><label class="ch-label" for="before-${j.id}">Photos avant</label><input type="file" accept="image/*" multiple id="before-${j.id}"></div><div><label class="ch-label" for="after-${j.id}">Photos après</label><input type="file" accept="image/*" multiple id="after-${j.id}"></div></div>
+      <label class="ch-label" for="note-${j.id}" style="margin-top:12px">Note pour l'équipe (optionnel)</label><textarea id="note-${j.id}" rows="3" style="width:100%;box-sizing:border-box" placeholder="Ex. : joint remplacé, plus de fuite."></textarea>
+      <button class="ll-bouton ll-bouton--primaire" style="margin-top:12px" onclick="submitCompletion('${j.id}', this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg>Signaler le travail terminé</button>`
+      : j.worker_reported_done_at ? `<div class="lo-conseil lo-conseil--ok"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg><div><b>Travail signalé terminé</b>${dateT(j.worker_reported_done_at)}${j.worker_completion_note ? ' · ' + esc(j.worker_completion_note) : ''}</div></div>${galerie('avant', 'Photos avant')}${galerie('apres', 'Photos après')}` : '<p class="tr-vide">Accepte d\'abord le travail pour pouvoir le signaler terminé.</p>';
+  } else if(ficheJob.onglet === 'paiement'){
+    corps = `<div class="lo-infos"><div><span>Paie prévue</span><b>${argentT(j.worker_pay)}</b></div><div><span>Statut</span><b>${j.worker_paid_at ? 'Payé' : j.worker_reported_done_at ? 'À payer' : 'Travail pas encore terminé'}</b></div><div><span>Montant payé</span><b>${j.worker_paid_at ? argentT(j.worker_paid_amount ?? j.worker_pay) : '—'}</b></div><div><span>Payé le</span><b>${j.worker_paid_at ? new Date(j.worker_paid_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' }) : '—'}</b></div></div>
+      ${(d.avis || []).length ? `<p class="lo-fil-titre">Évaluation reçue</p>${d.avis.map(a => `<div class="pp-carte"><b>${'★'.repeat(a.stars)}${'☆'.repeat(5 - a.stars)}</b>${a.comment ? `<p style="margin:6px 0 0">${esc(a.comment)}</p>` : ''}</div>`).join('')}` : ''}`;
+  } else {
+    const sr = j.service_requests || {};
+    corps = `
+      ${j.is_urgent || sr.safety_override ? '<div class="lo-conseil"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg><div><b>Travail urgent</b>Intervention rapide demandée.</div></div>' : ''}
+      <div class="lo-infos"><div><span>Paie</span><b>${argentT(j.worker_pay)}</b></div><div><span>Rendez-vous</span><b>${j.appointment_at ? dateT(j.appointment_at) : 'À convenir'}</b></div><div><span>Échéance</span><b>${j.due_by || '—'}</b></div><div><span>Accès</span><b>${esc(j.entry_permission || 'À confirmer')}</b></div></div>
+      ${j.billing_terms || j.safety_instructions ? `<p class="muted-t">${j.billing_terms ? '<b>Facturation :</b> ' + esc(j.billing_terms) + ' ' : ''}${j.safety_instructions ? '<b>Consignes :</b> ' + esc(j.safety_instructions) : ''}</p>` : ''}
+      ${sr.description ? `<p class="lo-fil-titre">Ce que le locataire a signalé</p><blockquote class="sr-desc">${esc(sr.description)}</blockquote>` : ''}
+      ${galerie('locataire', 'Photos et vidéos du locataire')}
+      ${sr.ai_video_summary ? `<div class="md-ia"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#video"/></svg><div><b>Dans la vidéo</b> ${esc(sr.ai_video_summary)}</div></div>` : ''}
+      ${sr.ai_category ? `<div class="md-ia"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg><div><b>Type de travail</b> ${esc(sr.ai_category)}${sr.ai_subcategory ? ' — ' + esc(sr.ai_subcategory) : ''}</div></div>` : ''}
+      ${peutRepondre ? `<div class="lo-repondre">
+        <button class="ll-bouton btn-ok-t" onclick="repondreJob('${j.id}', 'accept')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg>Accepter le travail</button>
+        <div class="lo-deux"><button class="ll-bouton ll-bouton--secondaire" onclick="repondreJob('${j.id}', 'propose_time')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#clock"/></svg>Autre heure</button><button class="ll-bouton ll-bouton--secondaire" onclick="repondreJob('${j.id}', 'request_info')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-help"/></svg>Poser une question</button></div>
+        <button class="ll-bouton btn-refus-t" onclick="repondreJob('${j.id}', 'decline')">Refuser</button></div>` : ''}`;
+  }
+  t.innerHTML = `
+    <header class="fi-tete"><span class="tr-avatar" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#hammer"/></svg></span>
+      <div class="tr-ident"><h2>${esc((j.description || '').slice(0, 70))}</h2><div class="tr-specs"><span class="tr-spec">${jobAddress(j)}</span> <span class="tag ${ton}">${lib}</span></div></div>
+      <button class="fi-fermer" onclick="fermerJob()" aria-label="Fermer"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#x"/></svg></button></header>
+    ${j.units?.buildings?.address ? `<div class="fi-contact"><a class="ll-bouton ll-bouton--secondaire" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.units.buildings.address)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#map-pin"/></svg>Itinéraire</a></div>` : ''}
+    <div class="fi-onglets" role="tablist">${onglet('details', 'Détails')}${onglet('echanges', 'Échanges', (d?.messages || []).length)}${onglet('terminer', peutTerminer ? 'Terminer' : 'Photos')}${onglet('paiement', 'Paiement')}</div>
+    <div class="fi-corps lo-fiche">${corps}</div>`;
+}
+
+async function repondreJob(id, reponse){
+  let message;
+  if(reponse === 'propose_time'){ message = await llDemander('Quelle heure te conviendrait ?'); if(message === null) return; }
+  if(reponse === 'request_info'){ message = await llDemander('Quelle information te manque-t-il ?'); if(message === null) return; }
+  if(reponse === 'decline' && !await llConfirmer('Refuser ce travail ? Il sera proposé à un autre travailleur.', { libelle: 'Refuser', danger: true })) return;
+  const res = await callWorkerApi({ action: 'respond_job', work_order_id: id, reponse, message });
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'réponse non enregistrée'), 'erreur'); return; }
+  llToast({ accept: 'Travail accepté.', decline: 'Travail refusé.', propose_time: 'Ta proposition est envoyée à l\'équipe.', request_info: 'Ta question est envoyée à l\'équipe.' }[reponse], 'succes');
+  ficheJob.data = null;
+  await loadJobs(); await loadOffers(); loadDashboard();
+  if(reponse === 'decline') fermerJob(); else ouvrirJob(id, reponse === 'accept' ? 'details' : 'echanges');
+}
+
+async function envoyerMessage(workOrderId, champId){
+  const el = document.getElementById(champId);
+  const texte = el.value.trim();
+  if(!texte) return;
+  const res = await callWorkerApi({ action: 'send_message', work_order_id: workOrderId, texte });
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'message non envoyé'), 'erreur'); return; }
+  el.value = '';
+  llToast('Message envoyé à l\'équipe.', 'succes');
+  if(workOrderId){ ficheJob.data = null; ouvrirJob(workOrderId, 'echanges'); } else loadMessages();
+}
+
+async function loadMessages(){
+  const d = await callWorkerApi({ action: 'list_messages' });
+  const m = d?.messages || [];
+  const f = document.getElementById('msg-fil');
+  f.innerHTML = m.length ? m.map(x => `<div class="ms-bulle ${x.direction === 'entrant' ? 'ms-bulle--sortant' : 'ms-bulle--entrant'}"><div class="ms-meta">${x.direction === 'entrant' ? 'Toi' : 'Équipe Lease Lane'} · ${dateT(x.created_at)}</div>${x.sujet && x.sujet !== 'Message' ? `<div class="ms-sujet">${esc(x.sujet)}</div>` : ''}<div class="ms-corps"><div>${esc(x.corps)}</div></div></div>`).join('') : '<p class="tr-vide">Aucun message pour l\'instant.</p>';
+  f.scrollTop = f.scrollHeight;
+}
+
+async function loadPaiements(){
+  const d = await callWorkerApi({ action: 'list_payments' });
+  const p = d?.paiements || [];
+  const payes = p.filter(x => x.worker_paid_at), apayer = p.filter(x => !x.worker_paid_at);
+  const debutMois = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  document.getElementById('pay-interac').textContent = d?.interac ? `Versements par Interac à ${d.interac}. Modifiable dans « Profil et conformité ».` : 'Ajoute ton courriel Interac dans « Profil et conformité » pour recevoir tes versements.';
+  document.getElementById('pay-kpis').innerHTML = `
+    <div class="vo-kpi vo-kpi--accent"><span class="vo-kpi__label">À recevoir</span><b>${argentT(apayer.reduce((t, x) => t + Number(x.worker_pay || 0), 0))}</b></div>
+    <div class="vo-kpi"><span class="vo-kpi__label">Payé ce mois-ci</span><b>${argentT(payes.filter(x => x.worker_paid_at >= debutMois).reduce((t, x) => t + Number(x.worker_paid_amount ?? x.worker_pay ?? 0), 0))}</b></div>
+    <div class="vo-kpi"><span class="vo-kpi__label">Payé au total</span><b>${argentT(payes.reduce((t, x) => t + Number(x.worker_paid_amount ?? x.worker_pay ?? 0), 0))}</b></div>
+    <div class="vo-kpi"><span class="vo-kpi__label">Travaux terminés</span><b>${p.length}</b></div>`;
+  document.getElementById('pay-list').innerHTML = p.length ? '<ul class="lo-paiements">' + p.map(x => `<li class="lo-paiement lo-paiement--${x.worker_paid_at ? 'ok' : 'att'}">
+    <div class="lo-p-quand"><b>${esc(x.description)}</b><small>${jobAddress(x)} · terminé le ${new Date(x.worker_reported_done_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}${x.worker_paid_note ? ' · ' + esc(x.worker_paid_note) : ''}</small></div>
+    <div class="lo-p-montant">${argentT(x.worker_paid_at ? (x.worker_paid_amount ?? x.worker_pay) : x.worker_pay)}</div>
+    <span class="tr-pastille tr-pastille--${x.worker_paid_at ? 'ok' : 'att'}">${x.worker_paid_at ? 'Payé le ' + new Date(x.worker_paid_at).toLocaleDateString('fr-CA') : 'À payer'}</span><div class="lo-p-actions"></div></li>`).join('') + '</ul>' : '<p class="tr-vide">Aucun travail terminé pour l\'instant.</p>';
+}
+
+async function loadAvis(){
+  const d = await callWorkerApi({ action: 'list_ratings' });
+  const a = d?.avis || [];
+  const moy = a.length ? (a.reduce((t, x) => t + x.stars, 0) / a.length).toFixed(1) : null;
+  document.getElementById('avis-list').innerHTML = a.length ? `<div class="vo-kpis" style="margin-bottom:14px"><div class="vo-kpi vo-kpi--accent"><span class="vo-kpi__label">Note moyenne</span><b>★ ${moy}</b></div><div class="vo-kpi"><span class="vo-kpi__label">Avis reçus</span><b>${a.length}</b></div></div>` +
+    a.map(x => `<div class="pp-carte"><b>${'★'.repeat(x.stars)}${'☆'.repeat(5 - x.stars)}</b> <span class="muted-t">par ${x.rated_by_type === 'tenant' ? 'le locataire' : x.rated_by_type === 'owner' ? 'le propriétaire' : 'l\'équipe'} · ${new Date(x.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</span>${x.comment ? `<p style="margin:8px 0 0">${esc(x.comment)}</p>` : ''}${x.work_orders ? `<p class="muted-t" style="margin:6px 0 0">${esc(x.work_orders.description)} · ${jobAddress(x.work_orders)}</p>` : ''}</div>`).join('') : '<p class="tr-vide">Pas encore d\'évaluation. Elles apparaissent après tes premiers travaux.</p>';
+}
+
+function renderConformite(){
+  const w = workerRecord || {};
+  const pb = [w.missing_rbq_license && 'licence RBQ manquante', w.rbq_expired && 'licence RBQ expirée', w.missing_insurance_doc && 'preuve d\'assurance manquante', w.insurance_expired && 'assurance expirée'].filter(Boolean);
+  document.getElementById('conf-etat').innerHTML = pb.length
+    ? `<div class="lo-conseil"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg><div><b>À régulariser pour recevoir des travaux</b>${esc(pb.join(', '))}. Envoie tes documents plus bas ou écris à l'équipe.</div></div>`
+    : `<div class="lo-conseil lo-conseil--ok"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg><div><b>Dossier conforme</b>${w.rbq_license ? 'Licence RBQ ' + esc(w.rbq_license) + (w.rbq_license_expiry ? ' (exp. ' + esc(w.rbq_license_expiry) + ')' : '') + ' · ' : ''}${w.insurance_expiry ? 'Assurance valide jusqu\'au ' + esc(w.insurance_expiry) : 'Assurance au dossier'}</div></div>`;
 }
 
 async function loadAutomatedDecisions(){
@@ -573,25 +720,25 @@ function filesToPayload(fileList){
 
 async function submitCompletion(jobId, btn){
   btn.disabled = true;
-  btn.textContent = 'Envoi...';
   const beforeFiles = document.getElementById('before-' + jobId).files;
   const afterFiles = document.getElementById('after-' + jobId).files;
   const message = document.getElementById('note-' + jobId).value.trim();
   if(!beforeFiles.length && !afterFiles.length){
-    alert('Ajoute au moins une photo (avant ou après).');
+    llToast('Ajoute au moins une photo (avant ou après).', 'erreur');
     btn.disabled = false;
-    btn.textContent = 'Envoyer';
     return;
   }
   const [before_photos, after_photos] = await Promise.all([filesToPayload(beforeFiles), filesToPayload(afterFiles)]);
   const res = await callWorkerApi({ action: 'submit_completion', work_order_id: jobId, message, before_photos, after_photos });
   if(res?.error){
-    alert('Erreur : ' + res.error);
+    llToast('Erreur : ' + res.error, 'erreur');
     btn.disabled = false;
-    btn.textContent = 'Envoyer';
     return;
   }
-  await loadJobs();
+  llToast('Travail signalé terminé : l\'équipe va confirmer et te payer.', 'succes');
+  ficheJob.data = null;
+  await loadJobs(); loadDashboard(); loadPaiements();
+  ouvrirJob(jobId, 'terminer');
 }
 
 function buildScheduleGrid(){
@@ -674,7 +821,7 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/compte.js?v=202609271845"></script>
-<script src="assets/url-propre.js?v=202609271845"></script>
+<script src="assets/compte.js?v=202609271850"></script>
+<script src="assets/url-propre.js?v=202609271850"></script>
 </body>
 </html>

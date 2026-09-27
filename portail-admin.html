@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271845">
-<script src="assets/charger-portail.js?v=202609271845"></script>
-<script src="assets/ui.js?v=202609271845"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271850">
+<script src="assets/charger-portail.js?v=202609271850"></script>
+<script src="assets/ui.js?v=202609271850"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -2970,7 +2970,7 @@ function trFil(d, w){
   const bulles = [];
   (d.messages || []).forEach(m => bulles.push({
     t: m.created_at, sens: m.direction,
-    etiquette: m.direction === 'entrant' ? (m.origine === 'lien' ? 'Via son lien de réponse' : 'Courriel reçu') : m.origine === 'manuel' ? `Envoyé par ${esc(m.users?.email?.split('@')[0] || 'l\'équipe')}` : 'Courriel automatique',
+    etiquette: m.direction === 'entrant' ? (m.origine === 'lien' ? 'Via son lien de réponse' : m.origine === 'portail' ? 'Via son portail' : 'Courriel reçu') : m.origine === 'manuel' ? `Envoyé par ${esc(m.users?.email?.split('@')[0] || 'l\'équipe')}` : 'Courriel automatique',
     auto: m.origine === 'automatique', sujet: m.sujet, corps: m.corps, wo: m.work_order_id,
   }));
   (d.mandats || []).filter(aRepondu).forEach(m => bulles.push({
@@ -4676,7 +4676,7 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/compte.js?v=202609271845"></script>
-<script src="assets/url-propre.js?v=202609271845"></script>
+<script src="assets/compte.js?v=202609271850"></script>
+<script src="assets/url-propre.js?v=202609271850"></script>
 </body>
 </html>
