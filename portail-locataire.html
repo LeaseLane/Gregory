@@ -93,9 +93,9 @@
     table{display:block;overflow-x:auto;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271646">
-<script src="assets/charger-portail.js?v=202609271646"></script>
-<script src="assets/ui.js?v=202609271646"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271707">
+<script src="assets/charger-portail.js?v=202609271707"></script>
+<script src="assets/ui.js?v=202609271707"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -390,6 +390,14 @@ function renderPayments(lease){
     </li>`).join('') + '</ul>';
 }
 
+// Demandes du locataire : liste compacte ; un clic ouvre la fiche à droite
+// (onglets Suivi / Échanges), comme les fiches du portail admin.
+let demandesCache = [], suivisCache = [];
+let ficheDemande = { id: null, onglet: 'suivi' };
+const suiviDe = id => suivisCache.filter(x => x.service_request_id === id).sort((a, b) => (b.cree_le || '').localeCompare(a.cree_le || ''))[0] || null;
+const filDe = r => (r.service_request_messages || []).slice().sort((a, b) => a.created_at.localeCompare(b.created_at));
+const infoDemandee = r => { const f = filDe(r), m = f[f.length - 1]; return !!m && m.sender !== 'tenant' && /fournir|photo|pourrais-tu|peux-tu|\?/i.test(m.body); };
+
 async function loadRequests(){
   const [{ data }, { data: suivis }] = await Promise.all([
     supabaseClient.from('service_requests')
@@ -398,32 +406,46 @@ async function loadRequests(){
       .order('created_at', { ascending: false }),
     supabaseClient.rpc('mes_suivis_demandes'),
   ]);
-  const suiviDe = id => (suivis || []).filter(x => x.service_request_id === id).sort((a, b) => (b.cree_le || '').localeCompare(a.cree_le || ''))[0] || null;
+  demandesCache = data || []; suivisCache = suivis || [];
+  const enCours = demandesCache.filter(r => !['closed', 'resolved', 'cancelled'].includes(r.status)).length;
+  const k = document.getElementById('lo-kpi-demandes'); if(k) k.textContent = enCours;
 
   const body = document.getElementById('requests-body');
-  const tagClass = { open: 'neutral', new: 'neutral', in_progress: 'warn', assigned: 'warn', closed: 'ok', resolved: 'ok' };
-  const tagLabel = { open: 'Reçue', new: 'Reçue', in_progress: 'En cours', assigned: 'Professionnel assigné', closed: 'Réglée', resolved: 'Réglée' };
-  const enCours = (data || []).filter(r => !['closed', 'resolved', 'cancelled'].includes(r.status)).length;
-  const k = document.getElementById('lo-kpi-demandes'); if(k) k.textContent = enCours;
-  if(!data || !data.length){ body.innerHTML = '<p class="tr-vide">Aucune demande envoyée pour l\'instant.</p>'; return; }
-  body.innerHTML = '<ul class="lo-demandes">' + data.map(r => {
-    const fil = (r.service_request_messages || []).slice().sort((a, b) => a.created_at.localeCompare(b.created_at));
-    const attend = fil.length && fil[fil.length - 1].sender !== 'tenant' && /fournir|photo|pourrais-tu|peux-tu|\?/i.test(fil[fil.length - 1].body);
-    const sv = suiviDe(r.id), et = etapeDemande(r, sv);
-    return `<li class="pp-carte lo-demande-bloc${demandesOuvertes.has(r.id) ? ' ouverte' : ''}" id="dem-${r.id}">
-    <button class="lo-demande" onclick="basculerDemande('${r.id}')" aria-expanded="${demandesOuvertes.has(r.id)}">
-      <div><b>${esc(r.description)}</b><small>Envoyée le ${new Date(r.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}${fil.length ? ` · ${fil.length} message${fil.length > 1 ? 's' : ''}` : ''}</small></div>
-      <span class="lo-demande-etat">${attend ? '<span class="tag warn">Info demandée</span>' : ''}<span class="tag ${et.ton}">${et.libelle}</span><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-down"/></svg></span>
-    </button>
-    <div class="lo-fil">
-      ${detailDemande(r, sv)}
-      <h4 class="lo-fil-titre">Échanges</h4>
-      ${fil.length ? fil.map(m => `
+  if(!demandesCache.length){ body.innerHTML = '<p class="tr-vide">Aucune demande pour l\'instant. Clique sur « Nouvelle demande » pour signaler un problème.</p>'; }
+  else body.innerHTML = '<ul class="lo-demandes">' + demandesCache.map(r => {
+    const sv = suiviDe(r.id), et = etapeDemande(r, sv), n = filDe(r).length;
+    return `<li><button class="pp-carte lo-demande lo-demande--lien" onclick="ouvrirDemande('${r.id}')">
+      <div><b>${esc(r.description)}</b><small>Envoyée le ${new Date(r.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}${sv?.professionnel ? ' · ' + esc(sv.professionnel) : ''}${sv?.rendez_vous ? ' · RDV ' + new Date(sv.rendez_vous).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' }) : ''}${n ? ` · ${n} message${n > 1 ? 's' : ''}` : ''}</small></div>
+      <span class="lo-demande-etat">${infoDemandee(r) ? '<span class="tag warn">Info demandée</span>' : ''}<span class="tag ${et.ton}">${et.libelle}</span><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-right"/></svg></span>
+    </button></li>`;
+  }).join('') + '</ul>';
+  if(ficheDemande.id) renderFicheDemande();
+}
+
+function ouvrirDemande(id, onglet){
+  ficheDemande = { id, onglet: onglet || 'suivi' };
+  if(!document.getElementById('fiche-dem')){
+    document.body.insertAdjacentHTML('beforeend', '<div class="fi-fond" onclick="fermerDemande()"></div><aside id="fiche-dem" class="fi-tiroir" role="dialog" aria-modal="true" aria-label="Demande"></aside>');
+    document.addEventListener('keydown', e => { if(e.key === 'Escape' && ficheDemande.id) fermerDemande(); });
+  }
+  document.body.classList.add('fi-ouvert');
+  renderFicheDemande();
+}
+function fermerDemande(){ ficheDemande.id = null; document.body.classList.remove('fi-ouvert'); }
+
+function renderFicheDemande(){
+  const r = demandesCache.find(x => x.id === ficheDemande.id);
+  const t = document.getElementById('fiche-dem');
+  if(!r || !t) return;
+  const sv = suiviDe(r.id), et = etapeDemande(r, sv), fil = filDe(r);
+  const onglet = (id, lib, n) => `<button class="fi-onglet${ficheDemande.onglet === id ? ' actif' : ''}" onclick="ficheDemande.onglet='${id}';renderFicheDemande()">${lib}${n ? ` <span>${n}</span>` : ''}</button>`;
+  const corps = ficheDemande.onglet === 'echanges' ? `
+      <div class="ms-fil" id="dem-fil">${fil.length ? fil.map(m => `
         <div class="ms-bulle ${m.sender === 'tenant' ? 'ms-bulle--sortant' : 'ms-bulle--entrant'}">
           <div class="ms-meta">${m.sender === 'tenant' ? 'Toi' + (m.via === 'courriel' ? ' (par courriel)' : '') : m.sender === 'team' ? 'Équipe Lease Lane' : 'Suivi automatique'} · ${new Date(m.created_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' })}</div>
           <div class="ms-corps"><div>${esc(m.body)}</div></div>
           ${(m.attachments || []).length ? `<div class="lo-pj">${m.attachments.map((p, i) => `<span class="tag neutral">${/\.(mp4|mov|m4v|webm|3gp)$/i.test(p) ? 'Vidéo' : 'Photo'} ${i + 1}</span>`).join(' ')}</div>` : ''}
-        </div>`).join('') : '<p class="tr-vide">Aucun message pour l\'instant. Tu peux ajouter des précisions ou des photos ci-dessous.</p>'}
+        </div>`).join('') : '<p class="tr-vide">Aucun message pour l\'instant. Ajoute une précision ou des photos ci-dessous.</p>'}</div>
       <div class="ms-ecrire">
         <textarea id="rep-${r.id}" rows="3" placeholder="Ajoute une précision, réponds à une question…"></textarea>
         <div class="ms-actions">
@@ -431,13 +453,20 @@ async function loadRequests(){
           <button class="ll-bouton ll-bouton--primaire lo-petit" id="rep-btn-${r.id}" onclick="repondreDemande('${r.id}')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button>
         </div>
         <p class="form-note" id="rep-note-${r.id}"></p>
-      </div>
-    </div>
-  </li>`;
-  }).join('') + '</ul>';
+      </div>` : `
+      <blockquote class="sr-desc">${esc(r.description)}</blockquote>
+      ${detailDemande(r, sv)}`;
+  t.innerHTML = `
+    <header class="fi-tete">
+      <span class="tr-avatar" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wrench"/></svg></span>
+      <div class="tr-ident"><h2>${esc(r.description.length > 60 ? r.description.slice(0, 57) + '…' : r.description)}</h2>
+        <div class="tr-specs"><span class="tag ${et.ton}">${et.libelle}</span>${infoDemandee(r) ? ' <span class="tag warn">Info demandée</span>' : ''}</div></div>
+      <button class="fi-fermer" onclick="fermerDemande()" aria-label="Fermer"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#x"/></svg></button>
+    </header>
+    <div class="fi-onglets" role="tablist">${onglet('suivi', 'Suivi')}${onglet('echanges', 'Échanges', fil.length)}</div>
+    <div class="fi-corps lo-fiche">${corps}</div>`;
+  const f = document.getElementById('dem-fil'); if(f) f.scrollTop = f.scrollHeight;
 }
-
-const demandesOuvertes = new Set();
 
 function ouvrirNouvelleDemande(){
   document.getElementById('request-note').style.display = 'none';
@@ -479,17 +508,10 @@ function detailDemande(r, sv){
   return `
     ${r.ai_immediate_action ? `<div class="lo-conseil"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg><div><b>En attendant l'intervention</b>${esc(r.ai_immediate_action)}</div></div>` : ''}
     <div class="lo-infos">${infos.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+    ${infoDemandee(r) ? `<button class="ll-bouton ll-bouton--secondaire lo-petit" onclick="ficheDemande.onglet='echanges';renderFicheDemande()">On t'a demandé une info : répondre</button>` : ''}
     <h4 class="lo-fil-titre">Historique</h4>
     <ol class="lo-histo">${ev.map(e => `<li><span class="lo-histo-pt"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#${e.ic}"/></svg></span><div><b>${e.txt}</b><time>${dateLongue(e.t)}</time></div></li>`).join('')}</ol>`;
 }
-function basculerDemande(id){
-  const el = document.getElementById('dem-' + id);
-  const ouvre = !el.classList.contains('ouverte');
-  el.classList.toggle('ouverte', ouvre);
-  el.querySelector('.lo-demande').setAttribute('aria-expanded', ouvre);
-  ouvre ? demandesOuvertes.add(id) : demandesOuvertes.delete(id);
-}
-
 // Réponse ou précision du locataire dans le fil d'une demande, avec photos
 // ou vidéos (réduites / 50 Mo max comme à la création).
 async function repondreDemande(id){
@@ -515,7 +537,7 @@ async function repondreDemande(id){
   } catch(e){
     note.textContent = "Envoi impossible : " + e.message; note.style.display = 'block'; btn.disabled = false; return;
   }
-  demandesOuvertes.add(id);
+  ficheDemande.onglet = 'echanges';
   await loadRequests();
 }
 
@@ -764,6 +786,6 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/url-propre.js?v=202609271646"></script>
+<script src="assets/url-propre.js?v=202609271707"></script>
 </body>
 </html>

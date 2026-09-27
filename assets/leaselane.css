@@ -1364,3 +1364,10 @@ input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire
 .lo-histo b{ display:block; font-size:13.5px; font-weight:600; color:var(--marine-900); }
 .lo-histo time{ font-size:12px; color:var(--texte-discret); }
 @media (max-width:760px){ .lo-infos{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+.lo-demandes > li{ list-style:none; }
+.lo-demande--lien{ width:100%; text-align:left; font:inherit; color:inherit; cursor:pointer; border:1px solid var(--bordure-portail); }
+.lo-demande--lien:hover{ border-color:var(--action-primaire); }
+.lo-fiche{ display:flex; flex-direction:column; gap:14px; }
+.lo-fiche .sr-desc{ margin:0; }
+#fiche-dem .tr-avatar .ic{ width:20px; height:20px; }
+#fiche-dem .tr-ident h2{ font-size:20px; }

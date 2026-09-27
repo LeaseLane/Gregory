@@ -56,7 +56,19 @@ if (import.meta.main) Deno.serve(async (req) => {
   const destinataires: string[] = [...(d.to ?? []), ...(d.received_for ?? [])];
 
   // Réponse d'un locataire à un courriel de suivi : elle va dans le fil de la demande.
-  const demandeId = destinataires.map((a) => a.match(/demande-([0-9a-f-]{36})@/i)?.[1]).find(Boolean) ?? null;
+  let demandeId = destinataires.map((a) => a.match(/demande-([0-9a-f-]{36})@/i)?.[1]).find(Boolean) ?? null;
+  const expediteurCourriel = String(d.from ?? "").match(/<([^>]+)>/)?.[1] ?? String(d.from ?? "");
+  // Courriel sans adresse de demande (envoyé avant son ajout, ou écrit à
+  // neuf) mais venant d'un locataire connu : sa demande ouverte la plus
+  // récente. Un travailleur n'est cherché qu'ensuite.
+  if (!demandeId && expediteurCourriel && !destinataires.some((a) => /travailleur-[0-9a-f-]{36}@/i.test(a))) {
+    const t = await fetch(`${supabaseUrl}/rest/v1/tenants?email=ilike.${encodeURIComponent(expediteurCourriel)}&select=id&limit=1`, { headers: adminHeaders });
+    const locId = (await t.json().catch(() => []))?.[0]?.id;
+    if (locId) {
+      const dm = await fetch(`${supabaseUrl}/rest/v1/service_requests?tenant_id=eq.${locId}&status=neq.closed&select=id&order=created_at.desc&limit=1`, { headers: adminHeaders });
+      demandeId = (await dm.json().catch(() => []))?.[0]?.id ?? null;
+    }
+  }
   if (demandeId && UUID.test(demandeId)) {
     const recuD = await fetch(`https://api.resend.com/emails/receiving/${d.email_id}`, { headers: { Authorization: `Bearer ${resendKey}` } });
     const courrielD = await recuD.json().catch(() => ({}));
