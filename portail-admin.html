@@ -2827,7 +2827,7 @@ function trDetail(w){
 // de l'équipe. Les travailleurs répondent par lien, pas par courriel :
 // la « conversation » est donc reconstituée à partir de ces événements.
 let ficheTr = { id: null, onglet: 'messages', data: null };
-const trReponse = { accepted: 'a accepté', declined: 'a refusé', proposed_other_time: 'propose une autre heure' };
+const trReponse = { accepted: 'a accepté', declined: 'a refusé', proposed_other_time: 'propose une autre heure', info_requested: 'pose une question' };
 // « pending » = offre envoyée, pas encore de réponse.
 const aRepondu = m => m.worker_response && m.worker_response !== 'pending';
 const trStatutMandat = { open: 'Ouvert', assigned: 'Assigné', in_progress: 'En cours', completed: 'Terminé', cancelled: 'Annulé' };
@@ -2944,6 +2944,7 @@ function renderFicheTravailleur(){
     <div class="fi-contact">
       ${w.phone ? `<a class="ll-bouton ll-bouton--secondaire" href="tel:${esc(w.phone)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>${esc(w.phone)}</a>` : ''}
       ${w.email ? `<a class="ll-bouton ll-bouton--secondaire" href="mailto:${esc(w.email)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>Écrire</a>` : '<span class="tr-manque">Aucun courriel : ne reçoit pas les offres</span>'}
+      ${w.user_id ? `<button class="ll-bouton ll-bouton--secondaire" data-role="worker" data-target-id="${esc(w.id)}" onclick="impersonateFromButton(this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#eye"/></svg>Voir son portail</button>` : ''}
       ${w.id && !w.user_id && w.email ? `<button class="ll-bouton ll-bouton--primaire" onclick="inviterTravailleurPortail('${w.id}', this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#key"/></svg>Inviter au portail</button>` : ''}
       <span class="tr-espace"></span>
       ${w.id ? ({ ok: '<span class="tr-pastille tr-pastille--ok">Conforme</span>', ko: '<span class="tr-pastille tr-pastille--ko">Non conforme</span>', inactif: '<span class="tr-pastille">Désactivé</span>' })[trStatut(w)] : ''}
