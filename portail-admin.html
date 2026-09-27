@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271837">
-<script src="assets/charger-portail.js?v=202609271837"></script>
-<script src="assets/ui.js?v=202609271837"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271845">
+<script src="assets/charger-portail.js?v=202609271845"></script>
+<script src="assets/ui.js?v=202609271845"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -2916,11 +2916,11 @@ function renderFicheTravailleur(){
         </div>
       </li>`).join('')}</ol>` : '<p class="tr-vide">Aucune activité pour l\'instant : ce travailleur n\'a encore reçu aucune offre.</p>';
   } else if(ficheTr.onglet === 'mandats'){
-    corps = mandats.length ? `<table class="fi-table"><thead><tr><th>Travail</th><th>Statut</th><th class="num">Paie</th><th>Reçu le</th></tr></thead><tbody>${mandats.map(m => `
+    corps = mandats.length ? `<table class="fi-table"><thead><tr><th>Travail</th><th>Statut</th><th class="num">Paie</th><th>Paiement</th></tr></thead><tbody>${mandats.map(m => `
       <tr><td><b>${esc(m.description)}</b>${m.is_urgent ? ' <span class="tr-pastille tr-pastille--ko">Urgent</span>' : ''}<small>${esc(m.units?.buildings?.address || '')}${m.units ? ', unité ' + esc(m.units.unit_number) : ''}</small></td>
       <td>${trStatutMandat[m.status] || esc(m.status)}${aRepondu(m) ? `<small>${trReponse[m.worker_response] || esc(m.worker_response)}</small>` : m.worker_notified_at ? '<small class="tr-manque">sans réponse</small>' : ''}</td>
-      <td class="num">${m.worker_pay != null ? Number(m.worker_pay).toLocaleString('fr-CA') + ' $' : '—'}</td>
-      <td>${new Date(m.created_at).toLocaleDateString('fr-CA')}</td></tr>`).join('')}</tbody></table>` : '<p class="tr-vide">Aucun mandat pour l\'instant.</p>';
+      <td class="num">${m.worker_pay != null ? Number(m.worker_pay).toLocaleString('fr-CA') + ' $' : '—'}<small>${new Date(m.created_at).toLocaleDateString('fr-CA')}</small></td>
+      <td>${m.worker_paid_at ? `<span class="tr-pastille tr-pastille--ok">Payé</span><small>${Number(m.worker_paid_amount ?? m.worker_pay ?? 0).toLocaleString('fr-CA')} $ · ${new Date(m.worker_paid_at).toLocaleDateString('fr-CA')}</small>` : (m.worker_reported_done_at || m.status === 'completed') ? `<button class="vo-action" onclick="marquerTravailleurPaye('${m.id}', ${m.worker_pay ?? 'null'})">Marquer payé</button>` : '<span class="tr-manque">—</span>'}</td></tr>`).join('')}</tbody></table>` : '<p class="tr-vide">Aucun mandat pour l\'instant.</p>';
   } else if(ficheTr.onglet === 'notes'){
     corps = `
       <div class="fi-note-form">
@@ -2944,6 +2944,7 @@ function renderFicheTravailleur(){
     <div class="fi-contact">
       ${w.phone ? `<a class="ll-bouton ll-bouton--secondaire" href="tel:${esc(w.phone)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>${esc(w.phone)}</a>` : ''}
       ${w.email ? `<a class="ll-bouton ll-bouton--secondaire" href="mailto:${esc(w.email)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>Écrire</a>` : '<span class="tr-manque">Aucun courriel : ne reçoit pas les offres</span>'}
+      ${w.id && !w.user_id && w.email ? `<button class="ll-bouton ll-bouton--primaire" onclick="inviterTravailleurPortail('${w.id}', this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#key"/></svg>Inviter au portail</button>` : ''}
       <span class="tr-espace"></span>
       ${w.id ? ({ ok: '<span class="tr-pastille tr-pastille--ok">Conforme</span>', ko: '<span class="tr-pastille tr-pastille--ko">Non conforme</span>', inactif: '<span class="tr-pastille">Désactivé</span>' })[trStatut(w)] : ''}
     </div>
@@ -3012,6 +3013,26 @@ async function envoyerCourrielTravailleur(){
   if(!res?.ok) return;
   llToast('Courriel envoyé.', 'succes');
   ouvrirFicheTravailleur(ficheTr.id, 'messages');
+}
+
+async function inviterTravailleurPortail(id, btn){
+  const w = workersDirectory.find(x => x.id === id) || ficheTr.data?.worker || {};
+  if(!await llConfirmer(`Créer l'accès au portail pour ${w.name || 'ce travailleur'} et envoyer ses identifiants à ${w.email} ?`, { libelle: 'Inviter' })) return;
+  btn.disabled = true;
+  const res = await callOnboardingApi({ action: 'grant_worker_access', worker_id: id });
+  btn.disabled = false;
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'invitation impossible'), 'erreur'); return; }
+  llToast('Invitation envoyée à ' + w.email + '.', 'succes');
+  await loadWorkersAdmin(); ouvrirFicheTravailleur(id);
+}
+
+async function marquerTravailleurPaye(workOrderId, prevu){
+  const montant = await llDemander('Montant payé au travailleur ($) :', prevu != null ? String(prevu) : '');
+  if(montant === null) return;
+  const res = await callOpsApi({ action: 'mark_worker_paid', work_order_id: workOrderId, amount: montant.trim() });
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'non enregistré'), 'erreur'); return; }
+  llToast('Paiement noté : visible dans le portail du travailleur.', 'succes');
+  ouvrirFicheTravailleur(ficheTr.id, 'mandats');
 }
 
 async function ajouterNoteTravailleur(){
@@ -4655,7 +4676,7 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/compte.js?v=202609271837"></script>
-<script src="assets/url-propre.js?v=202609271837"></script>
+<script src="assets/compte.js?v=202609271845"></script>
+<script src="assets/url-propre.js?v=202609271845"></script>
 </body>
 </html>

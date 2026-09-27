@@ -2,6 +2,9 @@ import { EXPEDITEUR } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor, requireUser } from "../_shared/auth.ts";
 
+// Ce que le travailleur voit d'un travail : jamais les frais de coordination
+// ni les coordonnées du locataire.
+const CHAMPS_JOB = "id,description,worker_pay,status,created_at,appointment_at,due_by,entry_permission,billing_terms,safety_instructions,is_urgent,worker_response,worker_response_note,worker_reported_done_at,worker_completion_note,tenant_confirmed,photo_before_urls,photo_after_urls,worker_paid_at,worker_paid_amount,units(unit_number,buildings(address)),service_requests(description,photo_urls,ai_category,ai_subcategory,ai_video_summary,safety_override)";
 const ALLOWED_AVAILABILITY = ["maintenant", "aujourdhui", "semaine", "indisponible"];
 
 
@@ -177,11 +180,97 @@ Deno.serve(async (req) => {
 
     if (action === "list_my_jobs") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/work_orders?worker_id=eq.${workerId}&select=id,description,worker_pay,status,appointment_at,worker_reported_done_at,photo_before_urls,photo_after_urls,units(unit_number,buildings(address))&order=created_at.desc`,
+        `${supabaseUrl}/rest/v1/work_orders?worker_id=eq.${workerId}&select=${CHAMPS_JOB}&order=created_at.desc`,
         { headers: adminHeaders },
       );
       const jobs = await res.json().catch(() => []);
       return new Response(JSON.stringify({ jobs }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const json = (d: unknown, status = 200) => new Response(JSON.stringify(d), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const lire = (chemin: string) => fetch(`${supabaseUrl}/rest/v1/${chemin}`, { headers: adminHeaders }).then((r) => r.ok ? r.json() : []);
+    const monJob = async (id: string) => /^[0-9a-f-]{36}$/i.test(String(id)) ? (await lire(`work_orders?id=eq.${id}&worker_id=eq.${workerId}&select=${CHAMPS_JOB},worker_response_token`))[0] ?? null : null;
+
+    // Tableau de bord : les chiffres du travailleur en un appel.
+    if (action === "get_dashboard") {
+      const [offres, jobs, notes] = await Promise.all([
+        lire(`job_offers?worker_id=eq.${workerId}&status=eq.sent&select=id`),
+        lire(`work_orders?worker_id=eq.${workerId}&select=id,description,status,worker_response,appointment_at,worker_pay,worker_reported_done_at,worker_paid_at,worker_paid_amount,units(unit_number,buildings(address))&order=appointment_at.asc.nullslast`),
+        lire(`worker_ratings?worker_id=eq.${workerId}&select=stars`),
+      ]);
+      const debutMois = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+      const actifs = jobs.filter((j: any) => !["completed", "cancelled"].includes(j.status));
+      return json({
+        offres_en_attente: offres.length + jobs.filter((j: any) => ["pending", "info_requested", "proposed_other_time"].includes(j.worker_response) && !["completed", "cancelled"].includes(j.status)).length,
+        en_cours: actifs.filter((j: any) => j.worker_response === "accepted").length,
+        a_payer: jobs.filter((j: any) => j.worker_reported_done_at && !j.worker_paid_at).reduce((t: number, j: any) => t + Number(j.worker_pay || 0), 0),
+        gagne_ce_mois: jobs.filter((j: any) => j.worker_paid_at && j.worker_paid_at >= debutMois).reduce((t: number, j: any) => t + Number(j.worker_paid_amount ?? j.worker_pay ?? 0), 0),
+        note: notes.length ? Math.round(10 * notes.reduce((t: number, n: any) => t + n.stars, 0) / notes.length) / 10 : null,
+        nb_avis: notes.length,
+        prochains: actifs.filter((j: any) => j.appointment_at && j.appointment_at >= new Date().toISOString()).slice(0, 5),
+      });
+    }
+
+    // Fiche d'un travail : détails, pièces jointes (liens signés 1 h), fil.
+    if (action === "get_job") {
+      const wo = await monJob(body.work_order_id);
+      if (!wo) return json({ error: "Travail introuvable" }, 404);
+      const chemins: string[] = [...(wo.service_requests?.photo_urls || []).map((p: string) => ["locataire", p]), ...(wo.photo_before_urls || []).map((p: string) => ["avant", p]), ...(wo.photo_after_urls || []).map((p: string) => ["apres", p])].slice(0, 25) as any;
+      const pieces = (await Promise.all((chemins as any).map(async ([groupe, chemin]: [string, string]) => {
+        const r = await fetch(`${supabaseUrl}/storage/v1/object/sign/service-request-photos/${chemin}`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ expiresIn: 3600 }) }).catch(() => null);
+        const d = r?.ok ? await r.json().catch(() => null) : null;
+        return d?.signedURL ? { groupe, url: `${supabaseUrl}/storage/v1${d.signedURL}`, video: /\.(mp4|mov|m4v|webm|3gp)$/i.test(chemin) } : null;
+      }))).filter(Boolean);
+      const [messages, avis] = await Promise.all([
+        lire(`worker_messages?worker_id=eq.${workerId}&work_order_id=eq.${wo.id}&select=id,direction,origine,sujet,corps,created_at&order=created_at.asc&limit=300`),
+        lire(`worker_ratings?work_order_id=eq.${wo.id}&worker_id=eq.${workerId}&select=stars,comment,rated_by_type,created_at`),
+      ]);
+      delete (wo as any).worker_response_token;
+      return json({ job: wo, pieces, messages, avis });
+    }
+
+    // Réponse à un travail assigné directement (même logique que le lien
+    // envoyé par courriel : on appelle handle-worker-response avec le jeton).
+    if (action === "respond_job") {
+      const wo = await monJob(body.work_order_id);
+      if (!wo) return json({ error: "Travail introuvable" }, 404);
+      if (!["accept", "decline", "propose_time", "request_info"].includes(body.reponse)) return json({ error: "Réponse inconnue" }, 400);
+      const r = await fetch(`${supabaseUrl}/functions/v1/handle-worker-response`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey ?? "" },
+        body: JSON.stringify({ work_order_id: wo.id, token: wo.worker_response_token, action: body.reponse, message: body.message || undefined }),
+      });
+      const d = await r.json().catch(() => ({}));
+      return json(d, r.status);
+    }
+
+    // Message au sujet d'un travail précis, ou message général (sans travail).
+    if (action === "send_message") {
+      const t = String(body.texte ?? "").trim();
+      if (!t || t.length > 10000) return json({ error: "Message vide ou trop long" }, 400);
+      let wo = null;
+      if (body.work_order_id) { wo = await monJob(body.work_order_id); if (!wo) return json({ error: "Travail introuvable" }, 404); }
+      const ins = await fetch(`${supabaseUrl}/rest/v1/worker_messages`, {
+        method: "POST", headers: { ...adminHeaders, Prefer: "return=minimal" },
+        body: JSON.stringify({ worker_id: workerId, work_order_id: wo?.id ?? null, direction: "entrant", origine: "portail", sujet: wo ? `Au sujet de : ${String(wo.description).slice(0, 80)}` : "Message", corps: t }),
+      });
+      if (!ins.ok) return json({ error: "Message non enregistré" }, 502);
+      await notifyAdmins(
+        `${worker.name || "Un travailleur"} vous écrit${wo ? " — " + (wo.units?.buildings?.address || "") : ""}`,
+        `${wo ? `Travail : ${wo.description}\n` : ""}Message : ${t}\n\nRéponds depuis le portail admin (fiche du travailleur ou Travaux en cours → Échanges).`,
+      ).catch(() => null);
+      return json({ ok: true });
+    }
+
+    if (action === "list_messages") {
+      return json({ messages: await lire(`worker_messages?worker_id=eq.${workerId}&work_order_id=is.null&select=id,direction,origine,sujet,corps,created_at&order=created_at.asc&limit=300`) });
+    }
+
+    if (action === "list_payments") {
+      return json({ paiements: await lire(`work_orders?worker_id=eq.${workerId}&worker_reported_done_at=not.is.null&select=id,description,worker_pay,worker_reported_done_at,worker_paid_at,worker_paid_amount,worker_paid_note,status,units(unit_number,buildings(address))&order=worker_reported_done_at.desc`), interac: worker.payout_email ?? null });
+    }
+
+    if (action === "list_ratings") {
+      return json({ avis: await lire(`worker_ratings?worker_id=eq.${workerId}&select=stars,comment,rated_by_type,created_at,work_orders(description,units(unit_number,buildings(address)))&order=created_at.desc`) });
     }
 
     if (action === "submit_completion") {

@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "worker_id invalide" }), { status: 400, headers: corsHeaders });
       }
       const lire = (chemin: string) => fetch(`${supabaseUrl}/rest/v1/${chemin}`, { headers: adminHeaders }).then((r) => r.ok ? r.json() : []);
-      const champsMandat = "id,description,status,estimated_cost,worker_pay,created_at,is_urgent,worker_notified_at,worker_response,worker_response_at,worker_response_note,response_reminder_sent,response_escalated,appointment_at,worker_reported_done_at,worker_completion_note,tenant_confirmed,units(unit_number,buildings(address))";
+      const champsMandat = "id,description,status,estimated_cost,worker_pay,worker_paid_at,worker_paid_amount,created_at,is_urgent,worker_notified_at,worker_response,worker_response_at,worker_response_note,response_reminder_sent,response_escalated,appointment_at,worker_reported_done_at,worker_completion_note,tenant_confirmed,units(unit_number,buildings(address))";
       const [[worker], mandats, refuses, evaluations, notes, auditTravailleur, messages] = await Promise.all([
         lire(`worker_verification_status?id=eq.${worker_id}&select=*`),
         lire(`work_orders?worker_id=eq.${worker_id}&select=${champsMandat}&order=created_at.desc&limit=100`),
@@ -667,6 +667,23 @@ Deno.serve(async (req) => {
       });
       if (!envoi.ok) return new Response(JSON.stringify({ error: `Courriel non envoyé : ${envoi.erreur}` }), { status: 502, headers: corsHeaders });
       await logAudit("work_order.worker_message_sent", "work_orders", work_order_id, {});
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Paiement du travailleur noté sur le travail (visible dans son portail).
+    if (action === "mark_worker_paid") {
+      const { work_order_id, amount, note } = body;
+      const r = await fetch(`${supabaseUrl}/rest/v1/work_orders?id=eq.${work_order_id}&select=worker_pay,worker_paid_at`, { headers: adminHeaders });
+      const [w] = await r.json().catch(() => []);
+      if (!w) return new Response(JSON.stringify({ error: "Travail introuvable" }), { status: 404, headers: corsHeaders });
+      const montant = amount != null && amount !== "" ? Number(amount) : Number(w.worker_pay ?? 0);
+      if (!(montant >= 0)) return new Response(JSON.stringify({ error: "Montant invalide" }), { status: 400, headers: corsHeaders });
+      const up = await fetch(`${supabaseUrl}/rest/v1/work_orders?id=eq.${work_order_id}`, {
+        method: "PATCH", headers: adminHeaders,
+        body: JSON.stringify({ worker_paid_at: new Date().toISOString(), worker_paid_amount: montant, worker_paid_note: String(note ?? "").trim() || null }),
+      });
+      if (!up.ok) return new Response(JSON.stringify({ error: `Non enregistré : ${(await up.text()).slice(0, 200)}` }), { status: 502, headers: corsHeaders });
+      await logAudit("work_order.worker_paid", "work_orders", work_order_id, { amount: montant });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

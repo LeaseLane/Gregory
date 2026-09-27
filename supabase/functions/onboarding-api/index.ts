@@ -624,6 +624,33 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true, temp_password: acces.motDePasse }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Accès au portail pour un travailleur ajouté par l'équipe (sans compte) :
+    // compte créé avec un mot de passe temporaire à changer au premier accès.
+    if (action === "grant_worker_access") {
+      const { worker_id } = body;
+      const wRes = await fetch(`${supabaseUrl}/rest/v1/workers?id=eq.${worker_id}&select=id,name,email,user_id`, { headers: adminHeaders });
+      const [w] = await wRes.json().catch(() => []);
+      if (!w) return new Response(JSON.stringify({ error: "Travailleur introuvable" }), { status: 404, headers: corsHeaders });
+      if (w.user_id) return new Response(JSON.stringify({ error: "Ce travailleur a déjà un accès" }), { status: 409, headers: corsHeaders });
+      if (!w.email) return new Response(JSON.stringify({ error: "Ajoute d'abord un courriel à ce travailleur" }), { status: 400, headers: corsHeaders });
+      const motDePasse = randomPassword();
+      const authRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+        method: "POST", headers: adminHeaders,
+        body: JSON.stringify({ email: w.email, password: motDePasse, email_confirm: true, user_metadata: { doit_changer_mdp: true } }),
+      });
+      const authData = await authRes.json();
+      if (!authRes.ok || !authData.id) {
+        return new Response(JSON.stringify({ error: authData.msg || authData.error_description || "Impossible de créer le compte" }), { status: 400, headers: corsHeaders });
+      }
+      await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${authData.id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ role: "worker" }) });
+      const lien = await fetch(`${supabaseUrl}/rest/v1/workers?id=eq.${worker_id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ user_id: authData.id }) });
+      if (!lien.ok) return new Response(JSON.stringify({ error: "Compte créé mais fiche non liée." }), { status: 500, headers: corsHeaders });
+      await sendEmail(w.email, "Ton accès au portail Lease Lane",
+        `Bonjour ${w.name?.split(" ")[0] || ""},\n\nTon portail travailleur Lease Lane est prêt : tes offres de travail, tes travaux, tes paiements et tes échanges avec l'équipe, au même endroit.\n\nConnexion : ${PORTAILS.travailleur}\nCourriel : ${w.email}\nMot de passe temporaire : ${motDePasse}\n\nÀ ta première connexion, tu choisiras ton propre mot de passe.\n\nL'équipe Lease Lane`);
+      await logAudit("worker.access_granted", "workers", worker_id, { email: w.email });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "create_cold_caller") {
       const { full_name, email, phone } = body;
       if (!full_name || !email) {
