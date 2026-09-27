@@ -1340,3 +1340,27 @@ input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire
 .sr-fil[open] summary{ margin-bottom:12px; }
 .sr-fil .ms-fil{ max-height:360px; }
 .ms-actions .lo-petit .ic{ width:15px; height:15px; margin-right:6px; vertical-align:-2px; }
+/* Portail locataire : boîte « Nouvelle demande » et détail */
+.lo-dialog{ border:none; border-radius:var(--rayon-carte); padding:0; width:min(640px, calc(100vw - 32px)); box-shadow:0 24px 70px rgba(10,32,56,.3); }
+.lo-dialog::backdrop{ background:rgba(10,32,56,.45); }
+.lo-dialog form{ padding:22px 24px; margin:0; }
+.lo-dialog-tete{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.lo-dialog-tete h2{ margin:0; }
+.lo-dialog .subtitle{ margin:6px 0 16px; }
+.lo-conseil{ display:flex; gap:10px; padding:12px 14px; border-radius:var(--rayon-champ); background:var(--alerte-100); color:var(--texte-corps); font-size:13.5px; line-height:1.5; }
+.lo-conseil .ic{ width:17px; height:17px; flex:none; margin-top:2px; color:var(--alerte-600); }
+.lo-conseil b{ display:block; color:var(--alerte-600); }
+.lo-infos{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; }
+.lo-infos div{ background:var(--surface-enfoncee); border-radius:var(--rayon-champ); padding:10px 12px; min-width:0; }
+.lo-infos span{ display:block; font:600 10.5px/1.2 var(--police-texte); letter-spacing:.1em; text-transform:uppercase; color:var(--texte-discret); margin-bottom:4px; }
+.lo-infos b{ font-size:14px; color:var(--marine-900); overflow-wrap:anywhere; }
+.lo-infos small{ display:block; font-weight:400; color:var(--texte-discret); }
+.lo-fil-titre{ margin:6px 0 0; font:600 12px/1.3 var(--police-texte); letter-spacing:.1em; text-transform:uppercase; color:var(--texte-discret); }
+.lo-histo{ list-style:none; margin:0; padding:0; }
+.lo-histo li{ display:flex; gap:12px; padding-bottom:12px; position:relative; }
+.lo-histo li:not(:last-child)::before{ content:""; position:absolute; left:13px; top:28px; bottom:0; width:2px; background:var(--bordure-fine); }
+.lo-histo-pt{ width:28px; height:28px; border-radius:50%; background:var(--info-100); color:var(--bleu-600); display:grid; place-items:center; flex:none; }
+.lo-histo-pt .ic{ width:14px; height:14px; }
+.lo-histo b{ display:block; font-size:13.5px; font-weight:600; color:var(--marine-900); }
+.lo-histo time{ font-size:12px; color:var(--texte-discret); }
+@media (max-width:760px){ .lo-infos{ grid-template-columns:repeat(2, minmax(0,1fr)); } }

@@ -93,9 +93,9 @@
     table{display:block;overflow-x:auto;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271639">
-<script src="assets/charger-portail.js?v=202609271639"></script>
-<script src="assets/ui.js?v=202609271639"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271646">
+<script src="assets/charger-portail.js?v=202609271646"></script>
+<script src="assets/ui.js?v=202609271646"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -145,7 +145,7 @@
       <span class="brand-sub">Espace locataire</span>
       <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#layout-grid"/></svg><span>Mon logement</span></button>
       <button class="tab-btn" data-tab="payments" onclick="showTab('payments')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#banknote"/></svg><span>Mes paiements</span></button>
-      <button class="tab-btn" data-tab="requests" onclick="showTab('requests')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wrench"/></svg><span>Signaler un problème</span></button>
+      <button class="tab-btn" data-tab="requests" onclick="showTab('requests')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wrench"/></svg><span>Mes demandes</span></button>
       <button class="tab-btn" data-tab="decisions" onclick="showTab('decisions')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bot"/></svg><span>Décisions automatisées</span></button>
       <div class="signout">
         <button class="tab-btn" onclick="handleSignOut()">Se déconnecter</button>
@@ -159,7 +159,7 @@
             <h1 id="tenant-greeting">Bonjour</h1>
             <p class="subtitle" id="tenant-subtitle">Chargement...</p>
           </div>
-          <button class="ll-bouton ll-bouton--primaire" onclick="showTab('requests')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wrench"/></svg>Signaler un problème</button>
+          <button class="ll-bouton ll-bouton--primaire" onclick="showTab('requests');ouvrirNouvelleDemande()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wrench"/></svg>Signaler un problème</button>
         </div>
         <div class="vo-kpis" id="lo-kpis">
           <div class="vo-kpi vo-kpi--accent"><span class="vo-kpi__label">Prochain loyer</span><b>—</b></div>
@@ -178,20 +178,29 @@
       </section>
 
       <section id="requests" class="section">
-        <div class="toolbar"><h2>Signaler un problème</h2></div>
-        <p class="subtitle">Décris ce qui ne va pas : on s'occupe de trouver le bon professionnel et on te tient au courant.</p>
-        <form class="pp-carte lo-form" onsubmit="submitServiceRequest(event)">
-          <label class="ch-label" for="request-message">Qu'est-ce qui se passe ?</label>
-          <textarea id="request-message" required rows="4" placeholder="Ex. : Fuite d'eau sous l'évier de la cuisine depuis ce matin."></textarea>
-          <label class="ch-label" for="request-photos" style="margin-top:14px;">Photos ou vidéos <small>(optionnel, ça aide beaucoup à diagnostiquer vite · vidéo de 5 minutes max)</small></label>
-          <input type="file" id="request-photos" accept="image/*,video/*" multiple>
-          <div class="lo-form-pied">
-            <p class="form-note" id="request-note"></p>
-            <button class="ll-bouton ll-bouton--primaire" type="submit" id="request-submit-btn"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer la demande</button>
+        <div class="vo-entete">
+          <div>
+            <h1>Mes demandes</h1>
+            <p class="subtitle">Tes signalements, qui s'en occupe et où ça en est.</p>
           </div>
-        </form>
-        <h3 class="sous-titre">Mes demandes</h3>
+          <button class="ll-bouton ll-bouton--primaire" onclick="ouvrirNouvelleDemande()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#plus"/></svg>Nouvelle demande</button>
+        </div>
         <div id="requests-body"><p class="tr-vide">Chargement...</p></div>
+
+        <dialog id="dlg-demande" class="lo-dialog" onclick="if(event.target===this) this.close()">
+          <form class="lo-form" onsubmit="submitServiceRequest(event)">
+            <header class="lo-dialog-tete"><h2>Signaler un problème</h2><button type="button" class="fi-fermer" onclick="document.getElementById('dlg-demande').close()" aria-label="Fermer"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#x"/></svg></button></header>
+            <p class="subtitle">Décris ce qui ne va pas : on trouve le bon professionnel et on te tient au courant ici.</p>
+            <label class="ch-label" for="request-message">Qu'est-ce qui se passe ?</label>
+            <textarea id="request-message" required rows="5" placeholder="Ex. : Fuite d'eau sous l'évier de la cuisine depuis ce matin."></textarea>
+            <label class="ch-label" for="request-photos" style="margin-top:14px;">Photos ou vidéos <small>(optionnel, ça aide beaucoup · vidéo de 5 minutes max)</small></label>
+            <input type="file" id="request-photos" accept="image/*,video/*" multiple>
+            <div class="lo-form-pied">
+              <p class="form-note" id="request-note"></p>
+              <button class="ll-bouton ll-bouton--primaire" type="submit" id="request-submit-btn"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer la demande</button>
+            </div>
+          </form>
+        </dialog>
       </section>
 
       <section id="decisions" class="section">
@@ -382,11 +391,14 @@ function renderPayments(lease){
 }
 
 async function loadRequests(){
-  const { data } = await supabaseClient
-    .from('service_requests')
-    .select('*, service_request_messages(id, sender, body, attachments, via, created_at)')
-    .eq('tenant_id', tenantRecord.id)
-    .order('created_at', { ascending: false });
+  const [{ data }, { data: suivis }] = await Promise.all([
+    supabaseClient.from('service_requests')
+      .select('*, service_request_messages(id, sender, body, attachments, via, created_at)')
+      .eq('tenant_id', tenantRecord.id)
+      .order('created_at', { ascending: false }),
+    supabaseClient.rpc('mes_suivis_demandes'),
+  ]);
+  const suiviDe = id => (suivis || []).filter(x => x.service_request_id === id).sort((a, b) => (b.cree_le || '').localeCompare(a.cree_le || ''))[0] || null;
 
   const body = document.getElementById('requests-body');
   const tagClass = { open: 'neutral', new: 'neutral', in_progress: 'warn', assigned: 'warn', closed: 'ok', resolved: 'ok' };
@@ -397,18 +409,21 @@ async function loadRequests(){
   body.innerHTML = '<ul class="lo-demandes">' + data.map(r => {
     const fil = (r.service_request_messages || []).slice().sort((a, b) => a.created_at.localeCompare(b.created_at));
     const attend = fil.length && fil[fil.length - 1].sender !== 'tenant' && /fournir|photo|pourrais-tu|peux-tu|\?/i.test(fil[fil.length - 1].body);
+    const sv = suiviDe(r.id), et = etapeDemande(r, sv);
     return `<li class="pp-carte lo-demande-bloc${demandesOuvertes.has(r.id) ? ' ouverte' : ''}" id="dem-${r.id}">
     <button class="lo-demande" onclick="basculerDemande('${r.id}')" aria-expanded="${demandesOuvertes.has(r.id)}">
       <div><b>${esc(r.description)}</b><small>Envoyée le ${new Date(r.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}${fil.length ? ` · ${fil.length} message${fil.length > 1 ? 's' : ''}` : ''}</small></div>
-      <span class="lo-demande-etat">${attend ? '<span class="tag warn">Info demandée</span>' : ''}<span class="tag ${tagClass[r.status] || 'neutral'}">${tagLabel[r.status] || esc(r.status)}</span><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-down"/></svg></span>
+      <span class="lo-demande-etat">${attend ? '<span class="tag warn">Info demandée</span>' : ''}<span class="tag ${et.ton}">${et.libelle}</span><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-down"/></svg></span>
     </button>
     <div class="lo-fil">
+      ${detailDemande(r, sv)}
+      <h4 class="lo-fil-titre">Échanges</h4>
       ${fil.length ? fil.map(m => `
         <div class="ms-bulle ${m.sender === 'tenant' ? 'ms-bulle--sortant' : 'ms-bulle--entrant'}">
           <div class="ms-meta">${m.sender === 'tenant' ? 'Toi' + (m.via === 'courriel' ? ' (par courriel)' : '') : m.sender === 'team' ? 'Équipe Lease Lane' : 'Suivi automatique'} · ${new Date(m.created_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' })}</div>
           <div class="ms-corps"><div>${esc(m.body)}</div></div>
           ${(m.attachments || []).length ? `<div class="lo-pj">${m.attachments.map((p, i) => `<span class="tag neutral">${/\.(mp4|mov|m4v|webm|3gp)$/i.test(p) ? 'Vidéo' : 'Photo'} ${i + 1}</span>`).join(' ')}</div>` : ''}
-        </div>`).join('') : '<p class="tr-vide">Pas encore de mise à jour. Tu peux ajouter des précisions ou des photos ci-dessous.</p>'}
+        </div>`).join('') : '<p class="tr-vide">Aucun message pour l\'instant. Tu peux ajouter des précisions ou des photos ci-dessous.</p>'}
       <div class="ms-ecrire">
         <textarea id="rep-${r.id}" rows="3" placeholder="Ajoute une précision, réponds à une question…"></textarea>
         <div class="ms-actions">
@@ -423,6 +438,50 @@ async function loadRequests(){
 }
 
 const demandesOuvertes = new Set();
+
+function ouvrirNouvelleDemande(){
+  document.getElementById('request-note').style.display = 'none';
+  document.getElementById('dlg-demande').showModal();
+  document.getElementById('request-message').focus();
+}
+
+const dateLongue = d => new Date(d).toLocaleString('fr-CA', { dateStyle: 'long', timeStyle: 'short' });
+// Où en est la demande, vu par le locataire (du plus avancé au moins avancé).
+function etapeDemande(r, sv){
+  if(sv?.termine_le && sv?.confirme) return { libelle: 'Réglée', ton: 'ok' };
+  if(sv?.termine_le) return { libelle: 'Travail terminé', ton: 'ok' };
+  if(sv?.rendez_vous) return { libelle: 'Rendez-vous fixé', ton: 'warn' };
+  if(sv?.professionnel && sv?.reponse_travailleur === 'accepted') return { libelle: 'Professionnel confirmé', ton: 'warn' };
+  if(sv?.professionnel) return { libelle: 'Professionnel assigné', ton: 'warn' };
+  if(sv?.approbation === 'pending') return { libelle: 'Accord du propriétaire en attente', ton: 'neutral' };
+  if(sv) return { libelle: 'Recherche d\'un professionnel', ton: 'neutral' };
+  if(['closed', 'resolved'].includes(r.status)) return { libelle: 'Réglée', ton: 'ok' };
+  return { libelle: r.ai_category ? 'Analysée, en attente' : 'Reçue', ton: 'neutral' };
+}
+
+function detailDemande(r, sv){
+  const infos = [
+    ['Catégorie', r.ai_category ? esc(r.ai_category) + (r.ai_subcategory ? ' · ' + esc(r.ai_subcategory) : '') : 'En cours d\'analyse'],
+    ['Professionnel', sv?.professionnel ? esc(sv.professionnel) + (sv.metier ? ` <small>${esc(sv.metier)}</small>` : '') : 'Pas encore assigné'],
+    ['Rendez-vous', sv?.rendez_vous ? dateLongue(sv.rendez_vous) : 'À confirmer'],
+    ['Pièces jointes', (r.photo_urls || []).length ? `${r.photo_urls.length} fichier${r.photo_urls.length > 1 ? 's' : ''}` : 'Aucune'],
+  ];
+  const ev = [{ t: r.created_at, txt: 'Demande envoyée', ic: 'send' }];
+  if(r.ai_category) ev.push({ t: r.created_at, txt: `Analysée : ${esc(r.ai_category)}`, ic: 'sparkles' });
+  if(sv?.approbation) ev.push({ t: sv.cree_le, txt: sv.approbation === 'pending' ? 'Accord du propriétaire demandé (coût au-dessus de son plafond)' : sv.approbation === 'approved' ? 'Le propriétaire a donné son accord' : 'Le propriétaire a refusé : nouvelle soumission en cours', ic: 'shield-check' });
+  if(sv?.recherche_depuis && !sv?.professionnel) ev.push({ t: sv.recherche_depuis, txt: 'Recherche d\'un professionnel disponible', ic: 'search' });
+  if(sv?.professionnel) ev.push({ t: sv.cree_le, txt: `Professionnel assigné : ${esc(sv.professionnel)}`, ic: 'user' });
+  if(sv?.reponse_travailleur === 'accepted') ev.push({ t: sv.cree_le, txt: 'Le professionnel a accepté le travail', ic: 'check' });
+  if(sv?.rendez_vous) ev.push({ t: sv.rendez_vous, txt: `Rendez-vous : ${dateLongue(sv.rendez_vous)}`, ic: 'calendar' });
+  if(sv?.termine_le) ev.push({ t: sv.termine_le, txt: 'Le professionnel a signalé le travail terminé', ic: 'circle-check' });
+  if(sv?.confirme) ev.push({ t: sv.termine_le, txt: 'Tu as confirmé que c\'est réglé', ic: 'circle-check' });
+  ev.sort((a, b) => new Date(a.t) - new Date(b.t));
+  return `
+    ${r.ai_immediate_action ? `<div class="lo-conseil"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg><div><b>En attendant l'intervention</b>${esc(r.ai_immediate_action)}</div></div>` : ''}
+    <div class="lo-infos">${infos.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+    <h4 class="lo-fil-titre">Historique</h4>
+    <ol class="lo-histo">${ev.map(e => `<li><span class="lo-histo-pt"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#${e.ic}"/></svg></span><div><b>${e.txt}</b><time>${dateLongue(e.t)}</time></div></li>`).join('')}</ol>`;
+}
 function basculerDemande(id){
   const el = document.getElementById('dem-' + id);
   const ouvre = !el.classList.contains('ouverte');
@@ -687,6 +746,8 @@ async function submitServiceRequest(event){
     noteEl.style.color = 'var(--sage)';
     document.getElementById('request-message').value = '';
     fileInput.value = '';
+    document.getElementById('dlg-demande').close();
+    llToast('Demande envoyée : on te tient au courant ici.', 'succes');
     await loadRequests();
   }
   noteEl.style.display = 'block';
@@ -703,6 +764,6 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/url-propre.js?v=202609271639"></script>
+<script src="assets/url-propre.js?v=202609271646"></script>
 </body>
 </html>
