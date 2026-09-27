@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271438">
-<script src="assets/charger-portail.js?v=202609271438"></script>
-<script src="assets/ui.js?v=202609271438"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271530">
+<script src="assets/charger-portail.js?v=202609271530"></script>
+<script src="assets/ui.js?v=202609271530"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -234,8 +234,10 @@
       </section>
 
       <section id="work-requests" class="section">
-    <h1 >Travaux — demandes ouvertes</h1>
-    <p class="subtitle" style="margin-bottom:16px;">Sélection du travailleur, négociation de la paie et assignation</p>
+    <div class="tr-entete"><div>
+      <h1>Travaux à assigner</h1>
+      <p class="subtitle">Demandes des locataires : choisis un travailleur et sa paie, ou laisse le système solliciter les travailleurs admissibles.</p>
+    </div></div>
     <div id="service-requests-body" style="margin-bottom:32px;"><p class="tr-vide">Chargement...</p></div>
 
       </section>
@@ -2004,8 +2006,8 @@ function viewPhotoFromLink(el){
 function photoLinksHtml(bucket, paths, label){
   const list = Array.isArray(paths) ? paths : [];
   if(!list.length) return '';
-  const links = list.map((p, i) => `<a href="#" data-bucket="${esc(bucket)}" data-path="${esc(p)}" onclick="viewPhotoFromLink(this); return false;" style="margin-right:8px;">${/\.(mp4|mov|m4v|webm|avi|3gp)$/i.test(p) ? 'Vidéo' : 'Photo'} ${i + 1}</a>`).join('');
-  return `<div style="font-size:12.5px;margin-top:4px;"><b>${esc(label)} :</b> ${links}</div>`;
+  const links = list.map((p, i) => { const video = /\.(mp4|mov|m4v|webm|avi|3gp)$/i.test(p); return `<a href="#" class="sr-media" data-bucket="${esc(bucket)}" data-path="${esc(p)}" onclick="viewPhotoFromLink(this); return false;"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#${video ? 'video' : 'image'}"/></svg>${video ? 'Vidéo' : 'Photo'} ${i + 1}</a>`; }).join('');
+  return `<div class="sr-medias"><span>${esc(label)}</span>${links}</div>`;
 }
 
 async function loadOps(){
@@ -3165,55 +3167,62 @@ async function loadServiceRequestsAdmin(){
   }
   container.innerHTML = requests.map(sr => {
     const costRange = (sr.ai_cost_min != null && sr.ai_cost_max != null)
-      ? Number(sr.ai_cost_min).toLocaleString('fr-CA') + ' $ – ' + Number(sr.ai_cost_max).toLocaleString('fr-CA') + ' $'
-      : (sr.ai_estimated_cost != null ? Number(sr.ai_estimated_cost).toLocaleString('fr-CA') + ' $' : '—');
+      ? Number(sr.ai_cost_min).toLocaleString('fr-CA') + ' – ' + Number(sr.ai_cost_max).toLocaleString('fr-CA') + ' $'
+      : (sr.ai_estimated_cost != null ? Number(sr.ai_estimated_cost).toLocaleString('fr-CA') + ' $' : null);
+    const ton = sr.safety_override ? 'urgent' : sr.pending_reassessment ? 'refus' : sr.ai_needs_review ? 'att' : '';
+    const recu = sr.created_at ? new Date(sr.created_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' }) : '';
     return `
-    <div style="background:${sr.safety_override ? '#fdeaea' : 'var(--paper-2)'};border:1px solid ${sr.safety_override ? '#c0392b' : 'var(--line)'};padding:14px 16px;margin-bottom:10px;">
-      ${sr.safety_override ? `<div style="background:#c0392b;color:#fff;font-size:12px;font-weight:700;padding:5px 10px;display:inline-block;margin-bottom:8px;">⚠ URGENCE SÉCURITÉ — ${esc((sr.safety_flags || []).join(', '))}</div>` : ''}
-      ${sr.pending_reassessment ? `<div style="background:#8a5fb0;color:#fff;font-size:12px;font-weight:700;padding:5px 10px;display:inline-block;margin-bottom:8px;">↻ REFUSÉ PAR LE PROPRIÉTAIRE — nouvelle soumission requise d'ici le ${esc(sr.reassessment_due || '—')}</div>` : ''}
-      ${(!sr.safety_override && sr.ai_needs_review) ? `<div style="background:#e6a817;color:#fff;font-size:12px;font-weight:700;padding:5px 10px;display:inline-block;margin-bottom:8px;">🔎 À VALIDER PAR UN HUMAIN${sr.ai_confidence != null ? ' — confiance IA ' + Math.round(sr.ai_confidence) + '%' : ''}</div>` : ''}
-      <b style="display:block;margin-bottom:4px;">${esc(sr.tenants?.full_name) || ''} — ${esc(sr.units?.buildings?.address) || ''}, unité ${esc(sr.units?.unit_number) || ''}</b>
-      <span style="font-size:12.5px;color:var(--muted);display:block;">${esc(sr.description)}</span>
-      ${photoLinksHtml('service-request-photos', sr.photo_urls, 'Photos du locataire')}
-      ${sr.ai_category ? `<div style="font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.6;">
-        <b>IA :</b> ${esc(sr.ai_category)}${sr.ai_subcategory ? ' — ' + esc(sr.ai_subcategory) : ''} · urgence ${esc(sr.ai_urgency || '—')} · ${costRange}${sr.ai_confidence != null ? ' · confiance ' + Math.round(sr.ai_confidence) + '%' : ''}<br>
-        ${sr.ai_recommended_trade ? '<b>Métier recommandé :</b> ' + esc(sr.ai_recommended_trade) + '<br>' : ''}
-        ${sr.ai_missing_info ? '<b>Infos manquantes :</b> ' + esc(sr.ai_missing_info) + (sr.ai_photos_needed ? ' (photos utiles)' : '') + '<br>' : ''}
-        ${sr.ai_immediate_action ? '<b>Action immédiate suggérée :</b> ' + esc(sr.ai_immediate_action) + '<br>' : ''}
-        ${sr.ai_risk_if_no_action ? '<b>Risque si non traité :</b> ' + esc(sr.ai_risk_if_no_action) : ''}
-      </div>` : ''}
-      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-top:10px;">
-        <div><label class="ch-label" for="sr-worker-${sr.id}">Travailleur</label>
-          <select id="sr-worker-${sr.id}"><option value="">— Choisir —</option>${workerOptionsHtml()}</select>
-        </div>
-        <div><label class="ch-label" for="sr-desc-${sr.id}">Description du travail</label>
-          <input type="text" id="sr-desc-${sr.id}" value="${esc(sr.description)}">
-        </div>
-        <div><label class="ch-label" for="sr-pay-${sr.id}">Paie du travailleur ($)</label>
-          <input type="number" id="sr-pay-${sr.id}" min="0" step="0.01">
-        </div>
-        <div><label class="ch-label" title="Laisse vide pour le taux du propriétaire (10 % par défaut). Obligatoire à partir de 10 000 $ — le système n'applique jamais de taux par défaut à un gros projet." for="sr-coordrate-${sr.id}">Taux coordination (%)</label>
-          <input type="number" id="sr-coordrate-${sr.id}" min="0" step="0.1" placeholder="10 (défaut)">
-        </div>
-        <div><label class="ch-label" title="Pour un projet majeur avec forfait négocié plutôt qu'un pourcentage — remplace le taux ci-dessus." for="sr-coordforfait-${sr.id}">ou forfait coordination ($)</label>
-          <input type="number" id="sr-coordforfait-${sr.id}" min="0" step="0.01" placeholder="forfait négocié">
-        </div>
-        <div><label class="ch-label" for="sr-appt-${sr.id}">Rendez-vous proposé</label>
-          <input type="datetime-local" id="sr-appt-${sr.id}">
-        </div>
-        <div><label class="ch-label" for="sr-due-${sr.id}">Échéance</label>
-          <input type="date" id="sr-due-${sr.id}">
-        </div>
-        <div><label class="ch-label" for="sr-entry-${sr.id}">Accès au logement</label>
-          <input type="text" id="sr-entry-${sr.id}" placeholder="Ex: locataire présent">
-        </div>
-        <div><label class="ch-label" for="sr-billing-${sr.id}">Conditions de facturation</label>
-          <input type="text" id="sr-billing-${sr.id}" placeholder="Ex: net 15 jours">
-        </div>
-        <button onclick="assignServiceRequest('${sr.id}', '${sr.unit_id}')" class="ll-bouton ll-bouton--primaire">Assigner</button>
-        <button onclick="dispatchServiceRequestAuto('${sr.id}', '${sr.unit_id}')" title="Sollicite les travailleurs admissibles par ordre de score (Lease Lane Pro), sans choix manuel" style="background:var(--paper);color:var(--ink);border:1px solid var(--ink);padding:9px 16px;font-size:12.5px;cursor:pointer;">Assigner automatiquement</button>
+    <article class="sr-carte sr-carte--${ton}">
+      <div class="sr-badges">
+        ${sr.safety_override ? `<span class="tr-pastille tr-pastille--ko"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg>Urgence sécurité${(sr.safety_flags || []).length ? ' · ' + esc(sr.safety_flags.join(', ').replace(/_/g, ' ')) : ''}</span>` : ''}
+        ${sr.pending_reassessment ? `<span class="tr-pastille sr-pastille--refus">Refusé par le propriétaire · nouvelle soumission d'ici le ${esc(sr.reassessment_due || '—')}</span>` : ''}
+        ${(!sr.safety_override && sr.ai_needs_review) ? `<span class="tr-pastille tr-pastille--att">À valider${sr.ai_confidence != null ? ' · confiance IA ' + Math.round(sr.ai_confidence) + ' %' : ''}</span>` : ''}
+        ${sr.ai_urgency ? `<span class="tr-pastille">Urgence : ${esc(sr.ai_urgency)}</span>` : ''}
+        <span class="sr-quand">${esc(recu)}</span>
       </div>
-    </div>`;
+      <h3 class="sr-titre">${esc(sr.units?.buildings?.address) || ''}, unité ${esc(sr.units?.unit_number) || ''}<small>${esc(sr.tenants?.full_name) || ''}</small></h3>
+      <blockquote class="sr-desc">${esc(sr.description)}</blockquote>
+      ${photoLinksHtml('service-request-photos', sr.photo_urls, 'Pièces jointes')}
+      ${sr.ai_category ? `<div class="md-ia"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg><div>
+        <b>Analyse IA</b>${esc(sr.ai_category)}${sr.ai_subcategory ? ' — ' + esc(sr.ai_subcategory) : ''}${costRange ? ' · ' + costRange : ''}${sr.ai_confidence != null ? ' · confiance ' + Math.round(sr.ai_confidence) + ' %' : ''}
+        <ul class="sr-ia">
+          ${sr.ai_recommended_trade ? '<li><span>Métier</span>' + esc(sr.ai_recommended_trade) + '</li>' : ''}
+          ${sr.ai_immediate_action ? '<li><span>À faire tout de suite</span>' + esc(sr.ai_immediate_action) + '</li>' : ''}
+          ${sr.ai_risk_if_no_action ? '<li><span>Risque si rien n\'est fait</span>' + esc(sr.ai_risk_if_no_action) + '</li>' : ''}
+          ${sr.ai_missing_info ? '<li><span>Infos manquantes</span>' + esc(sr.ai_missing_info) + (sr.ai_photos_needed ? ' (photos utiles)' : '') + '</li>' : ''}
+        </ul></div></div>` : '<p class="sr-sans-ia">Pas d\'analyse IA pour cette demande : choisis le travailleur toi-même.</p>'}
+      <div class="sr-assigner">
+        <div class="sr-grille">
+          <div class="sr-large"><label class="ch-label" for="sr-worker-${sr.id}">Travailleur</label>
+            <select id="sr-worker-${sr.id}"><option value="">— Choisir —</option>${workerOptionsHtml()}</select></div>
+          <div><label class="ch-label" for="sr-pay-${sr.id}">Paie du travailleur ($)</label>
+            <input type="number" id="sr-pay-${sr.id}" min="0" step="0.01" placeholder="Ex. 250"></div>
+          <div><label class="ch-label" for="sr-appt-${sr.id}">Rendez-vous proposé</label>
+            <input type="datetime-local" id="sr-appt-${sr.id}"></div>
+          <div><label class="ch-label" for="sr-due-${sr.id}">Échéance</label>
+            <input type="date" id="sr-due-${sr.id}"></div>
+        </div>
+        <details class="sr-plus">
+          <summary>Plus d'options (description, coordination, accès, facturation)</summary>
+          <div class="sr-grille">
+            <div class="sr-large"><label class="ch-label" for="sr-desc-${sr.id}">Description du travail (envoyée au travailleur)</label>
+              <input type="text" id="sr-desc-${sr.id}" value="${esc(sr.description)}"></div>
+            <div><label class="ch-label" title="Laisse vide pour le taux du propriétaire (10 % par défaut). Obligatoire à partir de 10 000 $." for="sr-coordrate-${sr.id}">Taux coordination (%)</label>
+              <input type="number" id="sr-coordrate-${sr.id}" min="0" step="0.1" placeholder="10 (défaut)"></div>
+            <div><label class="ch-label" title="Forfait négocié pour un projet majeur : remplace le taux." for="sr-coordforfait-${sr.id}">ou forfait coordination ($)</label>
+              <input type="number" id="sr-coordforfait-${sr.id}" min="0" step="0.01" placeholder="Forfait négocié"></div>
+            <div><label class="ch-label" for="sr-entry-${sr.id}">Accès au logement</label>
+              <input type="text" id="sr-entry-${sr.id}" placeholder="Ex. locataire présent"></div>
+            <div><label class="ch-label" for="sr-billing-${sr.id}">Conditions de facturation</label>
+              <input type="text" id="sr-billing-${sr.id}" placeholder="Ex. net 15 jours"></div>
+          </div>
+        </details>
+        <footer class="sr-pied">
+          <button class="ll-bouton ll-bouton--secondaire" onclick="dispatchServiceRequestAuto('${sr.id}', '${sr.unit_id}')" title="Sollicite les travailleurs admissibles par ordre de score, sans choix manuel"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bot"/></svg>Assigner automatiquement</button>
+          <button class="ll-bouton ll-bouton--primaire" onclick="assignServiceRequest('${sr.id}', '${sr.unit_id}')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Assigner ce travailleur</button>
+        </footer>
+      </div>
+    </article>`;
   }).join('');
 }
 
@@ -4364,6 +4373,6 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/url-propre.js?v=202609271438"></script>
+<script src="assets/url-propre.js?v=202609271530"></script>
 </body>
 </html>
