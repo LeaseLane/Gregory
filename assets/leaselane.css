@@ -1563,3 +1563,8 @@ body.ll-mdp-actif{ overflow:hidden; }
 .autre-heure input, .autre-heure textarea{ width:100%; box-sizing:border-box; }
 .lo-conseil--prop{ background:var(--info-100); }
 .lo-conseil--prop .ic, .lo-conseil--prop b{ color:var(--bleu-600); }
+/* Une fiche longue (vidéo, long fil) comprimait la rangée d'onglets à
+   1 px : dans une colonne flex, un enfant avec overflow ≠ visible perd sa
+   hauteur minimale. Aucun bloc de la fiche ne doit rétrécir. */
+.fi-tiroir > *{ flex-shrink:0; }
+.fi-onglets{ flex:none; min-height:max-content; }
