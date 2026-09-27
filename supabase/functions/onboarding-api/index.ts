@@ -1,4 +1,4 @@
-import { EXPEDITEUR, PORTAILS } from "../_shared/branding.ts";
+import { EXPEDITEUR, PORTAILS, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
@@ -900,10 +900,13 @@ Deno.serve(async (req) => {
       // autres tables — sans ça, PostgREST renvoie une erreur 400 en
       // sélectionnant une colonne qui n'existe pas sur "workers".
       const roleConfig: Record<string, { table: string; portalUrl: string; nameColumn: string }> = {
-        owner: { table: "owners", portalUrl: PORTAILS.proprietaire, nameColumn: "full_name" },
-        tenant: { table: "tenants", portalUrl: PORTAILS.locataire, nameColumn: "full_name" },
-        caller: { table: "cold_callers", portalUrl: PORTAILS.coldCaller, nameColumn: "full_name" },
-        worker: { table: "workers", portalUrl: PORTAILS.travailleur, nameColumn: "name" },
+        // Adresse réelle du fichier : c'est elle qui figure dans la liste des
+        // redirections autorisées par Supabase (/app n'y est pas, et le lien
+        // magique retombait sur la page de connexion).
+        owner: { table: "owners", portalUrl: `${SITE_BASE_URL}/portail-proprietaire.html`, nameColumn: "full_name" },
+        tenant: { table: "tenants", portalUrl: `${SITE_BASE_URL}/portail-locataire.html`, nameColumn: "full_name" },
+        caller: { table: "cold_callers", portalUrl: `${SITE_BASE_URL}/portail-cold-caller.html`, nameColumn: "full_name" },
+        worker: { table: "workers", portalUrl: `${SITE_BASE_URL}/portail-travailleur.html`, nameColumn: "name" },
       };
       const config = roleConfig[target_role];
       if (!config || !target_id) {

@@ -9,7 +9,9 @@
  */
 (function () {
   var m = location.pathname.match(/portail-[a-z-]+/);
-  if (m) { try { localStorage.setItem('ll-portail', m[0]); } catch (e) {} }
+  // Lien magique « Voir son portail » ouvert par un admin : on ne retient
+  // pas ce portail, sinon /app ouvrirait ensuite celui du client.
+  if (m && !/access_token|type=magiclink/.test(location.hash)) { try { localStorage.setItem('ll-portail', m[0]); } catch (e) {} }
 
   // « Vue d'ensemble » → « vue-ensemble », « Loyers et paiements » → « loyers-et-paiements »
   function slug(t) {
