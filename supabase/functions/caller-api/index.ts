@@ -226,7 +226,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
       const authRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
         method: "POST",
         headers: adminHeaders,
-        body: JSON.stringify({ email, password, email_confirm: true }),
+        body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { doit_changer_mdp: true } }),
       });
       const authData = await authRes.json();
       if (!authRes.ok || !authData.id) {
