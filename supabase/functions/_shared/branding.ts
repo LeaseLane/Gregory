@@ -45,9 +45,9 @@ export const MARQUE = "Lease Lane";
 export const SITE_BASE_URL = `https://${DOMAINE}`;
 
 export const PORTAILS = {
-  proprietaire: `${SITE_BASE_URL}/app`,
-  locataire: `${SITE_BASE_URL}/app`,
-  travailleur: `${SITE_BASE_URL}/app`,
+  proprietaire: `${SITE_BASE_URL}/app?p=proprietaire`,
+  locataire: `${SITE_BASE_URL}/app?p=locataire`,
+  travailleur: `${SITE_BASE_URL}/app?p=travailleur`,
   coldCaller: `${SITE_BASE_URL}/portail-cold-caller`,
   admin: `${SITE_BASE_URL}/app`,
   app: `${SITE_BASE_URL}/app`,

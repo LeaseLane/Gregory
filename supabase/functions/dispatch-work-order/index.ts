@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
           sujet: workOrder.is_urgent
               ? `URGENT — nouveau mandat disponible — ${address}, unité ${unitNumber}`
               : `Nouveau mandat disponible — ${address}, unité ${unitNumber}`,
-          texte: `Un mandat correspondant à ton profil est disponible.\n\nDescription : ${workOrder.description}\nAdresse : ${address}, unité ${unitNumber}\nRémunération offerte : ${workOrder.worker_pay != null ? workOrder.worker_pay + " $" : "à discuter (diagnostic requis)"}\n${workOrder.is_urgent ? "\nCeci est un mandat URGENT — premier arrivé, premier servi.\n" : ""}\nConnecte-toi à ton portail pour l'accepter avant qu'un autre travailleur ne le prenne :\n${SITE_BASE_URL}/app\n\nL'équipe Lease Lane`,
+          texte: `Un mandat correspondant à ton profil est disponible.\n\nDescription : ${workOrder.description}\nAdresse : ${address}, unité ${unitNumber}\nRémunération offerte : ${workOrder.worker_pay != null ? workOrder.worker_pay + " $" : "à discuter (diagnostic requis)"}\n${workOrder.is_urgent ? "\nCeci est un mandat URGENT — premier arrivé, premier servi.\n" : ""}\nConnecte-toi à ton portail pour l'accepter avant qu'un autre travailleur ne le prenne :\n${SITE_BASE_URL}/app?p=travailleur\n\nL'équipe Lease Lane`,
           origine: "automatique",
           workOrderId: workOrder.id,
           habillage: { pied: POURQUOI.travailleur },

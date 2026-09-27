@@ -103,6 +103,14 @@ const CLE_SESSION = 'sb-kdmwfbcziokygfcmjxeq-auth-token';
 // Portail déjà ouvert sur cet appareil : on le recharge directement, sous /app.
 let dernier = null;
 try { dernier = localStorage.getItem('ll-portail'); } catch(e){}
+// Lien envoyé par courriel (?p=locataire…) : il désigne le bon portail,
+// quel que soit le dernier ouvert sur ce navigateur (souvent l'admin).
+const demande = { proprietaire: 'portail-proprietaire', locataire: 'portail-locataire', travailleur: 'portail-travailleur' }[new URLSearchParams(location.search).get('p')];
+if(demande){
+  dernier = demande;
+  try { localStorage.setItem('ll-portail', demande); } catch(e){}
+  history.replaceState(null, '', '/app');
+}
 if(dernier){
   document.documentElement.style.visibility = 'hidden';
   llCharger(dernier).catch(() => { document.documentElement.style.visibility = ''; });
