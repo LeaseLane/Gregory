@@ -150,7 +150,9 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true, skipped_photos: skippedPhotoCount || undefined }), { status: 200, headers: corsHeaders });
     }
 
-    if (wo.worker_response !== "pending") {
+    // Après une question ou une autre heure proposée, le travailleur peut
+    // encore accepter, refuser ou relancer depuis le même lien.
+    if (!["pending", "info_requested", "proposed_other_time"].includes(wo.worker_response)) {
       return new Response(JSON.stringify({ error: "Une réponse a déjà été enregistrée pour ce travail." }), { status: 409, headers: corsHeaders });
     }
 
@@ -238,6 +240,12 @@ Deno.serve(async (req) => {
         `Travail : ${wo.description}\nMessage du travailleur : ${message || "(aucun message)"}\n\nUne réponse manuelle est requise — ce travail n'avancera pas automatiquement tant qu'un admin n'aura pas tranché.`,
       );
 
+      // Trace dans le fil du travail (onglet Échanges → Avec le travailleur).
+      await fetch(`${supabaseUrl}/rest/v1/worker_messages`, {
+        method: "POST", headers: { ...adminHeaders, Prefer: "return=minimal" },
+        body: JSON.stringify({ worker_id: wo.worker_id, work_order_id, direction: "entrant", origine: "lien",
+          sujet: action === "propose_time" ? "Propose une autre heure" : "Question", corps: (message || "(aucun message)").slice(0, 10000) }),
+      }).catch(() => null);
       await logAudit(`work_order.worker_${responseValue}`, { message: message || null });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
     }

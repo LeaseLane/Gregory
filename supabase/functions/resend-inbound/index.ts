@@ -66,7 +66,7 @@ if (import.meta.main) Deno.serve(async (req) => {
   // Courriel sans adresse de demande (envoyé avant son ajout, ou écrit à
   // neuf) mais venant d'un locataire connu : sa demande ouverte la plus
   // récente. Un travailleur n'est cherché qu'ensuite.
-  if (!demandeId && expediteurCourriel && !destinataires.some((a) => /travailleur-[0-9a-f-]{36}@/i.test(a))) {
+  if (!demandeId && expediteurCourriel && !destinataires.some((a) => /(travailleur|mandat)-[0-9a-f-]{36}@/i.test(a))) {
     const t = await fetch(`${supabaseUrl}/rest/v1/tenants?email=ilike.${encodeURIComponent(expediteurCourriel)}&select=id&limit=1`, { headers: adminHeaders });
     const locId = (await t.json().catch(() => []))?.[0]?.id;
     if (locId) {
@@ -87,6 +87,24 @@ if (import.meta.main) Deno.serve(async (req) => {
     });
     if (!insD.ok) return new Response(JSON.stringify({ error: "enregistrement impossible" }), { status: 500 });
     return new Response(JSON.stringify({ ok: true, fil: "demande" }), { status: 200 });
+  }
+
+  // Réponse d'un travailleur à un courriel lié à un travail : fil de ce travail.
+  const mandatId = destinataires.map((a) => a.match(/mandat-([0-9a-f-]{36})@/i)?.[1]).find(Boolean) ?? null;
+  if (mandatId && UUID.test(mandatId)) {
+    const woR = await fetch(`${supabaseUrl}/rest/v1/work_orders?id=eq.${mandatId}&select=worker_id`, { headers: adminHeaders });
+    const wid = (await woR.json().catch(() => []))?.[0]?.worker_id;
+    if (wid) {
+      const recuM = await fetch(`https://api.resend.com/emails/receiving/${d.email_id}`, { headers: { Authorization: `Bearer ${resendKey}` } });
+      const cM = await recuM.json().catch(() => ({}));
+      const insM = await fetch(`${supabaseUrl}/rest/v1/worker_messages`, {
+        method: "POST", headers: { ...adminHeaders, Prefer: "return=minimal" },
+        body: JSON.stringify({ worker_id: wid, work_order_id: mandatId, direction: "entrant", origine: "courriel_entrant",
+          sujet: d.subject ?? cM.subject ?? null, corps: (sansCitation(String(cM.text ?? "")) || "(message sans texte)").slice(0, 10000), resend_id: d.email_id ?? null }),
+      });
+      if (!insM.ok) return new Response(JSON.stringify({ error: "enregistrement impossible" }), { status: 500 });
+      return new Response(JSON.stringify({ ok: true, fil: "mandat" }), { status: 200 });
+    }
   }
 
   // Le travailleur est identifié par l'adresse de réponse ; à défaut, par l'expéditeur.

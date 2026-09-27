@@ -639,12 +639,35 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "work_order_id invalide" }), { status: 400, headers: corsHeaders });
       }
       const lire = (chemin: string) => fetch(`${supabaseUrl}/rest/v1/${chemin}`, { headers: adminHeaders }).then((r) => r.ok ? r.json() : []);
-      const [[wo], audit] = await Promise.all([
+      const [[wo], audit, messagesTravailleur] = await Promise.all([
         lire(`work_orders?id=eq.${work_order_id}&select=*,units(unit_number,buildings(address,owners(full_name,phone,spending_cap))),workers(id,name,phone,email,specialty,company_name),approvals(status,requested_amount,spending_cap_at_request,rejection_note,created_at,decided_at),service_requests(*,tenants(full_name,phone,email),service_request_messages(id,sender,body,sujet,attachments,via,created_at))`),
         lire(`audit_log?entity_id=eq.${work_order_id}&select=action,actor_type,details,created_at&order=created_at.desc&limit=100`),
+        lire(`worker_messages?work_order_id=eq.${work_order_id}&select=id,worker_id,direction,origine,sujet,corps,created_at,users(email)&order=created_at.asc&limit=300`),
       ]);
       if (!wo) return new Response(JSON.stringify({ error: "Travail introuvable" }), { status: 404, headers: corsHeaders });
-      return new Response(JSON.stringify({ work_order: wo, audit }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ work_order: wo, audit, messages_travailleur: messagesTravailleur }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Courriel de l'équipe au travailleur au sujet d'UN travail : journalisé
+    // avec work_order_id, sa réponse revient dans le fil de ce travail.
+    if (action === "send_work_order_worker_message") {
+      const { work_order_id, texte } = body;
+      const t = String(texte ?? "").trim();
+      if (!work_order_id || !t || t.length > 10000) {
+        return new Response(JSON.stringify({ error: "Message vide ou trop long" }), { status: 400, headers: corsHeaders });
+      }
+      const r = await fetch(`${supabaseUrl}/rest/v1/work_orders?id=eq.${work_order_id}&select=description,worker_id,workers(email,name),units(unit_number,buildings(address))`, { headers: adminHeaders });
+      const [w] = await r.json().catch(() => []);
+      if (!w?.worker_id || !w.workers?.email) return new Response(JSON.stringify({ error: "Ce travail n'a pas de travailleur avec courriel" }), { status: 400, headers: corsHeaders });
+      const envoi = await courrielTravailleur({
+        workerId: w.worker_id, to: w.workers.email, origine: "manuel", auteurId: userId, workOrderId: work_order_id,
+        sujet: `Travail : ${String(w.description).slice(0, 60)} — ${w.units?.buildings?.address ?? ""}`,
+        texte: `Bonjour ${w.workers.name?.split(" ")[0] || ""},\n\n${t}\n\nTu peux répondre directement à ce courriel.\n\nL'équipe Lease Lane`,
+        habillage: { pied: POURQUOI.travailleur },
+      });
+      if (!envoi.ok) return new Response(JSON.stringify({ error: `Courriel non envoyé : ${envoi.erreur}` }), { status: 502, headers: corsHeaders });
+      await logAudit("work_order.worker_message_sent", "work_orders", work_order_id, {});
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "reassign_work_order") {

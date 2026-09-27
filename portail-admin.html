@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271810">
-<script src="assets/charger-portail.js?v=202609271810"></script>
-<script src="assets/ui.js?v=202609271810"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271837">
+<script src="assets/charger-portail.js?v=202609271837"></script>
+<script src="assets/ui.js?v=202609271837"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -2969,7 +2969,7 @@ function trFil(d, w){
   const bulles = [];
   (d.messages || []).forEach(m => bulles.push({
     t: m.created_at, sens: m.direction,
-    etiquette: m.direction === 'entrant' ? 'Courriel reçu' : m.origine === 'manuel' ? `Envoyé par ${esc(m.users?.email?.split('@')[0] || 'l\'équipe')}` : 'Courriel automatique',
+    etiquette: m.direction === 'entrant' ? (m.origine === 'lien' ? 'Via son lien de réponse' : 'Courriel reçu') : m.origine === 'manuel' ? `Envoyé par ${esc(m.users?.email?.split('@')[0] || 'l\'équipe')}` : 'Courriel automatique',
     auto: m.origine === 'automatique', sujet: m.sujet, corps: m.corps, wo: m.work_order_id,
   }));
   (d.mandats || []).filter(aRepondu).forEach(m => bulles.push({
@@ -3394,6 +3394,7 @@ function woEtape(wo){
   if(wo.appointment_at && wo.worker_response === 'accepted') return { cle: 'rdv', lib: 'Rendez-vous fixé', ton: 'ok' };
   if(wo.worker_response === 'accepted') return { cle: 'accepte', lib: 'Accepté', ton: 'ok' };
   if(wo.worker_response === 'proposed_other_time') return { cle: 'offre', lib: 'Autre heure proposée', ton: 'att' };
+  if(wo.worker_response === 'info_requested') return { cle: 'offre', lib: 'Question du travailleur', ton: 'att' };
   if(!wo.worker_id) return { cle: 'offre', lib: 'Recherche d\'un travailleur', ton: 'att' };
   return { cle: 'offre', lib: 'Offre envoyée, sans réponse', ton: 'att' };
 }
@@ -3499,7 +3500,26 @@ function renderFicheTravail(){
       ${wo.entry_permission || wo.billing_terms ? `<p class="sr-sans-ia" style="font-style:normal">${wo.entry_permission ? '<b>Accès :</b> ' + esc(wo.entry_permission) + ' · ' : ''}${wo.billing_terms ? '<b>Facturation :</b> ' + esc(wo.billing_terms) : ''}</p>` : ''}
       ${sr.ai_category ? `<div class="md-ia"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg><div><b>Analyse IA</b>${esc(sr.ai_category)}${sr.ai_subcategory ? ' — ' + esc(sr.ai_subcategory) : ''}${sr.ai_immediate_action ? `<br><small>À faire tout de suite : ${esc(sr.ai_immediate_action)}</small>` : ''}</div></div>` : ''}`;
   } else if(ficheWo.onglet === 'echanges'){
-    corps = sr.id ? srFil({ ...sr, service_request_messages: sr.service_request_messages || [] }) : '<p class="tr-vide">Ce travail n\'est rattaché à aucune demande de locataire.</p>';
+    const mt = (d.messages_travailleur || []).slice();
+    // Question ou autre heure envoyée avant que le fil existe : gardée sur le travail.
+    if(wo.worker_response_note && !mt.some(m => m.origine === 'lien'))
+      mt.push({ direction: 'entrant', origine: 'lien', sujet: wo.worker_response === 'proposed_other_time' ? 'Propose une autre heure' : 'Réponse', corps: wo.worker_response_note, created_at: wo.worker_response_at || wo.created_at });
+    mt.sort((a, b) => a.created_at.localeCompare(b.created_at));
+    corps = `
+      <h4 class="lo-fil-titre">Avec le travailleur${woTravailleur(wo) ? ' · ' + esc(woTravailleur(wo)) : ''}</h4>
+      <div class="ms-fil">${mt.length ? mt.map(m => `
+        <div class="ms-bulle ${m.direction === 'entrant' ? 'ms-bulle--entrant' : 'ms-bulle--sortant'}${m.origine === 'automatique' ? ' ms-bulle--auto' : ''}">
+          <div class="ms-meta">${m.direction === 'entrant' ? esc(woTravailleur(wo) || 'Travailleur') + (m.origine === 'lien' ? ' · via son lien' : ' · par courriel') : m.origine === 'automatique' ? 'Courriel automatique' : 'Équipe' + (m.users?.email ? ' (' + esc(m.users.email.split('@')[0]) + ')' : '')} · ${quand(m.created_at)}</div>
+          ${m.sujet ? `<div class="ms-sujet">${esc(m.sujet)}</div>` : ''}
+          ${m.origine === 'automatique' ? `<details class="ms-corps"><summary>Voir le courriel</summary><div>${esc(m.corps)}</div></details>` : `<div class="ms-corps"><div>${esc(m.corps)}</div></div>`}
+        </div>`).join('') : '<p class="tr-vide">Aucun échange avec le travailleur sur ce travail.</p>'}</div>
+      ${wo.workers?.email ? `<div class="ms-ecrire">
+        <textarea id="wom-${wo.id}" rows="3" placeholder="Réponds à sa question, confirme un horaire…"></textarea>
+        <div class="ms-actions"><span class="ms-dest">Par courriel à ${esc(wo.workers.email)} (sa réponse revient ici)</span>
+          <button class="ll-bouton ll-bouton--primaire lo-petit" id="wom-btn-${wo.id}" onclick="envoyerMessageTravailleurTravail('${wo.id}')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div>
+      </div>` : '<p class="tr-manque">Ce travailleur n\'a pas de courriel.</p>'}
+      <h4 class="lo-fil-titre" style="margin-top:22px">Avec le locataire${sr.tenants?.full_name ? ' · ' + esc(sr.tenants.full_name) : ''}</h4>
+      ${sr.id ? srFil({ ...sr, service_request_messages: sr.service_request_messages || [] }).replace('<details class="sr-fil"', '<details class="sr-fil" open') : '<p class="tr-vide">Ce travail n\'est rattaché à aucune demande de locataire.</p>'}`;
   } else if(ficheWo.onglet === 'historique'){
     const libs = { 'work_order.create': 'Travail créé et assigné', 'work_order.reassign': 'Travailleur changé', 'work_order.complete': 'Marqué complété', 'work_order.dispatch_auto': 'Sollicitation automatique lancée' };
     const ev = [];
@@ -3529,7 +3549,7 @@ function renderFicheTravail(){
       </div>
       <p class="sr-sans-ia">Le locataire reçoit ensuite « Ta réparation est complétée » pour confirmer.</p>`;
   }
-  const nMsg = (sr.service_request_messages || []).length;
+  const nMsg = (sr.service_request_messages || []).length + (d?.messages_travailleur || []).length;
   t.innerHTML = `
     <header class="fi-tete">
       <span class="tr-avatar" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#hammer"/></svg></span>
@@ -3544,6 +3564,18 @@ function renderFicheTravail(){
     </div>
     <div class="fi-onglets" role="tablist">${onglet('resume', 'Résumé')}${onglet('echanges', 'Échanges', nMsg)}${onglet('historique', 'Historique')}${onglet('actions', 'Actions')}</div>
     <div class="fi-corps lo-fiche">${corps}</div>`;
+}
+
+async function envoyerMessageTravailleurTravail(id){
+  const texte = document.getElementById('wom-' + id).value.trim();
+  if(!texte) return;
+  const btn = document.getElementById('wom-btn-' + id);
+  btn.disabled = true;
+  const res = await callOpsApi({ action: 'send_work_order_worker_message', work_order_id: id, texte });
+  btn.disabled = false;
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'non envoyé'), 'erreur'); return; }
+  llToast('Message envoyé au travailleur.', 'succes');
+  ficheWo.data = null; ouvrirFicheTravail(id, 'echanges');
 }
 
 async function reassignerDepuisFiche(id){
@@ -4623,7 +4655,7 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/compte.js?v=202609271810"></script>
-<script src="assets/url-propre.js?v=202609271810"></script>
+<script src="assets/compte.js?v=202609271837"></script>
+<script src="assets/url-propre.js?v=202609271837"></script>
 </body>
 </html>

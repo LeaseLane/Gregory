@@ -59,8 +59,8 @@
   dialog.zoom img{max-width:95vw;max-height:88vh;border-radius:10px;display:block;}
   @media (max-width:420px){ .faits, .deux{grid-template-columns:1fr;} }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271810">
-<script src="assets/ui.js?v=202609271810"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271837">
+<script src="assets/ui.js?v=202609271837"></script>
 </head>
 <body>
 <div class="wrap">
@@ -254,7 +254,7 @@ async function init(){
   const { ok, data } = await callResponseApi({ action: 'get' });
   document.getElementById('loading').style.display = 'none';
 
-  const canRespond = ok && data.worker_response === 'pending';
+  const canRespond = ok && ['pending', 'info_requested', 'proposed_other_time'].includes(data.worker_response);
   const canReportDone = ok && data.worker_response === 'accepted' && !data.worker_reported_done_at;
   const alreadyReportedDone = ok && data.worker_response === 'accepted' && !!data.worker_reported_done_at;
 

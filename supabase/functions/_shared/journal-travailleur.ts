@@ -24,7 +24,8 @@ export async function courrielTravailleur(opts: {
   // son fil (fonction resend-inbound). Posée seulement une fois le
   // domaine de réception configuré, sinon les réponses rebondiraient.
   const domaine = Deno.env.get("REPONSES_DOMAINE");
-  const reponse = domaine ? { reply_to: `travailleur-${opts.workerId}@${domaine}` } : {};
+  // Courriel lié à un travail : la réponse revient dans le fil de CE travail.
+  const reponse = domaine ? { reply_to: opts.workOrderId ? `mandat-${opts.workOrderId}@${domaine}` : `travailleur-${opts.workerId}@${domaine}` } : {};
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
