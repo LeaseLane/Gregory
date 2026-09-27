@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271530">
-<script src="assets/charger-portail.js?v=202609271530"></script>
-<script src="assets/ui.js?v=202609271530"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271559">
+<script src="assets/charger-portail.js?v=202609271559"></script>
+<script src="assets/ui.js?v=202609271559"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -3183,6 +3183,7 @@ async function loadServiceRequestsAdmin(){
       <h3 class="sr-titre">${esc(sr.units?.buildings?.address) || ''}, unité ${esc(sr.units?.unit_number) || ''}<small>${esc(sr.tenants?.full_name) || ''}</small></h3>
       <blockquote class="sr-desc">${esc(sr.description)}</blockquote>
       ${photoLinksHtml('service-request-photos', sr.photo_urls, 'Pièces jointes')}
+      ${sr.ai_video_summary ? `<div class="md-ia sr-video"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#video"/></svg><div><b>Dans la vidéo</b>${esc(sr.ai_video_summary)}</div></div>` : ''}
       ${sr.ai_category ? `<div class="md-ia"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg><div>
         <b>Analyse IA</b>${esc(sr.ai_category)}${sr.ai_subcategory ? ' — ' + esc(sr.ai_subcategory) : ''}${costRange ? ' · ' + costRange : ''}${sr.ai_confidence != null ? ' · confiance ' + Math.round(sr.ai_confidence) + ' %' : ''}
         <ul class="sr-ia">
@@ -4373,6 +4374,6 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/url-propre.js?v=202609271530"></script>
+<script src="assets/url-propre.js?v=202609271559"></script>
 </body>
 </html>

@@ -1303,3 +1303,6 @@ input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire
 .sr-pied .ll-bouton .ic{ width:16px; height:16px; margin-right:6px; vertical-align:-3px; }
 @media (max-width:1100px){ .sr-grille{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 @media (max-width:640px){ .sr-grille{ grid-template-columns:1fr; } .sr-large{ grid-column:auto; } .sr-quand{ margin-left:0; width:100%; } .sr-ia span{ display:block; } }
+.sr-video{ background:var(--surface-enfoncee); white-space:pre-line; }
+.sr-video .ic{ color:var(--marine-900); }
+.sr-video b{ display:block; color:var(--marine-900); margin-bottom:2px; }

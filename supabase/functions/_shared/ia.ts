@@ -90,3 +90,43 @@ export async function appelerIA(opts: {
   }
   return { ok: true, status: res.status, texte: data?.content?.[0]?.text ?? "", erreur: null, data };
 }
+
+// Gemini (via la passerelle Tonia, route /v1/interactions) : seul modèle
+// de la passerelle qui lit une VIDÉO, image et son. Sert à transformer la
+// vidéo d'un locataire en texte, que Claude analyse ensuite comme le reste.
+// Exige IA_BASE_URL (Tonia) et l'option audio de l'espace de travail :
+// sans elle, Tonia répond 200 avec un blocage « audio_not_in_plan ».
+export const MODELE_VIDEO = Deno.env.get("IA_MODELE_VIDEO") || "gemini/gemini-3.5-flash-lite";
+
+export async function decrireVideo(opts: { base64: string; mime: string; consigne: string }): Promise<ReponseIA> {
+  if (!Deno.env.get("IA_BASE_URL")) {
+    return { ok: false, status: 0, texte: "", erreur: "passerelle absente (IA_BASE_URL) : lecture vidéo indisponible", data: null };
+  }
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}/v1/interactions`, {
+      method: "POST",
+      headers: { "x-api-key": CLE, Authorization: `Bearer ${CLE}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        model: MODELE_VIDEO,
+        input: [{ type: "text", text: opts.consigne }, { type: "video", data: opts.base64, mime_type: opts.mime }],
+      }),
+    });
+  } catch (e) {
+    return { ok: false, status: 0, texte: "", erreur: `reseau: ${String(e)}`, data: null };
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data?._tonia_entitlement_block) {
+    const motif = data?._tonia_entitlement_block?.code ?? data?.error?.message ?? JSON.stringify(data ?? {});
+    return { ok: false, status: res.status, texte: "", erreur: String(motif).slice(0, 400), data };
+  }
+  const texte = (data?.steps ?? []).flatMap((s: any) => s?.content ?? []).map((p: any) => p?.text ?? "").join("").trim();
+  return { ok: !!texte, status: res.status, texte, erreur: texte ? null : "reponse vide", data };
+}
+
+/** Base64 d'un gros fichier sans dépasser la pile (String.fromCharCode par blocs). */
+export function versBase64(octets: Uint8Array): string {
+  let binaire = "";
+  for (let i = 0; i < octets.length; i += 0x8000) binaire += String.fromCharCode(...octets.subarray(i, i + 0x8000));
+  return btoa(binaire);
+}

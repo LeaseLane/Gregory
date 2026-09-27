@@ -1,6 +1,6 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, MODELE_VIDEO, decrireVideo, versBase64 } from "../_shared/ia.ts";
 // Règles de sécurité déterministes : ne dépendent JAMAIS de l'IA.
 // Si l'une de ces situations est détectée dans la description du
 // locataire, l'urgence est forcée à "urgence" même si Claude évalue
@@ -21,7 +21,11 @@ function checkSafetyOverride(description: string) {
 }
 
 const MODEL_VERSION = MODELE_RAPIDE;
-const PROMPT_VERSION = "service-request-v3-photos";
+const PROMPT_VERSION = "service-request-v4-video";
+const MAX_VIDEOS = 2;
+// Envoi en ligne à la passerelle : au-delà, la vidéo est gardée pour
+// l'équipe mais pas analysée.
+const MAX_OCTETS_VIDEO = 18 * 1024 * 1024;
 const MAX_PHOTOS = 5;
 
 Deno.serve(async (req) => {
@@ -122,10 +126,48 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Vidéos : Gemini (via Tonia) les décrit — image ET son — et ce texte
+    // est donné à Claude avec le reste. Claude ne lit pas la vidéo.
+    const estVideo = (p: string) => /\.(mp4|mov|m4v|webm|3gp)$/i.test(p);
+    const cheminsVideos: string[] = Array.isArray(record.photo_urls) ? record.photo_urls.filter(estVideo).slice(0, MAX_VIDEOS) : [];
+    const resumesVideo: string[] = [];
+    for (const chemin of cheminsVideos) {
+      const debut = Date.now();
+      let erreurVideo: string | null = null;
+      try {
+        const fichier = await fetch(`${supabaseUrl}/storage/v1/object/service-request-photos/${chemin}`, {
+          headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey ?? "" },
+        });
+        const octets = fichier.ok ? new Uint8Array(await fichier.arrayBuffer()) : null;
+        if (!octets) erreurVideo = `lecture stockage ${fichier.status}`;
+        else if (octets.length > MAX_OCTETS_VIDEO) erreurVideo = `vidéo trop lourde (${Math.round(octets.length / 1048576)} Mo)`;
+        else {
+          const mime = fichier.headers.get("content-type")?.startsWith("video/") ? fichier.headers.get("content-type")! : "video/mp4";
+          const r = await decrireVideo({
+            base64: versBase64(octets), mime,
+            consigne: "Un locataire a filmé un problème dans son logement. Décris objectivement, en français, en 3 à 5 phrases : ce qu'on voit (pièce, appareil, dégât, étendue, eau, fumée, étincelles…) et ce qu'on entend (bruits, et ce que dit le locataire). Pas de diagnostic ni de coût.",
+          });
+          if (r.ok) resumesVideo.push(r.texte); else erreurVideo = r.erreur;
+        }
+      } catch (e) {
+        erreurVideo = String(e);
+      }
+      await fetch(`${supabaseUrl}/rest/v1/ai_run_log`, {
+        method: "POST", headers: adminHeaders,
+        body: JSON.stringify({
+          function_name: "handle-service-request", trigger_source: "db_webhook", entity_type: "service_requests", entity_id: record.id,
+          prompt_version: "service-request-video-v1", model_version: MODELE_VIDEO, input_summary: `vidéo ${chemin}`.slice(0, 300),
+          output_summary: resumesVideo.at(-1)?.slice(0, 300) ?? null, duration_ms: Date.now() - debut,
+          error: erreurVideo ? `video: ${erreurVideo}`.slice(0, 400) : null,
+        }),
+      }).catch(() => null);
+    }
+
     try {
       const prompt = `Tu es l'assistant technique d'une entreprise de gestion immobilière résidentielle au Québec. Un locataire vient de soumettre une demande de service pour son logement.
 
 Description du problème: ${record.description}
+${resumesVideo.length ? `\nLe locataire a aussi envoyé ${resumesVideo.length} vidéo(s). Voici ce qu'elles montrent (description faite par un autre modèle à partir de l'image et du son) :\n${resumesVideo.map((t, i) => `Vidéo ${i + 1} : ${t}`).join("\n")}\nTiens-en compte dans ton diagnostic.` : ""}
 ${photoBlocks.length ? `\n${photoBlocks.length} photo(s) du problème sont jointes ci-dessus — utilise-les pour affiner ton diagnostic (gravité, étendue, type d'appareil ou de matériau visible, etc.), pas seulement le texte.` : "Aucune photo n'a été jointe."}
 
 Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec exactement ces champs:
@@ -214,6 +256,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
     if (aiImmediateAction !== null) patchBody.ai_immediate_action = aiImmediateAction;
     if (aiRiskIfNoAction !== null) patchBody.ai_risk_if_no_action = aiRiskIfNoAction;
     if (aiUrgency !== null) patchBody.ai_urgency = aiUrgency;
+    if (resumesVideo.length) patchBody.ai_video_summary = resumesVideo.join("\n\n");
 
     const patchRes = await fetch(`${supabaseUrl}/rest/v1/service_requests?id=eq.${record.id}`, {
       method: "PATCH",
