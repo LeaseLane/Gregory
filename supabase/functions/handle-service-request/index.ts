@@ -1,5 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
-import { adresseReponseDemande, ajouterMessageDemande } from "../_shared/fil-demande.ts";
+import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, MODELE_VIDEO, decrireVideo, decrireMedias, versBase64, type PartieGemini } from "../_shared/ia.ts";
 // Règles de sécurité déterministes : ne dépendent JAMAIS de l'IA.
@@ -315,22 +315,14 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
             lines.push("", `En attendant l'intervention, voici ce que tu peux faire dès maintenant : ${aiImmediateAction}`);
           }
           if (aiMissingInfo) {
-            lines.push("", `Pour traiter ta demande plus rapidement, pourrais-tu nous fournir : ${aiMissingInfo} ? Tu peux répondre directement à ce courriel, ou ajouter un message et des photos à ta demande dans ton portail locataire (onglet « Signaler un problème »).`);
+            lines.push("", `Pour traiter ta demande plus rapidement, pourrais-tu nous fournir : ${aiMissingInfo} ? Tu peux répondre directement à ce courriel, ou ajouter un message et des photos à ta demande dans ton portail locataire (onglet « Mes demandes »).`);
           }
           lines.push("", "L'équipe Lease Lane");
-          // Même contenu dans le fil de la demande (visible dans le portail).
-          await ajouterMessageDemande({ demandeId: record.id, sender: "system", corps: lines.slice(2, -2).join("\n").trim() });
-          await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify(avecHtml({
-              from: EXPEDITEUR,
-              to: [tenant.email],
-              subject: "Ta demande de service — suivi",
-              text: lines.join("\n"),
-              ...(adresseReponseDemande(record.id) ? { reply_to: adresseReponseDemande(record.id) } : {}),
-            })),
-          });
+          await courrielDemande({ demandeId: record.id, to: tenant.email, sujet: "Ta demande de service — suivi", texte: lines.join("\n") });
+        } else {
+          // Pas de courriel : le suivi reste visible dans le portail.
+          const conseil = [aiImmediateAction && `En attendant l'intervention : ${aiImmediateAction}`, aiMissingInfo && `Pour traiter ta demande plus vite, pourrais-tu nous fournir : ${aiMissingInfo} ?`].filter(Boolean).join("\n\n");
+          await ajouterMessageDemande({ demandeId: record.id, sender: "system", corps: conseil });
         }
       } catch (e) {
         console.error("Failed to send tenant follow-up email", e);

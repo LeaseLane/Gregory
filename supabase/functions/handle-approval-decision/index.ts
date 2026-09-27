@@ -1,4 +1,5 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
+import { courrielDemande } from "../_shared/fil-demande.ts";
 import { avecHtml } from "../_shared/courriel.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE } from "../_shared/ia.ts";
 Deno.serve(async (req) => {
@@ -16,7 +17,7 @@ Deno.serve(async (req) => {
     };
 
     const apRes = await fetch(
-      `${supabaseUrl}/rest/v1/approvals?id=eq.${approval_id}&select=*,work_orders(description,worker_pay,units(unit_number,buildings(address)),service_requests(tenant_id,pending_reassessment,reassessment_due,ai_urgency,safety_override,tenants(full_name,email)))`,
+      `${supabaseUrl}/rest/v1/approvals?id=eq.${approval_id}&select=*,work_orders(description,worker_pay,service_request_id,units(unit_number,buildings(address)),service_requests(tenant_id,pending_reassessment,reassessment_due,ai_urgency,safety_override,tenants(full_name,email)))`,
       { headers: adminHeaders },
     );
     const [approval] = await apRes.json();
@@ -90,19 +91,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
     const cleaned = rawText.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(cleaned);
 
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(avecHtml({
-        from: EXPEDITEUR,
-        to: [tenant.email],
-        subject: parsed.subject,
-        text: parsed.body,
-      })),
-    });
+    await courrielDemande({ demandeId: workOrder?.service_request_id, to: tenant.email, sujet: parsed.subject, texte: parsed.body });
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   } catch (err) {

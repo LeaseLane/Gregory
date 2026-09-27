@@ -93,9 +93,9 @@
     table{display:block;overflow-x:auto;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271722">
-<script src="assets/charger-portail.js?v=202609271722"></script>
-<script src="assets/ui.js?v=202609271722"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271725">
+<script src="assets/charger-portail.js?v=202609271725"></script>
+<script src="assets/ui.js?v=202609271725"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -401,7 +401,7 @@ const infoDemandee = r => { const f = filDe(r), m = f[f.length - 1]; return !!m 
 async function loadRequests(){
   const [{ data }, { data: suivis }] = await Promise.all([
     supabaseClient.from('service_requests')
-      .select('*, service_request_messages(id, sender, body, attachments, via, created_at)')
+      .select('*, service_request_messages(id, sender, body, sujet, attachments, via, created_at)')
       .eq('tenant_id', tenantRecord.id)
       .order('created_at', { ascending: false }),
     supabaseClient.rpc('mes_suivis_demandes'),
@@ -442,8 +442,9 @@ function renderFicheDemande(){
   const corps = ficheDemande.onglet === 'echanges' ? `
       <div class="ms-fil" id="dem-fil">${fil.length ? fil.map(m => `
         <div class="ms-bulle ${m.sender === 'tenant' ? 'ms-bulle--sortant' : 'ms-bulle--entrant'}">
-          <div class="ms-meta">${m.sender === 'tenant' ? 'Toi' + (m.via === 'courriel' ? ' (par courriel)' : '') : m.sender === 'team' ? 'Équipe Lease Lane' : 'Suivi automatique'} · ${new Date(m.created_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' })}</div>
-          <div class="ms-corps"><div>${esc(m.body)}</div></div>
+          <div class="ms-meta">${m.sender === 'tenant' ? 'Toi' + (m.via === 'courriel' ? ' (par courriel)' : '') : (m.via === 'courriel' ? '<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>Courriel reçu de ' : '') + (m.sender === 'team' ? 'l\'équipe Lease Lane' : m.via === 'courriel' ? 'Lease Lane' : 'Suivi automatique')} · ${new Date(m.created_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+          ${m.sujet ? `<div class="ms-sujet">${esc(m.sujet)}</div>` : ''}
+          ${m.via === 'courriel' && m.sender !== 'tenant' ? `<details class="ms-corps"><summary>Voir le courriel</summary><div>${esc(m.body)}</div></details>` : `<div class="ms-corps"><div>${esc(m.body)}</div></div>`}
           ${(m.attachments || []).length ? `<div class="lo-pj">${m.attachments.map((p, i) => `<span class="tag neutral">${/\.(mp4|mov|m4v|webm|3gp)$/i.test(p) ? 'Vidéo' : 'Photo'} ${i + 1}</span>`).join(' ')}</div>` : ''}
         </div>`).join('') : '<p class="tr-vide">Aucun message pour l\'instant. Ajoute une précision ou des photos ci-dessous.</p>'}</div>
       <div class="ms-ecrire">
@@ -786,6 +787,6 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/url-propre.js?v=202609271722"></script>
+<script src="assets/url-propre.js?v=202609271725"></script>
 </body>
 </html>

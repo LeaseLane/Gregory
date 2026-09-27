@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271722">
-<script src="assets/charger-portail.js?v=202609271722"></script>
-<script src="assets/ui.js?v=202609271722"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271725">
+<script src="assets/charger-portail.js?v=202609271725"></script>
+<script src="assets/ui.js?v=202609271725"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -3294,8 +3294,9 @@ function srFil(sr){
     <summary><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#message-circle"/></svg>Échanges avec le locataire${fil.length ? ` (${fil.length})` : ''}</summary>
     <div class="ms-fil">${fil.length ? fil.map(m => `
       <div class="ms-bulle ${m.sender === 'tenant' ? 'ms-bulle--entrant' : m.sender === 'team' ? 'ms-bulle--sortant' : 'ms-bulle--sortant ms-bulle--auto'}">
-        <div class="ms-meta">${m.sender === 'tenant' ? esc(sr.tenants?.full_name || 'Locataire') + (m.via === 'courriel' ? ' · par courriel' : '') : m.sender === 'team' ? 'Équipe' : 'Suivi automatique'} · ${quand(m.created_at)}</div>
-        <div class="ms-corps"><div>${esc(m.body)}</div></div>
+        <div class="ms-meta">${m.sender === 'tenant' ? esc(sr.tenants?.full_name || 'Locataire') + (m.via === 'courriel' ? ' · par courriel' : '') : (m.sender === 'team' ? 'Équipe' : 'Automatique') + (m.via === 'courriel' ? ' · courriel envoyé' : ' · portail')} · ${quand(m.created_at)}</div>
+        ${m.sujet ? `<div class="ms-sujet">${esc(m.sujet)}</div>` : ''}
+        ${m.via === 'courriel' && m.sender !== 'tenant' ? `<details class="ms-corps"><summary>Voir le courriel</summary><div>${esc(m.body)}</div></details>` : `<div class="ms-corps"><div>${esc(m.body)}</div></div>`}
         ${(m.attachments || []).length ? photoLinksHtml('service-request-photos', m.attachments, 'Pièces jointes') : ''}
       </div>`).join('') : '<p class="tr-vide">Aucun échange pour l\'instant.</p>'}</div>
     <div class="ms-ecrire">
@@ -4465,6 +4466,6 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/url-propre.js?v=202609271722"></script>
+<script src="assets/url-propre.js?v=202609271725"></script>
 </body>
 </html>

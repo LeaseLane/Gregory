@@ -1,7 +1,7 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { courrielTravailleur } from "../_shared/journal-travailleur.ts";
-import { adresseReponseDemande, ajouterMessageDemande } from "../_shared/fil-demande.ts";
+import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
 
     if (action === "list_service_requests") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/service_requests?status=eq.open&select=*,units(unit_number,buildings(address)),tenants(full_name,email),service_request_messages(id,sender,body,attachments,via,created_at)&order=created_at.desc`,
+        `${supabaseUrl}/rest/v1/service_requests?status=eq.open&select=*,units(unit_number,buildings(address)),tenants(full_name,email),service_request_messages(id,sender,body,sujet,attachments,via,created_at)&order=created_at.desc`,
         { headers: adminHeaders },
       );
       return new Response(JSON.stringify({ service_requests: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -341,20 +341,15 @@ Deno.serve(async (req) => {
       const dRes = await fetch(`${supabaseUrl}/rest/v1/service_requests?id=eq.${service_request_id}&select=description,tenants(email,full_name)`, { headers: adminHeaders });
       const [dem] = await dRes.json().catch(() => []);
       if (!dem) return new Response(JSON.stringify({ error: "Demande introuvable" }), { status: 404, headers: corsHeaders });
-      if (!await ajouterMessageDemande({ demandeId: service_request_id, sender: "team", corps: t })) {
+      // Envoyé par courriel ET copié dans le fil ; sans courriel (ou en cas
+      // d'échec d'envoi), le message reste au moins visible dans le portail.
+      const parti = dem.tenants?.email ? await courrielDemande({
+        demandeId: service_request_id, to: dem.tenants.email, sender: "team",
+        sujet: `Ta demande : ${String(dem.description).slice(0, 60)}`,
+        texte: `Bonjour ${dem.tenants.full_name?.split(" ")[0] || ""},\n\n${t}\n\nTu peux répondre directement à ce courriel ou depuis ton portail locataire.\n\nL'équipe Lease Lane`,
+      }) : false;
+      if (!parti && !await ajouterMessageDemande({ demandeId: service_request_id, sender: "team", corps: t })) {
         return new Response(JSON.stringify({ error: "Message non enregistré" }), { status: 502, headers: corsHeaders });
-      }
-      if (dem.tenants?.email) {
-        const repondre = adresseReponseDemande(service_request_id);
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify(avecHtml({
-            from: EXPEDITEUR, to: [dem.tenants.email], subject: `Ta demande : ${String(dem.description).slice(0, 60)}`,
-            text: `Bonjour ${dem.tenants.full_name?.split(" ")[0] || ""},\n\n${t}\n\nTu peux répondre directement à ce courriel ou depuis ton portail locataire.\n\nL'équipe Lease Lane`,
-            ...(repondre ? { reply_to: repondre } : {}),
-          })),
-        }).catch((e) => console.error("send_request_message courriel", e));
       }
       await logAudit("service_request.message_sent", "service_requests", service_request_id, {});
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -721,15 +716,11 @@ Deno.serve(async (req) => {
         const address = wo.units?.buildings?.address;
         const confirmUrl = `${SITE_BASE_URL}/confirmer-reparation?wo=${work_order_id}&token=${confirmationToken}`;
         try {
-          await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify(avecHtml({
-              from: EXPEDITEUR,
-              to: [tenant.email],
-              subject: `Ta réparation est complétée — confirme que tout est réglé`,
-              text: `Bonjour ${tenant.full_name},\n\nLa réparation suivante a été complétée à ton logement (${address || ""}, unité ${wo.units?.unit_number || ""}) :\n${wo.description}\n\nPeux-tu confirmer que tout est réglé ? ${confirmUrl}\n\nSi rien ne se passe d'ici quelques jours, on considérera le dossier réglé automatiquement — mais si le problème persiste, dis-le-nous via ce lien.\n\nL'équipe Lease Lane`,
-            }, { bouton: { libelle: "Confirmer la réparation", url: confirmUrl } })),
+          await courrielDemande({
+            demandeId: wo.service_request_id, to: tenant.email,
+            sujet: `Ta réparation est complétée — confirme que tout est réglé`,
+            texte: `Bonjour ${tenant.full_name},\n\nLa réparation suivante a été complétée à ton logement (${address || ""}, unité ${wo.units?.unit_number || ""}) :\n${wo.description}\n\nPeux-tu confirmer que tout est réglé ? ${confirmUrl}\n\nSi rien ne se passe d'ici quelques jours, on considérera le dossier réglé automatiquement — mais si le problème persiste, dis-le-nous via ce lien.\n\nL'équipe Lease Lane`,
+            bouton: { libelle: "Confirmer la réparation", url: confirmUrl },
           });
         } catch (e) {
           console.error("Failed to send tenant confirmation email", e);

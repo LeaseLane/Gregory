@@ -1,4 +1,5 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
+import { courrielDemande } from "../_shared/fil-demande.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 // Ferme la dernière étape manquante du cycle de réparation : le
@@ -54,15 +55,11 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ ok: true, skipped: "no tenant email" }), { status: 200, headers: corsHeaders });
       }
       const confirmUrl = `${SITE_BASE_URL}/confirmer-reparation?wo=${work_order_id}&token=${wo.tenant_confirmation_token}`;
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify(avecHtml({
-          from: EXPEDITEUR,
-          to: [tenant.email],
-          subject: `Rappel — confirme que ta réparation est bien réglée`,
-          text: `Bonjour ${tenant.full_name},\n\nOn n'a pas encore eu de nouvelles au sujet de cette réparation (${address || ""}, unité ${unit?.unit_number || ""}) :\n${wo.description}\n\nMerci de confirmer ici que tout est réglé, ou de nous dire si ce n'est pas le cas : ${confirmUrl}\n\nL'équipe Lease Lane`,
-        }, { bouton: { libelle: "Confirmer la réparation", url: confirmUrl } })),
+      await courrielDemande({
+        demandeId: serviceRequestId, to: tenant.email,
+        sujet: `Rappel — confirme que ta réparation est bien réglée`,
+        texte: `Bonjour ${tenant.full_name},\n\nOn n'a pas encore eu de nouvelles au sujet de cette réparation (${address || ""}, unité ${unit?.unit_number || ""}) :\n${wo.description}\n\nMerci de confirmer ici que tout est réglé, ou de nous dire si ce n'est pas le cas : ${confirmUrl}\n\nL'équipe Lease Lane`,
+        bouton: { libelle: "Confirmer la réparation", url: confirmUrl },
       });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
     }
