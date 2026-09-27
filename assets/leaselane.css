@@ -1377,4 +1377,6 @@ input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire
 .ll-vue-admin b{ font-weight:700; }
 .ll-vue-admin button{ border:1px solid currentColor; background:#fff; color:var(--alerte-600); border-radius:var(--rayon-pilule); padding:5px 14px; font:600 12.5px/1 var(--police-texte); cursor:pointer; }
 .ll-vue-admin button:hover{ background:var(--alerte-600); color:#fff; }
-body.avec-vue-admin .shell{ height:calc(100dvh - 40px); }
+body.avec-vue-admin .shell{ height:calc(100dvh - var(--vue-admin-h, 40px)); }
+body.avec-vue-admin .fi-tiroir, body.avec-vue-admin .fi-fond{ top:var(--vue-admin-h, 40px); }
+body.avec-vue-admin .fi-tiroir{ height:auto; bottom:0; }

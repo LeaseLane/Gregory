@@ -79,6 +79,10 @@ function bandeauVueAdmin() {
   };
   document.body.prepend(b);
   document.body.classList.add('avec-vue-admin');
+  // Hauteur réelle du bandeau (il peut passer sur deux lignes) : les
+  // panneaux fixes (fiche latérale, fond) commencent juste en dessous.
+  var ajuster = function () { document.documentElement.style.setProperty('--vue-admin-h', b.offsetHeight + 'px'); };
+  ajuster(); window.addEventListener('resize', ajuster);
   // Le nom du client apparaît dans l'accueil du portail une fois chargé.
   var essais = 0, t = setInterval(function () {
     var g = document.querySelector('[id$="-greeting"]');
