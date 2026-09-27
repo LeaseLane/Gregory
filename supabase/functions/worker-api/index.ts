@@ -4,7 +4,7 @@ import { corsHeadersFor, requireUser } from "../_shared/auth.ts";
 
 // Ce que le travailleur voit d'un travail : jamais les frais de coordination
 // ni les coordonnées du locataire.
-const CHAMPS_JOB = "id,description,worker_pay,status,created_at,appointment_at,due_by,entry_permission,billing_terms,safety_instructions,is_urgent,worker_response,worker_response_note,worker_reported_done_at,worker_completion_note,tenant_confirmed,proposed_appointment_at,photo_before_urls,photo_after_urls,worker_paid_at,worker_paid_amount,units(unit_number,buildings(address)),service_requests(description,photo_urls,ai_category,ai_subcategory,ai_video_summary,safety_override)";
+const CHAMPS_JOB = "id,description,worker_pay,status,created_at,appointment_at,due_by,entry_permission,billing_terms,safety_instructions,is_urgent,worker_response,worker_response_note,worker_response_at,worker_reported_done_at,worker_completion_note,tenant_confirmed,proposed_appointment_at,photo_before_urls,photo_after_urls,worker_paid_at,worker_paid_amount,units(unit_number,buildings(address)),service_requests(description,photo_urls,ai_category,ai_subcategory,ai_video_summary,safety_override)";
 const ALLOWED_AVAILABILITY = ["maintenant", "aujourdhui", "semaine", "indisponible"];
 
 
@@ -226,6 +226,11 @@ Deno.serve(async (req) => {
         lire(`worker_ratings?work_order_id=eq.${wo.id}&worker_id=eq.${workerId}&select=stars,comment,rated_by_type,created_at`),
       ]);
       delete (wo as any).worker_response_token;
+      // Question ou heure envoyée avant que le fil existe : gardée sur le travail.
+      if (wo.worker_response_note && !messages.some((m: any) => m.origine === "lien" || m.origine === "portail")) {
+        messages.push({ id: "note", direction: "entrant", origine: "lien", sujet: wo.worker_response === "proposed_other_time" ? "Autre heure proposée" : "Ta question", corps: wo.worker_response_note, created_at: wo.worker_response_at || wo.created_at });
+        messages.sort((a: any, b: any) => String(a.created_at).localeCompare(String(b.created_at)));
+      }
       return json({ job: wo, pieces, messages, avis });
     }
 
