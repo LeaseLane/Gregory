@@ -217,6 +217,118 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Fiche locataire : bail(s) et paiements, demandes de service, fil de
+    // messages avec l'équipe, journal.
+    if (action === "get_tenant_profile") {
+      const { tenant_id } = body;
+      if (!tenant_id || !/^[0-9a-f-]{36}$/i.test(tenant_id)) {
+        return new Response(JSON.stringify({ error: "tenant_id invalide" }), { status: 400, headers: corsHeaders });
+      }
+      const lire = (chemin: string) => fetch(`${supabaseUrl}/rest/v1/${chemin}`, { headers: adminHeaders }).then((r) => r.ok ? r.json() : []);
+      const [[tenant], baux, demandes, messages, audit, notes] = await Promise.all([
+        lire(`tenants?id=eq.${tenant_id}&select=id,full_name,email,phone,user_id,created_at`),
+        lire(`leases?tenant_id=eq.${tenant_id}&select=id,status,start_date,end_date,monthly_rent,units(unit_number,buildings(address,owners(full_name))),payments(id,amount,due_date,paid_date,status,reminder_paused)&order=start_date.desc`),
+        lire(`service_requests?tenant_id=eq.${tenant_id}&select=id,description,status,ai_category,ai_urgency,created_at&order=created_at.desc&limit=100`),
+        lire(`messages?tenant_id=eq.${tenant_id}&select=id,sender,body,created_at&order=created_at.asc&limit=300`),
+        lire(`audit_log?entity_id=eq.${tenant_id}&select=action,actor_type,details,created_at&order=created_at.desc&limit=100`),
+        lire(`tenant_notes?tenant_id=eq.${tenant_id}&select=id,body,created_at,users(email)&order=created_at.desc`),
+      ]);
+      if (!tenant) {
+        return new Response(JSON.stringify({ error: "Locataire introuvable" }), { status: 404, headers: corsHeaders });
+      }
+      return new Response(JSON.stringify({ tenant, baux, demandes, messages, audit, notes }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Courriel de l'équipe au locataire, écrit depuis sa fiche. Le portail
+    // locataire n'a pas encore d'onglet Messages : le courriel est donc le
+    // canal, et la table messages en garde la trace pour la fiche.
+    if (action === "send_tenant_message") {
+      const { tenant_id, sujet, texte } = body;
+      const s = String(sujet ?? "").trim(), t = String(texte ?? "").trim();
+      if (!tenant_id || !s || !t || s.length > 200 || t.length > 10000) {
+        return new Response(JSON.stringify({ error: "Objet et message requis" }), { status: 400, headers: corsHeaders });
+      }
+      const tRes = await fetch(`${supabaseUrl}/rest/v1/tenants?id=eq.${tenant_id}&select=email`, { headers: adminHeaders });
+      const [loc] = await tRes.json().catch(() => []);
+      if (!loc?.email) {
+        return new Response(JSON.stringify({ error: "Ce locataire n'a pas de courriel" }), { status: 400, headers: corsHeaders });
+      }
+      const envoi = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(avecHtml({ from: EXPEDITEUR, to: [loc.email], subject: s, text: `${t}\n\nL'équipe Lease Lane` })),
+      });
+      if (!envoi.ok) {
+        return new Response(JSON.stringify({ error: `Courriel non envoyé : ${(await envoi.text()).slice(0, 200)}` }), { status: 502, headers: corsHeaders });
+      }
+      await fetch(`${supabaseUrl}/rest/v1/messages`, {
+        method: "POST",
+        headers: { ...adminHeaders, Prefer: "return=minimal" },
+        body: JSON.stringify({ tenant_id, sender: "team", body: `${s}\n\n${t}` }),
+      }).catch((e) => console.error("send_tenant_message: trace non enregistrée", e));
+      await logAudit("tenant.email_sent", "tenants", tenant_id, { sujet: s });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "add_tenant_note") {
+      const { tenant_id, note } = body;
+      const texte = String(note ?? "").trim();
+      if (!tenant_id || !texte || texte.length > 4000) {
+        return new Response(JSON.stringify({ error: "Note vide ou trop longue" }), { status: 400, headers: corsHeaders });
+      }
+      const res = await fetch(`${supabaseUrl}/rest/v1/tenant_notes`, {
+        method: "POST",
+        headers: { ...adminHeaders, Prefer: "return=minimal" },
+        body: JSON.stringify({ tenant_id, body: texte, author_user_id: userId }),
+      });
+      if (!res.ok) {
+        return new Response(JSON.stringify({ error: `Note non enregistrée : ${(await res.text()).slice(0, 200)}` }), { status: 502, headers: corsHeaders });
+      }
+      await logAudit("tenant.note_added", "tenants", tenant_id, {});
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Coordonnées du locataire. Le courriel n'est modifiable que sans
+    // accès portail : c'est aussi son identifiant de connexion.
+    if (action === "update_tenant") {
+      const { tenant_id, full_name, phone, email } = body;
+      const nom = String(full_name ?? "").trim();
+      if (!tenant_id || !nom) {
+        return new Response(JSON.stringify({ error: "Nom requis" }), { status: 400, headers: corsHeaders });
+      }
+      const tRes = await fetch(`${supabaseUrl}/rest/v1/tenants?id=eq.${tenant_id}&select=user_id,email`, { headers: adminHeaders });
+      const [t] = await tRes.json().catch(() => []);
+      if (!t) return new Response(JSON.stringify({ error: "Locataire introuvable" }), { status: 404, headers: corsHeaders });
+      const maj: Record<string, unknown> = { full_name: nom, phone: String(phone ?? "").trim() || null };
+      const courriel = String(email ?? "").trim() || null;
+      if (courriel !== (t.email || null)) {
+        if (t.user_id) return new Response(JSON.stringify({ error: "Le courriel sert à la connexion : il ne peut pas être changé ici une fois l'accès donné." }), { status: 409, headers: corsHeaders });
+        maj.email = courriel;
+      }
+      const res = await fetch(`${supabaseUrl}/rest/v1/tenants?id=eq.${tenant_id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify(maj) });
+      if (!res.ok) return new Response(JSON.stringify({ error: `Non enregistré : ${(await res.text()).slice(0, 200)}` }), { status: 502, headers: corsHeaders });
+      await logAudit("tenant.updated", "tenants", tenant_id, { champs: Object.keys(maj) });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Loyer reçu hors synchronisation bancaire (virement, chèque, comptant).
+    if (action === "mark_payment_paid") {
+      const { payment_id, paid_date } = body;
+      if (!payment_id) return new Response(JSON.stringify({ error: "payment_id manquant" }), { status: 400, headers: corsHeaders });
+      const pRes = await fetch(`${supabaseUrl}/rest/v1/payments?id=eq.${payment_id}&select=amount,status`, { headers: adminHeaders });
+      const [p] = await pRes.json().catch(() => []);
+      if (!p) return new Response(JSON.stringify({ error: "Paiement introuvable" }), { status: 404, headers: corsHeaders });
+      if (p.status === "paid") return new Response(JSON.stringify({ error: "Déjà payé" }), { status: 409, headers: corsHeaders });
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(String(paid_date)) ? paid_date : new Date().toISOString().slice(0, 10);
+      const res = await fetch(`${supabaseUrl}/rest/v1/payments?id=eq.${payment_id}`, {
+        method: "PATCH", headers: adminHeaders,
+        body: JSON.stringify({ status: "paid", paid_date: date, amount_received: p.amount }),
+      });
+      if (!res.ok) return new Response(JSON.stringify({ error: `Non enregistré : ${(await res.text()).slice(0, 200)}` }), { status: 502, headers: corsHeaders });
+      await logAudit("payment.marked_paid_manually", "payments", payment_id, { paid_date: date, amount: p.amount });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "create_worker") {
       const { name, specialty, phone, email, rbq_license, requires_rbq } = body;
       if (!name) {

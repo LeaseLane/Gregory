@@ -1232,3 +1232,10 @@ input[type=file]::file-selector-button{
   transition:border-color .15s, color .15s;
 }
 input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire); color:var(--action-primaire); }
+/* Fiche locataire : actions par ligne de paiement. */
+.fi-actions{ text-align:right; white-space:nowrap; }
+.fi-actions .vo-action + .vo-action{ margin-left:6px; }
+.fi-contact{ flex-wrap:wrap; }
+.fi-table td.num, .fi-table .tr-pastille{ white-space:nowrap; }
+.fi-actions > div{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+.fi-actions .vo-action + .vo-action{ margin-left:0; }

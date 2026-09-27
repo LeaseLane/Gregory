@@ -740,7 +740,7 @@ Deno.serve(async (req) => {
 
     if (action === "list_tenants") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/tenants?select=id,full_name,email,phone,user_id,leases(status,units(unit_number,buildings(address)))&order=full_name.asc`,
+        `${supabaseUrl}/rest/v1/tenants?select=id,full_name,email,phone,user_id,created_at,leases(status,monthly_rent,end_date,units(unit_number,buildings(address,owners(full_name))),payments(status))&order=full_name.asc`,
         { headers: adminHeaders },
       );
       const tenants = await res.json();

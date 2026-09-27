@@ -339,13 +339,21 @@
       </section>
 
       <section id="tenants" class="section">
-    <h1 >Locataires</h1>
-    <p class="subtitle" style="margin-bottom:16px;">Tous les locataires, tous clients confondus</p>
-
-    <table><thead><tr><th>Locataire</th><th>Logement</th><th></th></tr></thead>
-      <tbody id="tenants-body"><tr class="empty-row"><td colspan="3">Chargement...</td></tr></tbody>
-    </table>
-
+    <div class="tr-entete">
+      <div>
+        <h1>Locataires</h1>
+        <p class="subtitle">Tous les locataires, tous clients confondus. Clique sur une ligne pour ouvrir sa fiche.</p>
+      </div>
+    </div>
+    <div id="lo-resume" class="tr-resume"></div>
+    <div id="lo-outils" class="tr-outils">
+      <label class="tr-recherche"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#search"/></svg><input type="search" id="lo-q" placeholder="Rechercher un nom, un courriel, une adresse…" oninput="loEtat.q=this.value;renderLocataires()"></label>
+      <select id="lo-f-statut" onchange="loEtat.statut=this.value;renderLocataires()">
+        <option value="">Tous les locataires</option><option value="retard">Loyer en retard</option><option value="sans-acces">Sans accès portail</option><option value="acces">Avec accès portail</option><option value="fin">Bail finissant sous 60 jours</option><option value="sans-bail">Sans bail actif</option>
+      </select>
+      <select id="lo-f-client" onchange="loEtat.client=this.value;renderLocataires()"></select>
+    </div>
+    <div id="tenants-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="billing" class="section">
@@ -2766,6 +2774,7 @@ const trAudit = {
 const quand = d => new Date(d).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' });
 
 async function ouvrirFicheTravailleur(id, onglet){
+  ficheLo.id = null;
   ficheTr = { id, onglet: onglet || ficheTr.onglet || 'messages', data: null };
   let tiroir = document.getElementById('fiche-tr');
   if(!tiroir){
@@ -2783,6 +2792,7 @@ async function ouvrirFicheTravailleur(id, onglet){
 
 function fermerFicheTravailleur(){
   ficheTr.id = null;
+  ficheLo.id = null;
   document.body.classList.remove('fi-ouvert');
 }
 
@@ -3578,24 +3588,280 @@ async function loadCallers(){
   }).join('');
 }
 
+// ── Locataires : tableau + fiche ────────────────────────────────────
+// Même principe que Travailleurs : recherche, filtres, tri, et une fiche
+// latérale (bail, paiements, demandes, courriels) avec les actions.
+let tenantsDirectory = [];
+const loEtat = { q: '', statut: '', client: '', tri: 'nom', sens: 1 };
+const loBail = t => (t.leases || []).find(l => l.status === 'active') || null;
+const loRetards = t => (t.leases || []).flatMap(l => l.payments || []).filter(p => p.status === 'late').length;
+const loFinProche = t => { const b = loBail(t); return !!(b?.end_date && new Date(b.end_date) - Date.now() < 60 * 864e5 && new Date(b.end_date) >= new Date(new Date().toDateString())); };
+const loLogement = t => { const b = loBail(t) || (t.leases || [])[0]; return b?.units ? `${b.units.buildings?.address || '—'} — ${b.units.unit_number}` : ''; };
+const loClient = t => { const b = loBail(t) || (t.leases || [])[0]; return b?.units?.buildings?.owners?.full_name || ''; };
+const loInitiales = n => (n || '?').split(/\s+/).map(m => m[0]).join('').slice(0, 2).toUpperCase();
+const argent = n => n != null ? Number(n).toLocaleString('fr-CA') + ' $' : '—';
+
 async function loadTenants(){
   const data = await callOnboardingApi({ action: 'list_tenants' });
+  tenantsDirectory = data?.tenants || [];
+  renderLocataires();
+}
+
+function loTrier(col){
+  loEtat.sens = loEtat.tri === col ? -loEtat.sens : (col === 'nom' || col === 'logement' ? 1 : -1);
+  loEtat.tri = col;
+  renderLocataires();
+}
+
+function renderLocataires(){
   const body = document.getElementById('tenants-body');
-  const tenants = data?.tenants || [];
-  if(!tenants.length){
-    body.innerHTML = '<tr class="empty-row"><td colspan="3">Aucun locataire.</td></tr>';
-    return;
+  if(!body) return;
+  const T = tenantsDirectory;
+  const resume = document.getElementById('lo-resume');
+  const nRetard = T.filter(t => loRetards(t)).length, nSans = T.filter(t => !t.user_id).length, nFin = T.filter(loFinProche).length;
+  resume.innerHTML = T.length ? `
+    <span><b>${T.length}</b> locataire${T.length > 1 ? 's' : ''}</span>
+    ${nRetard ? `<span class="tr-pastille tr-pastille--ko"><b>${nRetard}</b> en retard de loyer</span>` : ''}
+    ${nFin ? `<span class="tr-pastille tr-pastille--att"><b>${nFin}</b> bail finissant bientôt</span>` : ''}
+    ${nSans ? `<span class="tr-pastille"><b>${nSans}</b> sans accès portail</span>` : ''}` : '';
+
+  const clients = [...new Set(T.map(loClient).filter(Boolean))].sort();
+  document.getElementById('lo-f-client').innerHTML = '<option value="">Tous les clients</option>' + clients.map(c => `<option value="${esc(c)}"${c === loEtat.client ? ' selected' : ''}>${esc(c)}</option>`).join('');
+
+  if(!T.length){ body.innerHTML = '<p class="tr-vide">Aucun locataire. Ajoute-en un depuis Clients propriétaires → Nouveau client.</p>'; return; }
+  const q = loEtat.q.trim().toLowerCase();
+  const filtre = {
+    retard: t => loRetards(t) > 0, 'sans-acces': t => !t.user_id, acces: t => !!t.user_id,
+    fin: loFinProche, 'sans-bail': t => !loBail(t),
+  }[loEtat.statut] || (() => true);
+  const cle = {
+    nom: t => (t.full_name || '').toLowerCase(),
+    logement: t => loLogement(t).toLowerCase() || '~',
+    loyer: t => Number(loBail(t)?.monthly_rent || 0),
+    retard: t => loRetards(t),
+    fin: t => loBail(t)?.end_date || '9999',
+  }[loEtat.tri];
+  const liste = T
+    .filter(t => !q || [t.full_name, t.email, t.phone, loLogement(t), loClient(t)].some(v => (v || '').toLowerCase().includes(q)))
+    .filter(filtre)
+    .filter(t => !loEtat.client || loClient(t) === loEtat.client)
+    .sort((x, y) => { const a = cle(x), b = cle(y); return (a < b ? -1 : a > b ? 1 : 0) * loEtat.sens; });
+  if(!liste.length){ body.innerHTML = '<p class="tr-vide">Aucun locataire ne correspond à ces critères.</p>'; return; }
+
+  const entete = (col, libelle, cls = '') => `<th class="tr-triable ${cls}${loEtat.tri === col ? ' tr-trie' : ''}" onclick="loTrier('${col}')" aria-sort="${loEtat.tri === col ? (loEtat.sens > 0 ? 'ascending' : 'descending') : 'none'}">${libelle}<span class="tr-fleche">${loEtat.tri === col ? (loEtat.sens > 0 ? '▲' : '▼') : '↕'}</span></th>`;
+  body.innerHTML = `
+  <table class="tr-table">
+    <thead><tr>${entete('nom', 'Locataire')}${entete('logement', 'Logement')}${entete('loyer', 'Loyer', 'num')}${entete('retard', 'Paiements')}${entete('fin', 'Fin du bail')}<th>Accès</th><th></th></tr></thead>
+    <tbody>${liste.map(t => {
+      const b = loBail(t), r = loRetards(t);
+      return `
+      <tr class="tr-ligne" onclick="ouvrirFicheLocataire('${t.id}')">
+        <td data-libelle="Locataire"><div class="cl-client"><span class="tr-avatar" aria-hidden="true">${esc(loInitiales(t.full_name))}</span><div><b>${esc(t.full_name)}</b><small>${esc(t.email || t.phone || '')}</small></div></div></td>
+        <td data-libelle="Logement">${loLogement(t) ? esc(loLogement(t)) : '<span class="tr-manque">—</span>'}${loClient(t) ? `<small>${esc(loClient(t))}</small>` : ''}</td>
+        <td data-libelle="Loyer" class="num">${b ? argent(b.monthly_rent) : '—'}</td>
+        <td data-libelle="Paiements">${r ? `<span class="tr-pastille tr-pastille--ko">${r} en retard</span>` : b ? '<span class="tr-pastille tr-pastille--ok">À jour</span>' : '<span class="tr-manque">Sans bail</span>'}</td>
+        <td data-libelle="Fin du bail">${b?.end_date ? `${loFinProche(t) ? '<span class="tr-pastille tr-pastille--att">' : ''}${new Date(b.end_date + 'T12:00').toLocaleDateString('fr-CA', { dateStyle: 'medium' })}${loFinProche(t) ? '</span>' : ''}` : '<span class="tr-manque">—</span>'}</td>
+        <td data-libelle="Accès">${t.user_id ? '<span class="tr-pastille tr-pastille--ok">Portail actif</span>' : '<span class="tr-pastille">Aucun</span>'}</td>
+        <td class="tr-chev"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-right"/></svg></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+let ficheLo = { id: null, onglet: 'paiements', data: null };
+const loStatutPaiement = { paid: ['Payé', 'ok'], late: ['En retard', 'ko'], pending: ['À venir', 'att'] };
+const loStatutDemande = { open: 'Ouverte', new: 'Nouvelle', in_progress: 'En cours', assigned: 'Assignée', resolved: 'Réglée', closed: 'Fermée', cancelled: 'Annulée' };
+
+async function ouvrirFicheLocataire(id, onglet){
+  ficheTr.id = null;
+  ficheLo = { id, onglet: onglet || ficheLo.onglet || 'paiements', data: null };
+  if(!document.getElementById('fiche-tr')){
+    document.body.insertAdjacentHTML('beforeend', '<div id="fiche-tr-fond" class="fi-fond" onclick="fermerFicheTravailleur()"></div><aside id="fiche-tr" class="fi-tiroir" role="dialog" aria-modal="true" aria-label="Fiche"></aside>');
   }
-  body.innerHTML = tenants.map(t => {
-    const activeLease = (t.leases || []).find(l => l.status === 'active') || (t.leases || [])[0];
-    const logement = activeLease?.units ? `${esc(activeLease.units.buildings?.address) || '—'} — ${esc(activeLease.units.unit_number)}` : '—';
-    return `
-    <tr>
-      <td>${esc(t.full_name)}<br><span style="color:var(--muted);font-size:11.5px;">${esc(t.email) || ''} ${esc(t.phone) || ''}</span></td>
-      <td>${logement}</td>
-      <td>${t.user_id ? `<button data-role="tenant" data-target-id="${esc(t.id)}" onclick="impersonateFromButton(this)" class="vo-action">Voir son portail</button>` : `<button data-tenant-id="${esc(t.id)}" data-email="${esc(t.email || '')}" onclick="donnerAccesLocataire(this)" class="vo-action">Donner l'accès</button>`}</td>
-    </tr>`;
-  }).join('');
+  if(!window.loEchap){ window.loEchap = true; document.addEventListener('keydown', e => { if(e.key === 'Escape' && ficheLo.id) fermerFicheTravailleur(); }); }
+  document.body.classList.add('fi-ouvert');
+  renderFicheLocataire();
+  const res = await callOpsApi({ action: 'get_tenant_profile', tenant_id: id });
+  if(ficheLo.id !== id) return;
+  ficheLo.data = res && !res.error ? res : { erreur: true };
+  renderFicheLocataire();
+}
+
+function renderFicheLocataire(){
+  const tiroir = document.getElementById('fiche-tr');
+  if(!tiroir || !ficheLo.id) return;
+  const base = tenantsDirectory.find(x => x.id === ficheLo.id) || {};
+  const d = ficheLo.data;
+  const t = d?.tenant || base;
+  const baux = d?.baux || [];
+  const bail = baux.find(b => b.status === 'active') || null;
+  const paiements = baux.flatMap(b => b.payments || []).sort((a, b) => (b.due_date || '').localeCompare(a.due_date || ''));
+  const retards = paiements.filter(p => p.status === 'late');
+  const demandes = d?.demandes || [];
+  const ouvertes = demandes.filter(x => !['resolved', 'closed', 'cancelled'].includes(x.status));
+  const onglet = (id, libelle, n) => `<button class="fi-onglet${ficheLo.onglet === id ? ' actif' : ''}" onclick="ficheLo.onglet='${id}';renderFicheLocataire()">${libelle}${n ? ` <span>${n}</span>` : ''}</button>`;
+  let corps;
+  if(!d) corps = '<p class="tr-vide">Chargement…</p>';
+  else if(d.erreur) corps = '<p class="tr-vide">Fiche indisponible pour le moment.</p>';
+  else if(ficheLo.onglet === 'paiements'){
+    corps = paiements.length ? `<table class="fi-table"><thead><tr><th>Échéance</th><th class="num">Montant</th><th>Statut</th><th></th></tr></thead><tbody>${paiements.map(p => {
+      const [lib, ton] = loStatutPaiement[p.status] || [esc(p.status), ''];
+      return `<tr><td>${esc(p.due_date || '')}${p.paid_date ? `<small>payé le ${esc(p.paid_date)}</small>` : ''}</td><td class="num">${argent(p.amount)}</td>
+        <td><span class="tr-pastille tr-pastille--${ton}">${lib}</span>${p.reminder_paused ? '<small>relances suspendues</small>' : ''}</td>
+        <td class="fi-actions">${p.status !== 'paid' ? `<div>
+          <button class="vo-action" onclick="loMarquerPaye('${p.id}')">Marquer payé</button>
+          <button class="vo-action" onclick="loPauseRelances('${p.id}', ${!p.reminder_paused})">${p.reminder_paused ? 'Reprendre les relances' : 'Suspendre les relances'}</button></div>` : ''}</td></tr>`;
+    }).join('')}</tbody></table>` : '<p class="tr-vide">Aucun paiement enregistré.</p>';
+  } else if(ficheLo.onglet === 'demandes'){
+    corps = demandes.length ? `<table class="fi-table"><thead><tr><th>Demande</th><th>Statut</th><th>Reçue le</th></tr></thead><tbody>${demandes.map(x => `
+      <tr><td><b>${esc(x.description)}</b>${x.ai_category ? `<small>${esc(x.ai_category)}${x.ai_urgency ? ' · ' + esc(x.ai_urgency) : ''}</small>` : ''}</td>
+      <td>${loStatutDemande[x.status] || esc(x.status)}</td><td>${new Date(x.created_at).toLocaleDateString('fr-CA')}</td></tr>`).join('')}</tbody></table>
+      <p><button class="vo-lien" onclick="fermerFicheTravailleur();showTab('work-requests')">Gérer les demandes dans « Travaux à assigner » →</button></p>` : '<p class="tr-vide">Aucune demande de réparation.</p>';
+  } else if(ficheLo.onglet === 'bail'){
+    corps = baux.length ? baux.map(b => `
+      <div class="fi-note">
+        <div class="fi-sous">${b.status === 'active' ? 'Bail actif' : 'Bail ' + esc(b.status)}</div>
+        <b>${esc(b.units?.buildings?.address || '')}, unité ${esc(b.units?.unit_number || '')}</b><br>
+        ${argent(b.monthly_rent)} / mois · du ${esc(b.start_date || '?')} au ${esc(b.end_date || 'indéterminé')}${b.units?.buildings?.owners?.full_name ? `<br><small>Propriétaire : ${esc(b.units.buildings.owners.full_name)}</small>` : ''}
+      </div>`).join('') + (bail ? `<p><button class="vo-lien" onclick="fermerFicheTravailleur();showTab('renewals')">Préparer le renouvellement →</button></p>` : '') : '<p class="tr-vide">Aucun bail enregistré.</p>';
+  } else if(ficheLo.onglet === 'notes'){
+    corps = `
+      <div class="fi-note-form">
+        <textarea id="fi-note" rows="3" placeholder="Ex. Entente de paiement : 700 $ le 1er, 750 $ le 15. Préfère être appelé le soir."></textarea>
+        <button class="ll-bouton ll-bouton--primaire" onclick="ajouterNoteLocataire()">Ajouter la note</button>
+      </div>
+      ${(d.notes || []).map(n => `<div class="fi-note"><div class="fi-sous">${esc(n.users?.email || 'Équipe')} · ${quand(n.created_at)}</div>${esc(n.body)}</div>`).join('') || '<p class="tr-vide">Aucune note. Garde ici tes appels, ententes et particularités du logement.</p>'}`;
+  } else if(ficheLo.onglet === 'activite'){
+    const ev = loEvenements(d);
+    corps = ev.length ? `<ol class="fi-fil">${ev.map(e => `
+      <li class="fi-ev fi-ev--${e.ton}">
+        <span class="fi-point"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#${e.ic}"/></svg></span>
+        <div><div class="fi-txt">${e.txt}</div>${e.sous ? `<div class="fi-sous">${esc(e.sous)}</div>` : ''}<time>${quand(e.t)}</time></div>
+      </li>`).join('')}</ol>` : '<p class="tr-vide">Aucune activité enregistrée.</p>';
+  } else if(ficheLo.onglet === 'modifier'){
+    corps = `
+      <div class="tr-grille">
+        <label>Nom complet<input type="text" id="lo-ed-nom" value="${esc(t.full_name || '')}"></label>
+        <label>Téléphone<input type="tel" id="lo-ed-tel" value="${esc(t.phone || '')}"></label>
+        <label class="tr-large">Courriel${t.user_id ? ' <em>(identifiant de connexion, non modifiable ici)</em>' : ''}<input type="email" id="lo-ed-courriel" value="${esc(t.email || '')}"${t.user_id ? ' disabled' : ''}></label>
+      </div>
+      <footer class="tr-pied">
+        <button class="ll-bouton ll-bouton--primaire" onclick="loEnregistrer()">Enregistrer</button>
+        <button class="ll-bouton ll-bouton--secondaire" onclick="ficheLo.onglet='paiements';renderFicheLocataire()">Annuler</button>
+      </footer>`;
+  } else {
+    const msgs = d.messages || [];
+    corps = `
+      <div class="ms-fil" id="ms-fil">${msgs.length ? msgs.map(m => `
+        <div class="ms-bulle ms-bulle--${m.sender === 'tenant' ? 'entrant' : 'sortant'}">
+          <div class="ms-meta">${m.sender === 'tenant' ? 'Le locataire' : 'L\'équipe'} · ${quand(m.created_at)}</div>
+          <details class="ms-corps" open><summary></summary><div>${esc(m.body)}</div></details>
+        </div>`).join('') : '<p class="tr-vide">Aucun échange pour l\'instant.</p>'}</div>
+      ${t.email ? `
+      <div class="ms-ecrire">
+        <input type="text" id="ms-sujet" placeholder="Objet" maxlength="200">
+        <textarea id="ms-texte" rows="4" placeholder="Écris ton message à ${esc(t.full_name || 'ce locataire')}…"></textarea>
+        <div class="ms-actions"><span class="ms-dest">Par courriel à : ${esc(t.email)}</span><button class="ll-bouton ll-bouton--primaire" id="ms-envoyer" onclick="envoyerCourrielLocataire()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div>
+      </div>` : '<p class="tr-manque">Ajoute un courriel (bouton « Donner l\'accès ») pour pouvoir lui écrire.</p>'}`;
+  }
+  tiroir.innerHTML = `
+    <header class="fi-tete">
+      <span class="tr-avatar" aria-hidden="true">${esc(loInitiales(t.full_name))}</span>
+      <div class="tr-ident">
+        <h2>${esc(t.full_name || '')}</h2>
+        <div class="tr-specs">${bail ? `<span class="tr-spec">${esc(bail.units?.buildings?.address || '')} — ${esc(bail.units?.unit_number || '')}</span>` : '<span class="tr-spec">Sans bail actif</span>'}</div>
+      </div>
+      <button class="fi-fermer" onclick="fermerFicheTravailleur()" aria-label="Fermer"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#x"/></svg></button>
+    </header>
+    <div class="fi-contact">
+      ${t.phone ? `<a class="ll-bouton ll-bouton--secondaire" href="tel:${esc(t.phone)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>${esc(t.phone)}</a>` : ''}
+      ${t.email ? `<button class="ll-bouton ll-bouton--secondaire" onclick="ficheLo.onglet='messages';renderFicheLocataire()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>Écrire</button>` : ''}
+      ${t.user_id
+        ? `<button class="ll-bouton ll-bouton--secondaire" data-role="tenant" data-target-id="${esc(t.id)}" onclick="impersonateFromButton(this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#eye"/></svg>Voir son portail</button>
+           <button class="ll-bouton ll-bouton--secondaire" onclick="loLienMotDePasse()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#key"/></svg>Lien de mot de passe</button>`
+        : `<button class="ll-bouton ll-bouton--primaire" data-tenant-id="${esc(t.id)}" data-email="${esc(t.email || '')}" onclick="donnerAccesLocataire(this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#key"/></svg>Donner l'accès</button>`}
+      <button class="ll-bouton ll-bouton--secondaire" onclick="ficheLo.onglet='modifier';renderFicheLocataire()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#pencil"/></svg>Modifier</button>
+      <span class="tr-espace"></span>
+      ${t.user_id ? '<span class="tr-pastille tr-pastille--ok">Portail actif</span>' : '<span class="tr-pastille">Sans accès</span>'}
+    </div>
+    <div class="fi-stats">
+      <div><b>${bail ? argent(bail.monthly_rent) : '—'}</b><span>loyer mensuel</span></div>
+      <div><b>${retards.length}</b><span>paiement${retards.length > 1 ? 's' : ''} en retard</span></div>
+      <div><b>${ouvertes.length}</b><span>demande${ouvertes.length > 1 ? 's' : ''} ouverte${ouvertes.length > 1 ? 's' : ''}</span></div>
+      <div><b>${bail?.end_date ? new Date(bail.end_date + 'T12:00').toLocaleDateString('fr-CA', { month: 'short', year: 'numeric' }) : '—'}</b><span>fin du bail</span></div>
+    </div>
+    <div class="fi-onglets" role="tablist">
+      ${onglet('paiements', 'Paiements', retards.length)}${onglet('demandes', 'Demandes', ouvertes.length)}${onglet('bail', 'Bail')}${onglet('messages', 'Messages', d?.messages?.length)}${onglet('notes', 'Notes', d?.notes?.length)}${onglet('activite', 'Activité')}
+    </div>
+    <div class="fi-corps">${corps}</div>`;
+  const fil = document.getElementById('ms-fil');
+  if(fil) fil.scrollTop = fil.scrollHeight;
+}
+
+const loAudit = {
+  'tenant.create': 'Fiche créée', 'tenant.access_granted': 'Accès portail donné', 'tenant.updated': 'Coordonnées modifiées',
+  'tenant.email_sent': 'Courriel envoyé par l\'équipe', 'tenant.note_added': null, 'tenant.message_sent': 'Message envoyé',
+};
+function loEvenements(d){
+  const ev = [];
+  (d.audit || []).forEach(a => { const l = loAudit[a.action]; if(l !== null) ev.push({ t: a.created_at, ic: 'info', ton: 'neutre', txt: l || a.action, sous: a.details?.sujet || '' }); });
+  (d.baux || []).forEach(b => (b.payments || []).forEach(p => {
+    if(p.paid_date) ev.push({ t: p.paid_date + 'T12:00', ic: 'banknote', ton: 'ok', txt: `Loyer payé : ${argent(p.amount)}`, sous: `échéance du ${p.due_date}` });
+    else if(p.status === 'late') ev.push({ t: p.due_date + 'T12:00', ic: 'triangle-alert', ton: 'ko', txt: `Loyer en retard : ${argent(p.amount)}` });
+  }));
+  (d.demandes || []).forEach(x => ev.push({ t: x.created_at, ic: 'wrench', ton: 'info', txt: 'Demande de réparation', sous: x.description }));
+  (d.notes || []).forEach(n => ev.push({ t: n.created_at, ic: 'pencil', ton: 'note', txt: `Note de ${esc(n.users?.email?.split('@')[0] || 'l\'équipe')}`, sous: n.body }));
+  return ev.sort((x, y) => new Date(y.t) - new Date(x.t));
+}
+
+async function loMarquerPaye(paymentId){
+  const date = await llDemander('Date de réception du paiement (AAAA-MM-JJ) :', new Date().toISOString().slice(0, 10));
+  if(date === null) return;
+  const res = await callOpsApi({ action: 'mark_payment_paid', payment_id: paymentId, paid_date: date.trim() });
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'non enregistré'), 'erreur'); return; }
+  llToast('Paiement marqué payé.', 'succes');
+  ouvrirFicheLocataire(ficheLo.id, 'paiements'); loadTenants();
+}
+async function loPauseRelances(paymentId, pause){
+  const res = await callOpsApi({ action: 'toggle_payment_reminder_pause', payment_id: paymentId, paused: pause });
+  if(!res?.ok) return;
+  llToast(pause ? 'Relances suspendues pour ce loyer.' : 'Relances reprises.', 'succes');
+  ouvrirFicheLocataire(ficheLo.id, 'paiements');
+}
+async function loLienMotDePasse(){
+  const t = ficheLo.data?.tenant || tenantsDirectory.find(x => x.id === ficheLo.id);
+  if(!t?.email) return;
+  if(!await llConfirmer(`Envoyer à ${t.email} un lien pour choisir un nouveau mot de passe ?`, { libelle: 'Envoyer' })) return;
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(t.email, { redirectTo: location.origin + '/portail-locataire.html' });
+  llToast(error ? 'Erreur : ' + error.message : 'Lien envoyé à ' + t.email + '.', error ? 'erreur' : 'succes');
+}
+async function loEnregistrer(){
+  const res = await callOpsApi({ action: 'update_tenant', tenant_id: ficheLo.id,
+    full_name: document.getElementById('lo-ed-nom').value, phone: document.getElementById('lo-ed-tel').value, email: document.getElementById('lo-ed-courriel').value });
+  if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'non enregistré'), 'erreur'); return; }
+  llToast('Coordonnées enregistrées.', 'succes');
+  await loadTenants(); ouvrirFicheLocataire(ficheLo.id, 'paiements');
+}
+async function ajouterNoteLocataire(){
+  const note = document.getElementById('fi-note').value.trim();
+  if(!note) return;
+  const res = await callOpsApi({ action: 'add_tenant_note', tenant_id: ficheLo.id, note });
+  if(!res?.ok) return;
+  llToast('Note ajoutée.', 'succes');
+  ouvrirFicheLocataire(ficheLo.id, 'notes');
+}
+
+async function envoyerCourrielLocataire(){
+  const sujet = document.getElementById('ms-sujet').value.trim();
+  const texte = document.getElementById('ms-texte').value.trim();
+  if(!sujet || !texte){ llToast('Ajoute un objet et un message.', 'erreur'); return; }
+  const bouton = document.getElementById('ms-envoyer');
+  bouton.disabled = true;
+  const res = await callOpsApi({ action: 'send_tenant_message', tenant_id: ficheLo.id, sujet, texte });
+  bouton.disabled = false;
+  if(!res?.ok) return;
+  llToast('Courriel envoyé.', 'succes');
+  ouvrirFicheLocataire(ficheLo.id, 'messages');
 }
 
 // Locataire enregistré sans courriel : on crée son compte et on lui envoie
@@ -3610,6 +3876,7 @@ async function donnerAccesLocataire(btn){
   if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'accès impossible'), 'erreur'); return; }
   llToast('Accès créé — courriel de bienvenue envoyé à ' + email + '.', 'succes');
   await loadTenants();
+  if(ficheLo.id) ouvrirFicheLocataire(ficheLo.id);
 }
 
 async function seedDemoAccounts(){
