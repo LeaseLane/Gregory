@@ -63,11 +63,11 @@
   tr:last-child td{border-bottom:none;}
   .empty-row td{color:var(--muted);font-style:italic;}
 
-  .tag{font-size:11px;padding:3px 9px;font-family:var(--police-mono);text-transform:uppercase;letter-spacing:0.04em;}
-  .tag.ok{background:var(--sage);color:var(--paper);}
-  .tag.warn{background:var(--amber);color:var(--paper);}
-  .tag.urgent{background:var(--rust);color:var(--paper);}
-  .tag.neutral{background:var(--line);color:var(--ink);}
+  .tag{display:inline-block;font:600 11.5px/1 var(--police-texte);padding:5px 10px;border-radius:var(--rayon-pilule);white-space:nowrap;}
+  .tag.ok{background:var(--succes-100);color:var(--succes-600);}
+  .tag.warn{background:var(--alerte-100);color:var(--alerte-600);}
+  .tag.urgent{background:var(--urgence-100);color:var(--urgence-600);}
+  .tag.neutral{background:var(--surface-enfoncee);color:var(--texte-discret);}
 
   .section{display:none;}
   .section.active{display:block;}
@@ -93,9 +93,9 @@
     table{display:block;overflow-x:auto;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271434">
-<script src="assets/charger-portail.js?v=202609271434"></script>
-<script src="assets/ui.js?v=202609271434"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271438">
+<script src="assets/charger-portail.js?v=202609271438"></script>
+<script src="assets/ui.js?v=202609271438"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -145,7 +145,7 @@
       <span class="brand-sub">Espace locataire</span>
       <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#layout-grid"/></svg><span>Mon logement</span></button>
       <button class="tab-btn" data-tab="payments" onclick="showTab('payments')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#banknote"/></svg><span>Mes paiements</span></button>
-      <button class="tab-btn" data-tab="requests" onclick="showTab('requests')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#square"/></svg><span>Signaler un problème</span></button>
+      <button class="tab-btn" data-tab="requests" onclick="showTab('requests')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wrench"/></svg><span>Signaler un problème</span></button>
       <button class="tab-btn" data-tab="decisions" onclick="showTab('decisions')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bot"/></svg><span>Décisions automatisées</span></button>
       <div class="signout">
         <button class="tab-btn" onclick="handleSignOut()">Se déconnecter</button>
@@ -154,66 +154,62 @@
 
     <main>
       <section id="overview" class="section active">
-        <h1 id="tenant-greeting">Bonjour</h1>
-        <p class="subtitle" id="tenant-subtitle">Chargement...</p>
-        <div class="card-box">
-          <h3>Mon bail</h3>
-          <div id="lease-details">
-            <div class="kv"><span>Chargement...</span><span></span></div>
+        <div class="vo-entete">
+          <div>
+            <h1 id="tenant-greeting">Bonjour</h1>
+            <p class="subtitle" id="tenant-subtitle">Chargement...</p>
           </div>
+          <button class="ll-bouton ll-bouton--primaire" onclick="showTab('requests')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wrench"/></svg>Signaler un problème</button>
         </div>
+        <div class="vo-kpis" id="lo-kpis">
+          <div class="vo-kpi vo-kpi--accent"><span class="vo-kpi__label">Prochain loyer</span><b>—</b></div>
+          <div class="vo-kpi"><span class="vo-kpi__label">Mes paiements</span><b>—</b></div>
+          <div class="vo-kpi"><span class="vo-kpi__label">Fin du bail</span><b>—</b></div>
+          <div class="vo-kpi"><span class="vo-kpi__label">Demandes en cours</span><b>—</b></div>
+        </div>
+        <div class="vo-titre"><h2>Mon bail</h2></div>
+        <div class="pp-carte"><div id="lease-details" class="md-faits"><div><span>Chargement...</span></div></div></div>
       </section>
 
       <section id="payments" class="section">
         <div class="toolbar"><h2>Mes paiements</h2></div>
-        <table><thead><tr><th>Montant</th><th>Échéance</th><th>Statut</th></tr></thead>
-          <tbody id="payments-body"><tr class="empty-row"><td colspan="3">Chargement...</td></tr></tbody>
-        </table>
+        <p class="subtitle">Tes loyers, du plus récent au plus ancien.</p>
+        <div id="payments-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="requests" class="section">
         <div class="toolbar"><h2>Signaler un problème</h2></div>
-        <div class="card-box">
-          <form onsubmit="submitServiceRequest(event)">
-            <div class="f">
-              <label for="request-message">Décris le problème</label>
-              <textarea id="request-message" required placeholder="Ex: Le chauffe-eau ne chauffe plus."></textarea>
-            </div>
-            <div class="f">
-              <label for="request-photos">Photos (optionnel, mais ça aide beaucoup à diagnostiquer rapidement)</label>
-              <input type="file" id="request-photos" accept="image/*" multiple>
-            </div>
-            <button class="submit" type="submit" id="request-submit-btn">Envoyer la demande</button>
+        <p class="subtitle">Décris ce qui ne va pas : on s'occupe de trouver le bon professionnel et on te tient au courant.</p>
+        <form class="pp-carte lo-form" onsubmit="submitServiceRequest(event)">
+          <label class="ch-label" for="request-message">Qu'est-ce qui se passe ?</label>
+          <textarea id="request-message" required rows="4" placeholder="Ex. : Fuite d'eau sous l'évier de la cuisine depuis ce matin."></textarea>
+          <label class="ch-label" for="request-photos" style="margin-top:14px;">Photos <small>(optionnel, ça aide beaucoup à diagnostiquer vite)</small></label>
+          <input type="file" id="request-photos" accept="image/*" multiple>
+          <div class="lo-form-pied">
             <p class="form-note" id="request-note"></p>
-          </form>
-        </div>
-
-        <h3 style="font-family:var(--police-titre);font-size:17px;font-weight:600;margin:24px 0 14px;">Mes demandes précédentes</h3>
-        <table><thead><tr><th>Description</th><th>Statut</th></tr></thead>
-          <tbody id="requests-body"><tr class="empty-row"><td colspan="2">Chargement...</td></tr></tbody>
-        </table>
+            <button class="ll-bouton ll-bouton--primaire" type="submit" id="request-submit-btn"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer la demande</button>
+          </div>
+        </form>
+        <h3 class="sous-titre">Mes demandes</h3>
+        <div id="requests-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="decisions" class="section">
         <div class="toolbar"><h2>Décisions automatisées</h2></div>
-        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Certaines décisions vous concernant sont prises automatiquement par le système, selon des règles fixes. Voici l'historique et les facteurs qui ont mené à chacune — tu peux demander qu'un humain la révise.</p>
-        <div id="decisions-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
+        <p class="subtitle">Certaines décisions te concernant sont prises automatiquement, selon des règles fixes. Tu vois ici chacune d'elles et tu peux demander qu'un humain la révise.</p>
+        <div id="decisions-body"><p class="tr-vide">Chargement...</p></div>
 
-        <h3 style="font-family:var(--police-titre);font-size:17px;font-weight:600;margin:24px 0 14px;">Mes renseignements personnels</h3>
-        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Demande d'accès à tes renseignements, de rectification ou d'effacement — conformément à la Loi 25. Une réponse te sera communiquée sous 30 jours.</p>
-        <div class="card-box">
-          <div class="f">
-            <label for="pdr-type">Type de demande</label>
+        <h3 class="sous-titre">Mes renseignements personnels</h3>
+        <p class="subtitle">Demande d'accès, de rectification ou d'effacement de tes renseignements (Loi 25). Réponse sous 30 jours.</p>
+        <div class="fo-carte">
+          <div><label class="ch-label" for="pdr-type">Type de demande</label>
             <select id="pdr-type"><option value="access">Accès à mes renseignements</option><option value="rectification">Rectification</option><option value="deletion">Effacement</option></select>
           </div>
-          <div class="f">
-            <label for="pdr-details">Précisions (optionnel)</label>
-            <textarea id="pdr-details" placeholder="Ex. : préciser ce qui doit être corrigé"></textarea>
-          </div>
-          <button class="submit" onclick="submitPersonalDataRequest()">Envoyer la demande</button>
+          <div class="pp-large"><label class="ch-label" for="pdr-details">Précisions <small>(optionnel)</small></label><input type="text" id="pdr-details" placeholder="Ex. : préciser ce qui doit être corrigé"></div>
+          <button class="ll-bouton ll-bouton--primaire" onclick="submitPersonalDataRequest()">Envoyer la demande</button>
           <p class="form-note" id="pdr-error"></p>
         </div>
-        <div id="pdr-body"><p style="color:var(--muted);font-size:13.5px;">Chargement...</p></div>
+        <div id="pdr-body"><p class="tr-vide">Chargement...</p></div>
       </section>
     </main>
   </div>
@@ -334,45 +330,55 @@ async function loadTenantDashboard(userId){
 const leaseStatusLabel = { active: 'Actif', renewed: 'Renouvelé', ended: 'Terminé' };
 const leaseStatusClass = { active: 'ok', renewed: 'ok', ended: 'neutral' };
 
+const moisDe = d => new Date(d + 'T12:00').toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' });
+const jourDe = d => new Date(d + 'T12:00').toLocaleDateString('fr-CA', { dateStyle: 'medium' });
+
 function renderOverview(lease){
   const sub = document.getElementById('tenant-subtitle');
   const details = document.getElementById('lease-details');
+  const kpis = document.getElementById('lo-kpis');
 
   if(!lease){
     sub.textContent = 'Aucun bail actif';
-    details.innerHTML = '<div class="kv"><span>Aucun bail trouvé pour ce compte.</span><span></span></div>';
+    details.innerHTML = '<div><span>Bail</span><b>Aucun bail trouvé pour ce compte</b></div>';
     return;
   }
 
   const unit = lease.units;
   sub.textContent = (unit?.buildings?.address || '') + (unit ? ', unité ' + unit.unit_number : '');
+  const pay = lease.payments || [];
+  const aVenir = pay.filter(p => p.status !== 'paid').sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
+  const retards = pay.filter(p => p.status === 'late').length;
+  kpis.innerHTML = `
+    <div class="vo-kpi vo-kpi--accent"><span class="vo-kpi__label">Prochain loyer</span><b>${aVenir ? Number(aVenir.amount).toLocaleString('fr-CA') + ' $' : '—'}</b>${aVenir ? `<small class="lo-kpi-sous">le ${jourDe(aVenir.due_date)}</small>` : ''}</div>
+    <div class="vo-kpi"><span class="vo-kpi__label">Mes paiements</span><b>${retards ? retards + ' en retard' : 'À jour'}</b></div>
+    <div class="vo-kpi"><span class="vo-kpi__label">Fin du bail</span><b>${lease.end_date ? jourDe(lease.end_date) : 'Indéterminée'}</b></div>
+    <div class="vo-kpi"><span class="vo-kpi__label">Demandes en cours</span><b id="lo-kpi-demandes">—</b></div>`;
 
   details.innerHTML = `
-    <div class="kv"><span>Adresse</span><span>${esc(unit?.buildings?.address) || '—'}</span></div>
-    <div class="kv"><span>Unité</span><span>${esc(unit?.unit_number) || '—'} (${esc(unit?.unit_type) || '—'})</span></div>
-    <div class="kv"><span>Loyer mensuel</span><span>${Number(lease.monthly_rent).toLocaleString('fr-CA')} $</span></div>
-    <div class="kv"><span>Début du bail</span><span>${esc(lease.start_date) || '—'}</span></div>
-    <div class="kv"><span>Fin du bail</span><span>${esc(lease.end_date) || '—'}</span></div>
-    <div class="kv"><span>Statut</span><span><span class="tag ${leaseStatusClass[lease.status] || 'neutral'}">${leaseStatusLabel[lease.status] || esc(lease.status)}</span></span></div>
+    <div><span>Adresse</span><b>${esc(unit?.buildings?.address) || '—'}</b></div>
+    <div><span>Unité</span><b>${esc(unit?.unit_number) || '—'}${unit?.unit_type ? ' · ' + esc(unit.unit_type) : ''}</b></div>
+    <div><span>Loyer mensuel</span><b>${Number(lease.monthly_rent).toLocaleString('fr-CA')} $</b></div>
+    <div><span>Début du bail</span><b>${lease.start_date ? jourDe(lease.start_date) : '—'}</b></div>
+    <div><span>Fin du bail</span><b>${lease.end_date ? jourDe(lease.end_date) : 'Indéterminée'}</b></div>
+    <div><span>Statut</span><b><span class="tag ${leaseStatusClass[lease.status] || 'neutral'}">${leaseStatusLabel[lease.status] || esc(lease.status)}</span></b></div>
   `;
 }
 
 function renderPayments(lease){
   const body = document.getElementById('payments-body');
   const payments = lease?.payments || [];
-  if(!payments.length){
-    body.innerHTML = '<tr class="empty-row"><td colspan="3">Aucun paiement.</td></tr>';
-    return;
-  }
-  const tagClass = { paid: 'ok', late: 'urgent', pending: 'warn' };
-  const tagLabel = { paid: 'Payé', late: 'En retard', pending: 'En attente' };
-  body.innerHTML = payments
+  if(!payments.length){ body.innerHTML = '<p class="tr-vide">Aucun paiement pour l\'instant.</p>'; return; }
+  const ton = { paid: 'ok', late: 'ko', pending: 'att' };
+  const lib = { paid: 'Payé', late: 'En retard', pending: 'À venir' };
+  body.innerHTML = '<ul class="lo-paiements">' + payments
     .sort((a,b)=> new Date(b.due_date) - new Date(a.due_date))
-    .map(p => `<tr>
-      <td>${Number(p.amount).toLocaleString('fr-CA')} $</td>
-      <td>${p.due_date}</td>
-      <td><span class="tag ${tagClass[p.status]}">${tagLabel[p.status]}</span></td>
-    </tr>`).join('');
+    .map(p => `<li class="lo-paiement lo-paiement--${ton[p.status] || ''}">
+      <div class="lo-p-quand"><b>Loyer de ${moisDe(p.due_date)}</b><small>${p.paid_date ? 'Payé le ' + jourDe(p.paid_date) : 'Échéance le ' + jourDe(p.due_date)}</small></div>
+      <div class="lo-p-montant">${Number(p.amount).toLocaleString('fr-CA')} $</div>
+      <span class="tr-pastille tr-pastille--${ton[p.status] || ''}">${lib[p.status] || esc(p.status)}</span>
+      <div class="lo-p-actions"></div>
+    </li>`).join('') + '</ul>';
 }
 
 async function loadRequests(){
@@ -383,16 +389,15 @@ async function loadRequests(){
     .order('created_at', { ascending: false });
 
   const body = document.getElementById('requests-body');
-  if(!data || !data.length){
-    body.innerHTML = '<tr class="empty-row"><td colspan="2">Aucune demande envoyée.</td></tr>';
-    return;
-  }
-  const tagClass = { open: 'neutral', in_progress: 'warn', closed: 'ok' };
-  const tagLabel = { open: 'Ouverte', in_progress: 'En cours', closed: 'Fermée' };
-  body.innerHTML = data.map(r => `<tr>
-    <td>${esc(r.description)}</td>
-    <td><span class="tag ${tagClass[r.status]}">${tagLabel[r.status]}</span></td>
-  </tr>`).join('');
+  const tagClass = { open: 'neutral', new: 'neutral', in_progress: 'warn', assigned: 'warn', closed: 'ok', resolved: 'ok' };
+  const tagLabel = { open: 'Reçue', new: 'Reçue', in_progress: 'En cours', assigned: 'Professionnel assigné', closed: 'Réglée', resolved: 'Réglée' };
+  const enCours = (data || []).filter(r => !['closed', 'resolved', 'cancelled'].includes(r.status)).length;
+  const k = document.getElementById('lo-kpi-demandes'); if(k) k.textContent = enCours;
+  if(!data || !data.length){ body.innerHTML = '<p class="tr-vide">Aucune demande envoyée pour l\'instant.</p>'; return; }
+  body.innerHTML = '<ul class="lo-demandes">' + data.map(r => `<li class="pp-carte lo-demande">
+    <div><b>${esc(r.description)}</b><small>Envoyée le ${new Date(r.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</small></div>
+    <span class="tag ${tagClass[r.status] || 'neutral'}">${tagLabel[r.status] || esc(r.status)}</span>
+  </li>`).join('') + '</ul>';
 }
 
 async function loadAutomatedDecisions(){
@@ -406,16 +411,16 @@ async function loadAutomatedDecisions(){
 
   const container = document.getElementById('decisions-body');
   if(!data || !data.length){
-    container.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucune décision automatisée enregistrée pour le moment.</p>';
+    container.innerHTML = '<p class="tr-vide">Aucune décision automatisée pour le moment.</p>';
     return;
   }
   container.innerHTML = data.map(d => `
-    <div class="card-box">
-      <p style="font-size:14px;margin-bottom:6px;">${esc(d.summary)}</p>
+    <div class="pp-carte">
+      <p style="font-size:14px;margin:0 0 6px;">${esc(d.summary)}</p>
       <p style="font-size:12.5px;color:var(--muted);margin-bottom:8px;">${new Date(d.decided_at).toLocaleString('fr-CA')}</p>
       ${d.review_requested_at
         ? `<p style="font-size:12.5px;color:var(--muted);">Révision demandée le ${new Date(d.review_requested_at).toLocaleDateString('fr-CA')}${d.review_outcome ? ` — réponse de l'équipe : ${esc(d.review_outcome === 'annulee' ? 'décision annulée' : 'décision maintenue')}${d.review_response ? ' — ' + esc(d.review_response) : ''}` : ' — en attente de traitement'}</p>`
-        : `<button class="submit" style="padding:9px 16px;font-size:13px;" onclick="requestDecisionReview('${d.id}')">Demander une révision humaine</button>`}
+        : `<button class="ll-bouton ll-bouton--secondaire lo-petit" onclick="requestDecisionReview('${d.id}')">Demander une révision humaine</button>`}
     </div>`).join('');
 }
 
@@ -435,14 +440,14 @@ async function loadPersonalDataRequests(){
 
   const container = document.getElementById('pdr-body');
   if(!data || !data.length){
-    container.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">Aucune demande envoyée.</p>';
+    container.innerHTML = '<p class="tr-vide">Aucune demande envoyée.</p>';
     return;
   }
   const typeLabel = { access: 'Accès', rectification: 'Rectification', deletion: 'Effacement' };
   const statusLabel = { received: 'Reçue', in_progress: 'En cours', fulfilled: 'Traitée', rejected: 'Refusée' };
   container.innerHTML = data.map(r => `
-    <div class="card-box">
-      <p style="font-size:14px;margin-bottom:6px;">${esc(typeLabel[r.request_type] || r.request_type)}</p>
+    <div class="pp-carte">
+      <p style="font-size:14px;margin:0 0 6px;"><b>${esc(typeLabel[r.request_type] || r.request_type)}</b></p>
       <p style="font-size:12.5px;color:var(--muted);">Envoyée le ${new Date(r.created_at).toLocaleDateString('fr-CA')} — Statut : ${esc(statusLabel[r.status] || r.status)}${r.resolution_note ? ' — ' + esc(r.resolution_note) : ''}</p>
     </div>`).join('');
 }
@@ -530,6 +535,6 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/url-propre.js?v=202609271434"></script>
+<script src="assets/url-propre.js?v=202609271438"></script>
 </body>
 </html>

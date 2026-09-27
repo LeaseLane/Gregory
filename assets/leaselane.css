@@ -1261,3 +1261,14 @@ input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire
   .lo-paiement{ grid-template-columns:minmax(0,1fr) auto; }
   .lo-p-actions{ grid-column:1/-1; flex-direction:row; justify-content:flex-start; align-items:center; gap:12px; }
 }
+/* Portail locataire */
+.lo-kpi-sous{ font-size:12.5px; color:rgba(255,255,255,.75); }
+.lo-form textarea{ width:100%; box-sizing:border-box; resize:vertical; }
+.lo-form .ch-label small{ font-weight:400; }
+.lo-form-pied{ display:flex; align-items:center; justify-content:flex-end; gap:14px; margin-top:16px; flex-wrap:wrap; }
+.lo-form-pied .form-note{ margin:0 auto 0 0; }
+.lo-form-pied .ll-bouton .ic, .vo-entete .ll-bouton .ic{ width:16px; height:16px; margin-right:6px; vertical-align:-3px; }
+.lo-demandes{ list-style:none; margin:0; padding:0; }
+.lo-demande{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:10px; }
+.lo-demande b{ display:block; font-weight:600; color:var(--marine-900); overflow-wrap:anywhere; }
+.lo-demande small{ display:block; margin-top:3px; font-size:12.5px; color:var(--texte-discret); }
