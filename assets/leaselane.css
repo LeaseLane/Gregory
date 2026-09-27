@@ -1306,3 +1306,19 @@ input[type=file]:hover::file-selector-button{ border-color:var(--action-primaire
 .sr-video{ background:var(--surface-enfoncee); white-space:pre-line; }
 .sr-video .ic{ color:var(--marine-900); }
 .sr-video b{ display:block; color:var(--marine-900); margin-bottom:2px; }
+
+/* Visionneuse de pièces jointes (photos, vidéos) */
+.vi-fond{ position:fixed; inset:0; z-index:1200; background:rgba(6,18,32,.88); display:none; align-items:center; justify-content:center; padding:56px 72px; }
+.vi-fond.vi-ouverte{ display:flex; }
+.vi-scene{ max-width:100%; max-height:100%; display:flex; align-items:center; justify-content:center; }
+.vi-scene img, .vi-scene video{ max-width:min(1200px, 100%); max-height:calc(100vh - 140px); border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.45); background:#000; }
+.vi-charge{ color:rgba(255,255,255,.8); font-size:14px; }
+.vi-btn{ position:absolute; width:44px; height:44px; border-radius:50%; border:none; cursor:pointer; background:rgba(255,255,255,.12); color:#fff; display:grid; place-items:center; }
+.vi-btn:hover{ background:rgba(255,255,255,.24); }
+.vi-btn .ic{ width:22px; height:22px; }
+.vi-fermer{ top:16px; right:16px; }
+.vi-prec{ left:16px; top:50%; transform:translateY(-50%); }
+.vi-suiv{ right:16px; top:50%; transform:translateY(-50%); }
+.vi-bas{ position:absolute; bottom:16px; left:0; right:0; display:flex; justify-content:center; gap:18px; font-size:13px; color:rgba(255,255,255,.8); }
+.vi-bas a{ color:rgba(255,255,255,.8); }
+@media (max-width:640px){ .vi-fond{ padding:56px 8px 48px; } .vi-prec{ left:6px; } .vi-suiv{ right:6px; } }

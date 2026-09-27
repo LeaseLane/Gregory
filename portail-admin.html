@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609271559">
-<script src="assets/charger-portail.js?v=202609271559"></script>
-<script src="assets/ui.js?v=202609271559"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609271633">
+<script src="assets/charger-portail.js?v=202609271633"></script>
+<script src="assets/ui.js?v=202609271633"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -1987,10 +1987,63 @@ async function callParseExpenseReceiptApi(payload){
   return data;
 }
 
-async function viewPhoto(bucket, path){
+// Visionneuse intégrée : photos et vidéos s'ouvrent par-dessus la page,
+// avec flèches pour passer d'une pièce jointe à l'autre du même groupe.
+const estVideoChemin = p => /\.(mp4|mov|m4v|webm|avi|3gp)$/i.test(p);
+let visionneuse = { liste: [], i: 0, bucket: '' };
+
+async function viewPhoto(bucket, path, liste){
+  visionneuse = { bucket, liste: liste && liste.length ? liste : [path], i: Math.max(0, (liste || [path]).indexOf(path)) };
+  let v = document.getElementById('ll-visionneuse');
+  if(!v){
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="ll-visionneuse" class="vi-fond" role="dialog" aria-modal="true" aria-label="Pièce jointe" onclick="if(event.target===this) fermerVisionneuse()">
+        <button class="vi-btn vi-fermer" onclick="fermerVisionneuse()" aria-label="Fermer"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#x"/></svg></button>
+        <button class="vi-btn vi-prec" onclick="visionneuseAller(-1)" aria-label="Précédente"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-left"/></svg></button>
+        <div class="vi-scene" id="vi-scene"></div>
+        <button class="vi-btn vi-suiv" onclick="visionneuseAller(1)" aria-label="Suivante"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-right"/></svg></button>
+        <div class="vi-bas"><span id="vi-compte"></span><a id="vi-ouvrir" target="_blank" rel="noopener">Ouvrir dans un onglet</a></div>
+      </div>`);
+    document.addEventListener('keydown', e => {
+      if(!document.getElementById('ll-visionneuse')?.classList.contains('vi-ouverte')) return;
+      if(e.key === 'Escape') fermerVisionneuse();
+      else if(e.key === 'ArrowLeft') visionneuseAller(-1);
+      else if(e.key === 'ArrowRight') visionneuseAller(1);
+    });
+    v = document.getElementById('ll-visionneuse');
+  }
+  v.classList.add('vi-ouverte');
+  await afficherVisionneuse();
+}
+
+async function afficherVisionneuse(){
+  const { liste, i, bucket } = visionneuse;
+  const path = liste[i];
+  const scene = document.getElementById('vi-scene');
+  scene.innerHTML = '<p class="vi-charge">Chargement…</p>';
+  document.getElementById('vi-compte').textContent = liste.length > 1 ? `${i + 1} / ${liste.length}` : '';
+  document.querySelector('#ll-visionneuse .vi-prec').hidden = document.querySelector('#ll-visionneuse .vi-suiv').hidden = liste.length < 2;
   const res = await callOpsApi({ action: 'get_signed_url', bucket, path });
-  if(res?.signed_url){ window.open(res.signed_url, '_blank'); }
-  else { alert("Impossible d'ouvrir cette photo."); }
+  if(visionneuse.liste[visionneuse.i] !== path) return;
+  if(!res?.signed_url){ scene.innerHTML = '<p class="vi-charge">Impossible d\'ouvrir ce fichier.</p>'; return; }
+  document.getElementById('vi-ouvrir').href = res.signed_url;
+  scene.innerHTML = estVideoChemin(path)
+    ? `<video src="${esc(res.signed_url)}" controls autoplay playsinline></video>`
+    : `<img src="${esc(res.signed_url)}" alt="Pièce jointe ${i + 1}">`;
+}
+
+function visionneuseAller(pas){
+  const n = visionneuse.liste.length;
+  if(n < 2) return;
+  visionneuse.i = (visionneuse.i + pas + n) % n;
+  afficherVisionneuse();
+}
+
+function fermerVisionneuse(){
+  const v = document.getElementById('ll-visionneuse');
+  if(!v) return;
+  v.classList.remove('vi-ouverte');
+  document.getElementById('vi-scene').innerHTML = '';   // coupe la vidéo en cours
 }
 
 // Ne JAMAIS interpoler un nom de fichier (contrôlé par l'utilisateur qui
@@ -2000,7 +2053,9 @@ async function viewPhoto(bucket, path){
 // simple dans le nom de fichier. On passe donc par des attributs data-*
 // lus via dataset, jamais réinterprétés comme du code.
 function viewPhotoFromLink(el){
-  viewPhoto(el.dataset.bucket, el.dataset.path);
+  const groupe = el.closest('.sr-medias') || el.parentElement;
+  const liste = [...groupe.querySelectorAll('[data-path]')].map(x => x.dataset.path);
+  viewPhoto(el.dataset.bucket, el.dataset.path, liste);
 }
 
 function photoLinksHtml(bucket, paths, label){
@@ -4375,6 +4430,6 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/url-propre.js?v=202609271559"></script>
+<script src="assets/url-propre.js?v=202609271633"></script>
 </body>
 </html>
