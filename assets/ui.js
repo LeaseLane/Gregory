@@ -11,6 +11,10 @@
  * Mêmes valeurs de retour que les fonctions natives : les appels existants
  * n'ont changé que par l'ajout de « await ».
  */
+// Lien « mot de passe oublié » : on le note avant que Supabase n'efface
+// l'adresse, pour que compte.js impose le nouveau mot de passe une fois
+// arrivé dans le bon portail (après la double authentification pour l'admin).
+try { if (/type=recovery/.test(location.hash)) sessionStorage.setItem('ll-recuperation', '1'); } catch (e) {}
 (function () {
   var TONS = {
     erreur: /erreur|impossible|échec|echec|refus|invalide|manquant|requis/i,

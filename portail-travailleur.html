@@ -112,9 +112,9 @@
     main{padding:20px 16px;max-width:100%;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609272205">
-<script src="assets/charger-portail.js?v=202609272205"></script>
-<script src="assets/ui.js?v=202609272205"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609280826">
+<script src="assets/charger-portail.js?v=202609280826"></script>
+<script src="assets/ui.js?v=202609280826"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -335,13 +335,7 @@ function esc(str){
 let workerRecord = null;
 const DAYS = [['lundi','Lundi'],['mardi','Mardi'],['mercredi','Mercredi'],['jeudi','Jeudi'],['vendredi','Vendredi'],['samedi','Samedi'],['dimanche','Dimanche']];
 
-supabaseClient.auth.onAuthStateChange((event) => {
-  if(event === 'PASSWORD_RECOVERY'){
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('app-shell').style.display = 'none';
-    showNewPasswordForm();
-  }
-});
+// Lien « mot de passe oublié » : géré par assets/compte.js.
 
 function showResetForm(){
   document.querySelector('#login-screen .login-box').style.display = 'none';
@@ -995,8 +989,8 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609272205"></script>
-<script src="assets/compte.js?v=202609272205"></script>
-<script src="assets/url-propre.js?v=202609272205"></script>
+<script src="assets/mobile.js?v=202609280826"></script>
+<script src="assets/compte.js?v=202609280826"></script>
+<script src="assets/url-propre.js?v=202609280826"></script>
 </body>
 </html>

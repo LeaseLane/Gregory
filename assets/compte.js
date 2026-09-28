@@ -95,17 +95,22 @@
   // ── Premier accès : mot de passe temporaire à remplacer ──────────────
   // Page plein écran (pas une fenêtre) : même mise en page que l'écran de
   // connexion. Rien n'est accessible tant que le mot de passe n'est pas choisi.
+  function recuperation() {
+    try { return sessionStorage.getItem('ll-recuperation') === '1'; } catch (e) { return false; }
+  }
   function imposerNouveauMotDePasse() {
     if (vueAdmin() || document.getElementById('ll-mdp-page')) return;
+    var oubli = recuperation();
     var p = document.createElement('div');
     p.id = 'll-mdp-page';
     p.className = 'll-mdp-page';
     p.setAttribute('role', 'main');
     p.innerHTML =
       '<div class="ll-mdp-cote"><img src="assets/logo/leaselane-horizontal-marine.svg" alt="Lease Lane">' +
-        '<h2>Bienvenue sur Lease Lane.</h2><p>Dernière étape avant d\'accéder à ton espace : choisis ton propre mot de passe. Le mot de passe temporaire reçu par courriel ne fonctionnera plus ensuite.</p></div>' +
+        (oubli ? '<h2>Mot de passe oublié.</h2><p>Choisis un nouveau mot de passe pour ton compte. L\'ancien ne fonctionnera plus ensuite.</p></div>'
+          : '<h2>Bienvenue sur Lease Lane.</h2><p>Dernière étape avant d\'accéder à ton espace : choisis ton propre mot de passe. Le mot de passe temporaire reçu par courriel ne fonctionnera plus ensuite.</p></div>') +
       '<div class="ll-mdp-zone"><form class="ll-mdp-carte" onsubmit="return false">' +
-        '<h1>Choisis ton mot de passe</h1>' +
+        '<h1>' + (oubli ? 'Nouveau mot de passe' : 'Choisis ton mot de passe') + '</h1>' +
         '<p class="subtitle">8 caractères minimum. Mélange lettres et chiffres pour plus de sécurité.</p>' +
         '<label class="ch-label" for="dlg-mdp1">Nouveau mot de passe</label><input type="password" id="dlg-mdp1" autocomplete="new-password">' +
         '<label class="ch-label" for="dlg-mdp2">Confirmer le mot de passe</label><input type="password" id="dlg-mdp2" autocomplete="new-password">' +
@@ -116,17 +121,28 @@
     setTimeout(function () { document.getElementById('dlg-mdp1').focus(); }, 50);
     document.getElementById('dlg-mdp-btn').onclick = async function () {
       if (await changerMotDePasse(document.getElementById('dlg-mdp1'), document.getElementById('dlg-mdp2'), true)) {
+        try { sessionStorage.removeItem('ll-recuperation'); } catch (e) {}
         p.remove(); document.body.classList.remove('ll-mdp-actif');
       }
     };
   }
 
-  function verifier(session) {
-    if (session && session.user && session.user.user_metadata && session.user.user_metadata.doit_changer_mdp) imposerNouveauMotDePasse();
+  async function verifier(session) {
+    if (!session || !session.user) return;
+    var meta = session.user.user_metadata || {};
+    if (!meta.doit_changer_mdp && !recuperation()) return;
+    // Compte avec double authentification : Supabase refuse de changer le
+    // mot de passe avant le code à 6 chiffres. On attend donc la validation
+    // (événement MFA_CHALLENGE_VERIFIED, qui rappelle verifier).
+    var c = client();
+    var niv = c && (await c.auth.mfa.getAuthenticatorAssuranceLevel()).data;
+    if (niv && niv.nextLevel === 'aal2' && niv.currentLevel !== 'aal2') return;
+    imposerNouveauMotDePasse();
   }
   var c = client();
   if (c) {
     c.auth.getSession().then(function (r) { verifier(r.data.session); });
-    c.auth.onAuthStateChange(function (_e, session) { verifier(session); });
+    // setTimeout : supabase-js bloque si on rappelle l'auth dans ce rappel.
+    c.auth.onAuthStateChange(function (_e, session) { setTimeout(function () { verifier(session); }, 0); });
   }
 })();

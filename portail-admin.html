@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609272205">
-<script src="assets/charger-portail.js?v=202609272205"></script>
-<script src="assets/ui.js?v=202609272205"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609280826">
+<script src="assets/charger-portail.js?v=202609280826"></script>
+<script src="assets/ui.js?v=202609280826"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -916,13 +916,7 @@ function esc(str){
 }
 
 async function init(){
-  supabaseClient.auth.onAuthStateChange((event) => {
-    if(event === 'PASSWORD_RECOVERY'){
-      document.getElementById('login-screen').style.display = 'flex';
-      document.getElementById('app-shell').style.display = 'none';
-      showNewPasswordForm();
-    }
-  });
+  // Lien « mot de passe oublié » : géré par assets/compte.js.
   const { data: { session } } = await supabaseClient.auth.getSession();
   // Une session restaurée doit passer par le même contrôle qu'une
   // connexion fraîche (lot P4) : sans ça, rouvrir l'onglet contournerait
@@ -4698,8 +4692,8 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609272205"></script>
-<script src="assets/compte.js?v=202609272205"></script>
-<script src="assets/url-propre.js?v=202609272205"></script>
+<script src="assets/mobile.js?v=202609280826"></script>
+<script src="assets/compte.js?v=202609280826"></script>
+<script src="assets/url-propre.js?v=202609280826"></script>
 </body>
 </html>
