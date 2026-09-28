@@ -21,8 +21,21 @@ window.llCharger = function (nom) {
     'portail-admin': 'sb-portail-admin-auth',
   };
   var PAR_ROLE = { owner: 'portail-proprietaire', tenant: 'portail-locataire', worker: 'portail-travailleur' };
-  window.llBonPortail = async function (client, ici) {
+  window.llBonPortail = async function (client, ici, adminSeulement) {
     try {
+      // Admin qui a aussi une fiche client (ex. propriétaire de test) : son
+      // espace est l'admin — sauf dans l'onglet « Voir son portail ».
+      if (adminSeulement) {
+        if (sessionStorage.getItem('ll-vue-admin') === '1') return false;
+        var soi = (await client.auth.getUser()).data.user;
+        var adm = soi && (await client.from('users').select('is_admin').eq('id', soi.id).maybeSingle()).data;
+        if (!adm || !adm.is_admin) return false;
+        localStorage.setItem(CLE['portail-admin'], localStorage.getItem(CLE[ici]));
+        localStorage.removeItem(CLE[ici]);
+        localStorage.setItem('ll-portail', 'portail-admin');
+        location.replace('/app');
+        return true;
+      }
       // Un admin qui serait aussi propriétaire reste sur son portail admin.
       if (ici === 'portail-admin') {
         var u = (await client.auth.getUser()).data.user;

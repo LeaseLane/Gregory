@@ -112,9 +112,9 @@
     .approve-row{flex-direction:column;align-items:flex-start;gap:10px;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609281517">
-<script src="assets/charger-portail.js?v=202609281517"></script>
-<script src="assets/ui.js?v=202609281517"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609281526">
+<script src="assets/charger-portail.js?v=202609281526"></script>
+<script src="assets/ui.js?v=202609281526"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -480,6 +480,7 @@ function showLoginError(msg){
 /* ---- Charge le tableau de bord d'UN SEUL propriétaire (RLS
    garantit qu'il ne peut recevoir que ses propres données) ---- */
 async function loadOwnerDashboard(userId){
+  if(await llBonPortail(supabaseClient, 'portail-proprietaire', true)) return;
   const { data: owner, error } = await supabaseClient
     .from('owners').select('*').eq('user_id', userId).single();
 
@@ -1305,8 +1306,8 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609281517"></script>
-<script src="assets/compte.js?v=202609281517"></script>
-<script src="assets/url-propre.js?v=202609281517"></script>
+<script src="assets/mobile.js?v=202609281526"></script>
+<script src="assets/compte.js?v=202609281526"></script>
+<script src="assets/url-propre.js?v=202609281526"></script>
 </body>
 </html>

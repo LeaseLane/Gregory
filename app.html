@@ -44,7 +44,7 @@
   a.choix:hover{border-color:var(--brass);}
   .choix--info{background:transparent;border-style:dashed;}
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609281517">
+<link rel="stylesheet" href="assets/leaselane.css?v=202609281526">
 </head>
 <body>
 
@@ -91,7 +91,7 @@
   </div>
 </div>
 
-<script src="assets/charger-portail.js?v=202609281517"></script>
+<script src="assets/charger-portail.js?v=202609281526"></script>
 <script>
 // Tout est dans une fonction : le portail chargé ensuite par llCharger()
 // garde le même objet window et redéclare ses propres constantes.
@@ -143,8 +143,12 @@ async function routeToPortal(){
   document.getElementById('loading-box').style.display = 'block';
 
   let role = null;
-  const { data } = await supabaseClient.functions.invoke('whoami');
-  role = data?.role || null;
+  // Admin d'abord : un admin qui a aussi une fiche propriétaire (compte de
+  // test, par ex.) doit arriver sur l'espace admin, pas propriétaire.
+  const { data: moi } = await supabaseClient.from('users').select('is_admin').eq('id', session.user.id).maybeSingle();
+  if(moi?.is_admin) role = 'admin';
+  const { data } = role ? { data: null } : await supabaseClient.functions.invoke('whoami');
+  role = role || data?.role || null;
   // whoami ne connaît que propriétaire/locataire/travailleur ; admin-api
   // refuse tout compte qui n'est pas administrateur.
   if(!role){
