@@ -93,9 +93,9 @@
     table{display:block;overflow-x:auto;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609280826">
-<script src="assets/charger-portail.js?v=202609280826"></script>
-<script src="assets/ui.js?v=202609280826"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609281517">
+<script src="assets/charger-portail.js?v=202609281517"></script>
+<script src="assets/ui.js?v=202609281517"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -228,7 +228,7 @@
 const SUPABASE_URL = 'https://kdmwfbcziokygfcmjxeq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR';
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storageKey: 'sb-portail-tenant-auth' } });
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storageKey: 'sb-portail-tenant-auth', storage: llStockage() } });
 
 function esc(str){
   return (str == null ? '' : String(str)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -841,8 +841,8 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609280826"></script>
-<script src="assets/compte.js?v=202609280826"></script>
-<script src="assets/url-propre.js?v=202609280826"></script>
+<script src="assets/mobile.js?v=202609281517"></script>
+<script src="assets/compte.js?v=202609281517"></script>
+<script src="assets/url-propre.js?v=202609281517"></script>
 </body>
 </html>

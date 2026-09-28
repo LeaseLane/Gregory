@@ -44,7 +44,7 @@
   a.choix:hover{border-color:var(--brass);}
   .choix--info{background:transparent;border-style:dashed;}
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609280826">
+<link rel="stylesheet" href="assets/leaselane.css?v=202609281517">
 </head>
 <body>
 
@@ -91,7 +91,7 @@
   </div>
 </div>
 
-<script src="assets/charger-portail.js?v=202609280826"></script>
+<script src="assets/charger-portail.js?v=202609281517"></script>
 <script>
 // Tout est dans une fonction : le portail chargé ensuite par llCharger()
 // garde le même objet window et redéclare ses propres constantes.
@@ -102,7 +102,8 @@ const CLE_SESSION = 'sb-kdmwfbcziokygfcmjxeq-auth-token';
 
 // Portail déjà ouvert sur cet appareil : on le recharge directement, sous /app.
 let dernier = null;
-try { dernier = sessionStorage.getItem('ll-portail') || localStorage.getItem('ll-portail'); } catch(e){}
+// sessionStorage : seulement l'onglet « Voir son portail » d'un admin.
+try { dernier = (sessionStorage.getItem('ll-vue-admin') === '1' && sessionStorage.getItem('ll-portail')) || localStorage.getItem('ll-portail'); } catch(e){}
 // Lien envoyé par courriel (?p=locataire…) : il désigne le bon portail,
 // quel que soit le dernier ouvert sur ce navigateur (souvent l'admin).
 const demande = { proprietaire: 'portail-proprietaire', locataire: 'portail-locataire', travailleur: 'portail-travailleur' }[new URLSearchParams(location.search).get('p')];

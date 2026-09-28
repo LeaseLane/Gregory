@@ -9,14 +9,11 @@
  */
 (function () {
   var m = location.pathname.match(/portail-[a-z-]+/);
-  // Lien magique « Voir son portail » ouvert par un admin : ce portail est
-  // retenu pour CET onglet seulement (sessionStorage), jamais pour /app
-  // dans les autres onglets de l'admin.
-  if (m && /access_token|type=magiclink/.test(location.hash)) {
-    try { sessionStorage.setItem('ll-portail', m[0]); sessionStorage.setItem('ll-vue-admin', '1'); } catch (e) {}
-  } else if (m) { try { localStorage.setItem('ll-portail', m[0]); } catch (e) {} }
+  // Vue admin (« Voir son portail ») : repérée par assets/ui.js ; ce portail
+  // n'est alors retenu que pour cet onglet, jamais pour /app ailleurs.
   var vueAdmin = false;
   try { vueAdmin = sessionStorage.getItem('ll-vue-admin') === '1'; } catch (e) {}
+  if (m && !vueAdmin) { try { localStorage.setItem('ll-portail', m[0]); } catch (e) {} }
   if (vueAdmin) bandeauVueAdmin();
 
   // « Vue d'ensemble » → « vue-ensemble », « Loyers et paiements » → « loyers-et-paiements »

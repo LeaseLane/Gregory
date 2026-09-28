@@ -15,6 +15,17 @@
 // l'adresse, pour que compte.js impose le nouveau mot de passe une fois
 // arrivé dans le bon portail (après la double authentification pour l'admin).
 try { if (/type=recovery/.test(location.hash)) sessionStorage.setItem('ll-recuperation', '1'); } catch (e) {}
+// « Voir son portail » (lien magique ouvert par un admin) : ce portail et la
+// session du client restent dans CET onglet (sessionStorage), jamais dans le
+// navigateur — sinon /app rouvrirait plus tard le portail du client.
+// Détecté ici, dans <head>, avant que le portail ne crée son client Supabase.
+try {
+  var llP = location.pathname.match(/portail-[a-z-]+/);
+  if (llP && /type=magiclink/.test(location.hash)) { sessionStorage.setItem('ll-portail', llP[0]); sessionStorage.setItem('ll-vue-admin', '1'); }
+} catch (e) {}
+window.llStockage = function () {
+  try { return sessionStorage.getItem('ll-vue-admin') === '1' ? sessionStorage : localStorage; } catch (e) { return undefined; }
+};
 (function () {
   var TONS = {
     erreur: /erreur|impossible|échec|echec|refus|invalide|manquant|requis/i,
