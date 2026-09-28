@@ -966,7 +966,7 @@ async function handleLogin(){
   const email = document.getElementById('login-email').value;
   const password = document.getElementById('login-password').value;
   const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if(error){ showLoginError(error.message); return; }
+  if(error){ showLoginError(/invalid login/i.test(error.message) ? 'Courriel ou mot de passe incorrect.' : error.message); return; }
   // Le mot de passe seul donne aal1. Les 9 fonctions à privilèges exigent
   // aal2 : on route donc vers le défi ou vers l'inscription (lot P4).
   await routeAfterPassword();

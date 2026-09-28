@@ -462,7 +462,7 @@ async function handleLogin(){
   const email = document.getElementById('login-email').value;
   const password = document.getElementById('login-password').value;
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if(error){ showLoginError(error.message); return; }
+  if(error){ showLoginError(/invalid login/i.test(error.message) ? 'Courriel ou mot de passe incorrect.' : error.message); return; }
   await loadOwnerDashboard(data.user.id);
 }
 
