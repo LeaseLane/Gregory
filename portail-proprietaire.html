@@ -112,9 +112,9 @@
     .approve-row{flex-direction:column;align-items:flex-start;gap:10px;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609291557">
-<script src="assets/charger-portail.js?v=202609291557"></script>
-<script src="assets/ui.js?v=202609291557"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609291603">
+<script src="assets/charger-portail.js?v=202609291603"></script>
+<script src="assets/ui.js?v=202609291603"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -735,7 +735,9 @@ async function loadServiceRequests(){
   container.innerHTML = data.map(sr => {
     const aiLine = sr.ai_category
       ? `<span><span class="tag ${urgencyTag[sr.ai_urgency] || 'neutral'}">${esc(sr.ai_urgency) || ''}</span> IA : ${esc(sr.ai_category)} — estimation ${sr.ai_estimated_cost != null ? Number(sr.ai_estimated_cost).toLocaleString('fr-CA') + ' $' : '—'}</span>`
-      : `<span style="color:var(--muted);">Estimation IA en traitement…</span>`;
+      : sr.ai_status === 'echec'
+        ? `<span style="color:var(--muted);">Pas d'estimation automatique : l'équipe Lease Lane évalue la demande et te revient.</span>`
+        : `<span style="color:var(--muted);">Estimation IA en traitement…</span>`;
     return `
     <div class="approve-row">
       <div class="desc">
@@ -1306,8 +1308,8 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609291557"></script>
-<script src="assets/compte.js?v=202609291557"></script>
-<script src="assets/url-propre.js?v=202609291557"></script>
+<script src="assets/mobile.js?v=202609291603"></script>
+<script src="assets/compte.js?v=202609291603"></script>
+<script src="assets/url-propre.js?v=202609291603"></script>
 </body>
 </html>

@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609291557">
-<script src="assets/charger-portail.js?v=202609291557"></script>
-<script src="assets/ui.js?v=202609291557"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609291603">
+<script src="assets/charger-portail.js?v=202609291603"></script>
+<script src="assets/ui.js?v=202609291603"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -3264,7 +3264,10 @@ async function loadServiceRequestsAdmin(){
     return `
     <article class="sr-carte sr-carte--${ton}">
       <div class="sr-badges">
-        ${sr.safety_override ? `<span class="tr-pastille tr-pastille--ko"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg>Urgence sécurité${(sr.safety_flags || []).length ? ' · ' + esc(sr.safety_flags.join(', ').replace(/_/g, ' ')) : ''}</span>` : ''}
+        ${sr.safety_override ? `<span class="tr-pastille tr-pastille--ko"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg>Urgence sécurité${(sr.safety_flags || []).length ? ' · ' + esc(sr.safety_flags.join(', ').replace(/_/g, ' ')) : ''}</span>
+          ${sr.urgence_acquittee_at ? `<span class="tr-pastille tr-pastille--ok">Prise en charge par ${esc(sr.acquitteur?.email || 'l\'équipe')} · ${new Date(sr.urgence_acquittee_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' })}</span>`
+            : `<button class="ll-bouton ll-bouton--danger lo-petit" onclick="srAction('ack_urgence','${sr.id}','Urgence prise en charge.')">J'ai pris l'urgence en charge</button>`}` : ''}
+        ${sr.ai_status === 'echec' ? '<span class="tr-pastille tr-pastille--ko">Analyse IA échouée</span>' : ''}
         ${sr.pending_reassessment ? `<span class="tr-pastille sr-pastille--refus">Refusé par le propriétaire · nouvelle soumission d'ici le ${esc(sr.reassessment_due || '—')}</span>` : ''}
         ${(!sr.safety_override && sr.ai_needs_review) ? `<span class="tr-pastille tr-pastille--att">À valider${sr.ai_confidence != null ? ' · confiance IA ' + Math.round(sr.ai_confidence) + ' %' : ''}</span>` : ''}
         ${srDerniere(sr)?.sender === 'tenant' ? '<span class="tr-pastille tr-pastille--att">Réponse du locataire</span>' : ''}
@@ -3283,7 +3286,7 @@ async function loadServiceRequestsAdmin(){
           ${sr.ai_immediate_action ? '<li><span>À faire tout de suite</span>' + esc(sr.ai_immediate_action) + '</li>' : ''}
           ${sr.ai_risk_if_no_action ? '<li><span>Risque si rien n\'est fait</span>' + esc(sr.ai_risk_if_no_action) + '</li>' : ''}
           ${sr.ai_missing_info ? '<li><span>Infos manquantes</span>' + esc(sr.ai_missing_info) + (sr.ai_photos_needed ? ' (photos utiles)' : '') + '</li>' : ''}
-        </ul></div></div>` : '<p class="sr-sans-ia">Pas d\'analyse IA pour cette demande : choisis le travailleur toi-même.</p>'}
+        </ul></div></div>` : srTache(sr)}
       ${srFil(sr)}
       <div class="sr-assigner">
         <div class="sr-grille">
@@ -3301,7 +3304,7 @@ async function loadServiceRequestsAdmin(){
           <div class="sr-grille">
             <div class="sr-large"><label class="ch-label" for="sr-desc-${sr.id}">Description du travail (envoyée au travailleur)</label>
               <input type="text" id="sr-desc-${sr.id}" value="${esc(sr.description)}"></div>
-            <div><label class="ch-label" title="Laisse vide pour le taux du propriétaire (10 % par défaut). Obligatoire à partir de 10 000 $." for="sr-coordrate-${sr.id}">Taux coordination (%)</label>
+            <div><label class="ch-label" title="Laisse vide : 0 $ sous 1 000 $, puis le taux du propriétaire (10 % par défaut) dès 1 000 $. Obligatoire à partir de 10 000 $." for="sr-coordrate-${sr.id}">Taux coordination (%)</label>
               <input type="number" id="sr-coordrate-${sr.id}" min="0" step="0.1" placeholder="10 (défaut)"></div>
             <div><label class="ch-label" title="Forfait négocié pour un projet majeur : remplace le taux." for="sr-coordforfait-${sr.id}">ou forfait coordination ($)</label>
               <input type="number" id="sr-coordforfait-${sr.id}" min="0" step="0.01" placeholder="Forfait négocié"></div>
@@ -4220,6 +4223,33 @@ async function donnerAccesLocataire(btn){
   if(ficheLo.id) ouvrirFicheLocataire(ficheLo.id);
 }
 
+// Échec de l'analyse IA : tâche humaine (responsable, échéance, prochaine
+// action) au lieu d'un simple « pas d'analyse ».
+function srTache(sr){
+  if(sr.ai_status === 'en_cours') return '<p class="sr-sans-ia">Analyse IA en cours…</p>';
+  if(sr.ai_status !== 'echec') return '<p class="sr-sans-ia">Pas d\'analyse IA pour cette demande : choisis le travailleur toi-même.</p>';
+  const ech = sr.tache_echeance ? new Date(sr.tache_echeance) : null, retard = ech && ech < new Date();
+  return `<div class="sr-tache${retard ? ' sr-tache--retard' : ''}">
+    <div class="sr-tache-tete"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg><b>Tâche : l'analyse automatique a échoué</b></div>
+    <p class="sr-tache-err">${esc(sr.ai_error || 'Erreur inconnue')}${sr.ai_attempts > 1 ? ` · ${sr.ai_attempts} essais` : ''}</p>
+    <ul class="sr-ia">
+      <li><span>Responsable</span>${sr.responsable?.email ? esc(sr.responsable.email) : '<em>Personne</em>'}</li>
+      <li><span>Échéance</span>${ech ? (retard ? '<em>En retard</em> · ' : '') + ech.toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}</li>
+      <li><span>Prochaine action</span>${esc(sr.tache_action || 'Traiter la demande à la main')}</li>
+    </ul>
+    <div class="sr-tache-actions">
+      ${sr.responsable?.email ? '' : `<button class="ll-bouton ll-bouton--primaire lo-petit" onclick="srAction('take_request_task','${sr.id}','La tâche est à ton nom.')">Je m'en occupe</button>`}
+      <button class="ll-bouton ll-bouton--secondaire lo-petit" onclick="srAction('retry_ai_analysis','${sr.id}','Analyse relancée.', this)">Relancer l'analyse</button>
+    </div>
+  </div>`;
+}
+async function srAction(action, id, ok, btn){
+  if(btn){ btn.disabled = true; btn.textContent = 'Analyse en cours…'; }
+  const res = await callOpsApi({ action, service_request_id: id });
+  if(res) llToast(res?.echec ? 'L\'analyse a encore échoué : traite la demande à la main.' : ok, res?.echec ? 'erreur' : 'succes');
+  loadServiceRequestsAdmin();
+}
+
 async function seedDemoAccounts(){
   const btn = document.getElementById('seed-demo-btn');
   const body = document.getElementById('seed-demo-body');
@@ -4692,8 +4722,8 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609291557"></script>
-<script src="assets/compte.js?v=202609291557"></script>
-<script src="assets/url-propre.js?v=202609291557"></script>
+<script src="assets/mobile.js?v=202609291603"></script>
+<script src="assets/compte.js?v=202609291603"></script>
+<script src="assets/url-propre.js?v=202609291603"></script>
 </body>
 </html>

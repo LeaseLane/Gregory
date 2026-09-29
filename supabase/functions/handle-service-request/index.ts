@@ -1,6 +1,7 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
+import { dimensionsImage } from "../_shared/image.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, MODELE_VIDEO, decrireVideo, decrireMedias, versBase64, type PartieGemini, avecContexte } from "../_shared/ia.ts";
 // Règles de sécurité déterministes : ne dépendent JAMAIS de l'IA.
 // Si l'une de ces situations est détectée dans la description du
@@ -28,11 +29,19 @@ const MAX_VIDEOS = 2;
 // l'équipe mais pas analysée.
 const MAX_OCTETS_VIDEO = 18 * 1024 * 1024;
 const MAX_PHOTOS = 5;
+// Limites de l'API d'images : au-delà, tout l'appel est refusé (le
+// 2026-09-27, une photo > 8000 px a bloqué le triage d'une demande).
+const MAX_PX_PHOTO = 8000;
+const MAX_OCTETS_PHOTO = 5 * 1024 * 1024;
 
 Deno.serve(async (req) => {
   try {
     const payload = await req.json();
     const record = payload.record;
+    // Relance manuelle depuis l'admin (ops-api retry_ai_analysis) : même
+    // demande, mise à jour en place — aucune nouvelle demande ni affectation,
+    // et l'alerte de sécurité déjà envoyée ne repart pas.
+    const reprise = payload.reprise === true;
 
     const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
     const resendKey = Deno.env.get("RESEND_API_KEY");
@@ -48,7 +57,7 @@ Deno.serve(async (req) => {
     const matchedRules = checkSafetyOverride(record.description);
     const safetyOverride = matchedRules.length > 0;
 
-    if (safetyOverride) {
+    if (safetyOverride && !reprise) {
       try {
         await fetch(`${supabaseUrl}/rest/v1/audit_log`, {
           method: "POST",
@@ -111,14 +120,21 @@ Deno.serve(async (req) => {
     const estImage = (p: string) => /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(p);
     const photoPaths: string[] = Array.isArray(record.photo_urls) ? record.photo_urls.filter(estImage).slice(0, MAX_PHOTOS) : [];
     const photoBlocks: Record<string, unknown>[] = [];
+    // Photos gardées pour l'équipe mais pas envoyées à l'IA (trop grandes,
+    // format non lu) : le texte est analysé quand même.
+    const photosEcartees: string[] = [];
     for (const path of photoPaths) {
       try {
         const fileRes = await fetch(`${supabaseUrl}/storage/v1/object/service-request-photos/${path}`, {
           headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey ?? "" },
         });
-        if (!fileRes.ok) continue;
+        if (!fileRes.ok) { photosEcartees.push(`${path} : lecture impossible`); continue; }
         const mediaType = fileRes.headers.get("content-type") || "image/jpeg";
         const bytes = new Uint8Array(await fileRes.arrayBuffer());
+        const dim = dimensionsImage(bytes);
+        if (!dim || !/^image\/(jpeg|png|webp|gif)$/.test(mediaType)) { photosEcartees.push(`${path} : format non lu`); continue; }
+        if (dim.l > MAX_PX_PHOTO || dim.h > MAX_PX_PHOTO) { photosEcartees.push(`${path} : ${dim.l}×${dim.h} px`); continue; }
+        if (bytes.length > MAX_OCTETS_PHOTO) { photosEcartees.push(`${path} : ${Math.round(bytes.length / 1048576)} Mo`); continue; }
         let binary = "";
         for (const b of bytes) binary += String.fromCharCode(b);
         photoBlocks.push({ type: "image", source: { type: "base64", media_type: mediaType, data: btoa(binary) } });
@@ -270,11 +286,25 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
     const needsReview = safetyOverride || (aiConfidence !== null && aiConfidence < 70) || aiMissingInfo !== null;
 
     // 3. Mise à jour DB — toujours tentée, même si l'IA a échoué (au minimum le drapeau de sécurité).
+    // Un échec devient une tâche humaine : prochaine action et échéance
+    // (1 h pour une urgence, 4 h sinon). Le responsable est choisi par
+    // l'équipe (« Je m'en occupe ») — on ne l'invente pas.
+    const echec = aiError !== null;
     const patchBody: Record<string, unknown> = {
       safety_override: safetyOverride,
       safety_flags: matchedRules.map((r) => r.code),
-      ai_needs_review: needsReview,
+      ai_needs_review: needsReview || echec,
+      ai_status: echec ? "echec" : "ok",
+      ai_error: echec ? `Analyse automatique impossible${photosEcartees.length ? " (photo écartée : " + photosEcartees.join(" ; ") + ")" : ""}`.slice(0, 500) : null,
+      ai_attempts: (Number(record.ai_attempts) || 0) + 1,
     };
+    if (echec) {
+      patchBody.tache_action = "Lire la demande et ses pièces jointes, puis choisir un professionnel (ou relancer l'analyse)";
+      if (!record.tache_echeance) patchBody.tache_echeance = new Date(Date.now() + (safetyOverride ? 1 : 4) * 3600_000).toISOString();
+    } else {
+      patchBody.tache_action = null;
+      patchBody.tache_echeance = null;
+    }
     if (aiCategory !== null) patchBody.ai_category = aiCategory;
     if (aiSubcategory !== null) patchBody.ai_subcategory = aiSubcategory;
     if (aiCost !== null) patchBody.ai_estimated_cost = aiCost;
@@ -299,6 +329,13 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
     if (!patchRes.ok || !patchData || patchData.length === 0) {
       console.error("Failed to update service_requests", record.id, patchRes.status, JSON.stringify(patchData));
       return new Response(JSON.stringify({ ok: false, error: "db_update_failed", status: patchRes.status, detail: patchData }), { status: 500 });
+    }
+
+    // État honnête pour le locataire : l'analyse automatique a échoué, un
+    // humain prend le relais. Une seule fois (pas à chaque relance).
+    if (echec && !reprise) {
+      await ajouterMessageDemande({ demandeId: record.id, sender: "system",
+        corps: `On a bien reçu ta demande. L'analyse automatique n'a pas pu se faire : un membre de l'équipe la lit lui-même${safetyOverride ? " en priorité (situation urgente)" : ""} et te revient avec la suite.` }).catch((e) => console.error("Failed to post failure note", e));
     }
 
     // Suivi automatique au locataire : instruction de sécurité temporaire
@@ -349,8 +386,8 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
         duration_ms: Date.now() - aiStartedAt,
         input_tokens: aiUsage?.input_tokens ?? null,
         output_tokens: aiUsage?.output_tokens ?? null,
-        automatic_action_taken: safetyOverride ? "urgence_forcee_alerte_admin" : "categorisation_appliquee",
-        error: aiError,
+        automatic_action_taken: echec ? "tache_humaine_creee" : safetyOverride ? "urgence_forcee_alerte_admin" : "categorisation_appliquee",
+        error: aiError ?? (photosEcartees.length ? `photos écartées : ${photosEcartees.join(" ; ")}` : null),
       }),
     }).catch((e) => console.error("Failed to write ai_run_log", e));
 

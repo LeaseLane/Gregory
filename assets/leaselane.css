@@ -1626,3 +1626,14 @@ body.ll-mdp-actif{ overflow:hidden; }
 .md-paie > b{ font-size:16px; color:var(--marine-900); }
 .md-paie small{ font-size:12px; color:var(--texte-discret); }
 @media (max-width:520px){ .lo-dem-admin li{ flex-wrap:wrap; } .md-paie{ width:100%; flex-direction:row; justify-content:space-between; align-items:center; } }
+
+/* Travaux à assigner — tâche humaine quand l'analyse IA a échoué. */
+.sr-tache{ margin-top:12px; padding:14px 16px; border-radius:var(--rayon-champ); border:1px solid var(--alerte-600, #9A6700); background:var(--alerte-100); }
+.sr-tache--retard{ border-color:var(--urgence-600); background:var(--urgence-100); }
+.sr-tache-tete{ display:flex; align-items:center; gap:8px; color:var(--marine-900); }
+.sr-tache-tete .ic{ width:18px; height:18px; color:var(--alerte-600, #9A6700); }
+.sr-tache--retard .sr-tache-tete .ic{ color:var(--urgence-600); }
+.sr-tache-err{ margin:6px 0 8px; font-size:12.5px; color:var(--texte-discret); overflow-wrap:anywhere; }
+.sr-tache em{ font-style:normal; font-weight:600; color:var(--urgence-600); }
+.sr-tache-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.sr-badges .ll-bouton{ padding:4px 12px; font-size:12.5px; }

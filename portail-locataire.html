@@ -93,9 +93,9 @@
     table{display:block;overflow-x:auto;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609291557">
-<script src="assets/charger-portail.js?v=202609291557"></script>
-<script src="assets/ui.js?v=202609291557"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609291603">
+<script src="assets/charger-portail.js?v=202609291603"></script>
+<script src="assets/ui.js?v=202609291603"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -488,18 +488,20 @@ function etapeDemande(r, sv){
   if(sv?.approbation === 'pending') return { libelle: 'Accord du propriétaire en attente', ton: 'neutral' };
   if(sv) return { libelle: 'Recherche d\'un professionnel', ton: 'neutral' };
   if(['closed', 'resolved'].includes(r.status)) return { libelle: 'Réglée', ton: 'ok' };
+  if(r.ai_status === 'echec') return { libelle: 'Reçue : l\'équipe l\'examine', ton: 'neutral' };
   return { libelle: r.ai_category ? 'Analysée, en attente' : 'Reçue', ton: 'neutral' };
 }
 
 function detailDemande(r, sv){
   const infos = [
-    ['Catégorie', r.ai_category ? esc(r.ai_category) + (r.ai_subcategory ? ' · ' + esc(r.ai_subcategory) : '') : 'En cours d\'analyse'],
+    ['Catégorie', r.ai_category ? esc(r.ai_category) + (r.ai_subcategory ? ' · ' + esc(r.ai_subcategory) : '') : r.ai_status === 'echec' ? 'Examinée par l\'équipe' : 'En cours d\'analyse'],
     ['Professionnel', sv?.professionnel ? esc(sv.professionnel) + (sv.metier ? ` <small>${esc(sv.metier)}</small>` : '') : 'Pas encore assigné'],
     ['Rendez-vous', sv?.rendez_vous ? dateLongue(sv.rendez_vous) : 'À confirmer'],
     ['Pièces jointes', (r.photo_urls || []).length ? `${r.photo_urls.length} fichier${r.photo_urls.length > 1 ? 's' : ''}` : 'Aucune'],
   ];
   const ev = [{ t: r.created_at, txt: 'Demande envoyée', ic: 'send' }];
   if(r.ai_category) ev.push({ t: r.created_at, txt: `Analysée : ${esc(r.ai_category)}`, ic: 'sparkles' });
+  else if(r.ai_status === 'echec') ev.push({ t: r.created_at, txt: 'Analyse automatique impossible : un membre de l\'équipe examine ta demande lui-même', ic: 'user' });
   if(sv?.approbation) ev.push({ t: sv.cree_le, txt: sv.approbation === 'pending' ? 'Accord du propriétaire demandé (coût au-dessus de son plafond)' : sv.approbation === 'approved' ? 'Le propriétaire a donné son accord' : 'Le propriétaire a refusé : nouvelle soumission en cours', ic: 'shield-check' });
   if(sv?.recherche_depuis && !sv?.professionnel) ev.push({ t: sv.recherche_depuis, txt: 'Recherche d\'un professionnel disponible', ic: 'search' });
   if(sv?.professionnel) ev.push({ t: sv.cree_le, txt: `Professionnel assigné : ${esc(sv.professionnel)}`, ic: 'user' });
@@ -841,8 +843,8 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609291557"></script>
-<script src="assets/compte.js?v=202609291557"></script>
-<script src="assets/url-propre.js?v=202609291557"></script>
+<script src="assets/mobile.js?v=202609291603"></script>
+<script src="assets/compte.js?v=202609291603"></script>
+<script src="assets/url-propre.js?v=202609291603"></script>
 </body>
 </html>

@@ -86,6 +86,10 @@ Deno.serve(async (req) => {
     // un forfait doit être explicitement fourni par l'admin.
     const WORK_COORDINATION_RATE_DEFAULT = 10.0;
     const LARGE_PROJECT_THRESHOLD = 10000;
+    // Grille (Grégory, 2026-09-29) : aucune coordination sous 1 000 $ avant
+    // taxes ; dès 1 000 $, le taux s'applique au coût net complet. Un taux ou
+    // un forfait saisi par l'admin reste une dérogation explicite.
+    const COORDINATION_SEUIL = 1000;
     const resolveCoordinationFee = async (
       unitId: string,
       workerPay: number,
@@ -102,6 +106,9 @@ Deno.serve(async (req) => {
         return {
           error: `Ce chantier (${workerPay} $) atteint ou dépasse le seuil de 10 000 $ — précise un taux de coordination négocié ou un forfait ; aucune valeur par défaut ne s'applique automatiquement à ce montant.`,
         };
+      }
+      if (explicitRate == null && workerPay < COORDINATION_SEUIL) {
+        return { coordinationFee: 0, coordinationRate: 0, coordinationFeeType: "taux" };
       }
       let rate: number = explicitRate != null ? Number(explicitRate) : NaN;
       if (Number.isNaN(rate)) {
@@ -121,10 +128,50 @@ Deno.serve(async (req) => {
 
     if (action === "list_service_requests") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/service_requests?status=eq.open&select=*,units(unit_number,buildings(address)),tenants(full_name,email),service_request_messages(id,sender,body,sujet,attachments,via,created_at)&order=created_at.desc`,
+        `${supabaseUrl}/rest/v1/service_requests?status=eq.open&select=*,units(unit_number,buildings(address)),tenants(full_name,email),service_request_messages(id,sender,body,sujet,attachments,via,created_at),responsable:users!service_requests_tache_responsable_fkey(email),acquitteur:users!service_requests_urgence_acquittee_par_fkey(email)&order=created_at.desc`,
         { headers: adminHeaders },
       );
       return new Response(JSON.stringify({ service_requests: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Échec de l'analyse IA → tâche humaine. Relancer met à jour la MÊME
+    // demande (aucune nouvelle demande ni affectation) ; le passage
+    // echec → en_cours est atomique, donc deux clics ne lancent qu'une analyse.
+    if (action === "retry_ai_analysis") {
+      const { service_request_id } = body;
+      const lockRes = await fetch(`${supabaseUrl}/rest/v1/service_requests?id=eq.${service_request_id}&ai_status=eq.echec`, {
+        method: "PATCH", headers: { ...adminHeaders, Prefer: "return=representation" }, body: JSON.stringify({ ai_status: "en_cours" }),
+      });
+      const [record] = await lockRes.json().catch(() => []);
+      if (!record) return new Response(JSON.stringify({ error: "Analyse déjà réussie ou déjà relancée." }), { status: 409, headers: corsHeaders });
+      const r = await fetch(`${supabaseUrl}/functions/v1/handle-service-request`, {
+        method: "POST", headers: adminHeaders, body: JSON.stringify({ record, reprise: true }),
+      });
+      const d = await r.json().catch(() => ({}));
+      await logAudit("service_request.ai_retry", "service_requests", service_request_id, { ok: r.ok && !d?.warning, detail: d?.warning ?? d?.error ?? null });
+      if (!r.ok) {
+        await fetch(`${supabaseUrl}/rest/v1/service_requests?id=eq.${service_request_id}&ai_status=eq.en_cours`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ ai_status: "echec" }) });
+        return new Response(JSON.stringify({ error: "L'analyse a encore échoué. Traite la demande à la main." }), { status: 502, headers: corsHeaders });
+      }
+      return new Response(JSON.stringify({ ok: true, echec: !!d?.warning }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "take_request_task") {
+      const { service_request_id } = body;
+      await fetch(`${supabaseUrl}/rest/v1/service_requests?id=eq.${service_request_id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ tache_responsable: userId }) });
+      await logAudit("service_request.task_taken", "service_requests", service_request_id, {});
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
+    }
+
+    // Accusé de réception d'une urgence de sécurité : ne dépend pas de l'IA.
+    if (action === "ack_urgence") {
+      const { service_request_id } = body;
+      const r = await fetch(`${supabaseUrl}/rest/v1/service_requests?id=eq.${service_request_id}&urgence_acquittee_at=is.null`, {
+        method: "PATCH", headers: { ...adminHeaders, Prefer: "return=representation" }, body: JSON.stringify({ urgence_acquittee_at: new Date().toISOString(), urgence_acquittee_par: userId }),
+      });
+      const [row] = await r.json().catch(() => []);
+      if (row) await logAudit("service_request.urgence_acquittee", "service_requests", service_request_id, {});
+      return new Response(JSON.stringify({ ok: true, deja: !row }), { status: 200, headers: corsHeaders });
     }
 
     if (action === "list_work_orders") {
