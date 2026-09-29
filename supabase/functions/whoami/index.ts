@@ -19,18 +19,20 @@ Deno.serve(async (req) => {
       "Content-Type": "application/json",
     };
 
-    const [ownerRes, tenantRes, workerRes] = await Promise.all([
+    const [ownerRes, tenantRes, workerRes, callerRes] = await Promise.all([
       fetch(`${supabaseUrl}/rest/v1/owners?user_id=eq.${userId}&select=id`, { headers: adminHeaders }),
       fetch(`${supabaseUrl}/rest/v1/tenants?user_id=eq.${userId}&select=id`, { headers: adminHeaders }),
       fetch(`${supabaseUrl}/rest/v1/workers?user_id=eq.${userId}&select=id`, { headers: adminHeaders }),
+      fetch(`${supabaseUrl}/rest/v1/cold_callers?user_id=eq.${userId}&select=id`, { headers: adminHeaders }),
     ]);
-    const [[owner], [tenant], [worker]] = await Promise.all([
+    const [[owner], [tenant], [worker], [caller]] = await Promise.all([
       ownerRes.json().catch(() => [null]),
       tenantRes.json().catch(() => [null]),
       workerRes.json().catch(() => [null]),
+      callerRes.json().catch(() => [null]),
     ]);
 
-    const role = owner?.id ? "owner" : tenant?.id ? "tenant" : worker?.id ? "worker" : null;
+    const role = owner?.id ? "owner" : tenant?.id ? "tenant" : worker?.id ? "worker" : caller?.id ? "caller" : null;
     if (!role) {
       return new Response(JSON.stringify({ error: "Aucun portail associé à ce compte." }), { status: 403, headers: corsHeaders });
     }

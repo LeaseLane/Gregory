@@ -796,7 +796,7 @@ Deno.serve(async (req) => {
         const [existingUser] = await existingRes.json().catch(() => [null]);
         if (existingUser) {
           const updateRes = await fetch(`${supabaseUrl}/auth/v1/admin/users/${existingUser.id}`, {
-            method: "PUT", headers: adminHeaders, body: JSON.stringify({ password, email_confirm: true, user_metadata: { doit_changer_mdp: true } }),
+            method: "PUT", headers: adminHeaders, body: JSON.stringify({ password, email_confirm: true, user_metadata: { doit_changer_mdp: false } }),
           });
           if (!updateRes.ok) {
             const errData = await updateRes.json().catch(() => ({}));
@@ -806,7 +806,7 @@ Deno.serve(async (req) => {
         }
         const authRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
           method: "POST", headers: adminHeaders,
-          body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { doit_changer_mdp: true } }),
+          body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { doit_changer_mdp: false } }),
         });
         const authData = await authRes.json();
         if (!authRes.ok || !authData.id) {

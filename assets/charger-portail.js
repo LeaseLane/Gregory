@@ -19,8 +19,9 @@ window.llCharger = function (nom) {
     'portail-locataire': 'sb-portail-tenant-auth',
     'portail-travailleur': 'sb-portail-worker-auth',
     'portail-admin': 'sb-portail-admin-auth',
+    'portail-cold-caller': 'sb-portail-caller-auth',
   };
-  var PAR_ROLE = { owner: 'portail-proprietaire', tenant: 'portail-locataire', worker: 'portail-travailleur' };
+  var PAR_ROLE = { owner: 'portail-proprietaire', tenant: 'portail-locataire', worker: 'portail-travailleur', caller: 'portail-cold-caller' };
   window.llBonPortail = async function (client, ici, adminSeulement) {
     try {
       // Admin qui a aussi une fiche client (ex. propriétaire de test) : son
