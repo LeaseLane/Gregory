@@ -97,7 +97,18 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ actor_type: isSystemCall ? "system" : "admin", actor_id: userId, action, entity_type: entityType, entity_id: entityId, details }),
       });
 
-    const notifyAdmins = async (subject: string, text: string) => {
+    // Une seule alerte par import, pas une par transaction : le 2026-09-29,
+    // l'import d'un compte de test a envoyé ~30 courriels à chaque admin et
+    // épuisé le quota mensuel d'envoi.
+    const alertes: string[] = [];
+    const notifyAdmins = async (_sujet: string, texte: string) => { alertes.push(texte); };
+    const envoyerAlertes = async () => {
+      if (!alertes.length) return;
+      const lignes = alertes.slice(0, 15).map((t) => `• ${t}`);
+      if (alertes.length > 15) lignes.push(`• … et ${alertes.length - 15} autre(s), à voir dans Rapprochement bancaire.`);
+      await envoyerCourrielAdmins(`Rapprochement bancaire : ${alertes.length} point(s) à vérifier`, lignes.join("\n\n"));
+    };
+    const envoyerCourrielAdmins = async (subject: string, text: string) => {
       if (!resendKey) return;
       try {
         const adminsRes = await fetch(`${supabaseUrl}/rest/v1/users?is_admin=eq.true&select=email`, { headers: adminHeaders });
@@ -217,12 +228,23 @@ Deno.serve(async (req) => {
         let confidence: number | null = null;
         let aiSuggestedTenantId: string | null = null;
 
-        // ---- Montant négatif = renversement/rejet (NSF, dépôt annulé) ----
+        // ---- Montant négatif ----
+        // Un compte bancaire a surtout des retraits ordinaires (achats,
+        // virements) : seul un retrait libellé comme un rejet (NSF, retour,
+        // renversement…) rouvre un loyer. Un retrait non libellé du même
+        // montant qu'un loyer payé est signalé, jamais appliqué seul.
         if (amount < 0) {
           const absAmount = Math.abs(amount);
+          const libelleRejet = /NSF|INSUFFISAN|REJET|RETOUR|RENVERS|REVERS|RETURN|CHARGEBACK|ANNUL/.test(normalize(description));
           const reversalMatch = recentPaid.find((p: any) => Math.abs(Number(p.amount) - absAmount) <= AMOUNT_TOLERANCE);
           matchStatus = "reversed";
-          if (reversalMatch) {
+          if (!libelleRejet && !reversalMatch) {
+            matchStatus = "ignored";
+            note = "Retrait ordinaire : aucun lien avec un loyer.";
+          } else if (!libelleRejet && reversalMatch) {
+            note = `Retrait de ${absAmount} $, même montant qu'un loyer payé (échéance ${reversalMatch.due_date}) mais pas libellé comme un rejet — vérifier s'il s'agit d'un renversement.`;
+            await notifyAdmins("", `Retrait de ${absAmount} $ (${description}) du même montant qu'un loyer payé : renversement possible, à vérifier.`);
+          } else if (reversalMatch) {
             matchedPaymentId = reversalMatch.id;
             const isLate = new Date(reversalMatch.due_date) < new Date();
             const patchOk = await patchPayment(reversalMatch.id, {
@@ -242,7 +264,7 @@ Deno.serve(async (req) => {
             }
           } else {
             note = "Renversement/rejet détecté, mais aucun paiement correspondant trouvé — vérification manuelle requise.";
-            await notifyAdmins("Renversement bancaire non identifié", `Un retrait de ${absAmount} $ (${description}) ressemble à un renversement mais ne correspond à aucun paiement payé récemment. Vérification manuelle requise.`);
+            await notifyAdmins("", `Rejet de ${absAmount} $ (${description}) sans loyer payé correspondant : vérification manuelle requise.`);
           }
           const insertRes = await fetch(`${supabaseUrl}/rest/v1/bank_transactions`, {
             method: "POST",
@@ -412,6 +434,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
       }
 
       await logAudit("bank_reconciliation.import", "bank_transactions", null, { owner_id, count: rows.length });
+      await envoyerAlertes();
       return new Response(JSON.stringify({ ok: true, results }), { status: 200, headers: corsHeaders });
     }
 
