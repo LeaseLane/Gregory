@@ -112,9 +112,9 @@
     .approve-row{flex-direction:column;align-items:flex-start;gap:10px;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609291603">
-<script src="assets/charger-portail.js?v=202609291603"></script>
-<script src="assets/ui.js?v=202609291603"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609301702">
+<script src="assets/charger-portail.js?v=202609301702"></script>
+<script src="assets/ui.js?v=202609301702"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -211,15 +211,26 @@
 
       <section id="buildings" class="section">
         <div class="toolbar"><h2>Immeubles</h2></div>
-        <table><thead><tr><th>Adresse</th><th>Unités</th><th>Année</th></tr></thead>
-          <tbody id="buildings-body"><tr class="empty-row"><td colspan="3">Chargement...</td></tr></tbody>
+        <p class="subtitle">Clique sur un immeuble pour voir seulement ses logements et ses locataires.</p>
+        <div class="tr-outils">
+          <label class="tr-recherche"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#search"/></svg><input type="search" id="pf-b-q" placeholder="Rechercher une adresse…" oninput="pfSet('bq', this.value);renderBuildingsTab()"></label>
+        </div>
+        <table class="tr-table"><thead><tr><th>Adresse</th><th>Logements</th><th>Occupés</th><th>Année</th><th></th></tr></thead>
+          <tbody id="buildings-body"><tr class="empty-row"><td colspan="5">Chargement...</td></tr></tbody>
         </table>
       </section>
 
       <section id="units" class="section">
         <div class="toolbar"><h2>Logements et locataires</h2></div>
-        <table><thead><tr><th>Unité</th><th>Locataire</th><th>Loyer</th><th>Début</th><th>Fin de bail</th><th>Statut</th></tr></thead>
-          <tbody id="units-body"><tr class="empty-row"><td colspan="6">Chargement...</td></tr></tbody>
+        <div class="tr-outils">
+          <label class="tr-recherche"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#search"/></svg><input type="search" id="pf-u-q" placeholder="Rechercher une unité, un locataire…" oninput="pfSet('uq', this.value);renderUnitsTab()"></label>
+          <select id="pf-u-immeuble" class="pf-immeuble" onchange="pfSet('immeuble', this.value);renderUnitsTab()"></select>
+          <select id="pf-u-statut" onchange="pfSet('ustatut', this.value);renderUnitsTab()">
+            <option value="">Tous les logements</option><option value="occupied">Occupés</option><option value="vacant">Disponibles</option>
+          </select>
+        </div>
+        <table class="tr-table"><thead><tr><th>Immeuble</th><th>Unité</th><th>Locataire</th><th>Loyer</th><th>Début</th><th>Fin de bail</th><th>Statut</th></tr></thead>
+          <tbody id="units-body"><tr class="empty-row"><td colspan="7">Chargement...</td></tr></tbody>
         </table>
       </section>
 
@@ -317,11 +328,19 @@
               <option value="rapport">Rapport</option>
             </select>
           </div>
+          <div><label class="ch-label" for="doc-immeuble">Immeuble (optionnel)</label><select id="doc-immeuble" class="pf-immeuble" data-vide="Aucun en particulier"></select></div>
           <div><label class="ch-label" for="doc-file">Fichier</label><input type="file" id="doc-file"></div>
           <button class="ll-bouton ll-bouton--primaire" onclick="addDocument()" id="doc-submit-btn"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#upload"/></svg> Téléverser</button>
           <p class="login-error" id="doc-error"></p>
         </div>
-        <table><thead><tr><th>Titre</th><th>Type</th><th>Analyse IA</th><th>Fichier</th><th></th></tr></thead>
+        <div class="tr-outils">
+          <label class="tr-recherche"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#search"/></svg><input type="search" id="pf-d-q" placeholder="Rechercher un titre…" oninput="pfSet('dq', this.value);renderDocuments()"></label>
+          <select id="pf-d-immeuble" class="pf-immeuble" data-sans="1" onchange="pfSet('dimmeuble', this.value);renderDocuments()"></select>
+          <select id="pf-d-type" onchange="pfSet('dtype', this.value);renderDocuments()">
+            <option value="">Tous les types</option><option value="bail">Bail</option><option value="mandat">Mandat</option><option value="reglement">Règlement</option><option value="rapport">Rapport</option>
+          </select>
+        </div>
+        <table class="tr-table"><thead><tr><th>Titre</th><th>Type</th><th>Analyse IA</th><th>Fichier</th><th></th></tr></thead>
           <tbody id="documents-body"><tr class="empty-row"><td colspan="5">Chargement...</td></tr></tbody>
         </table>
       </section>
@@ -590,25 +609,59 @@ function voSignaux(){
   });
 }
 
+// Filtres des onglets Immeubles / Logements / Documents, gardés d'une
+// visite à l'autre sur cet appareil.
+const PF_CLE = 'll-filtres-proprio';
+let pf = {}; try { pf = JSON.parse(localStorage.getItem(PF_CLE)) || {}; } catch(e){}
+function pfSet(k, v){ pf[k] = v; try { localStorage.setItem(PF_CLE, JSON.stringify(pf)); } catch(e){} }
+let immeublesCache = [];
+
+function remplirFiltresImmeuble(){
+  document.querySelectorAll('select.pf-immeuble').forEach(sel => {
+    const cle = { 'pf-u-immeuble': 'immeuble', 'pf-d-immeuble': 'dimmeuble' }[sel.id];
+    sel.innerHTML = `<option value="">${sel.dataset.vide || 'Tous les immeubles'}</option>` +
+      (sel.dataset.sans ? '<option value="aucun">Sans immeuble</option>' : '') +
+      immeublesCache.map(b => `<option value="${b.id}">${esc(b.address)}</option>`).join('');
+    if(cle) sel.value = pf[cle] || '';
+  });
+  [['pf-b-q', 'bq'], ['pf-u-q', 'uq'], ['pf-u-statut', 'ustatut'], ['pf-d-q', 'dq'], ['pf-d-type', 'dtype']].forEach(([id, k]) => {
+    const el = document.getElementById(id); if(el) el.value = pf[k] || '';
+  });
+}
+const contient = (txt, q) => !q || (txt || '').toLowerCase().includes(q.trim().toLowerCase());
+
+function ouvrirImmeuble(id){
+  pfSet('immeuble', id); pfSet('uq', ''); pfSet('ustatut', '');
+  remplirFiltresImmeuble(); renderUnitsTab(); showTab('units');
+}
+
 function renderBuildingsTab(buildings){
+  if(buildings){ immeublesCache = buildings; remplirFiltresImmeuble(); }
   const body = document.getElementById('buildings-body');
-  if(!buildings.length){ body.innerHTML = '<tr class="empty-row"><td colspan="3">Aucun immeuble.</td></tr>'; return; }
-  body.innerHTML = buildings.map(b => `<tr><td>${esc(b.address)}</td><td>${esc(b.unit_count)}</td><td>${b.year_built != null ? esc(b.year_built) : '—'}</td></tr>`).join('');
+  const liste = immeublesCache.filter(b => contient(b.address, pf.bq));
+  if(!liste.length){ body.innerHTML = `<tr class="empty-row"><td colspan="5">${immeublesCache.length ? 'Aucun immeuble ne correspond à la recherche.' : 'Aucun immeuble.'}</td></tr>`; return; }
+  body.innerHTML = liste.map(b => {
+    const u = b.units || [], occ = u.filter(x => x.status === 'occupied').length;
+    return `<tr class="tr-ligne" onclick="ouvrirImmeuble('${b.id}')"><td><b>${esc(b.address)}</b></td><td>${u.length || esc(b.unit_count) || 0}</td><td>${occ}</td><td>${b.year_built != null ? esc(b.year_built) : '—'}</td>
+      <td class="pf-voir">Voir les logements <svg class="ic" aria-hidden="true"><use href="assets/icones.svg#chevron-right"/></svg></td></tr>`;
+  }).join('');
 }
 
 function renderUnitsTab(buildings){
+  if(buildings) immeublesCache = buildings;
   const body = document.getElementById('units-body');
   const rows = [];
-  buildings.forEach(b => (b.units||[]).forEach(u => {
-    const lease = (u.leases||[])[0];
+  immeublesCache.filter(b => !pf.immeuble || b.id === pf.immeuble).forEach(b => (b.units||[]).forEach(u => {
+    const lease = (u.leases||[]).find(l => l.status === 'active') || (u.leases||[])[0];
     const tenant = lease?.tenants?.full_name || 'Vacant';
+    if(pf.ustatut === 'occupied' && u.status !== 'occupied') return;
+    if(pf.ustatut === 'vacant' && u.status === 'occupied') return;
+    if(!contient(`unité ${u.unit_number} ${tenant} ${lease?.tenants?.email || ''}`, pf.uq)) return;
     const rent = u.rent ? u.rent.toLocaleString('fr-CA') + ' $' : '—';
-    const start = lease?.start_date || '—';
-    const end = lease?.end_date || '—';
     const statusTag = u.status === 'occupied' ? '<span class="tag ok">Occupée</span>' : '<span class="tag neutral">Disponible</span>';
-    rows.push(`<tr><td>Unité ${esc(u.unit_number)}</td><td>${esc(tenant)}</td><td>${esc(rent)}</td><td>${esc(start)}</td><td>${esc(end)}</td><td>${statusTag}</td></tr>`);
+    rows.push(`<tr><td>${esc(b.address)}</td><td>Unité ${esc(u.unit_number)}</td><td>${esc(tenant)}${lease?.tenants?.email ? `<small>${esc(lease.tenants.email)}</small>` : ''}</td><td>${esc(rent)}</td><td>${esc(lease?.start_date || '—')}</td><td>${esc(lease?.end_date || '—')}</td><td>${statusTag}</td></tr>`);
   }));
-  body.innerHTML = rows.length ? rows.join('') : '<tr class="empty-row"><td colspan="6">Aucun logement.</td></tr>';
+  body.innerHTML = rows.length ? rows.join('') : '<tr class="empty-row"><td colspan="7">Aucun logement ne correspond aux filtres.</td></tr>';
 }
 
 function renderPaymentsTab(buildings){
@@ -930,22 +983,26 @@ async function askApprovalQuestion(approvalId){
   await loadMessages();
 }
 
+let documentsCache = [];
 async function loadDocuments(){
   const { data } = await supabaseClient.from('documents').select('*').eq('owner_id', ownerRecord.id).order('created_at', { ascending: false });
+  documentsCache = data || [];
+  renderDocuments();
+}
+
+function renderDocuments(){
   const body = document.getElementById('documents-body');
   const typeLabel = { bail:'Bail', mandat:'Mandat', reglement:'Règlement', rapport:'Rapport' };
-
-  if(!data || !data.length){
-    body.innerHTML = '<tr class="empty-row"><td colspan="5">Aucun document.</td></tr>';
+  const adresse = id => immeublesCache.find(b => b.id === id)?.address;
+  const liste = documentsCache.filter(d =>
+    (!pf.dtype || d.doc_type === pf.dtype) &&
+    (!pf.dimmeuble || (pf.dimmeuble === 'aucun' ? !d.building_id : d.building_id === pf.dimmeuble)) &&
+    contient(`${d.title} ${d.ai_summary || ''}`, pf.dq));
+  if(!liste.length){
+    body.innerHTML = `<tr class="empty-row"><td colspan="5">${documentsCache.length ? 'Aucun document ne correspond aux filtres.' : 'Aucun document.'}</td></tr>`;
     return;
   }
-
-  const rows = await Promise.all(data.map(async d => {
-    let link = '—';
-    if(d.file_url){
-      const { data: signed } = await supabaseClient.storage.from('documents').createSignedUrl(d.file_url, 3600);
-      if(signed?.signedUrl) link = `<a href="${signed.signedUrl}" target="_blank" rel="noopener">Ouvrir</a>`;
-    }
+  body.innerHTML = liste.map(d => {
     let analysis = '<span style="color:var(--muted);">En traitement…</span>';
     if(d.ai_processed){
       const bits = [esc(d.ai_summary) || ''];
@@ -963,14 +1020,23 @@ async function loadDocuments(){
       }
     }
     return `<tr>
-      <td>${esc(d.title)}</td>
+      <td><b>${esc(d.title)}</b>${adresse(d.building_id) ? `<small>${esc(adresse(d.building_id))}</small>` : ''}<small>${new Date(d.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</small></td>
       <td>${typeLabel[d.doc_type] || esc(d.doc_type) || '—'}</td>
       <td style="font-size:12.5px;">${analysis}</td>
-      <td>${link}</td>
+      <td>${d.file_url ? `<button class="ll-bouton ll-bouton--secondaire lo-petit" data-fichier="${esc(d.file_url)}" onclick="ouvrirDocument(this.dataset.fichier)">Ouvrir</button>` : '—'}</td>
       <td><button class="btn-small" data-doc-id="${esc(d.id)}" data-doc-file="${esc(d.file_url || '')}" onclick="deleteDocumentFromButton(this)">Supprimer</button></td>
     </tr>`;
-  }));
-  body.innerHTML = rows.join('');
+  }).join('');
+}
+
+// Lien signé créé au clic : un lien créé au chargement de l'onglet expirait
+// au bout d'une heure et « Ouvrir » ne menait plus nulle part. L'onglet est
+// ouvert tout de suite (sinon le navigateur bloque la fenêtre après l'attente).
+async function ouvrirDocument(chemin){
+  const w = window.open('', '_blank');
+  const { data, error } = await supabaseClient.storage.from('documents').createSignedUrl(chemin, 600);
+  if(error || !data?.signedUrl){ if(w) w.close(); llToast('Impossible d\'ouvrir ce document : ' + (error?.message || 'lien indisponible'), 'erreur'); return; }
+  if(w) w.location = data.signedUrl; else location.href = data.signedUrl;
 }
 
 function deleteDocumentFromButton(btn){
@@ -1058,7 +1124,7 @@ async function addDocument(){
     return;
   }
 
-  await supabaseClient.from('documents').insert({ owner_id: ownerRecord.id, title, doc_type, file_url: path });
+  await supabaseClient.from('documents').insert({ owner_id: ownerRecord.id, title, doc_type, file_url: path, building_id: document.getElementById('doc-immeuble').value || null });
 
   document.getElementById('doc-title').value = '';
   fileInput.value = '';
@@ -1308,8 +1374,8 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609291603"></script>
-<script src="assets/compte.js?v=202609291603"></script>
-<script src="assets/url-propre.js?v=202609291603"></script>
+<script src="assets/mobile.js?v=202609301702"></script>
+<script src="assets/compte.js?v=202609301702"></script>
+<script src="assets/url-propre.js?v=202609301702"></script>
 </body>
 </html>

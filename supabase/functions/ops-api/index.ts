@@ -134,6 +134,31 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ service_requests: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Documents de tous les clients (baux, mandats, assurances des
+    // travailleurs…) : l'admin n'a pas de droit de lecture direct sur le
+    // stockage « documents » ; il passe par ici.
+    if (action === "list_documents") {
+      const champs = "id,title,doc_type,file_url,created_at,owner_id,building_id,worker_id,ai_summary,owners(full_name),buildings(address)";
+      let res = await fetch(`${supabaseUrl}/rest/v1/documents?select=${champs},workers(name)&order=created_at.desc&limit=2000`, { headers: adminHeaders });
+      // Lien documents → workers absent en prod (schéma parfois différent du dépôt) : on s'en passe.
+      if (!res.ok) res = await fetch(`${supabaseUrl}/rest/v1/documents?select=${champs}&order=created_at.desc&limit=2000`, { headers: adminHeaders });
+      const documents = await res.json().catch(() => []);
+      if (!res.ok || !Array.isArray(documents)) return new Response(JSON.stringify({ error: "Impossible de lire les documents" }), { status: 502, headers: corsHeaders });
+      return new Response(JSON.stringify({ documents }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "sign_document") {
+      const { document_id } = body;
+      const dRes = await fetch(`${supabaseUrl}/rest/v1/documents?id=eq.${document_id}&select=file_url`, { headers: adminHeaders });
+      const [d] = await dRes.json().catch(() => []);
+      if (!d?.file_url) return new Response(JSON.stringify({ error: "Document introuvable" }), { status: 404, headers: corsHeaders });
+      const chemin = String(d.file_url).split("/").map(encodeURIComponent).join("/");
+      const sRes = await fetch(`${supabaseUrl}/storage/v1/object/sign/documents/${chemin}`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ expiresIn: 600 }) });
+      const sData = await sRes.json().catch(() => ({}));
+      if (!sRes.ok || !sData.signedURL) return new Response(JSON.stringify({ error: sData.message || "Lien indisponible" }), { status: 502, headers: corsHeaders });
+      return new Response(JSON.stringify({ url: `${supabaseUrl}/storage/v1${sData.signedURL}` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // Échec de l'analyse IA → tâche humaine. Relancer met à jour la MÊME
     // demande (aucune nouvelle demande ni affectation) ; le passage
     // echec → en_cours est atomique, donc deux clics ne lancent qu'une analyse.

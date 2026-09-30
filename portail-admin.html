@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609291603">
-<script src="assets/charger-portail.js?v=202609291603"></script>
-<script src="assets/ui.js?v=202609291603"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609301702">
+<script src="assets/charger-portail.js?v=202609301702"></script>
+<script src="assets/ui.js?v=202609301702"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -170,6 +170,7 @@
       <button class="tab-btn" data-tab="service-catalog" onclick="showTab('service-catalog')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#list"/></svg><span>Catalogue de services</span></button>
       <button class="tab-btn" data-tab="renewals" onclick="showTab('renewals')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#refresh-cw"/></svg><span>Renouvellements de bail</span></button>
       <button class="tab-btn" data-tab="tenants" onclick="showTab('tenants')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#user"/></svg><span>Locataires</span></button>
+      <button class="tab-btn" data-tab="tous-documents" onclick="showTab('tous-documents')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#file-text"/></svg><span>Documents</span></button>
       <div class="nav-group-label">FINANCES</div>
       <button class="tab-btn" data-tab="billing" onclick="showTab('billing')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#credit-card"/></svg><span>Facturation & PAD</span></button>
       <button class="tab-btn" data-tab="accounting" onclick="showTab('accounting')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#scale"/></svg><span>Comptabilité</span></button>
@@ -347,6 +348,20 @@
     <p class="subtitle" style="margin-bottom:16px;">Fenêtres d'avis calculées selon le Code civil du Québec — le calcul d'augmentation reste externe (méthode du TAL)</p>
     <div id="lease-renewals-body" style="margin-bottom:32px;"><p class="tr-vide">Chargement...</p></div>
 
+      </section>
+
+      <section id="tous-documents" class="section">
+    <div class="tr-entete"><div>
+      <h1>Documents</h1>
+      <p class="subtitle">Baux, avis, mandats et assurances de tous les clients. Les filtres restent en place d'une visite à l'autre.</p>
+    </div></div>
+    <div class="tr-outils">
+      <label class="tr-recherche"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#search"/></svg><input type="search" id="dc-q" placeholder="Rechercher un titre, un propriétaire, une adresse…" oninput="dcSet('q', this.value)"></label>
+      <select id="dc-f-proprio" onchange="dcSet('proprio', this.value)"></select>
+      <select id="dc-f-immeuble" onchange="dcSet('immeuble', this.value)"></select>
+      <select id="dc-f-type" onchange="dcSet('type', this.value)"></select>
+    </div>
+    <div id="dc-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="tenants" class="section">
@@ -1091,6 +1106,7 @@ async function handleSignOut(){
 }
 
 function showTab(id){
+  if(id === 'tous-documents') chargerDocuments();
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -1123,6 +1139,7 @@ async function loadAdminDashboard(){
 
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-shell').style.display = 'block';
+  if(document.getElementById('tous-documents').classList.contains('active')) chargerDocuments();
   // Le tableau de bord s'affiche dès que admin-api répond ; les sections
   // se remplissent ensuite. Avant, le masque restait jusqu'à la fin des
   // ~35 chargements faits un par un (≈ 5 s à chaque rechargement).
@@ -4250,6 +4267,58 @@ async function srAction(action, id, ok, btn){
   loadServiceRequestsAdmin();
 }
 
+// Tous les documents, filtres gardés (localStorage) d'une visite à l'autre.
+const DC_CLE = 'll-filtres-documents';
+let dcEtat = {}; try { dcEtat = JSON.parse(localStorage.getItem(DC_CLE)) || {}; } catch(e){}
+let dcListe = null;
+const DC_TYPES = { bail: 'Bail', mandat: 'Mandat', reglement: 'Règlement', rapport: 'Rapport', assurance_travailleur: 'Assurance (travailleur)' };
+function dcSet(k, v){ dcEtat[k] = v; try { localStorage.setItem(DC_CLE, JSON.stringify(dcEtat)); } catch(e){} renderDocumentsAdmin(); }
+async function chargerDocuments(){
+  // /app/documents ouvert avant la connexion : chargé par loadAdminDashboard.
+  if(document.getElementById('app-shell').style.display !== 'block') return;
+  const res = await callOpsApi({ action: 'list_documents' });
+  if(!res) return;
+  dcListe = res.documents || [];
+  const options = (id, vide, paires) => {
+    const sel = document.getElementById(id), k = id.replace('dc-f-', '');
+    sel.innerHTML = `<option value="">${vide}</option>` + paires.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
+    sel.value = dcEtat[k] || '';
+  };
+  const uniques = (f) => [...new Map(dcListe.map(f).filter(x => x[0])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  options('dc-f-proprio', 'Tous les propriétaires', uniques(d => [d.owner_id, d.owners?.full_name || '']));
+  options('dc-f-immeuble', 'Tous les immeubles', uniques(d => [d.building_id, d.buildings?.address || '']));
+  options('dc-f-type', 'Tous les types', uniques(d => [d.doc_type, DC_TYPES[d.doc_type] || d.doc_type]));
+  document.getElementById('dc-q').value = dcEtat.q || '';
+  renderDocumentsAdmin();
+}
+function renderDocumentsAdmin(){
+  const body = document.getElementById('dc-body');
+  if(!dcListe) return;
+  const q = (dcEtat.q || '').trim().toLowerCase();
+  const liste = dcListe.filter(d =>
+    (!dcEtat.proprio || d.owner_id === dcEtat.proprio) &&
+    (!dcEtat.immeuble || d.building_id === dcEtat.immeuble) &&
+    (!dcEtat.type || d.doc_type === dcEtat.type) &&
+    (!q || `${d.title} ${d.owners?.full_name || ''} ${d.buildings?.address || ''} ${d.workers?.name || ''} ${d.ai_summary || ''}`.toLowerCase().includes(q)));
+  if(!liste.length){ body.innerHTML = `<p class="tr-vide">${dcListe.length ? 'Aucun document ne correspond aux filtres.' : 'Aucun document.'}</p>`; return; }
+  body.innerHTML = `<p class="tr-compte">${liste.length} document${liste.length > 1 ? 's' : ''}</p>
+    <table class="tr-table"><thead><tr><th>Document</th><th>Type</th><th>Client</th><th>Ajouté le</th><th></th></tr></thead><tbody>
+    ${liste.map(d => `<tr><td><b>${esc(d.title)}</b>${d.buildings?.address ? `<small>${esc(d.buildings.address)}</small>` : ''}</td>
+      <td>${esc(DC_TYPES[d.doc_type] || d.doc_type || '—')}</td>
+      <td>${esc(d.owners?.full_name || d.workers?.name || '—')}<small>${d.owner_id ? 'Propriétaire' : d.worker_id ? 'Travailleur' : ''}</small></td>
+      <td>${new Date(d.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</td>
+      <td><button class="ll-bouton ll-bouton--secondaire lo-petit" onclick="ouvrirDocumentAdmin('${d.id}')">Ouvrir</button></td></tr>`).join('')}
+    </tbody></table>`;
+}
+// Onglet ouvert tout de suite : sinon le navigateur bloque la fenêtre
+// ouverte après l'attente du lien signé.
+async function ouvrirDocumentAdmin(id){
+  const w = window.open('', '_blank');
+  const res = await callOpsApi({ action: 'sign_document', document_id: id });
+  if(!res?.url){ if(w) w.close(); return; }
+  if(w) w.location = res.url; else location.href = res.url;
+}
+
 async function seedDemoAccounts(){
   const btn = document.getElementById('seed-demo-btn');
   const body = document.getElementById('seed-demo-body');
@@ -4722,8 +4791,8 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609291603"></script>
-<script src="assets/compte.js?v=202609291603"></script>
-<script src="assets/url-propre.js?v=202609291603"></script>
+<script src="assets/mobile.js?v=202609301702"></script>
+<script src="assets/compte.js?v=202609301702"></script>
+<script src="assets/url-propre.js?v=202609301702"></script>
 </body>
 </html>
