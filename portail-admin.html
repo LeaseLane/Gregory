@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609301927">
-<script src="assets/charger-portail.js?v=202609301927"></script>
-<script src="assets/ui.js?v=202609301927"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609301943">
+<script src="assets/charger-portail.js?v=202609301943"></script>
+<script src="assets/ui.js?v=202609301943"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -4316,24 +4316,22 @@ function renderDocumentsAdmin(){
     (!dcEtat.proprio || d.owner_id === dcEtat.proprio) &&
     (!dcEtat.immeuble || d.building_id === dcEtat.immeuble) &&
     (!dcEtat.type || d.doc_type === dcEtat.type) &&
-    (!q || `${d.title} ${d.owners?.full_name || ''} ${d.buildings?.address || ''} ${d.workers?.name || ''} ${d.ai_summary || ''}`.toLowerCase().includes(q)));
+    (!q || `${d.title} ${d.owners?.full_name || ''} ${d.buildings?.address || ''} ${d.workers?.name || ''} ${d.leases?.tenants?.full_name || ''} ${d.ai_summary || ''}`.toLowerCase().includes(q)));
   if(!liste.length){ body.innerHTML = `<p class="tr-vide">${dcListe.length ? 'Aucun document ne correspond aux filtres.' : 'Aucun document.'}</p>`; return; }
   body.innerHTML = `<p class="tr-compte">${liste.length} document${liste.length > 1 ? 's' : ''}</p>
     <table class="tr-table"><thead><tr><th>Document</th><th>Type</th><th>Client</th><th>Ajouté le</th><th></th></tr></thead><tbody>
     ${liste.map(d => `<tr><td><b>${esc(d.title)}</b>${d.buildings?.address ? `<small>${esc(d.buildings.address)}</small>` : ''}</td>
       <td>${esc(DC_TYPES[d.doc_type] || d.doc_type || '—')}</td>
-      <td>${esc(d.owners?.full_name || d.workers?.name || '—')}<small>${d.owner_id ? 'Propriétaire' : d.worker_id ? 'Travailleur' : ''}</small></td>
+      <td>${esc(d.owners?.full_name || d.workers?.name || '—')}<small>${d.owner_id ? 'Propriétaire' : d.worker_id ? 'Travailleur' : ''}</small>${d.leases?.tenants?.full_name ? `<small>Locataire : ${esc(d.leases.tenants.full_name)}${d.leases.units?.unit_number ? ', unité ' + esc(d.leases.units.unit_number) : ''}</small>` : ''}</td>
       <td>${new Date(d.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</td>
       <td><button class="ll-bouton ll-bouton--secondaire lo-petit" onclick="ouvrirDocumentAdmin('${d.id}')">Ouvrir</button></td></tr>`).join('')}
     </tbody></table>`;
 }
-// Onglet ouvert tout de suite : sinon le navigateur bloque la fenêtre
-// ouverte après l'attente du lien signé.
+// Aperçu dans l'application (lien signé à 10 min créé au clic).
 async function ouvrirDocumentAdmin(id){
-  const w = window.open('', '_blank');
+  const d = (dcListe || []).find(x => x.id === id);
   const res = await callOpsApi({ action: 'sign_document', document_id: id });
-  if(!res?.url){ if(w) w.close(); return; }
-  if(w) w.location = res.url; else location.href = res.url;
+  if(res?.url) llApercu(res.url, d?.title, d?.file_url);
 }
 
 async function seedDemoAccounts(){
@@ -4808,8 +4806,8 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609301927"></script>
-<script src="assets/compte.js?v=202609301927"></script>
-<script src="assets/url-propre.js?v=202609301927"></script>
+<script src="assets/mobile.js?v=202609301943"></script>
+<script src="assets/compte.js?v=202609301943"></script>
+<script src="assets/url-propre.js?v=202609301943"></script>
 </body>
 </html>

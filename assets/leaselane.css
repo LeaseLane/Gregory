@@ -1644,3 +1644,17 @@ body.ll-mdp-actif{ overflow:hidden; }
 .tr-compte{ margin:0 0 8px; font-size:13px; color:var(--texte-discret); }
 .tr-table td small + small{ margin-top:0; }
 .pf-fiche-lien{ margin-top:14px; }
+
+/* Aperçu d'un document dans l'application (assets/ui.js llApercu). */
+.ll-apercu{ position:fixed; inset:0; z-index:3000; background:rgba(6,18,32,.72); display:flex; align-items:center; justify-content:center; padding:24px; }
+.ll-apercu__boite{ width:min(1000px, 100%); height:min(92vh, 1200px); background:var(--surface-carte, #fff); border-radius:var(--rayon-carte); box-shadow:var(--ombre-3, 0 20px 60px rgba(0,0,0,.35)); display:flex; flex-direction:column; overflow:hidden; }
+.ll-apercu__tete{ display:flex; align-items:center; gap:14px; padding:12px 16px; border-bottom:1px solid var(--bordure); }
+.ll-apercu__tete b{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--marine-900); }
+.ll-apercu__lien{ font-size:13px; font-weight:600; white-space:nowrap; }
+.ll-apercu__fermer{ flex:none; width:36px; height:36px; border-radius:50%; border:1px solid var(--bordure); background:#fff; font-size:22px; line-height:1; cursor:pointer; color:var(--marine-900); }
+.ll-apercu__corps{ flex:1; min-height:0; background:#525659; display:flex; align-items:center; justify-content:center; }
+.ll-apercu__corps iframe{ width:100%; height:100%; border:0; background:#fff; }
+.ll-apercu__corps img{ max-width:100%; max-height:100%; object-fit:contain; }
+@media (max-width:640px){ .ll-apercu{ padding:0; } .ll-apercu__boite{ height:100%; border-radius:0; } }
+.pf-doc-actions{ text-align:right; white-space:nowrap; }
+.pf-doc-actions > * + *{ margin-left:8px; }

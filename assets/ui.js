@@ -151,4 +151,34 @@ window.llStockage = function () {
   // à leurs appels : aucun ne précède une navigation (vérifié le
   // 2026-09-26), le caractère non bloquant ne change donc rien.
   window.alert = function (message) { window.llToast(message); };
+
+  // Aperçu d'un document dans l'application (PDF ou image), au lieu d'un
+  // nouvel onglet. url : lien signé ; nom : chemin ou nom du fichier (pour
+  // deviner le type). Échap ou clic sur le fond pour fermer.
+  window.llApercu = function (url, titre, nom) {
+    var ferme = document.getElementById("ll-apercu");
+    if (ferme) ferme.remove();
+    var ext = String(nom || url).split("?")[0].split(".").pop().toLowerCase();
+    var image = /^(jpe?g|png|gif|webp|heic|avif)$/.test(ext);
+    var e = function (t) { var d = document.createElement("div"); d.textContent = t == null ? "" : String(t); return d.innerHTML; };
+    var f = document.createElement("div");
+    f.id = "ll-apercu";
+    f.className = "ll-apercu";
+    f.setAttribute("role", "dialog");
+    f.setAttribute("aria-modal", "true");
+    f.innerHTML =
+      '<div class="ll-apercu__boite">' +
+        '<header class="ll-apercu__tete"><b>' + e(titre || "Document") + '</b>' +
+          '<a class="ll-apercu__lien" href="' + e(url) + '" target="_blank" rel="noopener">Ouvrir dans un onglet</a>' +
+          '<button type="button" class="ll-apercu__fermer" aria-label="Fermer">×</button></header>' +
+        '<div class="ll-apercu__corps">' + (image ? '<img alt="" src="' + e(url) + '">' : '<iframe title="' + e(titre || "Document") + '" src="' + e(url) + '"></iframe>') + '</div>' +
+      '</div>';
+    var fermer = function () { f.remove(); document.removeEventListener("keydown", clavier, true); };
+    var clavier = function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); fermer(); } };
+    f.querySelector(".ll-apercu__fermer").onclick = fermer;
+    f.addEventListener("mousedown", function (ev) { if (ev.target === f) fermer(); });
+    document.addEventListener("keydown", clavier, true);
+    document.body.appendChild(f);
+    f.querySelector(".ll-apercu__fermer").focus();
+  };
 })();

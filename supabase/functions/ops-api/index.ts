@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
     // travailleurs…) : l'admin n'a pas de droit de lecture direct sur le
     // stockage « documents » ; il passe par ici.
     if (action === "list_documents") {
-      const champs = "id,title,doc_type,file_url,created_at,owner_id,building_id,worker_id,ai_summary,owners(full_name),buildings(address)";
+      const champs = "id,title,doc_type,file_url,created_at,owner_id,building_id,worker_id,lease_id,ai_summary,owners(full_name),buildings(address),leases(tenants(full_name),units(unit_number))";
       let res = await fetch(`${supabaseUrl}/rest/v1/documents?select=${champs},workers(name)&order=created_at.desc&limit=2000`, { headers: adminHeaders });
       // Lien documents → workers absent en prod (schéma parfois différent du dépôt) : on s'en passe.
       if (!res.ok) res = await fetch(`${supabaseUrl}/rest/v1/documents?select=${champs}&order=created_at.desc&limit=2000`, { headers: adminHeaders });
