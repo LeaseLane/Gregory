@@ -112,9 +112,9 @@
     .approve-row{flex-direction:column;align-items:flex-start;gap:10px;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609301702">
-<script src="assets/charger-portail.js?v=202609301702"></script>
-<script src="assets/ui.js?v=202609301702"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609301927">
+<script src="assets/charger-portail.js?v=202609301927"></script>
+<script src="assets/ui.js?v=202609301927"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -659,9 +659,65 @@ function renderUnitsTab(buildings){
     if(!contient(`unité ${u.unit_number} ${tenant} ${lease?.tenants?.email || ''}`, pf.uq)) return;
     const rent = u.rent ? u.rent.toLocaleString('fr-CA') + ' $' : '—';
     const statusTag = u.status === 'occupied' ? '<span class="tag ok">Occupée</span>' : '<span class="tag neutral">Disponible</span>';
-    rows.push(`<tr><td>${esc(b.address)}</td><td>Unité ${esc(u.unit_number)}</td><td>${esc(tenant)}${lease?.tenants?.email ? `<small>${esc(lease.tenants.email)}</small>` : ''}</td><td>${esc(rent)}</td><td>${esc(lease?.start_date || '—')}</td><td>${esc(lease?.end_date || '—')}</td><td>${statusTag}</td></tr>`);
+    rows.push(`<tr class="tr-ligne" onclick="ouvrirLogement('${u.id}')"><td>${esc(b.address)}</td><td>Unité ${esc(u.unit_number)}</td><td>${esc(tenant)}${lease?.tenants?.email ? `<small>${esc(lease.tenants.email)}</small>` : ''}</td><td>${esc(rent)}</td><td>${esc(lease?.start_date || '—')}</td><td>${esc(lease?.end_date || '—')}</td><td>${statusTag}</td></tr>`);
   }));
   body.innerHTML = rows.length ? rows.join('') : '<tr class="empty-row"><td colspan="7">Aucun logement ne correspond aux filtres.</td></tr>';
+}
+
+// Fiche d'un logement (à droite) : locataire, bail, paiements, demandes et
+// documents de l'immeuble — comme les fiches de l'espace admin.
+let ficheLog = { id: null, onglet: 'resume', demandes: [] };
+async function ouvrirLogement(id, onglet){
+  ficheLog = { id, onglet: onglet || 'resume', demandes: [] };
+  if(!document.getElementById('fiche-log')){
+    document.body.insertAdjacentHTML('beforeend', '<div class="fi-fond" onclick="fermerLogement()"></div><aside id="fiche-log" class="fi-tiroir" role="dialog" aria-modal="true" aria-label="Logement"></aside>');
+    document.addEventListener('keydown', e => { if(e.key === 'Escape' && ficheLog.id) fermerLogement(); });
+  }
+  document.body.classList.add('fi-ouvert');
+  renderLogement();
+  const { data } = await supabaseClient.from('service_requests').select('id,description,status,created_at,ai_category,ai_status').eq('unit_id', id).order('created_at', { ascending: false });
+  if(ficheLog.id === id){ ficheLog.demandes = data || []; renderLogement(); }
+}
+function fermerLogement(){ ficheLog.id = null; document.body.classList.remove('fi-ouvert'); }
+
+function renderLogement(){
+  const t = document.getElementById('fiche-log');
+  let b, u;
+  immeublesCache.forEach(x => (x.units || []).forEach(y => { if(y.id === ficheLog.id){ b = x; u = y; } }));
+  if(!t || !u) return;
+  const bail = (u.leases || []).find(l => l.status === 'active') || (u.leases || [])[0];
+  const loc = bail?.tenants;
+  const paiements = (bail?.payments || []).slice().sort((x, y) => (y.due_date || '').localeCompare(x.due_date || ''));
+  const docs = documentsCache.filter(d => d.building_id === b.id);
+  const jour = d => d ? new Date(d + 'T12:00').toLocaleDateString('fr-CA', { dateStyle: 'medium' }) : '—';
+  const argentL = n => n != null ? Number(n).toLocaleString('fr-CA') + ' $' : '—';
+  const onglet = (id, lib, n) => `<button class="fi-onglet${ficheLog.onglet === id ? ' actif' : ''}" onclick="ficheLog.onglet='${id}';renderLogement()">${lib}${n ? ` <span>${n}</span>` : ''}</button>`;
+  const tonP = { paid: ['Payé', 'ok'], late: ['En retard', 'urgent'], pending: ['À venir', 'warn'] };
+  const libD = { open: 'Ouverte', in_progress: 'En cours', closed: 'Réglée', resolved: 'Réglée', cancelled: 'Annulée' };
+  let corps;
+  if(ficheLog.onglet === 'paiements'){
+    corps = paiements.length ? `<table class="tr-table"><thead><tr><th>Échéance</th><th>Montant</th><th>Statut</th></tr></thead><tbody>${paiements.map(p => `<tr><td>${jour(p.due_date)}${p.paid_date ? `<small>payé le ${jour(p.paid_date)}</small>` : ''}</td><td>${argentL(p.amount)}</td><td><span class="tag ${(tonP[p.status] || [])[1] || 'neutral'}">${(tonP[p.status] || [])[0] || esc(p.status)}</span></td></tr>`).join('')}</tbody></table>` : '<p class="tr-vide">Aucun paiement.</p>';
+  } else if(ficheLog.onglet === 'demandes'){
+    corps = ficheLog.demandes.length ? `<table class="tr-table"><thead><tr><th>Demande</th><th>Statut</th></tr></thead><tbody>${ficheLog.demandes.map(r => `<tr><td><b>${esc(r.description)}</b><small>${r.ai_category ? esc(r.ai_category) + ' · ' : ''}${new Date(r.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</small></td><td>${libD[r.status] || esc(r.status)}</td></tr>`).join('')}</tbody></table>` : '<p class="tr-vide">Aucune demande de réparation pour ce logement.</p>';
+  } else if(ficheLog.onglet === 'documents'){
+    corps = docs.length ? `<table class="tr-table"><tbody>${docs.map(d => `<tr><td><b>${esc(d.title)}</b><small>${new Date(d.created_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</small></td><td style="text-align:right"><button class="ll-bouton ll-bouton--secondaire lo-petit" data-fichier="${esc(d.file_url || '')}" onclick="ouvrirDocument(this.dataset.fichier)">Ouvrir</button></td></tr>`).join('')}</tbody></table>` : '<p class="tr-vide">Aucun document rattaché à cet immeuble. Choisis l\'immeuble en téléversant un document.</p>';
+  } else {
+    corps = `<div class="lo-infos">
+        <div><span>Locataire</span><b>${loc ? esc(loc.full_name) : 'Vacant'}</b>${loc?.email ? `<small>${esc(loc.email)}</small>` : ''}${loc?.phone ? `<small>${esc(loc.phone)}</small>` : ''}</div>
+        <div><span>Loyer</span><b>${argentL(bail?.monthly_rent ?? u.rent)}</b></div>
+        <div><span>Bail</span><b>${jour(bail?.start_date)}</b><small>au ${bail?.end_date ? jour(bail.end_date) : 'indéterminé'}</small></div>
+        <div><span>Statut</span><b>${u.status === 'occupied' ? 'Occupé' : 'Disponible'}</b></div>
+      </div>
+      <p class="pf-fiche-lien"><button class="vo-lien" onclick="fermerLogement();pfSet('dimmeuble','${b.id}');remplirFiltresImmeuble();renderDocuments();showTab('documents')">Tous les documents de cet immeuble →</button></p>`;
+  }
+  t.innerHTML = `
+    <header class="fi-tete">
+      <span class="tr-avatar" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#house"/></svg></span>
+      <div class="tr-ident"><h2>Unité ${esc(u.unit_number)}</h2><div class="tr-specs"><span class="tag neutral">${esc(b.address)}</span></div></div>
+      <button class="fi-fermer" onclick="fermerLogement()" aria-label="Fermer"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#x"/></svg></button>
+    </header>
+    <div class="fi-onglets" role="tablist">${onglet('resume', 'Résumé')}${onglet('paiements', 'Paiements', paiements.length)}${onglet('demandes', 'Demandes', ficheLog.demandes.length)}${onglet('documents', 'Documents', docs.length)}</div>
+    <div class="fi-corps">${corps}</div>`;
 }
 
 function renderPaymentsTab(buildings){
@@ -1374,8 +1430,8 @@ function showTab(id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609301702"></script>
-<script src="assets/compte.js?v=202609301702"></script>
-<script src="assets/url-propre.js?v=202609301702"></script>
+<script src="assets/mobile.js?v=202609301927"></script>
+<script src="assets/compte.js?v=202609301927"></script>
+<script src="assets/url-propre.js?v=202609301927"></script>
 </body>
 </html>

@@ -1643,3 +1643,4 @@ body.ll-mdp-actif{ overflow:hidden; }
 .pf-voir .ic{ width:14px; height:14px; vertical-align:-2px; }
 .tr-compte{ margin:0 0 8px; font-size:13px; color:var(--texte-discret); }
 .tr-table td small + small{ margin-top:0; }
+.pf-fiche-lien{ margin-top:14px; }

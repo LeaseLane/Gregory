@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609301702">
-<script src="assets/charger-portail.js?v=202609301702"></script>
-<script src="assets/ui.js?v=202609301702"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202609301927">
+<script src="assets/charger-portail.js?v=202609301927"></script>
+<script src="assets/ui.js?v=202609301927"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -2699,7 +2699,19 @@ function basculerFormTravailleur(ouvrir){
   if(!f.hidden) document.getElementById('wk-name').focus();
 }
 
+// Filtres et tri des tableaux gardés d'une visite à l'autre (localStorage).
+// ids : champ du tableau → élément à remettre à jour (null si la liste est
+// remplie par le rendu lui-même, qui sélectionne déjà la bonne valeur).
+function llFiltres(nom, etat, ids){
+  try { const m = JSON.parse(localStorage.getItem('ll-filtres-' + nom)) || {}; Object.keys(ids).forEach(k => { if(m[k] != null) etat[k] = m[k]; }); } catch(e){}
+  return function(){
+    const m = {}; Object.keys(ids).forEach(k => { m[k] = etat[k]; });
+    try { localStorage.setItem('ll-filtres-' + nom, JSON.stringify(m)); } catch(e){}
+    Object.entries(ids).forEach(([k, id]) => { const el = id && document.getElementById(id); if(el && el !== document.activeElement) el.value = etat[k] ?? ''; });
+  };
+}
 const trEtat = { q: '', statut: '', spec: '', tri: 'nom', sens: 1, ouverts: new Set() };
+const trGarder = llFiltres('travailleurs', trEtat, { q: 'tr-q', statut: 'tr-f-statut', spec: null, tri: null, sens: null });
 const trRaisons = w => [
   w.missing_rbq_license && 'licence RBQ manquante',
   w.rbq_expired && 'licence RBQ expirée',
@@ -2777,6 +2789,7 @@ function renderTravailleurs(){
   }
   const selSpec = document.getElementById('tr-f-spec');
   selSpec.innerHTML = '<option value="">Toutes les spécialités</option>' + toutesSpecs.map(x => `<option value="${esc(x)}"${x === trEtat.spec ? ' selected' : ''}>${esc(libelleSpecialite[x] || x)}</option>`).join('');
+  trGarder();
 
   if(!liste.length){
     container.innerHTML = '<p class="tr-vide">Aucun travailleur ne correspond à ces critères.</p>';
@@ -3428,6 +3441,7 @@ async function dispatchServiceRequestAuto(serviceRequestId, unitId){
 // ── Travaux en cours : tableau + fiche latérale ─────────────────────
 let workOrdersCache = [];
 const woEtat = { q: '', etape: '', travailleur: '', tri: 'cree', sens: -1 };
+const woGarder = llFiltres('travaux', woEtat, { q: 'wo-q', etape: 'wo-f-etape', travailleur: null, tri: null, sens: null });
 let ficheWo = { id: null, onglet: 'resume', data: null };
 function woEtape(wo){
   const ap = (wo.approvals || []).slice().sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))[0];
@@ -3460,6 +3474,7 @@ function woTrier(col){
 function renderTravauxEnCours(){
   const body = document.getElementById('work-orders-body');
   if(!body) return;
+  woGarder();
   const L = workOrdersCache;
   const n = cle => L.filter(w => woEtape(w).cle === cle).length;
   document.getElementById('wo-resume').innerHTML = L.length ? `
@@ -3937,6 +3952,7 @@ async function loadCallers(){
 // latérale (bail, paiements, demandes, courriels) avec les actions.
 let tenantsDirectory = [];
 const loEtat = { q: '', statut: '', client: '', tri: 'nom', sens: 1 };
+const loGarder = llFiltres('locataires', loEtat, { q: 'lo-q', statut: 'lo-f-statut', client: null, tri: null, sens: null });
 const loBail = t => (t.leases || []).find(l => l.status === 'active') || null;
 const loRetards = t => (t.leases || []).flatMap(l => l.payments || []).filter(p => p.status === 'late').length;
 const loFinProche = t => { const b = loBail(t); return !!(b?.end_date && new Date(b.end_date) - Date.now() < 60 * 864e5 && new Date(b.end_date) >= new Date(new Date().toDateString())); };
@@ -3960,6 +3976,7 @@ function loTrier(col){
 function renderLocataires(){
   const body = document.getElementById('tenants-body');
   if(!body) return;
+  loGarder();
   const T = tenantsDirectory;
   const resume = document.getElementById('lo-resume');
   const nRetard = T.filter(t => loRetards(t)).length, nSans = T.filter(t => !t.user_id).length, nFin = T.filter(loFinProche).length;
@@ -4791,8 +4808,8 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609301702"></script>
-<script src="assets/compte.js?v=202609301702"></script>
-<script src="assets/url-propre.js?v=202609301702"></script>
+<script src="assets/mobile.js?v=202609301927"></script>
+<script src="assets/compte.js?v=202609301927"></script>
+<script src="assets/url-propre.js?v=202609301927"></script>
 </body>
 </html>
