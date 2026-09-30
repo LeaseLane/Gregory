@@ -48,7 +48,7 @@ export const PORTAILS = {
   proprietaire: `${SITE_BASE_URL}/app?p=proprietaire`,
   locataire: `${SITE_BASE_URL}/app?p=locataire`,
   travailleur: `${SITE_BASE_URL}/app?p=travailleur`,
-  coldCaller: `${SITE_BASE_URL}/portail-cold-caller`,
+  coldCaller: `${SITE_BASE_URL}/app?p=prospecteur`,
   admin: `${SITE_BASE_URL}/app`,
   app: `${SITE_BASE_URL}/app`,
   pro: `${SITE_BASE_URL}/pro`,

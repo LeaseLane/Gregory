@@ -688,8 +688,8 @@ Deno.serve(async (req) => {
       let emailSent = false;
       let emailError: string | null = null;
       try {
-        const emailRes = await sendEmail(email, "Bienvenue sur Portail — ton accès prospection téléphonique",
-          `Bonjour ${full_name},\n\nTon compte Portail pour la prospection téléphonique est prêt.\n\nPortail : ${PORTAILS.coldCaller}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi pour voir ta file d'appels et logger tes appels. Tu peux changer ton mot de passe via "Mot de passe oublié" sur la page de connexion.\n\nL'équipe Lease Lane`);
+        const emailRes = await sendEmail(email, "Bienvenue sur Lease Lane — ton accès prospection téléphonique",
+          `Bonjour ${full_name},\n\nTon compte Lease Lane pour la prospection téléphonique est prêt.\n\nPortail : ${PORTAILS.coldCaller}\nCourriel : ${email}\nMot de passe temporaire : ${password}\n\nConnecte-toi pour voir ta file d'appels et logger tes appels. Tu peux changer ton mot de passe via "Mot de passe oublié" sur la page de connexion.\n\nL'équipe Lease Lane`);
         emailSent = emailRes.ok;
         if (!emailRes.ok) {
           const errData = await emailRes.json().catch(() => ({}));
@@ -1134,8 +1134,8 @@ Deno.serve(async (req) => {
           if (authRes.ok && authData.id) {
             authUserId = authData.id;
             await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${authUserId}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ role: "tenant" }) });
-            await sendEmail(row.tenant_email, "Bienvenue sur Portail — ton accès locataire",
-              `Bonjour ${row.tenant_full_name},\n\nTon compte locataire Portail est prêt.\n\nPortail : ${PORTAILS.locataire}\nCourriel : ${row.tenant_email}\nMot de passe temporaire : ${tempPassword}\n\nConnecte-toi pour voir ton bail, tes paiements et faire une demande de service.\n\nL'équipe Lease Lane`);
+            await sendEmail(row.tenant_email, "Bienvenue sur Lease Lane — ton accès locataire",
+              `Bonjour ${row.tenant_full_name},\n\nTon compte locataire Lease Lane est prêt.\n\nPortail : ${PORTAILS.locataire}\nCourriel : ${row.tenant_email}\nMot de passe temporaire : ${tempPassword}\n\nConnecte-toi pour voir ton bail, tes paiements et faire une demande de service.\n\nL'équipe Lease Lane`);
           }
         }
 

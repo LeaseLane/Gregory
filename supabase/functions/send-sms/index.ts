@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify(avecHtml({
           from: EXPEDITEUR,
           to: [fallback_email],
-          subject: fallback_subject || "Message de Portail",
+          subject: fallback_subject || "Message de Lease Lane",
           text: message,
         })),
       });
