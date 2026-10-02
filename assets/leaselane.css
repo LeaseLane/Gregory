@@ -1658,3 +1658,5 @@ body.ll-mdp-actif{ overflow:hidden; }
 @media (max-width:640px){ .ll-apercu{ padding:0; } .ll-apercu__boite{ height:100%; border-radius:0; } }
 .pf-doc-actions{ text-align:right; white-space:nowrap; }
 .pf-doc-actions > * + *{ margin-left:8px; }
+.sr-lien-archives{ border:none; cursor:pointer; font:inherit; }
+.sr-lien-archives:hover{ text-decoration:underline; }

@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     };
 
     const payRes = await fetch(
-      `${supabaseUrl}/rest/v1/payments?id=eq.${payment_id}&select=*,leases(monthly_rent,tenants(full_name,email),units(unit_number,buildings(address)))`,
+      `${supabaseUrl}/rest/v1/payments?id=eq.${payment_id}&select=*,leases(monthly_rent,tenants(full_name,email,archived_at),units(unit_number,buildings(address)))`,
       { headers: adminHeaders },
     );
     const [payment] = await payRes.json();
@@ -33,6 +33,10 @@ Deno.serve(async (req) => {
 
     const tenant = payment.leases?.tenants;
     const unit = payment.leases?.units;
+    // Locataire archivé (ancien locataire, compte démo) : plus aucun rappel.
+    if (tenant?.archived_at) {
+      return new Response(JSON.stringify({ ok: true, skipped: "tenant_archived" }), { status: 200 });
+    }
     const address = unit?.buildings?.address;
 
     if (!tenant?.email) {

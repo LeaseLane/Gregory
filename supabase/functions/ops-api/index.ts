@@ -299,7 +299,7 @@ Deno.serve(async (req) => {
       }
       const lire = (chemin: string) => fetch(`${supabaseUrl}/rest/v1/${chemin}`, { headers: adminHeaders }).then((r) => r.ok ? r.json() : []);
       const [[tenant], baux, demandes, messages, audit, notes] = await Promise.all([
-        lire(`tenants?id=eq.${tenant_id}&select=id,full_name,email,phone,user_id,created_at`),
+        lire(`tenants?id=eq.${tenant_id}&select=id,full_name,email,phone,user_id,created_at,archived_at`),
         lire(`leases?tenant_id=eq.${tenant_id}&select=id,status,start_date,end_date,monthly_rent,units(unit_number,buildings(address,owners(full_name))),payments(id,amount,due_date,paid_date,status,reminder_paused)&order=start_date.desc`),
         lire(`service_requests?tenant_id=eq.${tenant_id}&select=id,description,status,ai_category,ai_urgency,created_at&order=created_at.desc&limit=100`),
         lire(`messages?tenant_id=eq.${tenant_id}&select=id,sender,body,created_at&order=created_at.asc&limit=300`),
@@ -363,6 +363,28 @@ Deno.serve(async (req) => {
 
     // Coordonnées du locataire. Le courriel n'est modifiable que sans
     // accès portail : c'est aussi son identifiant de connexion.
+    // Archiver = retirer du tableau de bord sans rien effacer. Les rappels
+    // de loyer encore en attente sont suspendus (un ancien locataire ne doit
+    // plus en recevoir) ; la restauration ne les relance pas d'elle-même.
+    if (action === "archive_tenant") {
+      const { tenant_id, archiver } = body;
+      if (!tenant_id || !/^[0-9a-f-]{36}$/i.test(tenant_id)) return new Response(JSON.stringify({ error: "tenant_id invalide" }), { status: 400, headers: corsHeaders });
+      const r = await fetch(`${supabaseUrl}/rest/v1/tenants?id=eq.${tenant_id}`, {
+        method: "PATCH", headers: adminHeaders,
+        body: JSON.stringify(archiver ? { archived_at: new Date().toISOString(), archived_by: userId } : { archived_at: null, archived_by: null }),
+      });
+      if (!r.ok) return new Response(JSON.stringify({ error: "Non enregistré" }), { status: 502, headers: corsHeaders });
+      if (archiver) {
+        const bRes = await fetch(`${supabaseUrl}/rest/v1/leases?tenant_id=eq.${tenant_id}&select=id`, { headers: adminHeaders });
+        const ids = ((await bRes.json().catch(() => [])) as { id: string }[]).map((b) => b.id);
+        if (ids.length) {
+          await fetch(`${supabaseUrl}/rest/v1/payments?lease_id=in.(${ids.join(",")})&status=neq.paid`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ reminder_paused: true }) });
+        }
+      }
+      await logAudit(archiver ? "tenant.archived" : "tenant.restored", "tenants", tenant_id, {});
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "update_tenant") {
       const { tenant_id, full_name, phone, email } = body;
       const nom = String(full_name ?? "").trim();

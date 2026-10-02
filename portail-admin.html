@@ -79,9 +79,9 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202609301956">
-<script src="assets/charger-portail.js?v=202609301956"></script>
-<script src="assets/ui.js?v=202609301956"></script>
+<link rel="stylesheet" href="assets/leaselane.css?v=202610021535">
+<script src="assets/charger-portail.js?v=202610021535"></script>
+<script src="assets/ui.js?v=202610021535"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -375,7 +375,7 @@
     <div id="lo-outils" class="tr-outils">
       <label class="tr-recherche"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#search"/></svg><input type="search" id="lo-q" placeholder="Rechercher un nom, un courriel, une adresse…" oninput="loEtat.q=this.value;renderLocataires()"></label>
       <select id="lo-f-statut" onchange="loEtat.statut=this.value;renderLocataires()">
-        <option value="">Tous les locataires</option><option value="retard">Loyer en retard</option><option value="sans-acces">Sans accès portail</option><option value="acces">Avec accès portail</option><option value="fin">Bail finissant sous 60 jours</option><option value="sans-bail">Sans bail actif</option>
+        <option value="">Tous les locataires</option><option value="retard">Loyer en retard</option><option value="sans-acces">Sans accès portail</option><option value="acces">Avec accès portail</option><option value="fin">Bail finissant sous 60 jours</option><option value="sans-bail">Sans bail actif</option><option value="archives">Archivés</option>
       </select>
       <select id="lo-f-client" onchange="loEtat.client=this.value;renderLocataires()"></select>
     </div>
@@ -3977,23 +3977,26 @@ function renderLocataires(){
   const body = document.getElementById('tenants-body');
   if(!body) return;
   loGarder();
-  const T = tenantsDirectory;
+  // Archivés : hors du tableau, sauf avec le filtre « Archivés ».
+  const nArchives = tenantsDirectory.filter(t => t.archived_at).length;
+  const T = tenantsDirectory.filter(t => loEtat.statut === 'archives' ? t.archived_at : !t.archived_at);
   const resume = document.getElementById('lo-resume');
   const nRetard = T.filter(t => loRetards(t)).length, nSans = T.filter(t => !t.user_id).length, nFin = T.filter(loFinProche).length;
   resume.innerHTML = T.length ? `
     <span><b>${T.length}</b> locataire${T.length > 1 ? 's' : ''}</span>
     ${nRetard ? `<span class="tr-pastille tr-pastille--ko"><b>${nRetard}</b> en retard de loyer</span>` : ''}
     ${nFin ? `<span class="tr-pastille tr-pastille--att"><b>${nFin}</b> bail finissant bientôt</span>` : ''}
-    ${nSans ? `<span class="tr-pastille"><b>${nSans}</b> sans accès portail</span>` : ''}` : '';
+    ${nSans ? `<span class="tr-pastille"><b>${nSans}</b> sans accès portail</span>` : ''}
+    ${nArchives && loEtat.statut !== 'archives' ? `<button class="tr-pastille sr-lien-archives" onclick="loEtat.statut='archives';renderLocataires()"><b>${nArchives}</b> archivé${nArchives > 1 ? 's' : ''}</button>` : ''}` : '';
 
   const clients = [...new Set(T.map(loClient).filter(Boolean))].sort();
   document.getElementById('lo-f-client').innerHTML = '<option value="">Tous les clients</option>' + clients.map(c => `<option value="${esc(c)}"${c === loEtat.client ? ' selected' : ''}>${esc(c)}</option>`).join('');
 
-  if(!T.length){ body.innerHTML = '<p class="tr-vide">Aucun locataire. Ajoute-en un depuis Clients propriétaires → Nouveau client.</p>'; return; }
+  if(!T.length){ body.innerHTML = loEtat.statut === 'archives' ? '<p class="tr-vide">Aucun locataire archivé.</p>' : '<p class="tr-vide">Aucun locataire. Ajoute-en un depuis Clients propriétaires → Nouveau client.</p>'; return; }
   const q = loEtat.q.trim().toLowerCase();
   const filtre = {
     retard: t => loRetards(t) > 0, 'sans-acces': t => !t.user_id, acces: t => !!t.user_id,
-    fin: loFinProche, 'sans-bail': t => !loBail(t),
+    fin: loFinProche, 'sans-bail': t => !loBail(t), archives: () => true,
   }[loEtat.statut] || (() => true);
   const cle = {
     nom: t => (t.full_name || '').toLowerCase(),
@@ -4153,8 +4156,11 @@ function renderFicheLocataire(){
            <button class="ll-bouton ll-bouton--secondaire" onclick="loLienMotDePasse()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#key"/></svg>Lien de mot de passe</button>`
         : `<button class="ll-bouton ll-bouton--primaire" data-tenant-id="${esc(t.id)}" data-email="${esc(t.email || '')}" onclick="donnerAccesLocataire(this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#key"/></svg>Donner l'accès</button>`}
       <button class="ll-bouton ll-bouton--secondaire" onclick="ficheLo.onglet='modifier';renderFicheLocataire()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#pencil"/></svg>Modifier</button>
+      ${t.archived_at
+        ? `<button class="ll-bouton ll-bouton--primaire" onclick="loArchiver(false)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#refresh-cw"/></svg>Restaurer</button>`
+        : `<button class="ll-bouton ll-bouton--secondaire" onclick="loArchiver(true)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#files"/></svg>Archiver</button>`}
       <span class="tr-espace"></span>
-      ${t.user_id ? '<span class="tr-pastille tr-pastille--ok">Portail actif</span>' : '<span class="tr-pastille">Sans accès</span>'}
+      ${t.archived_at ? `<span class="tr-pastille">Archivé le ${new Date(t.archived_at).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}</span>` : t.user_id ? '<span class="tr-pastille tr-pastille--ok">Portail actif</span>' : '<span class="tr-pastille">Sans accès</span>'}
     </div>
     <div class="fi-stats">
       <div><b>${bail ? argent(bail.monthly_rent) : '—'}</b><span>loyer mensuel</span></div>
@@ -4200,6 +4206,17 @@ async function loPauseRelances(paymentId, pause){
   llToast(pause ? 'Relances suspendues pour ce loyer.' : 'Relances reprises.', 'succes');
   ouvrirFicheLocataire(ficheLo.id, 'paiements');
 }
+async function loArchiver(archiver){
+  const t = ficheLo.data?.tenant;
+  if(!t) return;
+  if(archiver && !(await llConfirmer(`Archiver ${t.full_name} ? Il disparaît du tableau de bord et ne reçoit plus de rappels de loyer. Toutes ses données (bail, paiements, demandes, messages, documents) sont conservées, et tu peux le restaurer à tout moment depuis le filtre « Archivés ».`, { libelle: 'Archiver' }))) return;
+  const res = await callOpsApi({ action: 'archive_tenant', tenant_id: t.id, archiver });
+  if(!res) return;
+  llToast(archiver ? 'Locataire archivé : ses données sont conservées.' : 'Locataire restauré.', 'succes');
+  if(archiver) fermerFicheTravailleur(); else ouvrirFicheLocataire(t.id);
+  loadTenants();
+}
+
 async function loLienMotDePasse(){
   const t = ficheLo.data?.tenant || tenantsDirectory.find(x => x.id === ficheLo.id);
   if(!t?.email) return;
@@ -4806,8 +4823,8 @@ async function promptAddCall(prospect_id){
 
 init();
 </script>
-<script src="assets/mobile.js?v=202609301956"></script>
-<script src="assets/compte.js?v=202609301956"></script>
-<script src="assets/url-propre.js?v=202609301956"></script>
+<script src="assets/mobile.js?v=202610021535"></script>
+<script src="assets/compte.js?v=202610021535"></script>
+<script src="assets/url-propre.js?v=202610021535"></script>
 </body>
 </html>
