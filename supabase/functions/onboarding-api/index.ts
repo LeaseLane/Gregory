@@ -1104,7 +1104,7 @@ Deno.serve(async (req) => {
             return;
           }
           unitId = newUnit.id;
-          unitByKey.set(unitKey, unitId);
+          unitByKey.set(unitKey, newUnit.id as string);
           unitCreated = true;
         }
 

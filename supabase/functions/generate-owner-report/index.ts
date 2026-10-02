@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
 
     // Travaux ayant dépassé leur estimation initiale — comparaison faite
     // en code, jamais estimée par l'IA.
-    const workOrdersById = new Map(workOrders.map((w: any) => [w.id, w]));
+    const workOrdersById = new Map<string, any>(workOrders.map((w: any) => [w.id, w]));
     const overEstimateWorkOrders = expenses
       .filter((e: any) => e.work_order_id && workOrdersById.has(e.work_order_id))
       .map((e: any) => {
