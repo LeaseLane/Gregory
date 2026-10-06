@@ -13,3 +13,6 @@ Lease Lane Design System/
 # Fichiers locaux : aperçus hors ligne des portails, fichiers système macOS
 apercu/
 .DS_Store
+
+# Documents confidentiels déposés à la racine (le dépôt est public via GitHub Pages)
+CHEDLEY - *.pdf
