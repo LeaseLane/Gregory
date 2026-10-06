@@ -1,6 +1,21 @@
-# Portail — Gestion immobilière (Québec)
+# Lease Lane — Gestion immobilière (Québec)
 
 SaaS de gestion immobilière résidentielle, construit sur Supabase (Postgres + Auth + Storage + Edge Functions) avec des IA intégrées (Claude/Anthropic) pour l'automatisation opérationnelle. Ce document sert de point d'entrée pour un développeur qui reprend le projet.
+
+## Organisation du dossier
+
+| Emplacement | Contenu |
+|---|---|
+| `*.html` (racine) | Pages servies par GitHub Pages sur leaselane.ca : portails (`portail-*.html`), connexion (`app.html`, `404.html`), pages ouvertes depuis les courriels (`confirmer-*.html`, `reponse-travailleur.html`, `signer-bail.html`), site public. **Ne pas les déplacer** : leurs adresses sont dans les courriels déjà envoyés. |
+| `CNAME`, `robots.txt`, `sitemap.xml` | Domaine et référencement du site. Restent à la racine. |
+| `assets/` | CSS, scripts partagés des portails, icônes, logos. |
+| `supabase/functions/` | Fonctions edge (une par dossier, code commun dans `_shared/`). |
+| `supabase/migrations/` | Changements de base de données, appliqués automatiquement au push. |
+| `schema.sql`, `seed.sql` | Historique figé du schéma (lu par les vérifications CI). Restent à la racine. |
+| `scripts/` | Vérifications et diagnostics (`check-*.mjs`, `diag-flinks.sql`, tests). |
+| `.github/workflows/` | Déploiement, vérifications, sauvegardes, diagnostics. |
+| `docs/` | Documents de projet (priorités, secrets, sauvegardes, phase 1). |
+| `mobile/` | Coquille Capacitor de l'application mobile. |
 
 ## ⚠️ Le plus important à savoir avant de toucher au code
 

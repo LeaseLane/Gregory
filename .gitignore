@@ -8,3 +8,8 @@ supabase/.temp/
 
 # Documents de travail à la racine
 *.docx
+Lease Lane Design System/
+
+# Fichiers locaux : aperçus hors ligne des portails, fichiers système macOS
+apercu/
+.DS_Store
