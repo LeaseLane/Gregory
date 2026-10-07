@@ -59,6 +59,7 @@
   .back-link:hover{color:var(--brass-dark);}
 </style>
 <link rel="stylesheet" href="assets/leaselane.css?v=202610021535">
+<script src="assets/metiers.js?v=202610071200"></script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
@@ -95,16 +96,7 @@
 
       <div class="f">
         <label>Tes métiers</label>
-        <div class="chip-group" id="specialty-chips">
-          <span class="chip" data-value="plomberie">Plomberie</span>
-          <span class="chip" data-value="electricite">Électricité</span>
-          <span class="chip" data-value="cvac">CVAC</span>
-          <span class="chip" data-value="serrurerie">Serrurerie</span>
-          <span class="chip" data-value="structure">Structure / menuiserie</span>
-          <span class="chip" data-value="peinture">Peinture</span>
-          <span class="chip" data-value="menage">Ménage</span>
-          <span class="chip" data-value="autre">Autre</span>
-        </div>
+        <div class="chip-group" id="specialty-chips"></div>
       </div>
 
       <div class="f">
@@ -145,6 +137,7 @@
 const SUPABASE_URL = 'https://kdmwfbcziokygfcmjxeq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR';
 
+document.getElementById('specialty-chips').innerHTML = window.LL_METIERS.map(([v, l]) => `<span class="chip" data-value="${v}">${l}</span>`).join('');
 const selectedSpecialties = new Set();
 document.querySelectorAll('#specialty-chips .chip').forEach(chip => {
   chip.addEventListener('click', () => {

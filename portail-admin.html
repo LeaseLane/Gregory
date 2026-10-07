@@ -82,6 +82,7 @@
 <link rel="stylesheet" href="assets/leaselane.css?v=202610021535">
 <script src="assets/charger-portail.js?v=202610021535"></script>
 <script src="assets/ui.js?v=202610021535"></script>
+<script src="assets/metiers.js?v=202610071200"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -289,17 +290,7 @@
       <div class="tr-grille">
         <label>Nom<input type="text" id="wk-name" placeholder="Ex. Plomberie Tremblay"></label>
         <label>Spécialité
-          <select id="wk-specialty">
-            <option value="">— Choisir —</option>
-            <option value="plomberie">Plomberie</option>
-            <option value="electricite">Électricité</option>
-            <option value="serrurerie">Serrurerie</option>
-            <option value="cvac">Chauffage / climatisation (CVAC)</option>
-            <option value="menuiserie">Menuiserie</option>
-            <option value="peinture">Peinture</option>
-            <option value="toiture">Toiture</option>
-            <option value="entretien">Entretien général</option>
-          </select>
+          <select id="wk-specialty"></select>
         </label>
         <label>Courriel<input type="email" id="wk-email" placeholder="nom@exemple.ca"></label>
         <label>Téléphone<input type="tel" id="wk-phone" placeholder="514-555-0000"></label>
@@ -2691,7 +2682,8 @@ async function deleteBlogPost(id){
   if(res?.ok){ await loadBlogPosts(); }
 }
 
-const libelleSpecialite = { plomberie:'Plomberie', electricite:'Électricité', serrurerie:'Serrurerie', cvac:'CVAC', menuiserie:'Menuiserie', peinture:'Peinture', toiture:'Toiture', entretien:'Entretien général' };
+const libelleSpecialite = Object.fromEntries(window.LL_METIERS);
+document.getElementById('wk-specialty').innerHTML = '<option value="">— Choisir —</option>' + window.LL_METIERS.map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
 
 function basculerFormTravailleur(ouvrir){
   const f = document.getElementById('tr-form');

@@ -115,6 +115,7 @@
 <link rel="stylesheet" href="assets/leaselane.css?v=202610021535">
 <script src="assets/charger-portail.js?v=202610021535"></script>
 <script src="assets/ui.js?v=202610021535"></script>
+<script src="assets/metiers.js?v=202610071200"></script>
 </head>
 <body class="ll-verif">
 <script>setTimeout(function(){document.body.classList.remove("ll-verif")},8000);</script>
@@ -898,7 +899,7 @@ async function submitCompletion(jobId, btn){
   ouvrirJob(jobId, 'terminer');
 }
 
-const METIERS = [['plomberie','Plomberie'],['electricite','Électricité'],['cvac','Chauffage / climatisation'],['serrurerie','Serrurerie'],['menuiserie','Menuiserie'],['peinture','Peinture'],['toiture','Toiture'],['structure','Structure'],['entretien','Entretien général']];
+const METIERS = window.LL_METIERS;
 
 function buildScheduleGrid(){
   const schedule = workerRecord.availability_schedule || {};

@@ -6,7 +6,8 @@ import { refuserSiRobot } from "../_shared/turnstile.ts";
 const WORKER_PORTAL_URL = PORTAILS.travailleur;
 const RATE_LIMIT_PER_HOUR = 5;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const ALLOWED_SPECIALTIES = ["plomberie", "electricite", "cvac", "serrurerie", "structure", "peinture", "menage", "autre"];
+// Même liste que assets/metiers.js.
+const ALLOWED_SPECIALTIES = ["plomberie", "electricite", "cvac", "menage", "nettoyage_location", "entretien", "peinture", "serrurerie", "extermination", "concierge", "vitres_pression", "degat_eau", "deneigement", "paysagement", "menuiserie", "structure", "toiture", "autre"];
 
 function randomPassword() {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 14);
