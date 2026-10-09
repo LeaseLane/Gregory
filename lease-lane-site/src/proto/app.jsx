@@ -12,6 +12,7 @@ import { CleoPanneau } from '@/proto/cleo-options';
 import { CleoAccroche } from '@/proto/cleo-panneau';
 import { __ssr } from '@/lib/hydratation';
 import { demanderCleo, envoyerDemande } from '@/lib/envoi';
+import { prochainsCreneaux } from '@/lib/creneaux';
 
 /* Repli si le paquet du système n'expose pas encore le contexte : la page s'affiche avec les pilules au lieu d'un écran blanc. */
 
@@ -30,19 +31,8 @@ const PHOTO_L1 = "/assets/img/logements/montcalm-cartier.jpg";
 /* Cléo — scénarios de conversation. Chaque réponse = suite de messages (texte ou carte), avec
    relances et créneaux optionnels. Ton : vouvoiement, phrases courtes, aucune promesse, escalade
    vers une personne dès qu'une décision légale ou financière est en jeu. */
-const CRENEAUX = [{
-  jour: 'Mardi 23 sept.',
-  heure: '10 h 00'
-}, {
-  jour: 'Mardi 23 sept.',
-  heure: '17 h 30'
-}, {
-  jour: 'Mercredi 24 sept.',
-  heure: '12 h 15'
-}, {
-  jour: 'Jeudi 25 sept.',
-  heure: '9 h 00'
-}];
+/* Jours ouvrables à venir, calculés à l'ouverture (avant : dates fixes de septembre). */
+const CRENEAUX = () => prochainsCreneaux(['10 h 00', '17 h 30', '12 h 15', '9 h 00']);
 /* Profils de Cléo : chaque visiteur choisit son statut; les intentions, les réponses et la FAQ proposées en dépendent.
    Propriétaire : rien de locataire, sauf le droit du logement (TAL) et ce qui passe par son espace. Locataire et futur locataire : rien de propriétaire.
    Le profil se change en tout temps (« Changer de profil »). */
@@ -216,7 +206,7 @@ const SCENARIOS = {
     cles: ['visite', 'visiter', 'rendez-vous', 'rencontre', 'voir le', 'créneau', 'visit', 'viewing', 'appointment', 'tour', 'see the'],
     messages: () => [{
       role: 'agent',
-      texte: 'Avec plaisir. Voici les créneaux ouverts du gestionnaire de secteur. Choisissez-en un, je m\u2019occupe du reste.'
+      texte: 'Avec plaisir. Choisissez le moment qui vous convient; l\u2019équipe vous confirme la visite.'
     }],
     creneaux: true
   },
@@ -394,7 +384,7 @@ function AgentIA({
       setMessages(prev => [...prev, m]);
       if (i === suite.length - 1) {
         setEcrit(false);
-        if (sc.creneaux) setCreneaux(CRENEAUX);
+        if (sc.creneaux) setCreneaux(CRENEAUX());
         setSuggestions(sc.suggestions || []);
         if (!ouvert) setNonLus(n => n + 1);
       }

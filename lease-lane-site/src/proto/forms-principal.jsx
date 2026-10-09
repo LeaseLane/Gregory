@@ -11,6 +11,7 @@ import { FE_Signature } from '@/proto/formulaires';
 import { naviguer } from '@/lib/routeur';
 import { __maintenant, __ssr } from '@/lib/hydratation';
 import { envoyerDemande } from '@/lib/envoi';
+import { prochainsCreneaux } from '@/lib/creneaux';
 const MAR = '#0C2147',
   BL = '#4581CB',
   BL6 = '#3767A2',
@@ -19,7 +20,8 @@ const MAR = '#0C2147',
   EZ = 'cubic-bezier(.22,1,.36,1)';
 const TYPES = [['Maison ou condo locatif', 0], ['Plex de 2 à 5 logements', 3], ['Immeuble de 6 à 11 logements', 6], ['Immeuble de 12 logements et plus', 7], ['Plusieurs immeubles', 1]];
 const DEBUTS = ['Dès que possible', 'D\u2019ici un mois', 'D\u2019ici trois mois', 'Plus tard'];
-const CREN = [['Mardi 7 oct.', '10 h 00'], ['Mardi 7 oct.', '14 h 30'], ['Mercredi 8 oct.', '9 h 00'], ['Jeudi 9 oct.', '16 h 00']];
+/* Jours ouvrables à venir (avant : dates fixes d'octobre). */
+const CREN = () => prochainsCreneaux().map(c => [c.jour, c.heure]);
 const Lib = ({
   children,
   id,
@@ -197,6 +199,18 @@ function FormOffreP({
       allerHaut();
     }, x => setEchec(x.message)).finally(() => setEnvoi(false));
   };
+  /* Le moment choisi part à l'équipe (Messages du site); pas d'agenda branché, l'équipe confirme. */
+  const choisirRdv = c => {
+    setRdv(c);
+    envoyerDemande({
+      type: 'contact',
+      nom: (v.prenom.trim() + ' ' + v.nom.trim()).trim(),
+      courriel: v.courriel.trim(),
+      tel: v.tel,
+      sujet: 'Évaluation : moment souhaité pour l\u2019appel',
+      lignes: [['Moment souhaité', c[0] + ' à ' + c[1]], ['Secteur', v.secteur]]
+    }).catch(() => {});
+  };
   const PI = PictoImmeuble,
     erreurs = Object.entries(err).filter(([k]) => regles[k](v));
   if (et === 3) return <div ref={haut} className="fp fp-in" role="status" style={{
@@ -216,18 +230,18 @@ function FormOffreP({
       fontSize: '26px',
       letterSpacing: '-0.02em',
       color: MAR
-    }}>{rdv ? 'Rendez-vous confirmé' : 'Demande reçue, merci ' + v.prenom + '.'}</h3>
+    }}>{rdv ? 'Moment noté' : 'Demande reçue, merci ' + v.prenom + '.'}</h3>
     <p style={{
       margin: 0,
       fontSize: '14px',
       lineHeight: 1.65,
       color: TXT
-    }}>{rdv ? 'Appel de 30 minutes le ' + rdv[0] + ' à ' + rdv[1] + '. Une invitation part à ' + v.courriel + '.' : 'Accusé de réception envoyé à ' + v.courriel + ' · dossier OFF-2026-0187. Choisissez un moment pour l\u2019appel de 30 minutes :'}</p>
+    }}>{rdv ? 'Appel souhaité le ' + rdv[0] + ' à ' + rdv[1] + '. L\u2019équipe vous confirme le rendez-vous à ' + v.courriel + '.' : 'Accusé de réception envoyé à ' + v.courriel + '. Choisissez un moment pour l\u2019appel de 30 minutes :'}</p>
     {!rdv && <div className="fp-g2" style={{
       display: 'grid',
       gridTemplateColumns: 'repeat(2,minmax(0,1fr))',
       gap: '10px'
-    }}>{CREN.map((c, i) => <button key={c.join()} type="button" onClick={() => setRdv(c)} className="fp-cr fp-in" style={{
+    }}>{CREN().map((c, i) => <button key={c.join()} type="button" onClick={() => choisirRdv(c)} className="fp-cr fp-in" style={{
         animationDelay: i * 60 + 200 + 'ms',
         display: 'grid',
         gridTemplateColumns: '40px minmax(0,1fr) 16px',
