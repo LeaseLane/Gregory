@@ -14,3 +14,7 @@
 .fp-dr-b:hover{border-color:#4581CB}.fp-dr-b[aria-pressed="true"]{background:#0C2147;border-color:#0C2147;color:#fff}
 @media (max-width:760px){.fp-lg{grid-template-columns:minmax(0,1fr);max-height:none}}
 @media (prefers-reduced-motion:reduce){.fp-lg-c,.fp-lg-k{transition:none}}
+/* Safari iOS donne une largeur minimale au champ date : il débordait du formulaire à droite (« Autre date »). */
+.fp-dr>.fp-c{min-width:0;max-width:100%}
+.fp-c input[type=date]{min-width:0;max-width:100%;display:block;-webkit-appearance:none;appearance:none;text-align:left}
+.fp-c input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
