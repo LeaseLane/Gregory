@@ -1,0 +1,32 @@
+{
+  "name": "lease-lane-site",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "convertir": "zsh scripts/conversion/convertir.sh && python3 scripts/conversion/convertir-langue.py ../lease-lane-design-system/project/ui_kits/site-public . && python3 scripts/generer-pages.py",
+    "pages": "python3 scripts/generer-pages.py",
+    "verifier": "zsh scripts/verifier-routes.sh"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@babel/generator": "^7.29.8",
+    "@babel/parser": "^7.29.9",
+    "@babel/traverse": "^7.29.10",
+    "@babel/types": "^7.29.8",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.0",
+    "typescript": "^5"
+  }
+}

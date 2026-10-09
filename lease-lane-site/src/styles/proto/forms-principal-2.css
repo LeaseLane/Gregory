@@ -1,0 +1,16 @@
+
+.fp-sr{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.fp-lg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:348px;overflow:auto;padding:2px;margin:-2px;scrollbar-width:thin;scrollbar-color:#C9D9EE transparent}
+.fp-lg-c{position:relative;display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center;min-height:76px;padding:10px 14px 10px 10px;border:1px solid rgba(12,33,71,.14);border-radius:14px;background:#fff;cursor:pointer;transition:border-color .2s,background-color .2s,box-shadow .2s,transform .25s cubic-bezier(.22,1,.36,1)}
+.fp-lg-c:hover{border-color:#4581CB;transform:translateY(-1px);box-shadow:0 10px 22px -16px rgba(12,33,71,.5)}
+.fp-lg-c[data-on="1"]{border-color:#0C2147;background:#F3F7FC;box-shadow:0 0 0 3px rgba(69,129,203,.18)}
+.fp-lg-c:has(input:focus-visible){outline:2px solid #4581CB;outline-offset:2px}
+.fp-lg-ph{width:56px;height:56px;border-radius:10px;overflow:hidden;display:grid;place-items:center;background:linear-gradient(160deg,#EAF1FA,#D5E2F2)}.fp-lg-ph img{width:100%;height:100%;object-fit:cover;display:block}
+.fp-lg-t{display:grid;gap:1px;min-width:0}.fp-lg-t strong{font-size:14px;font-weight:650;line-height:1.3;color:#0C2147;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.fp-lg-t span{font-size:12.5px;color:#58697F}.fp-lg-t em{font-style:normal;font-size:12px;font-weight:600;color:#1F7A52}
+.fp-lg-p{font-size:15px;font-weight:700;color:#0C2147;font-variant-numeric:tabular-nums;white-space:nowrap;display:grid;justify-items:end}.fp-lg-p small{font-size:11.5px;font-weight:500;color:#58697F}
+.fp-lg-k{position:absolute;top:6px;left:6px;box-shadow:0 0 0 2px #fff;width:22px;height:22px;border-radius:7px;background:#0C2147;display:grid;place-items:center;opacity:0;transform:scale(.5);transition:opacity .2s,transform .3s cubic-bezier(.34,1.56,.64,1)}.fp-lg-c[data-on="1"] .fp-lg-k{opacity:1;transform:none}
+.fp-dr{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.fp-dr-b{display:inline-flex;align-items:center;gap:8px;min-height:56px;padding:0 16px;border:1px solid rgba(12,33,71,.14);border-radius:12px;background:#fff;color:#0C2147;font:600 14px var(--police-corps);cursor:pointer;transition:background-color .2s,border-color .2s,color .2s}
+.fp-dr-b:hover{border-color:#4581CB}.fp-dr-b[aria-pressed="true"]{background:#0C2147;border-color:#0C2147;color:#fff}
+@media (max-width:760px){.fp-lg{grid-template-columns:minmax(0,1fr);max-height:none}}
+@media (prefers-reduced-motion:reduce){.fp-lg-c,.fp-lg-k{transition:none}}

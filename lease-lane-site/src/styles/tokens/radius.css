@@ -1,0 +1,14 @@
+/* Lease Lane — rayons. Le thème de référence est très peu arrondi : médias à 10 px,
+   boutons en rectangle aux coins adoucis (12 px), pastilles en pilule, tout le reste net. */
+:root{
+  --rayon-0:0px;
+  --rayon-1:2px;
+  --rayon-2:6px;
+  --rayon-3:10px;
+  --rayon-4:12px;
+  --rayon-5:16px;
+  --rayon-pilule:999px;
+  --rayon-carte:10px;
+  --rayon-champ:8px;
+  --rayon-bouton:12px;
+}

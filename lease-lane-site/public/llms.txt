@@ -1,0 +1,81 @@
+# Lease Lane
+
+> Lease Lane est une compagnie de gestion immobilière résidentielle de la région de Québec (bureau à Lévis, Québec, Canada). Elle gère des immeubles locatifs pour leurs propriétaires — location, perception des loyers, entretien, rapports en ligne — avec Cléo, un agent IA qui répond 24/7 aux propriétaires, aux locataires et aux prospects et explique les règles générales du Code civil du Québec et du Tribunal administratif du logement (TAL), puis passe la main à une personne pour toute décision.
+
+- Langue principale : français (fr-CA). Territoire : ville de Québec et Lévis, Communauté métropolitaine de Québec.
+- Les renseignements juridiques publiés sont de l’information générale, pas un avis juridique.
+- Contact : info@leaselane.ai
+
+## Propriétaires
+
+- [Compagnie de gestion immobilière Québec](https://leaselane.ai/gestion-immobiliere): Gestion d’immeubles locatifs à Québec : location, perception des loyers, entretien et rapports en ligne. Vous gardez les décisions importantes.
+- [Trouver des locataires rapidement](https://leaselane.ai/gestion-immobiliere/location): Mise en marché, visites réservées par Cléo 24/7 et sélection conforme à la Loi 25. Calculez ce que vous coûte un logement vacant.
+- [Stratégie immobilière pour immeuble locatif](https://leaselane.ai/expertise-et-strategie): Loyers, occupation, entretien planifié et conformité : nous analysons votre immeuble, proposons un plan écrit et mesurons les résultats chaque mois.
+- [Changer de gestionnaire immobilier sans risque](https://leaselane.ai/changer-de-gestionnaire): Quitter votre gestionnaire actuel en quatre étapes : lecture du contrat, transfert des baux et dossiers, avis aux locataires, premier rapport.
+- [Obtenir une offre de gestion immobilière](https://leaselane.ai/offre-de-service): Décrivez votre immeuble en deux minutes : type, nombre de portes, secteur. Nous répondons avec une offre et un rendez-vous proposé.
+
+## Locataires et futurs locataires
+
+- [Appartements à louer Québec](https://leaselane.ai/logements-a-louer): Logements à louer à Québec gérés par Lease Lane : filtres par secteur, pièces, loyer et date, visite réservée en tout temps avec Cléo.
+- [Service aux locataires 24/7](https://leaselane.ai/locataires): Urgence 24/7, demande de location, administration et plaintes; travaux, suivi, loyer et bail dans le portail locataire. Cléo répond en tout temps.
+- [Quartiers de Québec : guides pour locataires](https://leaselane.ai/quartiers): Neuf guides de quartier à Québec : arrondissement, repères et logements à louer gérés par Lease Lane, avec visite réservée en tout temps avec Cléo.
+
+## Cléo, droit du logement et réponses
+
+- [Agent conversationnel en gestion immobilière](https://leaselane.ai/cleo): Cléo, l’agent IA de Lease Lane, explique 24/7 le droit du logement et le TAL (ex-Régie du logement), trie les urgences et réserve les visites.
+- [FAQ gestion immobilière et location](https://leaselane.ai/faq): Réponses directes aux questions des propriétaires et des locataires : offre, contrat, transition, location, travaux, loyer et bail.
+- [Blogue gestion immobilière Québec](https://leaselane.ai/blogue): Droit du logement, gestion d’immeubles et nouvelles de Lease Lane : des articles rédigés par notre équipe, révisés et datés, avec leurs sources.
+- [Hausse de loyer 2026 au Québec : délais et TAL](https://leaselane.ai/blogue/hausse-de-loyer-2026): Les délais d’avis, le calcul du TAL et les options du locataire et du propriétaire, avec les articles du Code civil cités. Révisé par un juriste.
+
+## Entreprise
+
+- [À propos de Lease Lane, gestion locative Québec](https://leaselane.ai/a-propos): Lease Lane réunit une équipe de gestion et Cléo, un agent IA 24/7 formé au droit du logement, pour des logements loués plus vite et une gestion que vous voyez.
+- [Joindre Lease Lane | Gestion immobilière à Québec](https://leaselane.ai/nous-joindre): Téléphone, courriel, bureau à Lévis ou Cléo 24/7 : propriétaire ou locataire, choisissez comment joindre Lease Lane.
+- [Politique de confidentialité](https://leaselane.ai/confidentialite): Comment Lease Lane recueille, utilise, conserve et protège vos renseignements personnels, conformément à la Loi 25.
+- [Gouvernance des renseignements personnels](https://leaselane.ai/gouvernance): Notre responsable de la protection des renseignements personnels, les rôles, le cycle de vie des renseignements, les incidents et les plaintes (Loi 25).
+
+## Quartiers (guides locaux)
+
+- [Appartement à louer à Limoilou](https://leaselane.ai/quartiers/limoilou)
+- [Appartement à louer à Montcalm](https://leaselane.ai/quartiers/montcalm)
+- [Appartement à louer à Saint-Roch](https://leaselane.ai/quartiers/saint-roch)
+- [Appartement à louer à Saint-Sauveur](https://leaselane.ai/quartiers/saint-sauveur)
+- [Appartement à louer à Sainte-Foy](https://leaselane.ai/quartiers/sainte-foy)
+- [Appartement à louer à Charlesbourg](https://leaselane.ai/quartiers/charlesbourg)
+- [Appartement à louer à Beauport](https://leaselane.ai/quartiers/beauport)
+- [Appartement à louer à Lebourgneuf](https://leaselane.ai/quartiers/lebourgneuf)
+- [Appartement à louer dans le Vieux-Québec](https://leaselane.ai/quartiers/vieux-quebec)
+
+## English version (en-CA)
+
+> Lease Lane is a residential property management company in the Québec City area (office in Lévis, Québec, Canada). It manages rental buildings for their owners — leasing, rent collection, maintenance, online reports — with Cléo, an AI agent that answers owners, tenants and prospects 24/7, explains the general rules of the Civil Code of Québec and the Administrative Housing Tribunal (TAL), then hands over to a person for any decision. French is the default language; every English page has a French twin.
+
+- [Property Management in Québec City](https://leaselane.ai/en): Lease Lane manages your rental units in Québec City: fast leasing, rent collected, maintenance tracked and clear reporting. Cléo answers 24/7.
+- [Property Management Company in Québec City](https://leaselane.ai/en/property-management): Rental property management in Québec City: leasing, rent collection, maintenance and online reports. You keep the important decisions.
+- [Find Tenants Fast in Québec City](https://leaselane.ai/en/property-management/leasing): Marketing, viewings booked by Cléo 24/7 and tenant screening compliant with Law 25. See what a vacant unit really costs you.
+- [Rental Property Strategy and Expertise](https://leaselane.ai/en/rental-property-strategy): Rents, occupancy, planned maintenance and compliance: we analyze your building, propose a written plan and measure the results every month.
+- [Switch Property Managers Without Risk](https://leaselane.ai/en/switch-property-managers): Leave your current property manager in four steps: contract review, transfer of leases and files, notice to tenants, first report.
+- [AI Assistant for Property Management](https://leaselane.ai/en/cleo): Cléo, Lease Lane’s AI agent, explains Québec housing law and the TAL (formerly the Régie du logement) 24/7, triages emergencies and books viewings.
+- [Apartments for Rent in Québec City](https://leaselane.ai/en/apartments-for-rent): Rental units in Québec City managed by Lease Lane: filter by area, rooms, rent and date, and book a viewing anytime with Cléo.
+- [Renovated 4½ for Rent in Montcalm, Québec City](https://leaselane.ai/en/apartments-for-rent/renovated-4-and-a-half-montcalm): Renovated 880 sq ft 4½ in Montcalm, $1,450 a month, available July 1. Book a viewing with Cléo or apply online.
+- [24/7 Tenant Services](https://leaselane.ai/en/tenants): 24/7 emergencies, rental applications, administration and complaints; repairs, tracking, rent and lease in the tenant portal. Cléo answers anytime.
+- [Property Management and Rental FAQ](https://leaselane.ai/en/faq): Straight answers for owners and tenants: offer, contract, transition, leasing, repairs, rent and lease.
+- [Québec City Property Management Blog](https://leaselane.ai/en/blog): Housing law, building management and Lease Lane news: articles written by our team, reviewed and dated, with their sources.
+- [2026 Rent Increase in Québec: Deadlines and the TAL](https://leaselane.ai/en/blog/rent-increase-2026): Notice deadlines, the TAL calculation and the options for tenants and landlords, with the Civil Code articles cited. Reviewed by a legal professional.
+- [About Lease Lane, Rental Management in Québec City](https://leaselane.ai/en/about): Lease Lane brings together a management team and Cléo, a 24/7 AI agent trained in housing law, for units leased faster and management you can see.
+- [Contact Lease Lane | Property Management in Québec City](https://leaselane.ai/en/contact): Phone, email, our office in Lévis or Cléo 24/7: owner or tenant, choose how to reach Lease Lane.
+- [Get a Property Management Quote](https://leaselane.ai/en/get-a-quote): Describe your building in two minutes: type, number of units, area. We reply with a written offer and a proposed meeting.
+- [Québec City Neighbourhood Guides for Tenants](https://leaselane.ai/en/neighbourhoods): Nine Québec City neighbourhood guides: borough, landmarks and rental units managed by Lease Lane, with viewings bookable anytime with Cléo.
+- [Apartments for Rent in Limoilou, Québec City](https://leaselane.ai/en/neighbourhoods/limoilou): Limoilou neighbourhood guide for tenants: borough, landmarks and rental units managed by Lease Lane. Book a viewing 24/7 with Cléo.
+- [Apartments for Rent in Montcalm, Québec City](https://leaselane.ai/en/neighbourhoods/montcalm): Montcalm neighbourhood guide for tenants: borough, landmarks and rental units managed by Lease Lane. Book a viewing 24/7 with Cléo.
+- [Apartments for Rent in Saint-Roch, Québec City](https://leaselane.ai/en/neighbourhoods/saint-roch): Saint-Roch neighbourhood guide for tenants: borough, landmarks and rental units managed by Lease Lane. Book a viewing 24/7 with Cléo.
+- [Apartments for Rent in Saint-Sauveur, Québec City](https://leaselane.ai/en/neighbourhoods/saint-sauveur): Saint-Sauveur neighbourhood guide for tenants: borough, landmarks and rental units managed by Lease Lane. Book a viewing 24/7 with Cléo.
+- [Apartments for Rent in Sainte-Foy, Québec City](https://leaselane.ai/en/neighbourhoods/sainte-foy): Sainte-Foy neighbourhood guide for tenants: borough, landmarks and rental units managed by Lease Lane. Book a viewing 24/7 with Cléo.
+- [Apartments for Rent in Charlesbourg, Québec City](https://leaselane.ai/en/neighbourhoods/charlesbourg): Charlesbourg neighbourhood guide for tenants: borough, landmarks and rental units managed by Lease Lane. Book a viewing 24/7 with Cléo.
+- [Apartments for Rent in Beauport, Québec City](https://leaselane.ai/en/neighbourhoods/beauport): Beauport neighbourhood guide for tenants: borough, landmarks and rental units managed by Lease Lane. Book a viewing 24/7 with Cléo.
+- [Apartments for Rent in Lebourgneuf, Québec City](https://leaselane.ai/en/neighbourhoods/lebourgneuf): Lebourgneuf neighbourhood guide for tenants: borough, landmarks and rental units managed by Lease Lane. Book a viewing 24/7 with Cléo.
+- [Apartments for Rent in Old Québec, Québec City](https://leaselane.ai/en/neighbourhoods/vieux-quebec): Old Québec neighbourhood guide for tenants: borough, landmarks and rental units managed by Lease Lane. Book a viewing 24/7 with Cléo.
+- [Cookie Policy](https://leaselane.ai/en/cookies): The cookies used on leaselane.ai, what they are for, how long they last and how to change your choices at any time.
+- [Terms of Use](https://leaselane.ai/en/terms-of-use): The terms that govern the use of leaselane.ai, Cléo, rental listings and online forms.
+- [Privacy Policy](https://leaselane.ai/en/privacy-policy): How Lease Lane collects, uses, keeps and protects your personal information, in accordance with Québec’s Law 25.
+- [Personal Information Governance](https://leaselane.ai/en/privacy-governance): Our person in charge of personal information protection, roles, the information life cycle, incidents and complaints (Law 25).

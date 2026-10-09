@@ -1,0 +1,130 @@
+[
+{
+"path": "/",
+"page": "accueil"
+},
+{
+"path": "/gestion-immobiliere",
+"page": "gestion"
+},
+{
+"path": "/gestion-immobiliere/location",
+"page": "location"
+},
+{
+"path": "/expertise-et-strategie",
+"page": "expertise"
+},
+{
+"path": "/changer-de-gestionnaire",
+"page": "changer"
+},
+{
+"path": "/cleo",
+"page": "cleo"
+},
+{
+"path": "/logements-a-louer",
+"page": "logements"
+},
+{
+"path": "/logements-a-louer/4-et-demi-renove-montcalm",
+"page": "fiche"
+},
+{
+"path": "/locataires",
+"page": "locataires"
+},
+{
+"path": "/locataires/demande-de-location",
+"page": "formulaire"
+},
+{
+"path": "/locataires/commentaire-ou-plainte",
+"page": "formulaire"
+},
+{
+"path": "/faq",
+"page": "faq"
+},
+{
+"path": "/blogue",
+"page": "blogue"
+},
+{
+"path": "/blogue/hausse-de-loyer-2026",
+"page": "article"
+},
+{
+"path": "/a-propos",
+"page": "apropos"
+},
+{
+"path": "/nous-joindre",
+"page": "contact"
+},
+{
+"path": "/offre-de-service",
+"page": "offre"
+},
+{
+"path": "/quartiers",
+"page": "quartiers"
+},
+{
+"path": "/quartiers/limoilou",
+"page": "quartier"
+},
+{
+"path": "/quartiers/montcalm",
+"page": "quartier"
+},
+{
+"path": "/quartiers/saint-roch",
+"page": "quartier"
+},
+{
+"path": "/quartiers/saint-sauveur",
+"page": "quartier"
+},
+{
+"path": "/quartiers/sainte-foy",
+"page": "quartier"
+},
+{
+"path": "/quartiers/charlesbourg",
+"page": "quartier"
+},
+{
+"path": "/quartiers/beauport",
+"page": "quartier"
+},
+{
+"path": "/quartiers/lebourgneuf",
+"page": "quartier"
+},
+{
+"path": "/quartiers/vieux-quebec",
+"page": "quartier"
+},
+{
+"path": "/glossaire-bail-residentiel",
+"page": "glossaire"
+},
+{
+"path": "/temoins",
+"page": "legal"
+},
+{
+"path": "/conditions-utilisation",
+"page": "legal"
+},
+{
+"path": "/confidentialite",
+"page": "legal"
+},
+{
+"path": "/gouvernance",
+"page": "legal"
+}
+]

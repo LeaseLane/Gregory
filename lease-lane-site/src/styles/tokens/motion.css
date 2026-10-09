@@ -1,0 +1,17 @@
+/* Lease Lane — mouvement. Court, linéaire-sortant, jamais de rebond. */
+:root{
+  --duree-1:120ms; /* @kind other */
+  --duree-2:180ms; /* @kind other */
+  --duree-3:260ms; /* @kind other */
+  --duree-4:420ms; /* @kind other */
+  --courbe-sortie:cubic-bezier(.2,.8,.3,1); /* @kind other */
+  --courbe-entree:cubic-bezier(.4,0,.6,1); /* @kind other */
+  --courbe-douce:cubic-bezier(.4,0,.2,1); /* @kind other */
+  --transition-interface:all var(--duree-2) var(--courbe-sortie); /* @kind other */
+}
+@media (prefers-reduced-motion:reduce){
+  :root{--duree-1:0ms; /* @kind other */ --duree-2:0ms; /* @kind other */ --duree-3:0ms; /* @kind other */ --duree-4:0ms /* @kind other */}
+  .ll-onde,[style*="ll-onde"]{animation:none!important}
+}
+/* Onde de présence : un anneau bleu qui s'élargit et s'efface. Portée par le lanceur de l'agent. */
+@keyframes ll-onde{0%{transform:scale(1);opacity:.75}70%{transform:scale(1.55);opacity:0}100%{transform:scale(1.55);opacity:0}}

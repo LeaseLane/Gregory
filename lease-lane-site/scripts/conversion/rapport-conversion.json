@@ -1,0 +1,867 @@
+{
+ "fichiers": {
+  "data.js": {
+   "exports": 1,
+   "imports": 0,
+   "client": false
+  },
+  "../portail-commun/logements-store.js": {
+   "exports": 1,
+   "imports": 2,
+   "client": false
+  },
+  "routes.js": {
+   "exports": 6,
+   "imports": 0,
+   "client": false
+  },
+  "faq.js": {
+   "exports": 1,
+   "imports": 1,
+   "client": false
+  },
+  "legal.js": {
+   "exports": 1,
+   "imports": 0,
+   "client": false
+  },
+  "menu-cleo.jsx": {
+   "exports": 2,
+   "imports": 5,
+   "client": true
+  },
+  "menu-options.jsx": {
+   "exports": 2,
+   "imports": 5,
+   "client": true
+  },
+  "chrome.jsx": {
+   "exports": 26,
+   "imports": 6,
+   "client": true
+  },
+  "accueil.jsx": {
+   "exports": 10,
+   "imports": 16,
+   "client": true
+  },
+  "recherche.jsx": {
+   "exports": 1,
+   "imports": 4,
+   "client": true
+  },
+  "fiche.jsx": {
+   "exports": 3,
+   "imports": 6,
+   "client": true
+  },
+  "fiche-concepts.jsx": {
+   "exports": 2,
+   "imports": 6,
+   "client": true
+  },
+  "fiche-details.jsx": {
+   "exports": 1,
+   "imports": 3,
+   "client": true
+  },
+  "seo.jsx": {
+   "exports": 25,
+   "imports": 6,
+   "client": true
+  },
+  "blocs.jsx": {
+   "exports": 56,
+   "imports": 10,
+   "client": true
+  },
+  "forms-principal.jsx": {
+   "exports": 2,
+   "imports": 7,
+   "client": true
+  },
+  "sections-accueil.jsx": {
+   "exports": 7,
+   "imports": 4,
+   "client": true
+  },
+  "demande.jsx": {
+   "exports": 1,
+   "imports": 4,
+   "client": true
+  },
+  "pages-proprietaires.jsx": {
+   "exports": 34,
+   "imports": 7,
+   "client": true
+  },
+  "pages-proprio-b.jsx": {
+   "exports": 29,
+   "imports": 8,
+   "client": true
+  },
+  "pictos-immeubles.jsx": {
+   "exports": 1,
+   "imports": 0,
+   "client": true
+  },
+  "gestion-options-a.jsx": {
+   "exports": 7,
+   "imports": 5,
+   "client": true
+  },
+  "gestion-options-b.jsx": {
+   "exports": 5,
+   "imports": 10,
+   "client": true
+  },
+  "pages-lease.jsx": {
+   "exports": 10,
+   "imports": 9,
+   "client": true
+  },
+  "cleo-concepts.jsx": {
+   "exports": 1,
+   "imports": 10,
+   "client": true
+  },
+  "apropos-visuel.jsx": {
+   "exports": 1,
+   "imports": 3,
+   "client": true
+  },
+  "apropos-concepts.jsx": {
+   "exports": 4,
+   "imports": 4,
+   "client": true
+  },
+  "proprio-concepts.jsx": {
+   "exports": 3,
+   "imports": 5,
+   "client": true
+  },
+  "pages-locataires.jsx": {
+   "exports": 21,
+   "imports": 9,
+   "client": true
+  },
+  "pages-locataires-v2.jsx": {
+   "exports": 1,
+   "imports": 6,
+   "client": true
+  },
+  "locataires-v3-commun.jsx": {
+   "exports": 2,
+   "imports": 8,
+   "client": true
+  },
+  "locataires-v3-a.jsx": {
+   "exports": 1,
+   "imports": 4,
+   "client": true
+  },
+  "locataires-v3-b.jsx": {
+   "exports": 1,
+   "imports": 3,
+   "client": true
+  },
+  "formulaires.jsx": {
+   "exports": 15,
+   "imports": 9,
+   "client": true
+  },
+  "accueil-heros.jsx": {
+   "exports": 1,
+   "imports": 7,
+   "client": true
+  },
+  "accueil-heros2.jsx": {
+   "exports": 1,
+   "imports": 6,
+   "client": true
+  },
+  "accueil-heros3.jsx": {
+   "exports": 4,
+   "imports": 5,
+   "client": true
+  },
+  "accueil-heros3b.jsx": {
+   "exports": 1,
+   "imports": 5,
+   "client": true
+  },
+  "accueil-heros4.jsx": {
+   "exports": 2,
+   "imports": 9,
+   "client": true
+  },
+  "accueil-heros5.jsx": {
+   "exports": 2,
+   "imports": 3,
+   "client": true
+  },
+  "accueil-heros6.jsx": {
+   "exports": 1,
+   "imports": 8,
+   "client": true
+  },
+  "accueil-heros7.jsx": {
+   "exports": 4,
+   "imports": 3,
+   "client": true
+  },
+  "accueil-options-1.jsx": {
+   "exports": 3,
+   "imports": 5,
+   "client": true
+  },
+  "accueil-options-2.jsx": {
+   "exports": 2,
+   "imports": 4,
+   "client": true
+  },
+  "accueil-options-3.jsx": {
+   "exports": 8,
+   "imports": 2,
+   "client": true
+  },
+  "accueil-chiffres-distille.jsx": {
+   "exports": 6,
+   "imports": 3,
+   "client": true
+  },
+  "accueil-chiffres-serie2.jsx": {
+   "exports": 5,
+   "imports": 4,
+   "client": true
+  },
+  "accueil-chiffres-serie3.jsx": {
+   "exports": 5,
+   "imports": 6,
+   "client": true
+  },
+  "accueil-chiffres-serie4.jsx": {
+   "exports": 5,
+   "imports": 4,
+   "client": true
+  },
+  "accueil-chiffres-serie5.jsx": {
+   "exports": 8,
+   "imports": 5,
+   "client": true
+  },
+  "accueil-chiffres-serie6.jsx": {
+   "exports": 4,
+   "imports": 6,
+   "client": true
+  },
+  "accueil-chiffres-serie7.jsx": {
+   "exports": 7,
+   "imports": 6,
+   "client": true
+  },
+  "accueil-chiffres-serie8.jsx": {
+   "exports": 7,
+   "imports": 3,
+   "client": true
+  },
+  "accueil-volets-services.jsx": {
+   "exports": 4,
+   "imports": 4,
+   "client": true
+  },
+  "accueil-parcours-fluide.jsx": {
+   "exports": 5,
+   "imports": 3,
+   "client": true
+  },
+  "accueil-services-11.jsx": {
+   "exports": 6,
+   "imports": 5,
+   "client": true
+  },
+  "accueil-services-12.jsx": {
+   "exports": 6,
+   "imports": 5,
+   "client": true
+  },
+  "accueil-services-dispo.jsx": {
+   "exports": 3,
+   "imports": 4,
+   "client": true
+  },
+  "accueil-arrivee-11.jsx": {
+   "exports": 5,
+   "imports": 5,
+   "client": true
+  },
+  "accueil-faq-11.jsx": {
+   "exports": 6,
+   "imports": 6,
+   "client": true
+  },
+  "accueil-faq-12.jsx": {
+   "exports": 4,
+   "imports": 6,
+   "client": true
+  },
+  "accueil-arrivee-12.jsx": {
+   "exports": 5,
+   "imports": 4,
+   "client": true
+  },
+  "accueil-cleo-final.jsx": {
+   "exports": 6,
+   "imports": 3,
+   "client": true
+  },
+  "accueil-cleo-v2.jsx": {
+   "exports": 7,
+   "imports": 3,
+   "client": true
+  },
+  "accueil-cleo-recit.jsx": {
+   "exports": 5,
+   "imports": 4,
+   "client": true
+  },
+  "accueil-chiffres-services.jsx": {
+   "exports": 7,
+   "imports": 8,
+   "client": true
+  },
+  "kit-ll.jsx": {
+   "exports": 1,
+   "imports": 0,
+   "client": true
+  },
+  "accueil-v2.jsx": {
+   "exports": 3,
+   "imports": 8,
+   "client": true
+  },
+  "pied-options.jsx": {
+   "exports": 2,
+   "imports": 6,
+   "client": true
+  },
+  "pages-contact.jsx": {
+   "exports": 1,
+   "imports": 6,
+   "client": true
+  },
+  "pages-contact-v2.jsx": {
+   "exports": 1,
+   "imports": 6,
+   "client": true
+  },
+  "pages-blogue.jsx": {
+   "exports": 3,
+   "imports": 4,
+   "client": true
+  },
+  "pages-guides.jsx": {
+   "exports": 5,
+   "imports": 6,
+   "client": true
+  },
+  "cleo-panneau.jsx": {
+   "exports": 4,
+   "imports": 4,
+   "client": true
+  },
+  "cleo-formulaires.jsx": {
+   "exports": 1,
+   "imports": 3,
+   "client": true
+  },
+  "cleo-options.jsx": {
+   "exports": 1,
+   "imports": 7,
+   "client": true
+  },
+  "accueil-cleo-mobile.jsx": {
+   "exports": 2,
+   "imports": 5,
+   "client": true
+  },
+  "cleo-temoins.jsx": {
+   "exports": 1,
+   "imports": 3,
+   "client": true
+  },
+  "app.jsx": {
+   "exports": 21,
+   "imports": 28,
+   "client": true
+  }
+ },
+ "inconnus": {
+  "window.LeaseLaneDesignSystem_b7a479": [
+   "accueil-heros5.jsx"
+  ],
+  "W": [
+   "accueil-heros5.jsx"
+  ],
+  "window.PageSite": [
+   "app.jsx"
+  ],
+  "window.PiedSite": [
+   "app.jsx"
+  ]
+ },
+ "dynamiques": [],
+ "effets": [
+  {
+   "f": "../portail-commun/logements-store.js",
+   "effets": [
+    "/* Site public : les annonces publiées remplacent les annonces de démonstration. */\nif (window.LL_DATA && !window.LL_ADM) {\n  try {\n    var v = JSON.parse(local"
+   ]
+  },
+  {
+   "f": "accueil-chiffres-serie6.jsx",
+   "effets": [
+    "if (Nb) W.AccChiffres = () => <RevueChiffres6 />;"
+   ]
+  },
+  {
+   "f": "accueil-services-11.jsx",
+   "effets": [
+    "Object.assign(W.SV11_H, {\n  TeteS,\n  CtaS,\n  Liste,\n  Nb,\n  Ok\n});",
+    "if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {\n  FONTE = true;\n});"
+   ]
+  },
+  {
+   "f": "app.jsx",
+   "effets": [
+    "ReactDOM.createRoot(document.getElementById('root')).render(<App />);"
+   ]
+  }
+ ],
+ "conflits": [],
+ "hash": [
+  "menu-cleo.jsx : '#' + it.to",
+  "chrome.jsx : '#' + to",
+  "chrome.jsx : '#' + to",
+  "chrome.jsx : '#' + to",
+  "chrome.jsx : '#' + to",
+  "chrome.jsx : '#' + to",
+  "seo.jsx : '#' + cible",
+  "seo.jsx : '#' + a.dataset.route",
+  "blocs.jsx : '#' + to",
+  "blocs.jsx : '#' + to",
+  "blocs.jsx : '#' + p",
+  "sections-accueil.jsx : '#' + to",
+  "pages-lease.jsx : '#' + route.path",
+  "pages-locataires.jsx : '#' + to",
+  "accueil-heros.jsx : '#' + a.to",
+  "accueil-heros.jsx : '#' + a.to",
+  "accueil-heros2.jsx : '#' + a.to",
+  "accueil-heros2.jsx : '#' + a.to",
+  "accueil-heros4.jsx : '#' + to",
+  "accueil-heros6.jsx : '#' + to",
+  "accueil-heros6.jsx : '#' + to",
+  "accueil-heros6.jsx : '#' + x.to",
+  "accueil-heros6.jsx : '#' + a.cta[1]",
+  "accueil-heros7.jsx : '#' + e.to",
+  "accueil-heros7.jsx : '#' + e.to",
+  "accueil-heros7.jsx : '#' + e.to",
+  "accueil-options-1.jsx : '#' + to",
+  "accueil-options-1.jsx : '#' + to",
+  "accueil-chiffres-serie7.jsx : '#' + VERS",
+  "accueil-chiffres-serie7.jsx : '#' + VERS",
+  "accueil-services-12.jsx : '#' + (SV_LIEN[i] || '/gestion-immobiliere')",
+  "accueil-services-dispo.jsx : '#' + (SV_LIEN[i] || '/gestion-immobiliere')",
+  "accueil-chiffres-services.jsx : '#' + (SV_LIEN[i] || '/gestion-immobiliere')",
+  "kit-ll.jsx : '#' + to",
+  "kit-ll.jsx : '#' + to",
+  "kit-ll.jsx : '#' + href",
+  "accueil-v2.jsx : '#' + GI",
+  "accueil-v2.jsx : '#' + GI",
+  "accueil-v2.jsx : '#' + GI",
+  "accueil-v2.jsx : '#' + to",
+  "accueil-v2.jsx : '#' + to",
+  "pied-options.jsx : '#' + to"
+ ],
+ "ordre": [
+  "menu-options.jsx : MenuCleo lu au chargement → version de menu-cleo.jsx",
+  "apropos-concepts.jsx : PageAProposV2 lu au chargement → version de apropos-visuel.jsx",
+  "accueil-chiffres-distille.jsx : AccChiffres lu au chargement → version de accueil-options-1.jsx",
+  "accueil-chiffres-serie8.jsx : AccChiffres lu au chargement → version de accueil-chiffres-serie7.jsx",
+  "accueil-chiffres-services.jsx : AccChiffres lu au chargement → version de accueil-chiffres-serie8.jsx",
+  "accueil-chiffres-services.jsx : AccVolets lu au chargement → version de accueil-options-2.jsx"
+ ],
+ "gardes": [
+  "menu-options.jsx : !L",
+  "accueil-options-2.jsx : !H",
+  "accueil-options-3.jsx : !H",
+  "accueil-chiffres-serie7.jsx : !H",
+  "accueil-chiffres-serie8.jsx : !H",
+  "accueil-volets-services.jsx : !H || !VH",
+  "accueil-parcours-fluide.jsx : !H || !PH || !VH",
+  "accueil-services-11.jsx : !H || !VH",
+  "accueil-services-12.jsx : !H || !VH || !S || !S.TeteS",
+  "accueil-services-dispo.jsx : !H || !VH || !D",
+  "accueil-arrivee-11.jsx : !H || !PH || !PL || !VH || !S",
+  "accueil-faq-11.jsx : !H || !VH",
+  "accueil-faq-12.jsx : !H || !VH",
+  "accueil-arrivee-12.jsx : !H || !PH",
+  "accueil-cleo-v2.jsx : !F || !H",
+  "accueil-cleo-recit.jsx : !F || !H || !V",
+  "accueil-chiffres-services.jsx : !H || !VH || !C || !D",
+  "accueil-v2.jsx : !K || !C",
+  "pied-options.jsx : !H",
+  "cleo-options.jsx : !K",
+  "accueil-cleo-mobile.jsx : !F"
+ ],
+ "css": [
+  "recherche.css",
+  "forms-principal.css",
+  "forms-principal-1.css",
+  "forms-principal-2.css",
+  "accueil-heros7.css",
+  "accueil-chiffres-serie7.css",
+  "accueil-chiffres-services.css",
+  "kit-ll.css",
+  "accueil-v2.css",
+  "pages-blogue.css"
+ ],
+ "initsClient": [
+  "accueil-services-11.jsx : FONTE"
+ ],
+ "stockageRetire": [
+  "../portail-commun/logements-store.js : getItem(CLE)",
+  "../portail-commun/logements-store.js : setItem(CLE)",
+  "../portail-commun/logements-store.js : removeItem(CLE)",
+  "../portail-commun/logements-store.js : getItem(CLE)",
+  "fiche-concepts.jsx : getItem(K)",
+  "fiche-concepts.jsx : setItem(K)",
+  "seo.jsx : getItem(k)",
+  "seo.jsx : setItem('ll-revue-exemples')",
+  "seo.jsx : setItem('ll-revue-notes')",
+  "seo.jsx : getItem(CLE_TEMOINS)",
+  "seo.jsx : getItem(CLE_TEMOINS)",
+  "seo.jsx : setItem(CLE_TEMOINS)",
+  "pages-proprietaires.jsx : getItem('ll-types-option')",
+  "pages-proprietaires.jsx : setItem('ll-types-option')",
+  "pages-proprietaires.jsx : getItem(k)",
+  "pages-proprietaires.jsx : setItem(k)",
+  "gestion-options-a.jsx : getItem(k)",
+  "gestion-options-a.jsx : setItem(k)",
+  "apropos-concepts.jsx : getItem(K)",
+  "apropos-concepts.jsx : setItem(K)",
+  "proprio-concepts.jsx : getItem(K)",
+  "proprio-concepts.jsx : setItem(K)",
+  "locataires-v3-commun.jsx : getItem(K)",
+  "locataires-v3-commun.jsx : setItem(K)",
+  "accueil-heros.jsx : getItem('ll-accueil-portes-fond')",
+  "accueil-heros.jsx : setItem('ll-accueil-portes-fond')",
+  "accueil-heros.jsx : getItem('ll-accueil-heros')",
+  "accueil-heros.jsx : setItem('ll-accueil-heros')",
+  "accueil-heros2.jsx : getItem('ll-accueil-heros2')",
+  "accueil-heros2.jsx : setItem('ll-accueil-heros2')",
+  "accueil-heros3b.jsx : getItem('ll-accueil-heros3')",
+  "accueil-heros3b.jsx : setItem('ll-accueil-heros3')",
+  "accueil-heros4.jsx : getItem('ll-accueil-heros4')",
+  "accueil-heros4.jsx : setItem('ll-accueil-heros4')",
+  "accueil-heros5.jsx : getItem('ll-accueil-heros5')",
+  "accueil-heros5.jsx : setItem('ll-accueil-heros5')",
+  "accueil-heros6.jsx : getItem('ll-accueil-heros6')",
+  "accueil-heros6.jsx : setItem('ll-accueil-heros6')",
+  "accueil-heros7.jsx : getItem(SL_CLE)",
+  "accueil-heros7.jsx : setItem(SL_CLE)",
+  "accueil-options-1.jsx : getItem(c)",
+  "accueil-options-1.jsx : setItem(c)",
+  "accueil-chiffres-distille.jsx : getItem(cle)",
+  "accueil-chiffres-distille.jsx : setItem(cle)",
+  "accueil-chiffres-serie2.jsx : getItem(cle)",
+  "accueil-chiffres-serie2.jsx : setItem(cle)",
+  "accueil-chiffres-serie3.jsx : getItem(cle)",
+  "accueil-chiffres-serie3.jsx : setItem(cle)",
+  "accueil-chiffres-serie4.jsx : getItem(cle)",
+  "accueil-chiffres-serie4.jsx : setItem(cle)",
+  "accueil-chiffres-serie4.jsx : getItem(cle)",
+  "accueil-chiffres-serie4.jsx : setItem(cle)",
+  "accueil-chiffres-serie5.jsx : getItem(CTA_CLE)",
+  "accueil-chiffres-serie5.jsx : setItem(CTA_CLE)",
+  "accueil-chiffres-serie5.jsx : getItem(cle)",
+  "accueil-chiffres-serie5.jsx : setItem(cle)",
+  "accueil-chiffres-serie5.jsx : getItem(cle)",
+  "accueil-chiffres-serie5.jsx : setItem(cle)",
+  "accueil-chiffres-serie6.jsx : getItem(cle)",
+  "accueil-chiffres-serie6.jsx : setItem(cle)",
+  "accueil-chiffres-serie7.jsx : setItem(CTA_CLE)",
+  "accueil-chiffres-serie7.jsx : getItem('ll-acc-chiffres-s6')",
+  "accueil-chiffres-serie7.jsx : getItem(cle)",
+  "accueil-chiffres-serie7.jsx : setItem(cle)",
+  "accueil-cleo-final.jsx : setItem('ll-cleo-titre')",
+  "accueil-chiffres-services.jsx : getItem(CLE)",
+  "accueil-chiffres-services.jsx : setItem(CLE)",
+  "accueil-v2.jsx : getItem(c)",
+  "accueil-v2.jsx : setItem(c)"
+ ],
+ "simplifies": [
+  "../portail-commun/logements-store.js : 3",
+  "faq.js : 1",
+  "menu-cleo.jsx : 3",
+  "menu-options.jsx : 8",
+  "chrome.jsx : 4",
+  "accueil.jsx : 18",
+  "recherche.jsx : 1",
+  "fiche.jsx : 2",
+  "fiche-concepts.jsx : 3",
+  "seo.jsx : 3",
+  "blocs.jsx : 2",
+  "forms-principal.jsx : 2",
+  "demande.jsx : 1",
+  "pages-proprio-b.jsx : 4",
+  "gestion-options-b.jsx : 3",
+  "pages-lease.jsx : 4",
+  "cleo-concepts.jsx : 13",
+  "apropos-concepts.jsx : 2",
+  "proprio-concepts.jsx : 8",
+  "pages-locataires.jsx : 2",
+  "pages-locataires-v2.jsx : 4",
+  "locataires-v3-commun.jsx : 5",
+  "locataires-v3-a.jsx : 1",
+  "formulaires.jsx : 2",
+  "accueil-heros.jsx : 5",
+  "accueil-heros2.jsx : 3",
+  "accueil-heros3.jsx : 5",
+  "accueil-heros3b.jsx : 3",
+  "accueil-heros4.jsx : 5",
+  "accueil-heros6.jsx : 2",
+  "accueil-options-1.jsx : 4",
+  "accueil-options-2.jsx : 4",
+  "accueil-options-3.jsx : 2",
+  "accueil-chiffres-distille.jsx : 1",
+  "accueil-chiffres-serie2.jsx : 2",
+  "accueil-chiffres-serie3.jsx : 2",
+  "accueil-chiffres-serie4.jsx : 2",
+  "accueil-chiffres-serie5.jsx : 1",
+  "accueil-chiffres-serie6.jsx : 1",
+  "accueil-chiffres-serie7.jsx : 1",
+  "accueil-chiffres-serie8.jsx : 1",
+  "accueil-volets-services.jsx : 1",
+  "accueil-parcours-fluide.jsx : 1",
+  "accueil-services-11.jsx : 1",
+  "accueil-services-12.jsx : 1",
+  "accueil-services-dispo.jsx : 1",
+  "accueil-arrivee-11.jsx : 1",
+  "accueil-faq-11.jsx : 2",
+  "accueil-faq-12.jsx : 2",
+  "accueil-arrivee-12.jsx : 2",
+  "accueil-cleo-final.jsx : 1",
+  "accueil-chiffres-services.jsx : 3",
+  "accueil-v2.jsx : 8",
+  "pied-options.jsx : 4",
+  "pages-contact.jsx : 2",
+  "pages-contact-v2.jsx : 3",
+  "pages-blogue.jsx : 1",
+  "pages-guides.jsx : 2",
+  "cleo-formulaires.jsx : 3",
+  "cleo-options.jsx : 1",
+  "accueil-cleo-mobile.jsx : 1",
+  "cleo-temoins.jsx : 1",
+  "app.jsx : 20"
+ ],
+ "gardesNavigateur": [
+  "../portail-commun/logements-store.js : 1",
+  "menu-cleo.jsx : 2",
+  "menu-options.jsx : 6",
+  "chrome.jsx : 6",
+  "recherche.jsx : 11",
+  "fiche.jsx : 2",
+  "fiche-concepts.jsx : 19",
+  "fiche-details.jsx : 6",
+  "seo.jsx : 17",
+  "blocs.jsx : 1",
+  "forms-principal.jsx : 2",
+  "pages-proprietaires.jsx : 1",
+  "pages-proprio-b.jsx : 4",
+  "gestion-options-a.jsx : 8",
+  "gestion-options-b.jsx : 1",
+  "pages-lease.jsx : 1",
+  "cleo-concepts.jsx : 10",
+  "apropos-visuel.jsx : 7",
+  "apropos-concepts.jsx : 17",
+  "proprio-concepts.jsx : 12",
+  "pages-locataires.jsx : 4",
+  "pages-locataires-v2.jsx : 3",
+  "locataires-v3-commun.jsx : 5",
+  "locataires-v3-a.jsx : 1",
+  "locataires-v3-b.jsx : 3",
+  "formulaires.jsx : 2",
+  "accueil-heros.jsx : 3",
+  "accueil-heros3.jsx : 4",
+  "accueil-heros3b.jsx : 2",
+  "accueil-heros4.jsx : 1",
+  "accueil-heros6.jsx : 6",
+  "accueil-heros7.jsx : 8",
+  "accueil-options-1.jsx : 12",
+  "accueil-chiffres-serie3.jsx : 7",
+  "accueil-chiffres-serie5.jsx : 1",
+  "accueil-chiffres-serie7.jsx : 1",
+  "accueil-volets-services.jsx : 1",
+  "accueil-services-11.jsx : 9",
+  "accueil-services-12.jsx : 6",
+  "accueil-faq-11.jsx : 5",
+  "accueil-faq-12.jsx : 4",
+  "accueil-cleo-v2.jsx : 3",
+  "accueil-cleo-recit.jsx : 22",
+  "accueil-chiffres-services.jsx : 1",
+  "accueil-v2.jsx : 3",
+  "pied-options.jsx : 1",
+  "pages-contact.jsx : 1",
+  "pages-contact-v2.jsx : 1",
+  "pages-blogue.jsx : 6",
+  "cleo-panneau.jsx : 1",
+  "cleo-options.jsx : 4",
+  "accueil-cleo-mobile.jsx : 2",
+  "cleo-temoins.jsx : 5",
+  "app.jsx : 8"
+ ],
+ "differes": [
+  "menu-options.jsx : L",
+  "menu-options.jsx : IDX,PAR,chercher,Surligne,href,NUM_GARDE,PORTAIL,Fl,Ic",
+  "menu-options.jsx : NON différé (exporté) Actuel",
+  "menu-options.jsx : NON différé (exporté) Actuel",
+  "fiche-details.jsx : D",
+  "seo.jsx : NON différé (exporté) S",
+  "gestion-options-b.jsx : OS",
+  "apropos-concepts.jsx : Actuel",
+  "pages-locataires.jsx : NON différé (exporté) PORTAIL_LOC",
+  "locataires-v3-a.jsx : L",
+  "locataires-v3-b.jsx : L",
+  "accueil-heros3b.jsx : CT,FIN,SUR,H1,Lead,Actions,sansMvt,useSequence",
+  "accueil-heros4.jsx : CT,FIN,SUR,H1,Lead,Ex,sansMvt",
+  "accueil-heros5.jsx : CT,FIN,SUR,H1,Lead",
+  "accueil-heros5.jsx : AUD,ORDRE,Rang,Chiffre,total",
+  "accueil-heros6.jsx : CT,FIN,SUR,H1,Lead,sansMvt",
+  "accueil-heros6.jsx : AUD,ORDRE,Rang,Chiffre,total",
+  "accueil-heros6.jsx : Onglets,Message,Fonds,Filets",
+  "accueil-heros7.jsx : CT,FIN,sansMvt",
+  "accueil-options-2.jsx : H",
+  "accueil-options-2.jsx : Icon,Button,Overline,aller,sansMvt,BOITE,MAR,BL,CL,FIN,FIN_M,SUR,P_M,HAUT,Ex,Fl,",
+  "accueil-options-3.jsx : H",
+  "accueil-options-3.jsx : Icon,Button,Overline,aller,sansMvt,BOITE,MAR,BL,CL,FIN,FIN_M,P_M,Ex,Fl,surl,useV",
+  "accueil-chiffres-distille.jsx : H",
+  "accueil-chiffres-distille.jsx : aller,BOITE,MAR,BL,FIN,fmt,useVu,useCompte",
+  "accueil-chiffres-distille.jsx : NON différé (exporté) Avant",
+  "accueil-chiffres-distille.jsx : NON différé (exporté) Avant",
+  "accueil-chiffres-serie2.jsx : H",
+  "accueil-chiffres-serie2.jsx : aller,BOITE,MAR,BL,FIN,fmt,useVu,useCompte",
+  "accueil-chiffres-serie2.jsx : Avant",
+  "accueil-chiffres-serie3.jsx : H",
+  "accueil-chiffres-serie3.jsx : aller,BOITE,MAR,BL,FIN,HAUT,fmt,useVu,useCompte,useDefil,sansMvt,vue",
+  "accueil-chiffres-serie3.jsx : Avant",
+  "accueil-chiffres-serie4.jsx : H",
+  "accueil-chiffres-serie4.jsx : aller,BOITE,MAR,BL,FIN,fmt,useVu,useCompte,sansMvt",
+  "accueil-chiffres-serie4.jsx : Avant",
+  "accueil-chiffres-serie5.jsx : H",
+  "accueil-chiffres-serie5.jsx : aller,BOITE,MAR,BL,FIN,fmt,useVu,useCompte",
+  "accueil-chiffres-serie6.jsx : H",
+  "accueil-chiffres-serie6.jsx : BOITE,MAR,BL,FIN,useVu",
+  "accueil-chiffres-serie6.jsx : C",
+  "accueil-chiffres-serie6.jsx : Nb,Lib,Titre,Lien,Cote,ap,NAV,EZ",
+  "accueil-chiffres-serie7.jsx : H",
+  "accueil-chiffres-serie7.jsx : aller,BOITE,BL,FIN,useVu,sansMvt,Button",
+  "accueil-chiffres-serie8.jsx : H",
+  "accueil-chiffres-serie8.jsx : Icon,Button,aller,sansMvt,BOITE,BL,CL,surl,useVu,Compte,Revue",
+  "accueil-chiffres-serie8.jsx : AVANT",
+  "accueil-volets-services.jsx : H",
+  "accueil-volets-services.jsx : VH",
+  "accueil-volets-services.jsx : Icon,Button,aller,surl,MAR,CL,FIN,BOITE,sansMvt",
+  "accueil-volets-services.jsx : TeteV,CtaV,Tuile,CAPS",
+  "accueil-parcours-fluide.jsx : H",
+  "accueil-parcours-fluide.jsx : PH",
+  "accueil-parcours-fluide.jsx : VH",
+  "accueil-parcours-fluide.jsx : Icon,Button,Overline,aller,sansMvt,BOITE,MAR,CL,FIN,Ex,useVu,useDefil,Compte",
+  "accueil-parcours-fluide.jsx : TeteP,QuatreP,ActP",
+  "accueil-parcours-fluide.jsx : Tuile,CAPS",
+  "accueil-services-11.jsx : H",
+  "accueil-services-11.jsx : VH",
+  "accueil-services-11.jsx : Icon,Button,Overline,aller,sansMvt,BOITE,MAR,CL,FIN,Fl,surl,useVu,useDefil,vue",
+  "accueil-services-11.jsx : TeteV,CtaV,Tuile,CAPS",
+  "accueil-services-12.jsx : H",
+  "accueil-services-12.jsx : VH",
+  "accueil-services-12.jsx : S",
+  "accueil-services-12.jsx : Icon,sansMvt,BOITE,MAR,CL,FIN,useVu,useDefil",
+  "accueil-services-12.jsx : TeteV,CtaV,Tuile,CAPS",
+  "accueil-services-12.jsx : useLarge,allerA,cl,n2,PISTE,TeteS,CtaS,Liste,Nb",
+  "accueil-services-dispo.jsx : H",
+  "accueil-services-dispo.jsx : VH",
+  "accueil-services-dispo.jsx : D",
+  "accueil-services-dispo.jsx : Icon,Button,BOITE,MAR,FIN",
+  "accueil-services-dispo.jsx : TeteV,CtaV,CAPS",
+  "accueil-services-dispo.jsx : SV_CHOIX,SV_LIEN",
+  "accueil-arrivee-11.jsx : H",
+  "accueil-arrivee-11.jsx : PH",
+  "accueil-arrivee-11.jsx : PL",
+  "accueil-arrivee-11.jsx : VH",
+  "accueil-arrivee-11.jsx : S",
+  "accueil-arrivee-11.jsx : Icon,Button,Overline,aller,sansMvt,BOITE,MAR,CL,FIN,useVu,useDefil",
+  "accueil-arrivee-11.jsx : TeteP,QuatreP,ActP",
+  "accueil-arrivee-11.jsx : TeteL,ActL,Total,Quand",
+  "accueil-arrivee-11.jsx : Tuile,CAPS",
+  "accueil-arrivee-11.jsx : useLarge,allerA,cl,n2,PISTE",
+  "accueil-faq-11.jsx : H",
+  "accueil-faq-11.jsx : VH",
+  "accueil-faq-11.jsx : Icon,Button,Overline,aller,sansMvt,BOITE,MAR,BL,CL,FIN,surl,useVu,Revue",
+  "accueil-faq-11.jsx : Tuile,CAPS",
+  "accueil-faq-12.jsx : H",
+  "accueil-faq-12.jsx : VH",
+  "accueil-faq-12.jsx : Icon,Button,sansMvt,BOITE,MAR,BL,CL,FIN,surl,useVu,Revue",
+  "accueil-faq-12.jsx : Tuile,CAPS",
+  "accueil-arrivee-12.jsx : H",
+  "accueil-arrivee-12.jsx : PH",
+  "accueil-arrivee-12.jsx : Icon,Overline,sansMvt,BOITE,CL,Revue",
+  "accueil-arrivee-12.jsx : ActP",
+  "accueil-cleo-final.jsx : Icon,Button,BOITE,CL,FIN_M,HAUT,useDefil,surl,sansMvt,aller",
+  "accueil-cleo-v2.jsx : F",
+  "accueil-cleo-v2.jsx : H",
+  "accueil-cleo-v2.jsx : SOUS,SURT,CAP,Titre,BarreTitre,Tuile,EnLigne,Tags,CTA,Lueur,Sec,heureDe,ETOILES,",
+  "accueil-cleo-v2.jsx : Icon,BOITE,CL,FIN_M,HAUT,useDefil,sansMvt",
+  "accueil-cleo-recit.jsx : F",
+  "accueil-cleo-recit.jsx : H",
+  "accueil-cleo-recit.jsx : V",
+  "accueil-cleo-recit.jsx : CAP,BarreTitre,Tuile,Tags,P14,Lueur,PORT,ALT,Titre",
+  "accueil-cleo-recit.jsx : Icon,CL,HAUT,sansMvt,vue",
+  "accueil-cleo-recit.jsx : Dispo,Portrait,Tete,Panneau,H3",
+  "accueil-cleo-recit.jsx : N",
+  "accueil-chiffres-services.jsx : H",
+  "accueil-chiffres-services.jsx : VH",
+  "accueil-chiffres-services.jsx : C",
+  "accueil-chiffres-services.jsx : D",
+  "accueil-chiffres-services.jsx : Icon,Button,aller,BOITE,FIN,useVu,surl,BL,CL",
+  "accueil-chiffres-services.jsx : CtaV,CAPS",
+  "accueil-chiffres-services.jsx : Titre,Chiffre,Lib,CtaLien,ap,T_TITRE,NAV,MAR,BL6,EZ,PV",
+  "accueil-chiffres-services.jsx : SV_CHOIX,SV_LIEN",
+  "accueil-chiffres-services.jsx : AvantC",
+  "accueil-chiffres-services.jsx : AvantV",
+  "accueil-v2.jsx : K",
+  "accueil-v2.jsx : C",
+  "accueil-v2.jsx : Kit,useKit,Ico,Pastille,Btn,TitreSec,Carte,Champ,Choix,Case,Accordeon,Badge,alle",
+  "pied-options.jsx : H",
+  "pied-options.jsx : Icon,Button,BOITE,MAR,BL,CL,FIN_M,SUR,useDefil,Revue",
+  "cleo-options.jsx : K",
+  "cleo-options.jsx : Logements,Resume,Humain,Creneaux,Portrait,CP_CSS",
+  "accueil-cleo-mobile.jsx : F",
+  "accueil-cleo-mobile.jsx : CAP,TITRES,SOUS,MENTION,Tuile"
+ ],
+ "etatsClient": [
+  "chrome.jsx : 1",
+  "fiche-concepts.jsx : 1",
+  "seo.jsx : 1",
+  "gestion-options-a.jsx : 1",
+  "cleo-concepts.jsx : 1",
+  "apropos-visuel.jsx : 1",
+  "apropos-concepts.jsx : 5",
+  "proprio-concepts.jsx : 1",
+  "accueil-heros3.jsx : 3",
+  "accueil-arrivee-12.jsx : 1",
+  "cleo-options.jsx : 1",
+  "accueil-cleo-mobile.jsx : 1",
+  "cleo-temoins.jsx : 2"
+ ]
+}

@@ -1,0 +1,41 @@
+/* Lease Lane — grammaire de mise en page du produit web.
+   Valeurs relevées sur les captures du thème de référence (voir DESIGN.md §1).
+   L'encre achromatique #1A1A1A du thème est remplacée par le marine du logo. */
+:root{
+  /* Conteneur très large, gouttières généreuses — le thème respire beaucoup. */
+  --web-conteneur:calc(1280px + 2 * var(--web-gouttiere)); /* @kind spacing */
+  --web-gouttiere:clamp(24px, 0.2rem + 5.333vw, 80px); /* @kind spacing */
+  --web-section:clamp(64px, 3.257rem + 3.048vw, 96px); /* @kind spacing */
+  --web-entete-util:53px; /* @kind spacing */
+  --web-entete:108px; /* @kind spacing */
+  --web-panneau:460px; /* @kind spacing */
+
+  /* Rythme : pas de 4 px. Bande courte, tête de section → contenu, cartes. */
+  --section-y-courte:clamp(48px, 2.4rem + 1.1vw, 64px); /* @kind spacing */
+  --tete-contenu:clamp(32px, 1.6rem + 0.8vw, 40px); /* @kind spacing */
+  --carte-pad:24px; /* @kind spacing */
+  --carte-pad-l:32px; /* @kind spacing */
+  --carte-ecart:24px; /* @kind spacing */
+  --esp-6:24px; /* @kind spacing */
+  --esp-8:32px; /* @kind spacing */
+  --esp-10:40px; /* @kind spacing */
+  --esp-12:48px; /* @kind spacing */
+  --esp-16:64px; /* @kind spacing */
+
+  /* Filets verticaux de colonne posés sur toute la hauteur de la page — signature du thème. */
+  --web-filet:rgba(12,33,71,.054); /* @kind color */
+  --web-filet-colonnes:4; /* @kind other */
+
+  /* Champs sans boîte : un simple trait sous le contenu. */
+  --web-champ-trait:1px solid var(--gris-300); /* @kind other */
+  --web-champ-trait-actif:1px solid var(--marine-900); /* @kind other */
+  --web-champ-hauteur:44px; /* @kind spacing */
+
+  /* Boutons pilule à contour, et bouton plein marine. */
+  --web-bouton-h:48px; /* @kind spacing */
+  --web-bouton-h-s:44px; /* @kind spacing */
+
+  /* Cartes de bien : image 4:3, coins nets. */
+  --web-ratio-media:1.3214; /* @kind other */
+  --web-rayon-media:10px; /* @kind radius */
+}

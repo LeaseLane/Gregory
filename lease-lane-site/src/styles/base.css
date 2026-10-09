@@ -1,0 +1,10 @@
+/* Jetons du système de design Lease Lane (styles.css du dépôt du design system). Polices servies depuis /assets/fonts. */
+@import "./tokens/fonts.css";
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/radius.css";
+@import "./tokens/elevation.css";
+@import "./tokens/motion.css";
+@import "./tokens/web.css";
+@import "./tokens/base.css";

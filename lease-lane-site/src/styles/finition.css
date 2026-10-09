@@ -1,0 +1,106 @@
+/* Finition globale du site public (les quatre sites) : formulaires, apparitions au défilement, contraste des sections, conversation Cléo.
+   Poppins romain; aucune italique; texte courant ≤ 14 px. Mouvement réduit respecté. */
+
+/* ——— Formulaires : champs, listes, zones de texte ———
+   Champs du design system (Input/Select) : le cadre est porté par l'enveloppe (souligné d'origine) -> on stylise l'enveloppe, le contrôle intérieur reste transparent.
+   Champs faits main (.go-champ, .k-in, textarea, select nus) : cadre complet. */
+#ll-page div:has(> :is(input,select):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]))[style*="border-bottom"]{border:1px solid rgba(12,33,71,.2)!important;border-radius:12px!important;background:#fff!important;padding:0 14px!important;min-height:48px;box-sizing:border-box;transition:border-color 200ms,box-shadow 220ms}
+#ll-page div:has(> :is(input,select):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]))[style*="border-bottom"]:hover{border-color:rgba(12,33,71,.42)!important}
+#ll-page div:has(> :is(input,select):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]))[style*="border-bottom"]:focus-within{border-color:#0C2147!important;box-shadow:0 0 0 4px rgba(69,129,203,.18),0 8px 20px -14px rgba(12,33,71,.5)!important}
+#ll-page div[style*="border-bottom"] > :is(input,select){border:0!important;background-color:transparent;box-shadow:none!important;outline:none!important;font-family:var(--police-corps);font-size:15px;color:#0C2147}
+#ll-page :is(textarea,select:not(div[style*="border-bottom"] > select),.go-champ,.k-in){font-family:var(--police-corps);font-size:15px;color:#0C2147;background-color:#fff;border:1px solid rgba(12,33,71,.2)!important;border-radius:12px!important;transition:border-color 200ms,box-shadow 220ms,background-color 200ms}
+#ll-page :is(textarea,.go-champ,.k-in):hover{border-color:rgba(12,33,71,.42)!important}
+#ll-page :is(textarea,.go-champ,.k-in):focus{outline:none!important;border-color:#0C2147!important;box-shadow:0 0 0 4px rgba(69,129,203,.18),0 8px 20px -14px rgba(12,33,71,.5)!important}
+#ll-page :is(input,textarea)::placeholder{color:#78838F;opacity:1}
+#ll-page textarea{padding:14px 16px!important;line-height:1.6;min-height:132px}
+/* Champ rempli et valide : coche discrète à droite (après la première interaction). */
+#ll-page div[style*="border-bottom"]:has(> input:is([type="text"],[type="email"],[type="tel"],:not([type])):user-valid:not(:placeholder-shown)),#ll-page :is(.go-champ,.k-in):user-valid:not(:placeholder-shown){background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231F7A52' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 14px center!important;padding-right:40px!important}
+#ll-page [aria-invalid="true"]:not([role]){border-color:#C23B32!important;box-shadow:0 0 0 4px rgba(194,59,50,.12)!important;animation:fn-secoue 320ms cubic-bezier(.36,.07,.19,.97)}
+@keyframes fn-secoue{20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+#ll-page [role="alert"]{animation:fn-entre 260ms cubic-bezier(.22,1,.36,1) both}
+/* Libellés : graisse et couleur constantes. */
+#ll-page form label>span:first-child,#ll-page .k-lbl{letter-spacing:-.005em}
+/* Cases à cocher et boutons radio natifs. */
+#ll-page input[type="checkbox"],#ll-page input[type="radio"]{accent-color:#0C2147;width:18px;height:18px;cursor:pointer}
+/* Choix en pastilles (aria-pressed / role=radio) : passage doux. */
+#ll-page form :is(button[aria-pressed],button[role="radio"]){transition:background-color 200ms,border-color 200ms,color 200ms,transform 160ms}
+#ll-page form :is(button[aria-pressed],button[role="radio"]):hover{border-color:#0C2147!important}
+#ll-page form :is(button[aria-pressed],button[role="radio"]):active{transform:scale(.97)}
+#ll-page form :is(button[aria-pressed="true"],button[aria-checked="true"]){box-shadow:0 8px 18px -10px rgba(12,33,71,.6)}
+/* Changement d'étape : les champs apparaissent en cascade. */
+#ll-page form .ll-champs>*,#ll-page form .go-champs>*,#ll-page form .go-choix-g>*{animation:fn-entre 420ms cubic-bezier(.22,1,.36,1) both}
+#ll-page form .ll-champs>:nth-child(2),#ll-page form .go-choix-g>:nth-child(2){animation-delay:40ms}#ll-page form .ll-champs>:nth-child(3),#ll-page form .go-choix-g>:nth-child(3){animation-delay:80ms}#ll-page form .ll-champs>:nth-child(4),#ll-page form .go-choix-g>:nth-child(4){animation-delay:120ms}#ll-page form .ll-champs>:nth-child(n+5),#ll-page form .go-choix-g>:nth-child(n+5){animation-delay:160ms}
+.go-choix-g>*{animation:fn-entre 420ms cubic-bezier(.22,1,.36,1) both}
+@keyframes fn-entre{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* Carte du formulaire de demande : bord supérieur marine, état « en saisie » qui s'éclaire. */
+.lld-corps>div:first-child{transition:box-shadow 320ms,border-color 320ms}
+.lld-corps>div:first-child:focus-within{border-color:rgba(12,33,71,.4)!important;box-shadow:0 2px 4px rgba(12,33,71,.06),0 40px 80px -40px rgba(12,33,71,.45)!important}
+.lld-onglets{background:linear-gradient(180deg,#F3F7FC,#fff)!important}
+/* Écran de confirmation */
+#ll-page [role="status"]{animation:fn-entre 480ms cubic-bezier(.22,1,.36,1) both}
+
+/* ——— Apparition au défilement (sections intérieures, une seule fois) ——— */
+.fn-rev.fn-vu{animation:fn-monte 760ms cubic-bezier(.22,1,.36,1) both}
+@keyframes fn-monte{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* ——— Contraste des sections : deux fonds clairs qui se suivent sont séparés par un filet; un fond très pâle passe au bleu de l'accueil ——— */
+#ll-page section[style*="surface-douce"],#ll-page section[style*="gris-025"]{background-color:#F3F7FC!important}
+#ll-page main>div>section+section,#ll-page>div>section+section{position:relative}
+
+/* ——— Conversation Cléo (panneau flottant) : entrée du panneau et des bulles ——— */
+.ll-cleo-flottant>div:first-child:not(:last-child){animation:fn-panneau 420ms cubic-bezier(.22,1,.36,1) both;transform-origin:100% 100%}
+@keyframes fn-panneau{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.ll-cleo-flottant [role="log"]>*,.ll-cleo-flottant ol>li,.ll-cleo-flottant ul>li{animation:fn-entre 360ms cubic-bezier(.22,1,.36,1) both}
+.ll-cleo-flottant input:focus,.ll-cleo-flottant textarea:focus{outline:none;box-shadow:0 0 0 4px rgba(69,129,203,.18)!important}
+.ll-cleo-flottant button{transition:background-color 180ms,border-color 180ms,transform 160ms}.ll-cleo-flottant button:active{transform:scale(.97)}
+
+@media (prefers-reduced-motion:reduce){.fn-rev.fn-vu{animation:none}#ll-page form .ll-champs>*,#ll-page form .go-champs>*,.go-choix-g>*,#ll-page [role="alert"],#ll-page [role="status"],#ll-page [aria-invalid="true"],.ll-cleo-flottant *{animation:none!important}}
+.fn-voie{transition:background-color 220ms}.fn-voie:not([style*="degrade"]):hover{background:#F3F7FC!important}.fn-voie .fn-voie-fl{transition:transform 280ms cubic-bezier(.22,1,.36,1)}.fn-voie:hover .fn-voie-fl{transform:translateX(4px)}.fn-voie:focus-visible{outline:2px solid #4581CB;outline-offset:2px}
+@media (max-width:960px){.pl-lim{grid-template-columns:minmax(0,1fr)!important}.pl-lim>li{border-left:0!important;border-top:1px solid var(--bordure-fine)!important}.pl-lim>li:first-child{border-top:0!important}}
+/* Composants : rectangles aux coins adoucis, jamais en pilule (consigne de marque). */
+:is(#ll-page,.ll-cleo-flottant,.ll-entete,header,footer) :is([style*="border-radius: 999px"],[style*="border-radius: 9999px"],[style*="var(--rayon-pilule)"]):not(img){border-radius:8px!important}
+/* Aucun sur-titre en capitales espacées (« / 01 · … ») sur le site public : le titre suffit. */
+:is(#ll-page,footer) [data-overline]{display:none!important}
+:is(#ll-page,footer) [data-overline]+h2,:is(#ll-page,footer) [data-overline]+h1{margin-top:0!important}
+/* +50 graisse champs */
+#ll-page .ll-champs :is(input,select,textarea),#ll-page .ll-champs :is(input,textarea)::placeholder{font-weight:450!important}
+#ll-page .ll-champs label{font-weight:550!important}
+#ll-page .ll-champs [role="radiogroup"]>span{font-weight:650!important}
+#ll-page .ll-champs label+span,#ll-page .ll-champs div>span:not([role]):not([aria-hidden]){font-weight:450}
+.sans-sol [aria-hidden="true"]:has(> svg[viewBox="0 0 1000 600"]){display:none!important}
+/* Formulaires du site principal (forms-principal.jsx) */
+.fp-c select{width:100%;height:56px;padding:22px 40px 6px 16px;border:1px solid rgba(12,33,71,.18);border-radius:12px;background:#fff url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%230C2147%27 stroke-width=%272.5%27%3E%3Cpath d=%27M6 9l6 6 6-6%27/%3E%3C/svg%3E") no-repeat right 16px center;-webkit-appearance:none;appearance:none;font:500 15px var(--police-corps);color:#0C2147;outline:none;cursor:pointer;transition:border-color 200ms,box-shadow 220ms}.fp-c select:hover{border-color:rgba(12,33,71,.42)}.fp-c select:focus{border-color:#0C2147;box-shadow:0 0 0 4px rgba(69,129,203,.18)}
+.fp-c[data-haut="1"] label,.fp-c select+label{transform:translateY(-10px) scale(.8);color:#3767A2;font-weight:650}
+.fp-zone{width:100%;min-height:140px;padding:14px 16px;border:1px solid rgba(12,33,71,.18);border-radius:12px;background:#fff;font:500 15px/1.6 var(--police-corps);color:#0C2147;resize:vertical;outline:none;transition:border-color 200ms,box-shadow 220ms}.fp-zone:hover{border-color:rgba(12,33,71,.42)}.fp-zone:focus{border-color:#0C2147;box-shadow:0 0 0 4px rgba(69,129,203,.18)}
+.fp-drop{transition:border-color 200ms,background-color 200ms}.fp-drop:hover,.fp-drop[data-on="1"]{border-color:#0C2147!important;background:#F3F7FC!important}
+.fp-carte{transition:border-color 200ms,background-color 200ms,transform 220ms cubic-bezier(.22,1,.36,1)}.fp-carte:hover{border-color:#0C2147!important;transform:translateY(-1px)}
+.fp-zone{display:block}#ll-page .fp :is(select,textarea){border:1px solid rgba(12,33,71,.18)!important}
+.f12-clair .f12-suj:hover{background:#F3F7FC!important}.f12-clair .f12-qs:not([aria-current]):hover{background:#F3F7FC!important;color:#0C2147!important}.f12-clair .f12-suj:focus-visible,.f12-clair .f12-qs:focus-visible{outline-color:#4581CB}
+.ll-haut{position:fixed;left:24px;bottom:24px;z-index:1150;width:48px;height:48px;border-radius:12px;border:1px solid rgba(12,33,71,.16);background:#fff;color:#0C2147;display:grid;place-items:center;cursor:pointer;box-shadow:0 14px 30px -14px rgba(12,33,71,.5);opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity 260ms,transform 320ms cubic-bezier(.22,1,.36,1),background-color 200ms,color 200ms}
+.ll-haut.ll-haut-on{opacity:1;transform:none;pointer-events:auto}.ll-haut:hover{background:#0C2147;color:#fff}.ll-haut:hover svg{transform:translateY(-2px)}.ll-haut svg{transition:transform 260ms cubic-bezier(.22,1,.36,1)}.ll-haut:focus-visible{outline:2px solid #4581CB;outline-offset:3px}
+@media (max-width:960px){.ll-haut{left:16px;bottom:84px}}@media (prefers-reduced-motion:reduce){.ll-haut,.ll-haut svg{transition:none}}
+.ll-tem-b{transition:background-color 200ms,border-color 200ms,color 200ms}.ll-tem-b:hover{border-color:#0C2147!important}.ll-tem-b:focus-visible{outline:2px solid #4581CB;outline-offset:2px}
+.ll-tem-x{transition:background-color 200ms}.ll-tem-x:hover{background:#F3F7FC!important}.ll-tem-x:focus-visible{outline:2px solid #4581CB;outline-offset:2px}
+/* Kit : boutons sur fond sombre */
+.ll-sombre .k-btn.k-s:not(.k-clair),.ll-sombre .k-btn.k-g:not(.k-clair){color:#fff!important;border-color:rgba(255,255,255,.4)!important;background:transparent!important}
+.ll-sombre .k-btn.k-s:not(.k-clair):hover,.ll-sombre .k-btn.k-g:not(.k-clair):hover{background:rgba(255,255,255,.1)!important;border-color:#fff!important}
+.ll-sombre .k-btn.k-s:not(.k-clair) *,.ll-sombre .k-btn.k-g:not(.k-clair) *{color:inherit!important}
+.ll-sombre .k-btn.k-l:not(.k-clair){color:#fff!important}.ll-sombre .k-btn.k-l:not(.k-clair):hover{color:#B5D4F7!important}
+/* Bibliothèque des sites : l'icône d'accordéon tourne, pas son cadre (évite le losange). */
+.k-acc-b[aria-expanded="true"] .k-acc-ic{transform:none!important}.k-acc-ic svg{transition:transform 300ms cubic-bezier(.22,1,.36,1)}.k-acc-b[aria-expanded="true"] .k-acc-ic svg{transform:rotate(45deg)}
+/* Site 5 · Bandeau */
+[data-site="5"] #v2-p{max-width:22ch!important}
+@media (max-width:960px) and (min-width:621px){[data-site="5"] .v2-tete>dl.v2-g3{grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%}}
+@media (max-width:960px){[data-site="5"] .v2-port{max-width:440px;width:100%}[data-site="5"] .v2-tete{gap:28px!important}}
+@media (max-width:1100px){[data-site="5"] .v2-g5>.v2-cta-col{min-height:0!important;gap:14px!important}[data-site="5"] .v2-g5>.v2-cta-col>span:last-child{display:flex!important;align-items:center;justify-content:space-between;gap:20px;width:100%}}
+[data-site="5"] .v2-colle h2{max-width:16ch}
+[data-site="5"] section[aria-labelledby="v2-f"] .k-acc-b{font-size:16px}
+
+/* Pied de page : boutons Espace propriétaire / locataire, contour 70 % plus fin */
+footer nav[aria-label] .ll-fl.ll-fl-o2,footer nav[aria-label] .ll-fl.ll-fl-o2:hover,footer nav[aria-label] .ll-fl.ll-fl-o2:focus-visible{box-shadow:inset 0 0 0 .3px rgba(255,255,255,.55)!important}
+footer nav[aria-label] .ll-fl.ll-fl-o2:not(:hover):not(:focus-visible) .ll-fl-o{clip-path:inset(3.87px calc(100% - 36.13px) 3.87px 3.87px round 9px)!important}
+footer nav[aria-label] .ll-fl.ll-fl-o2{zoom:.935}
+
+/* Aucun soulignement au survol ni au focus, partout sur le site (8 oct. 2026). Les liens soulignés au repos le restent. */
+:is(a,button,[role="link"],[role="button"],summary):is(:hover,:focus-visible),
+:is(a,button,[role="link"],[role="button"],summary):is(:hover,:focus-visible) *{text-decoration:none!important}

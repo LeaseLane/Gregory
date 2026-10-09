@@ -1,0 +1,154 @@
+/* Lease Lane — bases d'élément. Volontairement minimal. */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:var(--police-corps);font-size:var(--texte-m);line-height:var(--interligne-corps);color:var(--texte-corps);background:var(--surface-page);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,h5{font-family:var(--police-titre);font-weight:700;line-height:var(--interligne-titre);letter-spacing:var(--interlettre-titre);color:var(--texte-titre);margin:0}
+h1{font-size:var(--titre-xl)}h2{font-size:var(--titre-l)}h3{font-size:var(--titre-m)}h4{font-size:var(--titre-s)}h5{font-size:var(--titre-xs)}
+p{margin:0 0 var(--esp-4);text-wrap:pretty}
+a{color:var(--texte-lien);text-decoration:none;transition:color var(--duree-2) var(--courbe-sortie)}
+a:hover{color:var(--texte-lien-survol);text-decoration:underline;text-underline-offset:3px}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--bordure-focus);outline-offset:2px}
+small{font-size:var(--texte-xs)}
+strong{font-weight:var(--graisse-demi);color:var(--texte-titre)}
+code,kbd{font-family:var(--police-mono);font-size:.92em}
+hr{border:0;border-top:1px solid var(--bordure-fine);margin:var(--esp-7) 0}
+::selection{background:var(--bleu-100);color:var(--marine-900)}
+
+/* Sur-titre : barre oblique + capitales espacées (signature du thème de référence). */
+.ll-surtitre{font-family:var(--police-corps);font-size:var(--surtitre-taille);font-weight:var(--surtitre-graisse);letter-spacing:var(--interlettre-surtitre);text-transform:uppercase;color:var(--texte-discret)}
+.ll-surtitre::before{content:"/ ";color:var(--bleu-500)}
+/* Titre d'affiche — présentation commerciale seulement. */
+.ll-affiche{font-family:var(--police-affiche);text-transform:uppercase;line-height:.92;letter-spacing:.005em;font-weight:400}
+.ll-marine{background:var(--degrade-marine);color:var(--texte-inverse)}
+.ll-grille{background-image:linear-gradient(var(--grille-trait) 1px,transparent 1px),linear-gradient(90deg,var(--grille-trait) 1px,transparent 1px);background-size:var(--grille-pas) var(--grille-pas)}
+/* Filets verticaux de colonne, posés sur une section pleine largeur. */
+.ll-filets{position:relative}
+.ll-filets::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;background-image:repeating-linear-gradient(90deg,var(--web-filet) 0 1px,transparent 1px calc(100% / var(--web-filet-colonnes)))}
+.ll-filets>*{position:relative;z-index:1}
+.ll-mono{font-family:var(--police-mono);font-variant-numeric:tabular-nums}
+
+/* Boutons « cadre » : le cadre du logo Lease Lane posé à l'horizontale, sans chevrons.
+   Deux équerres décalées comme dans le logo : gauche + moitié du bas (bleu), droite + moitié du haut (marine).
+   Le fond plein est en retrait de 4 px dans le cadre. Au survol et au focus, les équerres se rejoignent.
+   Actif sous .ll-boutons-cadre (site public); les espaces connectés gardent les pilules. */
+.ll-btn-primaire,.ll-btn-accent,.ll-btn-marine,.ll-btn-secondaire{--cadre-g:var(--bleu-500);--cadre-d:var(--marine-900)}
+.ll-btn-inverse,.ll-btn-contour_inverse{--cadre-g:var(--bleu-300);--cadre-d:#fff}
+.ll-btn-urgence{--cadre-g:var(--urgence-600);--cadre-d:var(--marine-900)}
+.ll-boutons-cadre :is(.ll-btn:not(.ll-btn-fantome),.ll-cadre){position:relative;border-radius:0!important;border:4px solid transparent!important;background-clip:padding-box!important;box-sizing:border-box}
+.ll-boutons-cadre :is(.ll-btn:not(.ll-btn-fantome),.ll-cadre)::before,.ll-boutons-cadre :is(.ll-btn:not(.ll-btn-fantome),.ll-cadre)::after{content:"";position:absolute;top:-4px;bottom:-4px;box-sizing:border-box;width:calc(46% + 4px);pointer-events:none;transition:width 260ms cubic-bezier(.22,1,.36,1)}
+.ll-boutons-cadre :is(.ll-btn:not(.ll-btn-fantome),.ll-cadre)::before{left:-4px;border-left:2px solid var(--cadre-g,var(--bleu-500));border-bottom:2px solid var(--cadre-g,var(--bleu-500))}
+.ll-boutons-cadre :is(.ll-btn:not(.ll-btn-fantome),.ll-cadre)::after{right:-4px;border-right:2px solid var(--cadre-d,var(--marine-900));border-top:2px solid var(--cadre-d,var(--marine-900))}
+.ll-boutons-cadre :is(.ll-btn:not(.ll-btn-fantome),.ll-cadre):is(:hover,:focus-visible)::before,.ll-boutons-cadre :is(.ll-btn:not(.ll-btn-fantome),.ll-cadre):is(:hover,:focus-visible)::after{width:calc(100% + 8px)}
+.ll-boutons-cadre .ll-btn:not(.ll-btn-fantome) .ll-btn-fleche{display:none!important}
+@media (prefers-reduced-motion:reduce){.ll-boutons-cadre :is(.ll-btn,.ll-cadre)::before,.ll-boutons-cadre :is(.ll-btn,.ll-cadre)::after{transition:none}}
+
+/* Boutons « voie » (site public, option U) : parallélogramme à 18°, segment d'icône bordé de deux bandes (5,6 px), libellé.
+   Survol et focus : la couleur des bandes remplit le segment d'icône de gauche à droite, l'icône passe au blanc,
+   le bouton se soulève avec un léger rebond. Aucun surlignement. */
+.ll-voie{--k:-18deg; /* @kind other */ --kn:18deg; /* @kind other */ --h:52px;--icw:60px;--bdw:5.6px;--icbg:#fff;--icc:var(--marine-900);--bd:var(--bleu-500);--lbbg:var(--marine-900);--lbc:#fff;--o1:rgba(12,33,71,.12);--o2:rgba(12,33,71,.18);
+  display:inline-flex;align-items:stretch;height:var(--h);margin:0 calc(var(--h) * .1625);padding:0;border:0;background:none;-webkit-appearance:none;appearance:none;vertical-align:middle;box-sizing:border-box;
+  font:600 16px/1 var(--police-corps);letter-spacing:-.005em;color:inherit;text-decoration:none;white-space:nowrap;cursor:pointer;position:relative;
+  transform:skewX(var(--k));filter:drop-shadow(0 1px 1px var(--o1)) drop-shadow(0 6px 10px var(--o2));
+  transition:transform 380ms cubic-bezier(.34,1.56,.64,1),filter 300ms cubic-bezier(.22,1,.36,1)}
+.ll-voie>span{position:relative;display:flex;align-items:center;justify-content:center;flex:none}
+.ll-voie-in{position:relative;z-index:1;display:inline-flex;align-items:center;gap:8px;transform:skewX(var(--kn))}
+.ll-voie-bd{width:var(--bdw);background:var(--bd);z-index:2}
+.ll-voie-ic{width:var(--icw);background:var(--icbg);color:var(--icc);overflow:hidden}
+.ll-voie-ic::before{content:"";position:absolute;inset:0;background:var(--bd);transform:scaleX(0);transform-origin:left center;transition:transform 280ms cubic-bezier(.65,0,.35,1)}
+.ll-voie-ic .ll-voie-in{transition:color 140ms linear 120ms,transform 320ms cubic-bezier(.22,1,.36,1)}
+.ll-voie-lb{padding:0 30px 0 24px;background:var(--lbbg);color:var(--lbc)}
+.ll-voie-pt{width:7px;height:7px;border-radius:50%;background:var(--bleu-500);transition:background-color 140ms linear 120ms}
+.ll-voie:is(:hover,:focus-visible){transform:translateY(-2px) skewX(var(--k));filter:drop-shadow(0 2px 2px var(--o1)) drop-shadow(0 14px 18px var(--o2))}
+.ll-voie:is(:hover,:focus-visible) .ll-voie-ic::before{transform:scaleX(1)}
+.ll-voie:is(:hover,:focus-visible) .ll-voie-ic .ll-voie-in{color:#fff;transform:skewX(var(--kn)) translateX(2px);transition-delay:110ms,0ms}
+.ll-voie:is(:hover,:focus-visible) .ll-voie-pt{background-color:#fff;transition-delay:110ms}
+.ll-voie:active{transform:translateY(1px) skewX(var(--k));filter:drop-shadow(0 1px 1px var(--o1)) drop-shadow(0 3px 5px var(--o2));transition-duration:90ms}
+.ll-voie:focus-visible{outline:2px solid var(--bleu-500);outline-offset:5px}
+.ll-voie-m{--h:44px;--icw:50px;--bdw:4.9px;font-size:14px}.ll-voie-m .ll-voie-lb{padding:0 22px 0 18px}
+.ll-voie-s{--h:40px;--icw:46px;--bdw:4.5px;font-size:14px}.ll-voie-s .ll-voie-lb{padding:0 20px 0 16px}
+.ll-voie-n .ll-voie-ic{width:auto;padding:0 18px}.ll-voie-n .ll-voie-ic .ll-voie-in{font-weight:700;font-size:19px;font-variant-numeric:tabular-nums}
+.ll-voie-io .ll-voie-ic{width:var(--h)}
+.ll-voie-plein{display:flex;width:calc(100% - var(--h) * .325);max-width:calc(100% - var(--h) * .325)}.ll-voie-plein .ll-voie-lb{flex:1 1 auto;min-width:0;padding-inline:16px}.ll-voie-plein .ll-voie-lb .ll-voie-in{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ll-voie[disabled],.ll-voie[aria-disabled="true"]{opacity:.45;cursor:not-allowed;pointer-events:none}
+/* Rôles : bandes et remplissage de même couleur; icône blanche sur le remplissage (contraste de 4:1 au moins). */
+.ll-voie-rp{--icbg:#fff;--icc:var(--marine-900);--bd:var(--bleu-500);--lbbg:var(--marine-900);--lbc:#fff}
+.ll-voie-ra{--icbg:#fff;--icc:var(--bleu-600);--bd:var(--marine-900);--lbbg:var(--bleu-600);--lbc:#fff}
+.ll-voie-rs{--icbg:var(--bleu-025);--icc:var(--bleu-600);--bd:var(--bleu-500);--lbbg:#fff;--lbc:var(--marine-900)}
+.ll-voie-rs.ll-voie-io{--icbg:#fff;--icc:var(--marine-900)}
+.ll-voie-ri{--icbg:#fff;--icc:var(--bleu-600);--bd:var(--bleu-500);--lbbg:var(--bleu-600);--lbc:#fff;--o1:rgba(0,0,0,.22);--o2:rgba(0,0,0,.34)}
+.ll-voie-ro{--icbg:rgba(255,255,255,.14);--icc:#fff;--bd:var(--bleu-500);--lbbg:#fff;--lbc:var(--marine-900);--o1:rgba(0,0,0,.22);--o2:rgba(0,0,0,.34)}
+.ll-voie-ru{--icbg:#fff;--icc:var(--urgence-600);--bd:var(--marine-900);--lbbg:var(--urgence-600);--lbc:#fff}
+.ll-voie-ri:focus-visible,.ll-voie-ro:focus-visible{outline-color:#fff}
+@media (prefers-reduced-motion:reduce){.ll-voie,.ll-voie *,.ll-voie *::before{transition:none!important}}
+
+/* Boutons « Flèche » du site public — repris du kit (kit-boutons-fleche.html). Rendus par Button forme="fleche". */
+@property --on{syntax:'<number>';inherits:true;initial-value:0}
+/* ---------- Kit Flèche ---------- */
+.ll-fl{--h:48px;--t:37px;--in:calc((var(--h) - var(--t)) / 2);--px:24px;--g:14px;--fs:16px;--ic:18px;--r:var(--ll-fl-r,var(--rayon-bouton));--ri:var(--ll-fl-ri,calc(var(--rayon-bouton) - 2px));--dur:520ms /* @kind other */;--e:cubic-bezier(.33,1,.68,1) /* @kind other */;
+  position:relative;isolation:isolate;display:inline-flex;align-items:center;height:var(--h);box-sizing:border-box;border-radius:var(--r);text-decoration:none;cursor:pointer;
+  font:600 var(--fs)/1 var(--police-corps);letter-spacing:-.005em;white-space:nowrap;background:var(--b-bg);color:var(--b-tx);box-shadow:inset 0 0 0 1px var(--b-bd,transparent);
+  -webkit-tap-highlight-color:transparent;outline:0 solid transparent;transition:--on var(--dur) var(--e),transform 160ms var(--e)}
+.ll-fl:hover{color:var(--b-tx)}
+.ll-fl-c{display:inline-flex;align-items:center;gap:10px;height:100%;box-sizing:border-box;padding:0 var(--px) 0 calc(var(--in) + var(--t) + var(--g));transform:translateX(calc((var(--px) - var(--in) - var(--t) - var(--g)) * var(--on)))}
+.ll-fl-o{position:absolute;inset:0;display:flex;align-items:center;background:var(--f-bg);color:var(--f-tx);pointer-events:none;clip-path:inset(var(--ib) calc(var(--ib) + (100% - var(--in) * 2 - var(--t)) * (1 - var(--on))) var(--ib) var(--ib) round var(--ri))}
+/* Liseré visible autour du remplissage au survol : 30 % du retrait de la tuile */
+.ll-fl{--ib:calc(var(--in) * (1 - var(--on) * .7))}
+.ll-fl-ar{position:absolute;top:var(--in);left:calc(var(--in) + (100% - var(--in) * 2 - var(--t)) * var(--on));width:var(--t);height:var(--t);overflow:hidden}
+.ll-fl-ar i{position:absolute;inset:0;display:grid;place-items:center}.ll-fl-ar i+i{transform:translate(-100%,0)}
+.ll-fl-ar svg{width:var(--ic);height:var(--ic)}
+.ll-fl-n{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-variant-numeric:tabular-nums}.ll-fl-n i{width:6px;height:6px;background:currentColor;opacity:.55}
+
+.ll-fl.is-on,.ll-fl:focus-visible,.ll-lien:focus-visible,.ll-fl:hover,.ll-lien:hover{--on:1 /* @kind other */}
+.ll-fl:focus-visible,.ll-fl.is-focus,.ll-lien:focus-visible{outline:2px solid var(--bleu-500);outline-offset:3px}
+.fonce .ll-fl:focus-visible,.fonce .ll-fl.is-focus,.fonce .ll-lien:focus-visible{outline-color:#fff}
+.ll-fl:active{transform:translateY(1px)}
+.ll-fl[aria-disabled="true"]{opacity:.45;cursor:not-allowed;pointer-events:none}
+/* Variantes */
+.ll-fl-p{--b-bg:var(--marine-900);--b-tx:#fff;--f-bg:#fff;--f-tx:var(--marine-900);--f-ic:var(--marine-950)}
+.ll-fl-ac{--b-bg:var(--bleu-600);--b-tx:#fff;--f-bg:#fff;--f-tx:var(--marine-900);--f-ic:var(--marine-950)}
+.ll-fl-s{--b-bg:#fff;--b-tx:var(--marine-900);--b-bd:var(--marine-900);--f-bg:var(--marine-900);--f-tx:#fff}
+.ll-fl-u{--b-bg:#fff;--b-tx:var(--urgence-600);--b-bd:var(--urgence-600);--f-bg:var(--urgence-600);--f-tx:#fff}
+.ll-fl-i{--b-bg:#fff;--b-tx:var(--marine-900);--f-bg:var(--marine-900);--f-tx:#fff}
+.ll-fl-o2{--b-bg:transparent;--b-tx:#fff;--b-bd:rgba(255,255,255,.55);--f-bg:#fff;--f-tx:var(--marine-900);--f-ic:var(--marine-950)}
+/* Tailles */
+.ll-fl-sm{--h:40px;--t:35.84px;--px:20px;--g:12px;--fs:14px;--ic:16px}
+.ll-fl-lg{--h:56px;--t:44.4px;--px:28px;--g:16px;--ic:20px}
+/* Taille maximale d'un bouton : 40 px. La taille par défaut et la grande taille s'alignent sur la petite. Liseré autour de la tuile : 2,08 px (60 % plus fin que les 5,2 px d'origine). */
+.ll-fl,.ll-fl-lg{--h:40px;--t:35.84px;--px:20px;--g:12px;--fs:14px;--ic:16px}
+.ll-fl-w{display:flex;width:100%}
+/* Tuile à droite : la tuile s'ouvre vers la gauche, la flèche file et revient */
+.ll-fl-d .ll-fl-c{padding:0 calc(var(--in) + var(--t) + var(--g)) 0 var(--px);transform:none}
+.ll-fl-d .ll-fl-o{clip-path:inset(var(--ib) var(--ib) var(--ib) calc(var(--ib) + (100% - var(--in) * 2 - var(--t)) * (1 - var(--on))) round var(--ri))}
+.ll-fl-d .ll-fl-ar{left:auto;right:var(--in)}
+/* Icône seule */
+.ll-fl-io{width:var(--h)}.ll-fl-io .ll-fl-c{display:none}
+.ll-fl-io .ll-fl-o{clip-path:inset(var(--ib) round var(--ri))}.ll-fl-io .ll-fl-ar{left:var(--in)}
+/* Boucle de la flèche (tuile à droite, icône seule, lien) */
+:is(.ll-fl-d,.ll-fl-io,.ll-lien):not(.ll-sw) .ll-fl-ar i:first-child{transform:translate(calc(var(--on) * 100%),0)}
+:is(.ll-fl-d,.ll-fl-io,.ll-lien):not(.ll-sw) .ll-fl-ar i+i{transform:translate(calc((var(--on) - 1) * 100%),0)}
+:is(.ll-fl-d,.ll-fl-io,.ll-lien):not(.ll-sw)[data-dir="ne"] .ll-fl-ar i:first-child{transform:translate(calc(var(--on) * 100%),calc(var(--on) * -100%))}
+:is(.ll-fl-d,.ll-fl-io,.ll-lien):not(.ll-sw)[data-dir="ne"] .ll-fl-ar i+i{transform:translate(calc((var(--on) - 1) * 100%),calc((1 - var(--on)) * 100%))}
+:is(.ll-fl-d,.ll-fl-io,.ll-lien):not(.ll-sw)[data-dir="s"] .ll-fl-ar i:first-child{transform:translate(0,calc(var(--on) * 100%))}
+:is(.ll-fl-d,.ll-fl-io,.ll-lien):not(.ll-sw)[data-dir="s"] .ll-fl-ar i+i{transform:translate(0,calc((var(--on) - 1) * 100%))}
+/* Icône du bouton → flèche au survol */
+.ll-sw .ll-fl-ar .ll-ic{opacity:calc(1 - var(--on) * 1000)}.ll-sw .ll-fl-ar .ll-fx{transform:none;opacity:calc(var(--on) * 1000)}
+.ll-fl-o .ll-fl-ar{color:var(--f-ic,var(--f-tx))}
+/* Lien fléché */
+.ll-lien{--t:20px;--ic:18px;--dur:480ms /* @kind other */;--e:cubic-bezier(.33,1,.68,1) /* @kind other */;display:inline-flex;align-items:center;gap:10px;height:44px;font:600 16px/1 var(--police-corps);letter-spacing:-.005em;color:var(--marine-900);text-decoration:none;white-space:nowrap;transition:--on var(--dur) var(--e)}
+.ll-lien:hover{color:var(--marine-900)}.fonce .ll-lien,.fonce .ll-lien:hover{color:#fff}
+.ll-lien .ll-fl-ar{position:relative;top:auto;left:auto;color:var(--bleu-600)}.fonce .ll-lien .ll-fl-ar{color:var(--bleu-100)}
+@media (prefers-reduced-motion:reduce){.ll-fl,.ll-lien{transition-duration:1ms}}
+button.ll-fl{border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
+.ll-lien-clair,.ll-lien-clair:hover{color:#fff}.ll-lien-clair .ll-fl-ar{color:var(--bleu-100)}
+.ll-sombre .ll-fl:focus-visible,.ll-sombre .ll-lien:focus-visible{outline-color:#fff}
+/* ---------- Pictogrammes bicolores ----------
+   Le composant Icon les dessine en deux couches masquées : encre (currentColor) puis accent (--picto-accent).
+   .ll-picto sert les pages statiques : <span class="ll-picto" style="--picto:url(…/pictos/property/key.webp)"></span> */
+.ll-picto{position:relative;display:inline-block;flex:none;width:var(--picto-t,1em);height:var(--picto-t,1em);vertical-align:middle;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ll-picto::before,.ll-picto::after{content:"";position:absolute;inset:0;-webkit-mask:var(--picto) 0 0/200% 100% no-repeat;mask:var(--picto) 0 0/200% 100% no-repeat}
+.ll-picto::before{background:currentColor}
+.ll-picto::after{background:var(--picto-accent,var(--bleu-500));-webkit-mask-position:100% 0;mask-position:100% 0}
+/* Tuile du kit Flèche : accent plus clair sur tuile marine, blanc atténué sur tuile urgence */
+.ll-fl-s{--picto-accent:var(--bleu-300)}
+.ll-fl-i{--picto-accent:var(--bleu-300)}
+.ll-fl-u{--picto-accent:rgba(255,255,255,.72)}
+.ll-fl-ar .ll-picto{width:var(--ic);height:var(--ic)}

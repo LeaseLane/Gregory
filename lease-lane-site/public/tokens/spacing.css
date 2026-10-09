@@ -1,0 +1,14 @@
+/* Lease Lane — espacements. Pas de 4 px, doublement à partir de 16. */
+:root{
+  --esp-0:0px; --esp-1:4px; --esp-2:8px; --esp-3:12px; --esp-4:16px;
+  --esp-5:20px; --esp-6:24px; --esp-7:32px; --esp-8:40px; --esp-9:48px;
+  --esp-10:64px; --esp-11:80px; --esp-12:96px; --esp-13:128px;
+
+  --gouttiere:24px;
+  --marge-section:96px;
+  --largeur-max:1240px;
+  --largeur-texte:68ch; /* @kind spacing */
+  --hauteur-entete:72px;
+  --largeur-rail:264px;
+  --cible-tactile:44px;
+}

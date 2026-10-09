@@ -1,0 +1,45 @@
+/* Lease Lane — typographie.
+   Le produit web suit la grammaire typographique relevée sur le thème de référence
+   (voir DESIGN.md) : une seule géométrique très grasse pour les titres, la même famille
+   en 400/500 pour le texte. Bebas Neue reste la police d'affiche de la présentation
+   commerciale imprimée; elle ne sert plus dans l'interface. */
+:root{
+  /* Poppins — substitution documentée de Gilroy, la police du thème source (commerciale). */
+  --police-titre:'Poppins','Gilroy','Segoe UI',system-ui,sans-serif; /* @kind font */
+  --police-corps:'Poppins','Gilroy','Segoe UI',system-ui,sans-serif; /* @kind font */
+  --police-mono:'IBM Plex Mono','SFMono-Regular',Menlo,monospace; /* @kind font */
+  /* Accent de titre : serif italique posée sur les premiers mots d'un titre de section. */
+  --police-accent:'Playfair Display',Georgia,serif; /* @kind font */
+  /* Police d'affiche — présentation commerciale et grands bandeaux de marque uniquement. */
+  --police-affiche:'Bebas Neue','Oswald','Arial Narrow',sans-serif; /* @kind font */
+
+  /* Titres — Poppins 700, casse normale, interlettrage négatif. Jamais de capitales forcées. */
+  --titre-xxl:clamp(48px,5.6vw,86px); /* @kind font */
+  --titre-xl:clamp(38px,4vw,62px); /* @kind font */
+  --titre-l:clamp(30px,2.6vw,42px); /* @kind font */
+  --titre-m:30px; /* @kind font */
+  --titre-s:23px; /* @kind font */
+  --titre-xs:18px; /* @kind font */
+  --interligne-titre:1.14; /* @kind other */
+  --interlettre-titre:-0.02em; /* @kind other */
+
+  /* Texte courant */
+  --texte-xl:19px; /* @kind font */
+  --texte-l:17px; /* @kind font */
+  --texte-m:15px; /* @kind font */
+  --texte-s:13.5px; /* @kind font */
+  --texte-xs:12px; /* @kind font */
+  --interligne-corps:1.72; /* @kind other */
+  --interligne-serre:1.5; /* @kind other */
+
+  /* Sur-titre : capitales espacées, précédées d'une barre oblique — signature du thème. */
+  --surtitre-taille:12px; /* @kind font */
+  --surtitre-graisse:500; /* @kind other */
+  --interlettre-surtitre:0.16em; /* @kind other */
+
+  --graisse-normale:400; /* @kind other */
+  --graisse-moyenne:500; /* @kind other */
+  --graisse-demi:600; /* @kind other */
+  --graisse-grasse:700; /* @kind other */
+  --graisse-noire:800; /* @kind other */
+}

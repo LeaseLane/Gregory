@@ -1,0 +1,5 @@
+.fp-c input,.fp-c select{background:#F7F9FB!important;border-color:rgba(12,33,71,.14)!important}.fp-c input:hover,.fp-c select:hover{background:#fff!important;border-color:rgba(12,33,71,.36)!important}
+.fp-c input:focus,.fp-c select:focus{background:#fff!important;border-color:#0C2147!important;box-shadow:0 0 0 4px rgba(69,129,203,.18)}
+.fp-c[data-err="1"] input,.fp-c[data-err="1"] select{border-color:#C23B32!important;background:#FFF8F7!important}
+.fp-c[data-ic="1"] input{padding-left:46px}.fp-c[data-ic="1"] label{left:47px}.fp-c .fp-ic{position:absolute;left:16px;top:19px;display:grid;color:#7F8FA4;pointer-events:none;transition:color 200ms}.fp-c input:focus~.fp-ic{color:#3767A2}
+

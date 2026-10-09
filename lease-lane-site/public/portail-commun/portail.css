@@ -1,0 +1,29 @@
+/* CSS partagé des portails : réinitialisations, thème sombre, impression du relevé, points de rupture. */
+html,body{height:100%}body{margin:0;overflow:hidden;background:var(--surface-douce);color:var(--texte-corps)}
+/* Filet des cartes et sections des portails : un cran plus présent que --bordure-fine pour détacher chaque bloc du fond. */
+:root{--bordure-portail:#D6DCE4}
+a{color:var(--texte-lien)}a:hover{color:var(--texte-lien-survol)}
+main::-webkit-scrollbar{width:10px}main::-webkit-scrollbar-thumb{background:var(--gris-200);border-radius:999px}
+textarea,input,select{color-scheme:light}
+
+/* ——— Thème sombre : on remappe les jetons ; tout ce qui les consomme suit. ——— */
+[data-theme="sombre"]{color-scheme:dark;
+  --gris-000:#132238;--gris-025:#0B1626;--gris-050:#182A44;--gris-100:#213652;--gris-200:#2C4568;--gris-300:#3A5680;--gris-400:#7690B4;--gris-500:#93A9C7;--gris-600:#B3C4DB;--gris-700:#D2DEEC;--gris-800:#E6EEF8;--gris-900:#F4F8FC;
+  --marine-900:#EAF1FA;--marine-800:#DCE7F4;--marine-700:#CFDDEE;--marine-600:#BFD1E8;
+  --bleu-025:#17294A;--bleu-050:#1C3358;--bleu-700:#8FB6E6;--bleu-600:#7FAAE0;
+  --succes-100:rgba(23,121,94,.22);--succes-600:#5FCBA7;--alerte-100:rgba(183,116,22,.22);--alerte-600:#F0B35A;--urgence-100:rgba(180,54,47,.22);--urgence-600:#F08A84;--info-100:var(--bleu-025);
+  --surface-page:#0B1626;--surface-douce:#0B1626;--surface-carte:#132238;--surface-enfoncee:#0F1C30;--surface-survol:#1A2E4B;
+  --texte-titre:#F2F6FB;--texte-corps:#C9D6E6;--texte-discret:#8FA5C2;--texte-lien:#7FAAE0;--texte-lien-survol:#EAF1FA;
+  --bordure-fine:rgba(200,218,240,.12);--bordure:rgba(200,218,240,.22);--bordure-forte:rgba(200,218,240,.4);--bordure-portail:rgba(200,218,240,.16);
+  --action-marine:#EAF1FA;--action-marine-survol:#FFFFFF;
+  --ombre-1:0 1px 2px rgba(0,0,0,.35);--ombre-2:0 2px 6px rgba(0,0,0,.4);--ombre-3:0 8px 24px rgba(0,0,0,.45);--ombre-4:0 18px 48px rgba(0,0,0,.55);--ombre-5:0 32px 80px rgba(0,0,0,.6);
+  --grille-trait:rgba(200,218,240,.06)}
+[data-theme="sombre"] main::-webkit-scrollbar-thumb{background:var(--gris-300)}
+/* Les aplats « marine » (boutons pleins, avatars, pastilles actives) deviennent clairs : leur contenu blanc passe à l'encre sombre. */
+[data-theme="sombre"] [style*="background: var(--marine-900)"],[data-theme="sombre"] [style*="background: var(--marine-900)"] *{color:#0B1626!important}
+[data-theme="sombre"] [style*="background: var(--marine-900)"] svg{stroke:#0B1626!important}
+[data-theme="sombre"] [style*="background: var(--marine-900)"] svg [fill]:not([fill="none"]){fill:#0B1626!important}
+
+@media (max-width:1180px){.ll-boite{grid-template-columns:200px 300px minmax(0,1fr)!important}}
+@media (max-width:1000px){.ll-deux-tiers,.ll-demandes,.ll-boite{grid-template-columns:1fr!important}.ll-boite{height:auto!important}.ll-boite>div{border-right:0!important;border-bottom:1px solid var(--bordure-fine)}}
+@media print{body{overflow:visible}body *{visibility:hidden}.ll-imprimable,.ll-imprimable *{visibility:visible}.ll-imprimable{position:fixed;left:0;top:0;width:100%;border:0!important;box-shadow:none!important}}

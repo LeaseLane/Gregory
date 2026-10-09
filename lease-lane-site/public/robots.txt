@@ -1,0 +1,26 @@
+# Lease Lane — robots.txt (production : servir à la racine de https://leaselane.ai)
+# Moteurs classiques et moteurs de réponse IA autorisés; seules les zones privées sont exclues.
+User-agent: *
+Allow: /
+Disallow: /portail/
+Disallow: /api/
+
+# Moteurs de réponse et assistants IA (citations dans ChatGPT, Perplexity, Gemini, Copilot, Claude)
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: Bingbot
+Allow: /
+
+Sitemap: https://leaselane.ai/sitemap.xml
