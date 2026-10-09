@@ -40,8 +40,8 @@ const resume = p => {
   const n = CATS.filter(([k]) => p[k]).length;
   return n === 0 ? 'témoins essentiels seulement' : n === CATS.length ? 'tous les témoins acceptés' : n + ' catégorie' + (n > 1 ? 's' : '') + ' acceptée' + (n > 1 ? 's' : '') + ' en plus des essentiels';
 };
-const CSS = `/* 10 % plus petite (zoom .9) et 10 % plus haut (102 → 112 px au-dessus du bas; les valeurs sont divisées par .9 à cause du zoom). */
-.ct{zoom:.9;position:fixed;right:26.7px;bottom:124.4px;z-index:1190;width:min(360px,calc(100vw - 48px));font-family:var(--police-corps);color:var(--texte-corps);
+const CSS = `/* Au-dessus de la bulle de Cléo (z-index 1200), qui couvrait les boutons et empêchait d’enregistrer le choix. 10 % plus petite (zoom .9) et 10 % plus haut (102 → 112 px au-dessus du bas; les valeurs sont divisées par .9 à cause du zoom). */
+.ct{zoom:.9;position:fixed;right:26.7px;bottom:124.4px;z-index:1210;width:min(360px,calc(100vw - 48px));font-family:var(--police-corps);color:var(--texte-corps);
   background:#fff;border:1px solid rgba(12,33,71,.12);border-radius:18px;box-shadow:0 24px 60px -24px rgba(12,33,71,.45);transform-origin:100% 100%;animation:ct-in .45s cubic-bezier(.22,1,.36,1) both}
 @keyframes ct-in{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
 .ct::after{content:'';position:absolute;right:26px;bottom:-7px;width:12px;height:12px;background:#fff;border-right:1px solid rgba(12,33,71,.12);border-bottom:1px solid rgba(12,33,71,.12);transform:rotate(45deg)}
