@@ -181,6 +181,7 @@
       <button class="tab-btn" data-tab="supplier-invoices" onclick="showTab('supplier-invoices')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#files"/></svg><span>Factures fournisseurs</span></button>
       <div class="nav-group-label">CROISSANCE</div>
       <button class="tab-btn" data-tab="mandat-inquiries" onclick="showTab('mandat-inquiries')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#gavel"/></svg><span>Demandes de mandat</span></button>
+      <button class="tab-btn" data-tab="site-messages" onclick="showTab('site-messages')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#message-square"/></svg><span>Messages du site</span></button>
       <button class="tab-btn" data-tab="crm" onclick="showTab('crm')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#handshake"/></svg><span>CRM propriétaires</span></button>
       <button class="tab-btn" data-tab="callers" onclick="showTab('callers')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg><span>Prospecteurs</span></button>
       <button class="tab-btn" data-tab="onboarding" onclick="showTab('onboarding')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#log-in"/></svg><span>Nouveau client</span></button>
@@ -590,6 +591,16 @@
     </div>
     <div id="md-resume" class="tr-resume"></div>
     <div id="mandat-inquiries-body"><p class="tr-vide">Chargement...</p></div>
+      </section>
+
+      <section id="site-messages" class="section">
+    <div class="tr-entete">
+      <div>
+        <h1>Messages du site</h1>
+        <p class="subtitle">Nous joindre, demandes de rappel, demandes de location et plaintes envoyées depuis leaselane.ca. Une réponse automatique part déjà quand la personne a laissé un courriel.</p>
+      </div>
+    </div>
+    <div id="site-messages-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="crm" class="section">
@@ -2079,7 +2090,7 @@ function photoLinksHtml(bucket, paths, label){
 async function loadOps(){
   await Promise.allSettled([
     loadMarketplaceListings(), loadBuildingsForReceipts(), loadServiceCatalog(),
-    loadVisitInquiries(), loadMandatInquiries(), loadVisitsAdmin(),
+    loadVisitInquiries(), loadMandatInquiries(), loadSiteMessages(), loadVisitsAdmin(),
     // Les listes de demandes et de travaux proposent les travailleurs :
     // elles attendent que workersDirectory soit rempli.
     loadWorkersAdmin().then(() => Promise.allSettled([loadServiceRequestsAdmin(), loadWorkOrdersAdmin()])),
@@ -2399,10 +2410,48 @@ async function loadMandatInquiries(){
   }).join('');
 }
 
+async function loadSiteMessages(){
+  const container = document.getElementById('site-messages-body');
+  const messages = (await callOpsApi({ action: 'list_site_messages' }))?.inquiries || [];
+  if(!messages.length){
+    container.innerHTML = '<div class="vo-rien"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-check"/></svg>Aucun message en attente.</div>';
+    return;
+  }
+  container.innerHTML = messages.map(i => {
+    const initiales = (i.full_name || '?').split(/\s+/).map(m => m[0]).join('').slice(0, 2).toUpperCase();
+    // Première ligne « Sujet : … » posée par le site; le reste est le détail.
+    const [premiere, ...reste] = (i.message || '').split('\n');
+    const sujet = premiere.startsWith('Sujet : ') ? premiere.slice(8) : '';
+    const corps = (sujet ? reste : [premiere, ...reste]).join('\n').trim();
+    return `
+    <article class="tr-carte">
+      <header class="tr-tete">
+        <span class="tr-avatar" aria-hidden="true">${esc(initiales)}</span>
+        <div class="tr-ident">
+          <h3>${esc(i.full_name)}</h3>
+          <div class="md-sous">${esc(sujet || 'Message')} · ${new Date(i.created_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+        </div>
+      </header>
+      <div class="tr-infos">
+        ${i.phone ? `<a href="tel:${esc(i.phone)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>${esc(i.phone)}</a>` : ''}
+        ${i.email ? `<a href="mailto:${esc(i.email)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>${esc(i.email)}</a>` : ''}
+      </div>
+      ${corps ? `<blockquote class="md-message" style="white-space:pre-line">${esc(corps)}</blockquote>` : ''}
+      ${i.ai_summary ? `<div class="md-ia"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg><span><b>Résumé IA</b> ${esc(i.ai_summary)}</span></div>` : ''}
+      <footer class="tr-pied">
+        ${i.phone ? `<a class="ll-bouton ll-bouton--secondaire" href="tel:${esc(i.phone)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>Appeler</a>` : ''}
+        ${i.email ? `<a class="ll-bouton ll-bouton--secondaire" href="mailto:${esc(i.email)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>Écrire</a>` : ''}
+        <span class="tr-espace"></span>
+        <button class="ll-bouton ll-bouton--primaire" onclick="markInquiryHandled('${i.id}')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#check"/></svg>Marquer comme traité</button>
+      </footer>
+    </article>`;
+  }).join('');
+}
+
 async function markInquiryHandled(inquiry_id){
   const res = await callOpsApi({ action: 'mark_inquiry_handled', inquiry_id });
-  if(res) llToast('Demande marquée comme contactée.', 'succes');
-  await loadMandatInquiries();
+  if(res) llToast('Demande marquée comme traitée.', 'succes');
+  await Promise.all([loadMandatInquiries(), loadSiteMessages()]);
 }
 
 async function proposeVisit(inquiry_id, unit_id){

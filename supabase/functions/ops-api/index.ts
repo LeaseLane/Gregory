@@ -1075,6 +1075,16 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ inquiries: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Formulaires généraux du nouveau site (nous joindre, rappel, location,
+    // plainte) : type « contact ». Le sujet et les champs sont dans message.
+    if (action === "list_site_messages") {
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/inquiries?type=eq.contact&status=eq.new&select=id,full_name,email,phone,message,ai_category,ai_summary,created_at&order=created_at.desc`,
+        { headers: adminHeaders },
+      );
+      return new Response(JSON.stringify({ inquiries: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "mark_inquiry_handled") {
       const { inquiry_id } = body;
       if (!inquiry_id) {
