@@ -22,17 +22,18 @@ const BOITE = {
 const g = t => gab ? gab(t) : t;
 const CATS = [['tous', 'Tous les articles'], ['proprietaires', 'Propriétaires'], ['locataires', 'Locataires'], ['droit', 'Droit du logement'], ['nouvelles', 'Nouvelles Lease Lane']];
 const AUTEURS = {
+  /* Aucun nom de personne publié (décision du 9 oct. 2026) : articles signés par l'équipe. */
   jt: {
-    nom: '[Prénom Nom]',
+    nom: 'L\u2019équipe Lease Lane',
     role: 'Administration et baux',
     bio: 'Responsable des baux, des cessions et des dossiers au TAL chez Lease Lane.',
-    ini: 'P N'
+    ini: 'LL'
   },
   cd: {
-    nom: '[Prénom Nom]',
+    nom: 'L\u2019équipe Lease Lane',
     role: 'Gestionnaire immobilière',
     bio: 'Accompagne les propriétaires dans la gestion de leurs immeubles.',
-    ini: 'P N'
+    ini: 'LL'
   },
   rev: {
     nom: '[Nom du réviseur]',
@@ -241,10 +242,7 @@ function PageBlogue({
       datePublished: a.d,
       dateModified: a.m,
       url: 'https://leaselane.ca/blogue/' + a.slug,
-      author: gabarit(AUTEURS[a.aut].nom) ? ORG_AUTEUR : {
-        '@type': 'Person',
-        name: AUTEURS[a.aut].nom
-      }
+      author: ORG_AUTEUR
     }))
   });
   const H = typeof PBHeros !== 'undefined' ? PBHeros : null;
@@ -391,7 +389,7 @@ function PageBlogue({
                 fontWeight: 700
               }}>{AUTEURS[une.aut].ini}</span>Par <strong style={{
                 color: MAR
-              }}>{AUTEURS[une.aut].nom}</strong> · révisé par un juriste</span></div></article>}
+              }}>{AUTEURS[une.aut].nom}</strong></span></div></article>}
       <span aria-live="polite" style={{
           fontSize: '13px',
           fontWeight: 600,
@@ -465,16 +463,7 @@ function PageArticle({
     dateModified: a.m,
     mainEntityOfPage: url,
     image: url + '/couverture.jpg',
-    author: gabarit(au.nom) ? ORG_AUTEUR : {
-      '@type': 'Person',
-      name: au.nom,
-      jobTitle: au.role,
-      worksFor: {
-        '@type': 'Organization',
-        name: 'Lease Lane'
-      },
-      url: 'https://leaselane.ca/a-propos'
-    },
+    author: ORG_AUTEUR,
     ...(gabarit(rv.nom) ? {} : {
       reviewedBy: {
         '@type': 'Person',
@@ -854,7 +843,7 @@ function PageArticle({
               display: 'block',
               color: MAR,
               marginBottom: '4px'
-            }}>Notre méthode</strong>Chaque article de droit du logement cite ses sources officielles, est relu par un juriste et porte sa date de mise à jour. <a href="/a-propos">En savoir plus</a></div>
+            }}>Notre méthode</strong>Chaque article de droit du logement cite ses sources officielles et porte sa date de mise à jour. <a href="/a-propos">En savoir plus</a></div>
       </aside>
     </div></section>
     <section aria-labelledby="bl-suite" style={{

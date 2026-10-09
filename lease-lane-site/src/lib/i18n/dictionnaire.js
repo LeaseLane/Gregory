@@ -3,6 +3,17 @@
    LL_EN_TXT : clé = fragments de texte d’une phrase séparés par ␞ (U+241E); valeur = même nombre de fragments, en anglais.
    LL_EN_ATTR : aria-label, alt, title, placeholder. Pour corriger une traduction : modifier la valeur ici. */
 export const LL_EN_TXT = {
+"Chaque article de droit du logement cite ses sources officielles et porte sa date de mise à jour.": "Every housing law article cites its official sources and shows its update date.",
+"Chaque article de droit du logement cite ses sources officielles et porte sa date de mise à jour.␞En savoir plus": "Every housing law article cites its official sources and shows its update date.␞Learn more",
+"Les échanges résumés dans votre rapport mensuel": "Exchanges summarized in your monthly report",
+"6 mois après la décision": "6 months after the decision",
+"Durée du bail, puis 3 ans (délai de prescription, C.c.Q., art. 2925)": "Term of the lease, then 3 years (limitation period, Civil Code of Québec, art. 2925)",
+"6 mois": "6 months",
+"13 mois": "13 months",
+"6 ans après la fin de l'exercice visé (lois fiscales)": "6 years after the end of the fiscal year concerned (tax laws)",
+"La durée de chaque témoin figure au tableau de la section 3. Les données de mesure d'audience sont conservées au plus 13 mois, puis supprimées ou anonymisées.": "The duration of each cookie is listed in the table in section 3. Audience measurement data is kept for no more than 13 months, then deleted or anonymized.",
+"Pour porter plainte, écrivez à notre responsable à␞confidentialite@leaselane.ca␞. Nous accusons réception de votre plainte et y répondons par écrit dans un délai de 30 jours. Vous pouvez aussi vous adresser à la Commission d'accès à l'information (cai.gouv.qc.ca).": "To file a complaint, write to our person in charge at␞confidentialite@leaselane.ca␞. We acknowledge receipt of your complaint and respond in writing within 30 days. You may also contact the Commission d'accès à l'information (cai.gouv.qc.ca).",
+"Si vous estimez que nous n'avons pas respecté vos droits, écrivez à notre responsable en décrivant la situation, les renseignements visés et les dates utiles. Nous accusons réception de votre plainte et y répondons par écrit dans un délai de 30 jours. Si la réponse ne vous satisfait pas, vous pouvez vous adresser à la Commission d'accès à l'information du Québec (cai.gouv.qc.ca).": "If you believe we have not respected your rights, write to our person in charge describing the situation, the information involved and the relevant dates. We acknowledge receipt of your complaint and respond in writing within 30 days. If you are not satisfied with the response, you may contact the Commission d'accès à l'information du Québec (cai.gouv.qc.ca).",
 "\" aria-label=\"Guide du quartier": "\" aria-label=\"Neighbourhood guide",
 "#/changer-de-gestionnaire": "#/changer-de-gestionnaire",
 "#/expertise-et-strategie": "#/expertise-et-strategie",
