@@ -655,7 +655,7 @@ function ApercuMarche({
       background: 'var(--surface-enfoncee)',
       fontSize: '13px',
       color: 'var(--marine-900)'
-    }}><Icon name="lock" size={14} color="var(--gris-500)" />leaselane.ai/logements/{g('[adresse]')}</div>
+    }}><Icon name="lock" size={14} color="var(--gris-500)" />leaselane.ca/logements/{g('[adresse]')}</div>
     {[0, 1, 2].map(i => <div key={i} style={{
       display: 'grid',
       gap: '6px',

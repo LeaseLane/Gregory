@@ -21,7 +21,7 @@ function useReglages(cle){
 /* Liens légaux visibles depuis chaque écran connecté (rail + menu de compte). À valider par l'avocat. */
 const BASE_SITE='../site-public/index.html#';
 const LIENS_LEGAUX=[['/conditions-utilisation','Conditions d’utilisation'],['/confidentialite','Politique de confidentialité'],['/temoins','Témoins de navigation'],['/gouvernance','Gouvernance des renseignements personnels']];
-const responsablePRP=()=>(window.LL_ADMIN&&window.LL_ADMIN.responsable)||'Steven Paradis · steven@leaselane.ai';
+const responsablePRP=()=>(window.LL_ADMIN&&window.LL_ADMIN.responsable)||'Steven Paradis · steven@leaselane.ca';
 function LiensLegaux({ton='clair',taille=12}){
   const [ouvert,setOuvert]=React.useState(false);
   const c=ton==='marine'?'var(--bleu-100)':'var(--texte-discret)';

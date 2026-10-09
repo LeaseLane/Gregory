@@ -81,7 +81,7 @@ function Finances({data}){
   const [releve,setReleve]=React.useState(false);
   const [r31,setR31]=React.useState(data.releves31||[]);
   if(releve)return <Facture titre="Relevé mensuel" numero="REL-2026-09-034" date="30 septembre 2026" onFermer={()=>setReleve(false)}
-    emetteur={['Solutions locatives Lease Lane','NEQ 1182479981','Québec (Québec)','info@leaselane.ai']} destinataire={[data.utilisateur.nom,'34 portes · 5 immeubles',data.utilisateur.courriel]}
+    emetteur={['Solutions locatives Lease Lane','NEQ 1182479981','Québec (Québec)','info@leaselane.ca']} destinataire={[data.utilisateur.nom,'34 portes · 5 immeubles',data.utilisateur.courriel]}
     lignes={[{d:'Loyers encaissés',p:'Septembre 2026',m:'41 280,00 $'},{d:'Honoraires de gestion 6 %',p:'Logements occupés',m:'−2 476,80 $'},{d:'Entretien — Plomberie Capitale (DEM-2026-0148)',p:'8 sept.',m:'−210,00 $'},{d:'Coordination 10 %',p:'8 sept.',m:'−21,00 $'},{d:'Assurance — 420 Saint-Joseph Est',p:'15 sept.',m:'−742,00 $'}]}
     total="37 830,20 $" note="Net versé le 30 septembre 2026 au compte se terminant par 4417. Les factures des fournisseurs sont jointes telles quelles au dossier ; les frais de coordination de 10 % sont détaillés ci-dessus. Ce relevé tient lieu de rapport mensuel (article 12 du mandat)."/>;
   return <div style={{display:'grid',gap:'24px'}}>

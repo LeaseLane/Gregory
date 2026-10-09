@@ -84,7 +84,7 @@ let LL_ROUTES = [{
   liens: ['/locataires/demande-de-location', '/locataires', '/cleo', '/quartiers']
 }, {
   path: '/logements-a-louer/4-et-demi-renove-montcalm',
-  image: 'https://leaselane.ai/images/logements/montcalm-cartier.jpg',
+  image: 'https://leaselane.ca/images/logements/montcalm-cartier.jpg',
   imageAlt: '4 ½ rénové à louer sur l\u2019avenue Cartier, Montcalm',
   page: 'fiche',
   requete: '4 ½ à louer Montcalm',
@@ -202,7 +202,7 @@ let LL_ROUTES = [{
   page: 'legal',
   requete: 'témoins de navigation',
   titre: 'Témoins de navigation | Lease Lane',
-  description: 'Les témoins utilisés sur leaselane.ai, leurs fins, leur durée et la façon de modifier vos choix en tout temps.',
+  description: 'Les témoins utilisés sur leaselane.ca, leurs fins, leur durée et la façon de modifier vos choix en tout temps.',
   fil: [A, ['Témoins de navigation', '/temoins']],
   schemas: ['WebPage', 'BreadcrumbList'],
   liens: ['/confidentialite', '/conditions-utilisation', '/nous-joindre']
@@ -211,7 +211,7 @@ let LL_ROUTES = [{
   page: 'legal',
   requete: 'conditions d\u2019utilisation',
   titre: 'Conditions d\u2019utilisation | Lease Lane',
-  description: 'Les conditions qui encadrent l\u2019utilisation du site leaselane.ai, de Cléo, des annonces de logements et des formulaires en ligne.',
+  description: 'Les conditions qui encadrent l\u2019utilisation du site leaselane.ca, de Cléo, des annonces de logements et des formulaires en ligne.',
   fil: [A, ['Conditions d\u2019utilisation', '/conditions-utilisation']],
   schemas: ['WebPage', 'BreadcrumbList'],
   liens: ['/confidentialite', '/temoins', '/nous-joindre']
@@ -244,7 +244,7 @@ let LL_ALIAS = {
   contact: '/nous-joindre'
 };
 let LL_SITE = {
-  domaine: 'https://leaselane.ai',
+  domaine: 'https://leaselane.ca',
   nom: 'Lease Lane',
   raison: 'Solutions locatives LeaseLane inc.',
   slogan: 'Solutions locatives intelligentes',

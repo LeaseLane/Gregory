@@ -113,12 +113,12 @@ const dateFr = iso => {
 const gabarit = n => /\[/.test(n || ''),
   ORG_AUTEUR = {
     '@type': 'Organization',
-    '@id': 'https://leaselane.ai/#organisation',
+    '@id': 'https://leaselane.ca/#organisation',
     name: 'Lease Lane',
-    url: 'https://leaselane.ai/',
+    url: 'https://leaselane.ca/',
     logo: {
       '@type': 'ImageObject',
-      url: 'https://leaselane.ai/logo-lease-lane.png'
+      url: 'https://leaselane.ca/logo-lease-lane.png'
     }
   };
 function useJsonLd(id, data) {
@@ -232,7 +232,7 @@ function PageBlogue({
     '@context': 'https://schema.org',
     '@type': 'Blog',
     name: 'Blogue & nouvelles · Lease Lane',
-    url: 'https://leaselane.ai/blogue',
+    url: 'https://leaselane.ca/blogue',
     inLanguage: 'fr-CA',
     publisher: ORG_AUTEUR,
     blogPost: ARTICLES.map(a => ({
@@ -240,7 +240,7 @@ function PageBlogue({
       headline: a.t,
       datePublished: a.d,
       dateModified: a.m,
-      url: 'https://leaselane.ai/blogue/' + a.slug,
+      url: 'https://leaselane.ca/blogue/' + a.slug,
       author: gabarit(AUTEURS[a.aut].nom) ? ORG_AUTEUR : {
         '@type': 'Person',
         name: AUTEURS[a.aut].nom
@@ -454,7 +454,7 @@ function PageArticle({
       behavior: 'smooth'
     });
   };
-  const url = 'https://leaselane.ai/blogue/' + a.slug;
+  const url = 'https://leaselane.ca/blogue/' + a.slug;
   useJsonLd('ld-article', [{
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -473,7 +473,7 @@ function PageArticle({
         '@type': 'Organization',
         name: 'Lease Lane'
       },
-      url: 'https://leaselane.ai/a-propos'
+      url: 'https://leaselane.ca/a-propos'
     },
     ...(gabarit(rv.nom) ? {} : {
       reviewedBy: {

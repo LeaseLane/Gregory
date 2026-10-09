@@ -131,7 +131,7 @@ function FicheImmeuble({im,data,retour,aller}){
     <div className="ll-deux-tiers" style={{display:'grid',gridTemplateColumns:'340px minmax(0,1fr)',gap:'16px',alignItems:'start'}}>
       <div style={{display:'grid',gap:'16px'}}>
         <Carte titre="Gestionnaire attitrée">
-          <FichePersonne initiales="CD" nom="Camille Desrosiers" role="Gestionnaire · Lease Lane" coordonnees={[['phone','418 555-0142, poste 3'],['mail','camille@leaselane.ai'],['clock','Lun.–ven., 8 h à 17 h']]}
+          <FichePersonne initiales="CD" nom="Camille Desrosiers" role="Gestionnaire · Lease Lane" coordonnees={[['phone','418 555-0142, poste 3'],['mail','camille@leaselane.ca'],['clock','Lun.–ven., 8 h à 17 h']]}
             actions={<React.Fragment><Button variant="primaire" pleineLargeur onClick={()=>aller('messages')} iconeAvant={<Icon name="message-square" size={16} color="#fff"/>}>Écrire</Button><Button variant="secondaire" pleineLargeur iconeAvant={<Icon name="phone" size={16}/>}>Appeler</Button></React.Fragment>}/></Carte>
         <Carte titre="Ce mois-ci">
           <div style={{display:'grid',gap:'14px'}}>{[['Loyers perçus',im.loyer],['Arriérés',im.arriere],['Demandes ouvertes',demandes.filter(d=>d.etat!=='fermee').length],['Travaux engagés','1 460 $']].map(([l,v])=>

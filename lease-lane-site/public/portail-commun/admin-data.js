@@ -15,19 +15,19 @@ window.LL_ADMIN = {
   ],
   utilisateurs:{
     admin:[
-      {id:'U1',nom:'Steven Paradis',courriel:'steven@leaselane.ai',role:'Administrateur',etat:'Actif',dfa:true,derniere:'Aujourd\u2019hui · 7 h 58',portee:'Tout'},
-      {id:'U2',nom:'Camille Desrosiers',courriel:'camille@leaselane.ai',role:'Gestionnaire',etat:'Actif',dfa:true,derniere:'Aujourd\u2019hui · 8 h 40',portee:'34 portes · 5 immeubles'},
-      {id:'U3',nom:'Julie Nadeau',courriel:'julie@leaselane.ai',role:'Comptabilité',etat:'Actif',dfa:true,derniere:'Hier · 16 h 12',portee:'Finance seulement'},
+      {id:'U1',nom:'Steven Paradis',courriel:'steven@leaselane.ca',role:'Administrateur',etat:'Actif',dfa:true,derniere:'Aujourd\u2019hui · 7 h 58',portee:'Tout'},
+      {id:'U2',nom:'Camille Desrosiers',courriel:'camille@leaselane.ca',role:'Gestionnaire',etat:'Actif',dfa:true,derniere:'Aujourd\u2019hui · 8 h 40',portee:'34 portes · 5 immeubles'},
+      {id:'U3',nom:'Julie Nadeau',courriel:'julie@leaselane.ca',role:'Comptabilité',etat:'Actif',dfa:true,derniere:'Hier · 16 h 12',portee:'Finance seulement'},
       {id:'U4',nom:'Marie-Josée Bérubé',courriel:'mj.berube@courriel.ca',role:'Propriétaire',etat:'Actif',dfa:true,derniere:'Aujourd\u2019hui · 9 h 05',portee:'Ses 5 immeubles'},
       {id:'U5',nom:'Samuel Fortin',courriel:'s.fortin@courriel.ca',role:'Locataire',etat:'Actif',dfa:false,derniere:'21 sept. · 19 h 12',portee:'1180 Cartier — 2'},
       {id:'U6',nom:'Plomberie Capitale',courriel:'repartition@plomberiecapitale.ca',role:'Fournisseur',etat:'Actif',dfa:false,derniere:'19 sept.',portee:'Bons de travail assignés'},
-      {id:'U7',nom:'Stagiaire gestion',courriel:'stagiaire@leaselane.ai',role:'Gestionnaire',etat:'Suspendu',dfa:false,derniere:'12 août',portee:'—'}
+      {id:'U7',nom:'Stagiaire gestion',courriel:'stagiaire@leaselane.ca',role:'Gestionnaire',etat:'Suspendu',dfa:false,derniere:'12 août',portee:'—'}
     ],
     proprietaire:[
       {id:'P1',nom:'Marie-Josée Bérubé',courriel:'mj.berube@courriel.ca',role:'Propriétaire',etat:'Actif',dfa:true,derniere:'Aujourd\u2019hui · 9 h 05',portee:'Tous vos immeubles'},
       {id:'P2',nom:'Étienne Bérubé',courriel:'e.berube@courriel.ca',role:'Copropriétaire',etat:'Actif',dfa:true,derniere:'18 sept.',portee:'1180 Cartier · 41 des Roseaux'},
-      {id:'P3',nom:'Julie Nadeau',courriel:'julie@leaselane.ai',role:'Comptabilité (lecture)',etat:'Actif',dfa:true,derniere:'Hier · 16 h 12',portee:'Finance et relevés'},
-      {id:'P4',nom:'Camille Desrosiers',courriel:'camille@leaselane.ai',role:'Gestionnaire Lease Lane',etat:'Actif',dfa:true,derniere:'Aujourd\u2019hui · 8 h 40',portee:'Mandat de gestion'}
+      {id:'P3',nom:'Julie Nadeau',courriel:'julie@leaselane.ca',role:'Comptabilité (lecture)',etat:'Actif',dfa:true,derniere:'Hier · 16 h 12',portee:'Finance et relevés'},
+      {id:'P4',nom:'Camille Desrosiers',courriel:'camille@leaselane.ca',role:'Gestionnaire Lease Lane',etat:'Actif',dfa:true,derniere:'Aujourd\u2019hui · 8 h 40',portee:'Mandat de gestion'}
     ]
   },
   rolesProprietaire:['Propriétaire','Copropriétaire','Comptabilité (lecture)','Gestionnaire Lease Lane'],
@@ -107,5 +107,5 @@ window.LL_ADMIN = {
     ['EFVP — Cléo et décisions automatisées','Qualification des demandes · terminée','ok','Terminée'],
     ['Registre des décisions automatisées (art. 12.1)','Mis à jour quotidiennement','ok','À jour']
   ],
-  responsable:'Steven Paradis · steven@leaselane.ai'
+  responsable:'Steven Paradis · steven@leaselane.ca'
 };
