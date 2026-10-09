@@ -24,7 +24,7 @@ let LL_FAQ = {
   p5: {
     public: 'proprietaires',
     q: 'En combien de temps un logement vacant est-il loué?',
-    r: 'Sur notre parc, le délai moyen est de [17 jours, exemple à valider]. Cléo répond aux prospects en tout temps et réserve les visites sans attendre les heures de bureau : moins de jours vacants, moins de loyer perdu.'
+    r: 'Le délai dépend du secteur, du prix et de la saison. Cléo répond aux prospects en tout temps et organise les visites sans attendre les heures de bureau : moins de jours vacants, moins de loyer perdu.'
   },
   p6: {
     public: 'proprietaires',
@@ -39,12 +39,12 @@ let LL_FAQ = {
   p8: {
     public: 'proprietaires',
     q: 'Quand et comment les loyers sont-ils versés dans mon compte?',
-    r: 'Les loyers perçus sont versés dans votre compte [fréquence à confirmer], déduction faite des dépenses autorisées. Chaque versement est détaillé dans votre espace propriétaire.'
+    r: 'Les loyers perçus sont versés dans votre compte selon la fréquence prévue à votre mandat, déduction faite des dépenses autorisées. Chaque versement est détaillé dans votre espace propriétaire.'
   },
   p9: {
     public: 'proprietaires',
     q: 'Quels rapports vais-je recevoir, et à quelle fréquence?',
-    r: 'Un rapport mensuel, au plus tard le 15 du mois : loyers dus et reçus, arriérés, logements vacants, travaux, factures et échéances. Le tableau de bord en ligne présente les mêmes chiffres en continu [à confirmer].'
+    r: 'Un rapport mensuel, au plus tard le 15 du mois : loyers dus et reçus, arriérés, logements vacants, travaux, factures et échéances. Le tableau de bord en ligne présente les mêmes chiffres en continu.'
   },
   p10: {
     public: 'proprietaires',
@@ -112,7 +112,7 @@ let LL_FAQ = {
   l6: {
     public: 'locataires',
     q: 'Comment payer mon loyer?',
-    r: 'Dans votre portail locataire, ou par virement [modes à confirmer]. Un reçu vous est envoyé automatiquement dès la réception du paiement.'
+    r: 'Selon le mode de paiement prévu à votre bail; votre portail locataire indique ce qui est dû et ce qui a été reçu. Pour toute question sur un paiement, écrivez-nous depuis votre portail.'
   },
   l7: {
     public: 'locataires',
