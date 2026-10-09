@@ -173,7 +173,9 @@ const trouverFaq = (texte, ids) => {
 };
 const SCENARIOS = {
   chercher: {
-    cles: ['4 ½', '4 1/2', '3 ½', 'québec', 'quebec', 'logement', 'louer', 'appartement', 'chercher', 'trouver', 'disponible', 'apartment', 'for rent', 'looking for', 'find a', 'available', 'bedroom'],
+    /* Mots trop larges retirés (« québec », « logement », « trouver ») : « vos services pour un 6 logements » partait
+       en recherche d'appartement. */
+    cles: ['4 ½', '4 1/2', '3 ½', '5 ½', 'un logement à louer', 'logement à louer', 'logements à louer', 'à louer', 'appartement', 'je cherche un logement', 'chercher un logement', 'disponible', 'apartment', 'for rent', 'looking for an apartment', 'looking for a place', 'bedroom'],
     messages: d => [{
       role: 'agent',
       texte: 'Voici ce qui correspond à Québec sous 1 500 $ en ce moment. Les loyers affichés sont ceux du bail, sans surprise.'
@@ -245,7 +247,7 @@ const SCENARIOS = {
     suggestions: ['Ouvrir le formulaire de plainte', 'Parler à une personne']
   },
   frais: {
-    cles: ['frais', 'tarif', 'coût', 'gestion', 'pourcentage', 'honoraires', 'confier', 'immeuble', 'propriétaire', 'fee', 'cost', 'price', 'pricing', 'percentage', 'owner', 'my building', 'manage my'],
+    cles: ['frais', 'tarif', 'coût', 'gestion', 'pourcentage', 'honoraires', 'confier', 'immeuble', 'propriétaire', 'vos services', 'services offerts', 'plex', 'multilogement', 'mes logements', 'mes locataires', 'fee', 'cost', 'price', 'pricing', 'percentage', 'owner', 'my building', 'manage my', 'your services', 'units'],
     messages: () => [{
       role: 'agent',
       texte: 'Chaque offre est préparée pour votre immeuble, après un appel de 30 minutes : nombre de portes, état de l\u2019immeuble et services voulus.'
@@ -330,6 +332,8 @@ const DEFAUT = {
 const ORDRE = ['humain', 'hausse', 'cession', 'depot', 'bail', 'plainte', 'travaux', 'visite', 'aviser', 'frais', 'chercher'];
 function cleScenario(texte) {
   const t = texte.toLowerCase();
+  /* « 6 logements », « 12 portes », « 8 unités » : un propriétaire qui parle de son immeuble. */
+  if (/\b\d+\s*(logements|portes|unités|units|doors)\b/.test(t)) return 'frais';
   return ORDRE.find(k => SCENARIOS[k].cles.some(m => t.includes(m))) || null;
 }
 function AgentIA({
