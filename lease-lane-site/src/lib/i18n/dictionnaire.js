@@ -3,6 +3,11 @@
    LL_EN_TXT : clé = fragments de texte d’une phrase séparés par ␞ (U+241E); valeur = même nombre de fragments, en anglais.
    LL_EN_ATTR : aria-label, alt, title, placeholder. Pour corriger une traduction : modifier la valeur ici. */
 export const LL_EN_TXT = {
+"Bien sûr. Laissez-moi vos coordonnées : une personne de l’équipe vous revient, avec le fil de notre conversation pour que vous n’ayez pas à vous répéter.": "Of course. Leave me your contact details: someone from our team will get back to you, with our conversation attached so you don’t have to repeat yourself.",
+"Avec plaisir. Choisissez le moment qui vous convient; l’équipe vous confirme la visite.": "With pleasure. Pick the time that suits you; our team will confirm the visit.",
+"Moments possibles": "Possible times",
+"Être contacté": "Contact me",
+"Demander la visite": "Request the visit",
 "Chaque article de droit du logement cite ses sources officielles et porte sa date de mise à jour.": "Every housing law article cites its official sources and shows its update date.",
 "Chaque article de droit du logement cite ses sources officielles et porte sa date de mise à jour.␞En savoir plus": "Every housing law article cites its official sources and shows its update date.␞Learn more",
 "Les échanges résumés dans votre rapport mensuel": "Exchanges summarized in your monthly report",

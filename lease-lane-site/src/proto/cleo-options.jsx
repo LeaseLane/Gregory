@@ -3,6 +3,7 @@
 
 /* Converti depuis ui_kits/site-public/cleo-options.jsx (prototype) — ne pas réintroduire de globaux window. */
 import React from 'react';
+import { Markdown } from '@/lib/markdown';
 import { Icon } from '@/components/ds';
 import { CP_PARTS } from '@/proto/cleo-panneau';
 import { gab } from '@/proto/blocs';
@@ -943,7 +944,7 @@ function Panneau(p) {
             background: bulle.background,
             color: bulle.color
           } : {})
-        }}>{m.texte}</div>;
+        }}>{agent ? <Markdown texte={m.texte} /> : m.texte}</div>;
         return <div key={i} className="cp-msg" style={{
           display: 'grid',
           gap: '6px',
