@@ -1194,6 +1194,7 @@ export const LL_EN_TXT = {
 "Depuis quand, à quel endroit, ce que vous avez déjà essayé…": "Since when, where, what you’ve already tried…",
 "Dernière mise à jour :": "Last updated:",
 "Dernière mise à jour :␞9 octobre 2026": "Last updated:␞October 9, 2026",
+"Dernière mise à jour : 9 octobre 2026": "Last updated: October 9, 2026",
 "Dernière mise à jour :␞[date]": "Last updated:␞[date]",
 "Des": "Full",
 "Des chiffres": "Numbers",
