@@ -11,7 +11,7 @@ import { LL_DATA } from '@/proto/data';
 import { CleoPanneau } from '@/proto/cleo-options';
 import { CleoAccroche } from '@/proto/cleo-panneau';
 import { __ssr } from '@/lib/hydratation';
-import { demanderCleo } from '@/lib/envoi';
+import { demanderCleo, envoyerDemande } from '@/lib/envoi';
 
 /* Repli si le paquet du système n'expose pas encore le contexte : la page s'affiche avec les pilules au lieu d'un écran blanc. */
 
@@ -274,14 +274,16 @@ const SCENARIOS = {
     cles: ['personne', 'humain', 'quelqu\u2019un', 'quelqu\'un', 'conseiller', 'agent', 'parler à', 'person', 'human', 'someone', 'talk to', 'speak to', 'representative'],
     messages: () => [{
       role: 'agent',
-      texte: 'Bien sûr. Je transmets le fil de notre conversation pour que vous n\u2019ayez pas à vous répéter.'
+      texte: 'Bien sûr. Laissez-moi vos coordonnées : une personne de l\u2019équipe vous revient, avec le fil de notre conversation pour que vous n\u2019ayez pas à vous répéter.'
     }, {
-      type: 'humain',
-      nom: '[Prénom Nom]',
-      role: 'Gestionnaire de secteur',
-      delai: 'rappel avant 17 h aujourd\u2019hui'
+      type: 'formulaire',
+      variante: 'humain',
+      titre: 'Vos coordonnées',
+      bouton: 'Être contacté',
+      usage: 'me recontacter au sujet de cette conversation',
+      onOk: x => transmettre(x, 'Cléo : parler à une personne')
     }],
-    suggestions: ['Plutôt un courriel', 'Continuer avec Cléo']
+    suggestions: ['Continuer avec Cléo']
   },
   hausse: {
     cles: ['hausse', 'augmentation', 'fixation', 'increase', 'raise the rent', 'rent hike'],
@@ -325,6 +327,8 @@ const SCENARIOS = {
     suggestions: ['Une hausse de loyer', 'Une cession de bail', 'Parler à une personne']
   }
 };
+/* Rempli par le composant (accès à l'état du clavardage) : SCENARIOS.humain y envoie ses coordonnées. */
+let transmettre = () => Promise.resolve();
 const DEFAUT = {
   messages: () => [{
     role: 'agent',
@@ -348,6 +352,8 @@ function AgentIA({
   const data = LL_DATA;
   /* Le fil démarre vide : l'accueil du panneau (salutation, intentions, urgence) tient lieu de premier message. */
   const [messages, setMessages] = React.useState([]),
+    /* Fil courant, lu au moment d'envoyer une demande (les rappels de formulaire gardent un ancien état). */
+    fil = React.useRef([]),
     [sujet, setSujet] = React.useState(null);
   const [saisie, setSaisie] = React.useState('');
   const [ecrit, setEcrit] = React.useState(false);
@@ -559,6 +565,23 @@ function AgentIA({
     }]);
     repondre(SCENARIOS[a.k === 'gestion' || a.k === 'proprio' ? 'frais' : a.k === 'urgence' ? 'travaux' : a.k]);
   };
+  fil.current = messages;
+  /* Envoie à l'équipe (Messages du site) avec la conversation, puis répond honnêtement. */
+  transmettre = (x, sujet, lignes = []) => envoyerDemande({
+    type: 'contact',
+    nom: x.nom.trim(),
+    courriel: x.courriel.trim(),
+    tel: x.tel,
+    sujet,
+    lignes,
+    message: fil.current.filter(m => m.texte).map(m => (m.role === 'client' ? 'Visiteur' : 'Cléo') + ' : ' + m.texte).join('\n')
+  }).then(() => setMessages(m => [...m, {
+    role: 'agent',
+    texte: 'C\u2019est transmis. Une personne de l\u2019équipe vous revient au prochain jour ouvrable, à ' + x.courriel.trim() + '.'
+  }]), e => setMessages(m => [...m, {
+    role: 'agent',
+    texte: 'Je n\u2019ai pas pu transmettre votre demande (' + e.message + ') Réessayez dans un instant, ou écrivez-nous depuis la page Nous joindre.'
+  }]));
   const choisirCreneau = c => {
     setCreneaux([]);
     setSuggestions([]);
@@ -567,22 +590,11 @@ function AgentIA({
       texte: c.jour + ' à ' + c.heure
     }]);
     /* S3 : coordonnées et consentement avant la confirmation; la carte reprend le courriel saisi. */
-    const confirmer = x => {
-      setMessages(m => [...m, {
-        type: 'resume',
-        titre: 'Rendez-vous réservé',
-        etat: c.jour,
-        lignes: [['Heure', c.heure], ['Avec', '[Prénom Nom], gestionnaire de secteur'], ['Lieu', '1180, avenue Cartier, Québec'], ['Rappel', '24 h avant, puis 2 h avant']],
-        note: 'Confirmation envoyée à ' + x.courriel + '. Vous pouvez déplacer ou annuler ici, jusqu\u2019à 2 h avant.'
-      }, {
-        role: 'agent',
-        texte: 'C\u2019est réservé. Autre chose que je peux préparer avant votre visite ?'
-      }]);
-      setTimeout(() => setSuggestions(['Voir le logement', 'Déplacer le rendez-vous', 'Non merci']), 700);
-    };
+    /* Pas d'agenda branché : la plage choisie est une préférence, l'équipe confirme. */
+    const confirmer = x => transmettre(x, 'Cléo : demande de visite', [['Moment souhaité', c.jour + ' à ' + c.heure]]);
     setTimeout(() => setMessages(m => [...m, {
       role: 'agent',
-      texte: 'Parfait : ' + c.jour + ' à ' + c.heure + '. Pour confirmer la visite, j\u2019ai besoin de votre nom et de votre courriel.'
+      texte: 'Noté : ' + c.jour + ' à ' + c.heure + '. Laissez-moi votre nom et votre courriel; l\u2019équipe vous confirme la visite.'
     }, {
       type: 'formulaire',
       variante: 'visite',

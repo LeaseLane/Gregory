@@ -125,7 +125,10 @@ const Pol = () => <a href="/confidentialite" style={{
 }}>Politique de confidentialité</a>;
 let n = 0;
 function FormVisite({
-  onOk
+  onOk,
+  titre = 'Vos coordonnées pour la visite',
+  bouton = 'Demander la visite',
+  usage = 'organiser ma visite'
 }) {
   const id = React.useMemo(() => 'cv' + ++n, []);
   const [v, setV] = React.useState({
@@ -176,12 +179,12 @@ function FormVisite({
     <span style={{
       ...SUR,
       color: '#3767A2'
-    }}>Vos coordonnées pour la visite</span>
+    }}>{titre}</span>
     <Champ id={id + '-n'} lab="Nom" req v={v.nom} set={m('nom')} err={err.nom} auto="name" />
     <Champ id={id + '-c'} lab="Courriel" req type="email" v={v.courriel} set={m('courriel')} err={err.courriel} auto="email" />
     <Champ id={id + '-t'} lab="Téléphone" type="tel" v={v.tel} set={m('tel')} auto="tel" />
-    <Case id={id + '-k'} ok={v.ok} set={m('ok')} err={err.ok} desc={<React.Fragment>Vous pouvez retirer votre consentement en tout temps. <Pol /></React.Fragment>}>J'accepte que Lease Lane utilise ces renseignements seulement pour planifier ma visite et me joindre à ce sujet.</Case>
-    <Btn type="submit"><Icon name="calendar-check" size={15} color="#fff" />Confirmer la visite</Btn></form>;
+    <Case id={id + '-k'} ok={v.ok} set={m('ok')} err={err.ok} desc={<React.Fragment>Vous pouvez retirer votre consentement en tout temps. <Pol /></React.Fragment>}>J'accepte que Lease Lane utilise ces renseignements seulement pour {usage} et me joindre à ce sujet.</Case>
+    <Btn type="submit"><Icon name="calendar-check" size={15} color="#fff" />{bouton}</Btn></form>;
 }
 function FormAlerte({
   lignes = []
