@@ -79,7 +79,7 @@
   <div id="not-found" style="display:none;">
     <h1>Lien déjà utilisé</h1>
     <p class="subtitle" id="not-found-text">Ce lien n'est plus valide : une réponse a peut-être déjà été enregistrée, ou le lien a expiré.</p>
-    <a class="ll-bouton ll-bouton--primaire" href="/app?p=locataire">Ouvrir mon espace locataire</a>
+    <a class="ll-bouton ll-bouton--primaire" href="/?p=locataire">Ouvrir mon espace locataire</a>
   </div>
 </div>
 
@@ -146,7 +146,7 @@ async function respond(action){
     reopen: "Merci de nous l'avoir signalé — l'équipe Lease Lane a été avisée et va s'en occuper.",
   };
   result.className = 'carte result active';
-  result.innerHTML = rond(action === 'confirm' ? 'circle-check' : 'send') + '<p>' + (messages[action] || "Réponse enregistrée.") + '</p><a class="vo-lien" href="/app?p=locataire">Voir ma demande dans mon espace →</a>';
+  result.innerHTML = rond(action === 'confirm' ? 'circle-check' : 'send') + '<p>' + (messages[action] || "Réponse enregistrée.") + '</p><a class="vo-lien" href="/?p=locataire">Voir ma demande dans mon espace →</a>';
 }
 
 async function init(){

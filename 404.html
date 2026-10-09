@@ -7,24 +7,25 @@
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/leaselane.css?v=202610021535">
-<script src="/assets/charger-portail.js?v=202610021535"></script>
+<script src="/assets/charger-portail.js?v=202610091900"></script>
 <script>
-// /app/<onglet> n'existe pas comme fichier : on recharge le dernier portail
-// ouvert, qui lit l'onglet dans l'adresse (assets/url-propre.js).
+// /<onglet> (ou l'ancien /app/<onglet>) n'existe pas comme fichier : on
+// recharge le dernier portail ouvert, qui lit l'onglet dans l'adresse
+// (assets/url-propre.js). Une adresse inconnue sans portail ouvert → /.
 (function () {
-  if (!/^\/app\//.test(location.pathname)) return;
+  if (!/^\/(app\/)?[a-z0-9-]+\/?$/.test(location.pathname)) return;
   var p = null;
   try { p = sessionStorage.getItem('ll-portail') || localStorage.getItem('ll-portail'); } catch (e) {}
   document.documentElement.style.visibility = 'hidden';
-  if (p) llCharger(p).catch(function () { location.replace('/app'); });
-  else location.replace('/app');
+  if (p) llCharger(p).catch(function () { location.replace('/'); });
+  else location.replace('/');
 })();
 </script>
 </head>
 <body style="font-family:var(--police-texte);background:var(--surface-page,#f7f8fa);display:grid;place-items:center;min-height:100vh;margin:0;text-align:center;">
   <main>
     <h1>Page introuvable</h1>
-    <p><a href="/">Retour à l'accueil</a> · <a href="/app">Mon espace</a></p>
+    <p><a href="/">Mon espace</a> · <a href="https://leaselane.ca">leaselane.ca</a></p>
   </main>
 </body>
 </html>

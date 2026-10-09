@@ -1,9 +1,10 @@
 /* Lease Lane — adresses propres dans les portails.
  *
- * La barre d'adresse montre /app et /app/<onglet> (ex. /app/vue-ensemble),
- * jamais le nom du fichier. GitHub Pages ne sait pas réécrire les URL :
- * /app sert app.html, et toute adresse /app/<onglet> tombe sur 404.html,
- * qui recharge le dernier portail ouvert (llCharger) sans changer l'URL.
+ * La barre d'adresse montre / et /<onglet> (ex. /vue-ensemble), jamais le
+ * nom du fichier. GitHub Pages ne sait pas réécrire les URL : / sert
+ * index.html, et toute adresse /<onglet> tombe sur 404.html, qui recharge
+ * le dernier portail ouvert (llCharger) sans changer l'URL. Les anciennes
+ * adresses /app et /app/<onglet> (avant le 2026-10-09) marchent encore.
  *
  * À inclure à la fin du <body> de chaque portail, après showTab().
  */
@@ -35,12 +36,12 @@
   if (typeof afficher === 'function') {
     window.showTab = function (id) {
       afficher.apply(this, arguments);
-      var u = '/app/' + slugDe(id);
+      var u = '/' + slugDe(id);
       if (location.pathname !== u) history.pushState(null, '', u);
     };
   }
   function depuisUrl() {
-    var id = idDe(location.pathname.replace(/^\/app\/?/, ''));
+    var id = idDe(location.pathname.replace(/^\/(app\/?)?/, '').replace(/\/$/, ''));
     if (id && afficher) afficher(id);
     return !!id;
   }
@@ -48,17 +49,16 @@
     if (!depuisUrl() && afficher && boutons()[0]) afficher(boutons()[0].dataset.tab);
   });
 
-  if (/^\/app(\/|$)/.test(location.pathname)) depuisUrl();
-  else history.replaceState(null, '', '/app' + location.search + location.hash);
+  if (!depuisUrl() && location.pathname !== '/') history.replaceState(null, '', '/' + location.search + location.hash);
 })();
 
-// Déconnexion : on oublie le portail, /app redevient l'écran de connexion.
+// Déconnexion : on oublie le portail, / redevient l'écran de connexion.
 // En vue admin, on revient simplement au compte admin.
 function llQuitterPortail() {
   var vue = false;
   try { vue = sessionStorage.getItem('ll-vue-admin') === '1'; sessionStorage.removeItem('ll-portail'); sessionStorage.removeItem('ll-vue-admin'); } catch (e) {}
   if (!vue) { try { localStorage.removeItem('ll-portail'); } catch (e) {} }
-  location.replace('/app');
+  location.replace('/');
 }
 
 // Bandeau « vue admin » : rappelle qu'on regarde le portail d'un client et
@@ -72,7 +72,7 @@ function bandeauVueAdmin() {
   b.querySelector('button').onclick = async function () {
     try { if (typeof supabaseClient !== 'undefined' && supabaseClient) await supabaseClient.auth.signOut(); } catch (e) {}
     try { sessionStorage.removeItem('ll-portail'); sessionStorage.removeItem('ll-vue-admin'); } catch (e) {}
-    location.replace('/app');
+    location.replace('/');
   };
   document.body.prepend(b);
   document.body.classList.add('avec-vue-admin');

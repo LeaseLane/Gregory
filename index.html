@@ -2,12 +2,219 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title></title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lease Lane</title>
 <meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-180.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
 <style>
-  html, body { height: 100%; margin: 0; background: #fff; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--police-texte);}
+  #screen{min-height:100vh;display:flex;align-items:stretch;justify-content:center;}
+  .login-side{flex:1 1 440px;max-width:480px;background:var(--ink);color:var(--paper);display:flex;flex-direction:column;justify-content:center;padding:60px;}
+  .login-side .side-brand{font-family:var(--police-mono);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin-bottom:26px;}
+  .login-side h2{font-family:var(--police-titre);font-weight:600;font-size:27px;line-height:1.25;margin-bottom:14px;}
+  .login-side p{font-size:14px;color:#C9C6BC;line-height:1.6;max-width:36ch;}
+  .login-side ul{margin-top:26px;padding:0;list-style:none;}
+  .login-side li{font-size:13px;color:#C9C6BC;padding:10px 0;border-top:1px solid #33362f;}
+  .login-side li:first-child{border-top:none;}
+  .login-box-wrap{flex:1 1 420px;display:flex;align-items:center;justify-content:center;padding:40px 24px;padding-top:max(40px,env(safe-area-inset-top));}
+  @media (max-width:860px){.login-side{display:none;}}
+  .box{width:100%;max-width:340px;padding:36px;background:var(--paper-2);border:1px solid var(--line);}
+  .box .brand{margin-bottom:4px;}
+  .box .sub{font-family:var(--police-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:24px;}
+  .box label{display:block;font-size:12.5px;font-weight:500;margin-bottom:6px;}
+  .box .f{margin-bottom:14px;}
+  .box input{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);font-size:13.5px;font-family:var(--police-texte);}
+  .box input:focus{outline:none;border-color:var(--brass);}
+  .box button{width:100%;background:var(--brass);color:var(--paper);border:none;padding:12px;font-size:13.5px;font-weight:500;cursor:pointer;margin-top:6px;}
+  .box button:hover{background:var(--brass-dark);}
+  .box button:disabled{opacity:0.6;cursor:default;}
+  .error{color:var(--rust);font-size:12.5px;margin-top:10px;display:none;}
+  .loading{text-align:center;color:var(--muted);font-size:13.5px;}
+  .aide{font-size:12.5px;color:var(--muted);margin-top:14px;line-height:1.5;}
+  .succes{color:var(--succes-600);font-size:12.5px;margin-top:10px;display:none;}
+  .liens{font-size:12.5px;text-align:center;margin-top:16px;color:var(--muted);}
+  .liens a{color:var(--muted);text-decoration:underline;}
+  .choix{display:block;padding:12px 14px;margin-bottom:10px;border:1px solid var(--line);background:var(--paper);text-decoration:none;color:var(--ink);font-size:12.5px;line-height:1.45;}
+  .choix b{display:block;font-size:13.5px;margin-bottom:2px;}
+  .choix span{color:var(--muted);}
+  a.choix:hover{border-color:var(--brass);}
+  .choix--info{background:transparent;border-style:dashed;}
 </style>
+<link rel="stylesheet" href="assets/leaselane.css?v=202610021535">
 </head>
-<body></body>
+<body>
+
+<div id="screen">
+  <div class="login-side">
+    <div class="side-brand">Lease Lane</div>
+    <h2>Votre immeuble, entre bonnes mains.</h2>
+    <p>Un seul accès pour tout le monde : on t'amène directement à ton espace.</p>
+    <ul><li>Propriétaires : loyers, travaux, rapports</li><li>Locataires : paiements et demandes de réparation</li><li>Travailleurs : mandats et disponibilités</li></ul>
+  </div>
+  <div class="login-box-wrap">
+    <div class="box" id="login-box">
+      <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+      <div class="sub">Connexion</div>
+      <div class="f"><label for="login-email">Courriel</label><input type="email" id="login-email" autocomplete="username"></div>
+      <div class="f"><label for="login-password">Mot de passe</label><input type="password" id="login-password" autocomplete="current-password" onkeydown="if(event.key==='Enter') handleLogin();"></div>
+      <button onclick="handleLogin()" id="login-btn">Se connecter</button>
+      <p class="error" id="login-error"></p>
+      <p class="liens"><a href="#" onclick="voir('reset-box');return false;">Mot de passe oublié ?</a> · <a href="#" onclick="voir('signup-box');return false;">Créer un compte</a></p>
+    </div>
+
+    <div class="box" id="reset-box" style="display:none;">
+      <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+      <div class="sub">Mot de passe oublié</div>
+      <p class="aide" style="margin:0 0 16px;">Entre ton courriel : on t'envoie un lien pour choisir un nouveau mot de passe.</p>
+      <div class="f"><label for="reset-email">Courriel</label><input type="email" id="reset-email" autocomplete="username" onkeydown="if(event.key==='Enter') envoyerLien();"></div>
+      <button onclick="envoyerLien()" id="reset-btn">Envoyer le lien</button>
+      <p class="error" id="reset-error"></p>
+      <p class="succes" id="reset-ok"></p>
+      <p class="liens"><a href="#" onclick="voir('login-box');return false;">← Retour à la connexion</a></p>
+    </div>
+
+    <div class="box" id="signup-box" style="display:none;">
+      <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
+      <div class="sub">Créer un compte</div>
+      <a class="choix" href="/formulaires-gestion-immobiliere?type=mandat"><b>Je suis propriétaire</b><span>Demande une évaluation gratuite : on crée ton espace après un premier appel.</span></a>
+      <a class="choix" href="/pro"><b>Je suis entrepreneur ou travailleur</b><span>Inscris-toi à Lease Lane Pro pour recevoir des mandats.</span></a>
+      <div class="choix choix--info"><b>Je suis locataire</b><span>Ton accès est créé par ton gestionnaire : tu reçois un courriel d'invitation pour choisir ton mot de passe.</span></div>
+      <p class="liens"><a href="#" onclick="voir('login-box');return false;">← J'ai déjà un compte</a></p>
+    </div>
+    <div class="box" id="loading-box" style="display:none;">
+      <p class="loading">Ouverture de ton espace...</p>
+    </div>
+  </div>
+</div>
+
+<script src="assets/charger-portail.js?v=202610091900"></script>
+<script>
+// Tout est dans une fonction : le portail chargé ensuite par llCharger()
+// garde le même objet window et redéclare ses propres constantes.
+(function(){
+const SUPABASE_URL = 'https://kdmwfbcziokygfcmjxeq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR';
+const CLE_SESSION = 'sb-kdmwfbcziokygfcmjxeq-auth-token';
+
+// Portail déjà ouvert sur cet appareil : on le recharge directement, à la racine.
+let dernier = null;
+// sessionStorage : seulement l'onglet « Voir son portail » d'un admin.
+try { dernier = (sessionStorage.getItem('ll-vue-admin') === '1' && sessionStorage.getItem('ll-portail')) || localStorage.getItem('ll-portail'); } catch(e){}
+// Lien envoyé par courriel (?p=locataire…) : il désigne le bon portail,
+// quel que soit le dernier ouvert sur ce navigateur (souvent l'admin).
+const demande = { proprietaire: 'portail-proprietaire', locataire: 'portail-locataire', travailleur: 'portail-travailleur', prospecteur: 'portail-cold-caller' }[new URLSearchParams(location.search).get('p')];
+if(demande){
+  dernier = demande;
+  try { localStorage.setItem('ll-portail', demande); } catch(e){}
+  history.replaceState(null, '', '/');
+}
+if(dernier){
+  document.documentElement.style.visibility = 'hidden';
+  llCharger(dernier).catch(() => { document.documentElement.style.visibility = ''; });
+  return;
+}
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Chaque portail garde sa session sous sa propre clé : on y recopie celle-ci
+// pour ne pas redemander le mot de passe.
+const PORTAIL = {
+  owner:  ['portail-proprietaire', 'sb-portail-owner-auth'],
+  tenant: ['portail-locataire',    'sb-portail-tenant-auth'],
+  worker: ['portail-travailleur',  'sb-portail-worker-auth'],
+  caller: ['portail-cold-caller',  'sb-portail-caller-auth'],
+  admin:  ['portail-admin',        'sb-portail-admin-auth'],
+};
+
+function showError(msg){
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function routeToPortal(){
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if(!session) return false;
+
+  document.getElementById('login-box').style.display = 'none';
+  document.getElementById('loading-box').style.display = 'block';
+
+  let role = null;
+  // Admin d'abord : un admin qui a aussi une fiche propriétaire (compte de
+  // test, par ex.) doit arriver sur l'espace admin, pas propriétaire.
+  const { data: moi } = await supabaseClient.from('users').select('is_admin').eq('id', session.user.id).maybeSingle();
+  if(moi?.is_admin) role = 'admin';
+  const { data } = role ? { data: null } : await supabaseClient.functions.invoke('whoami');
+  role = role || data?.role || null;
+  // whoami ne connaît que propriétaire/locataire/travailleur ; admin-api
+  // refuse tout compte qui n'est pas administrateur.
+  if(!role){
+    const { error } = await supabaseClient.functions.invoke('admin-api');
+    if(!error) role = 'admin';
+  }
+  if(!role || !PORTAIL[role]){
+    document.getElementById('loading-box').style.display = 'none';
+    document.getElementById('login-box').style.display = 'block';
+    showError(data?.error || "Ce compte n'est associé à aucun portail. Contacte l'équipe Lease Lane.");
+    await supabaseClient.auth.signOut();
+    return false;
+  }
+  const [nom, cle] = PORTAIL[role];
+  try {
+    localStorage.setItem(cle, localStorage.getItem(CLE_SESSION));
+    localStorage.setItem('ll-portail', nom);
+  } catch(e){}
+  await llCharger(nom);
+  return true;
+}
+
+window.voir = function(id){
+  ['login-box','reset-box','signup-box'].forEach(b => document.getElementById(b).style.display = b === id ? 'block' : 'none');
+};
+
+// Le lien ramène sur l'écran propriétaire, qui sait déjà afficher « choisir
+// un nouveau mot de passe » ; un locataire ou un travailleur qui s'y
+// reconnecte est ensuite renvoyé vers son propre portail (llBonPortail).
+// ponytail: adresse déjà acceptée par Supabase ; /app demanderait de
+// l'ajouter à la liste des redirections autorisées.
+window.envoyerLien = async function(){
+  const email = document.getElementById('reset-email').value.trim();
+  const err = document.getElementById('reset-error'), ok = document.getElementById('reset-ok'), btn = document.getElementById('reset-btn');
+  err.style.display = ok.style.display = 'none';
+  if(!email){ err.textContent = 'Entre ton courriel.'; err.style.display = 'block'; return; }
+  btn.disabled = true;
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/portail-proprietaire.html' });
+  btn.disabled = false;
+  if(error){ err.textContent = error.message; err.style.display = 'block'; return; }
+  ok.textContent = 'Si un compte existe pour ce courriel, le lien vient de partir. Vérifie ta boîte (et les indésirables).';
+  ok.style.display = 'block';
+};
+
+window.handleLogin = async function(){
+  const btn = document.getElementById('login-btn');
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  document.getElementById('login-error').style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Connexion...';
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if(error){
+    btn.disabled = false;
+    btn.textContent = 'Se connecter';
+    showError(/invalid login/i.test(error.message) ? 'Courriel ou mot de passe incorrect.' : error.message);
+    return;
+  }
+  await routeToPortal();
+};
+
+// Une session déjà active (app rouverte, ou session partagée depuis le
+// site web sur le même domaine) saute directement le formulaire.
+routeToPortal();
+})();
+</script>
+</body>
 </html>

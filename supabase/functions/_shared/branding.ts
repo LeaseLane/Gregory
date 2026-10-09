@@ -49,12 +49,12 @@ export const DOMAINE_APP = `app.${DOMAINE}`;
 export const SITE_BASE_URL = `https://${DOMAINE_APP}`;
 
 export const PORTAILS = {
-  proprietaire: `${SITE_BASE_URL}/app?p=proprietaire`,
-  locataire: `${SITE_BASE_URL}/app?p=locataire`,
-  travailleur: `${SITE_BASE_URL}/app?p=travailleur`,
-  coldCaller: `${SITE_BASE_URL}/app?p=prospecteur`,
-  admin: `${SITE_BASE_URL}/app`,
-  app: `${SITE_BASE_URL}/app`,
+  proprietaire: `${SITE_BASE_URL}/?p=proprietaire`,
+  locataire: `${SITE_BASE_URL}/?p=locataire`,
+  travailleur: `${SITE_BASE_URL}/?p=travailleur`,
+  coldCaller: `${SITE_BASE_URL}/?p=prospecteur`,
+  admin: `${SITE_BASE_URL}/`,
+  app: `${SITE_BASE_URL}/`,
   pro: `${SITE_BASE_URL}/pro`,
 } as const;
 

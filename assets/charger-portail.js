@@ -34,7 +34,7 @@ window.llCharger = function (nom) {
         localStorage.setItem(CLE['portail-admin'], localStorage.getItem(CLE[ici]));
         localStorage.removeItem(CLE[ici]);
         localStorage.setItem('ll-portail', 'portail-admin');
-        location.replace('/app');
+        location.replace('/');
         return true;
       }
       // Un admin qui serait aussi propriétaire reste sur son portail admin.
@@ -56,7 +56,7 @@ window.llCharger = function (nom) {
       localStorage.setItem(CLE[cible], localStorage.getItem(CLE[ici]));
       localStorage.removeItem(CLE[ici]);
       localStorage.setItem('ll-portail', cible);
-      location.replace('/app');
+      location.replace('/');
       return true;
     } catch (e) { return false; }
   };

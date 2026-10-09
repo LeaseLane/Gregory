@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 /* Adresse de connexion du portail locataire (à confirmer, SEO.md : « Redirections vers le portail locataire »).
    Les anciennes adresses des services réservés au portail y redirigent. */
 const APP = 'https://app.leaselane.ca';
-const PORTAIL = process.env.LL_PORTAIL_URL || APP + '/app';
+const PORTAIL = process.env.LL_PORTAIL_URL || APP + '/';
 const ANCIENNES_ADRESSES_PORTAIL = [
   '/locataires/demande-de-travaux', '/locataires/suivi', '/locataires/ajout-au-bail', '/locataires/endossement',
   '/locataires/cession-de-bail', '/locataires/paiement', '/locataires/documents', '/locataires/avis-de-depart',
@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
       ...ANCIENNES_ADRESSES_PORTAIL.map(source => ({ source, destination: PORTAIL, permanent: true })),
       { source: '/connexion', destination: PORTAIL, permanent: false },
       { source: '/en/connexion', destination: PORTAIL, permanent: false },
-      { source: '/app', destination: APP + '/app', permanent: false },
+      { source: '/app/:onglet*', destination: APP + '/', permanent: false },
       { source: '/pro', destination: APP + '/pro', permanent: false },
       { source: '/:page([^/]+\\.html)', destination: APP + '/:page', permanent: false },
       { source: '/assets/courriel/:fichier*', destination: APP + '/assets/courriel/:fichier*', permanent: false },
