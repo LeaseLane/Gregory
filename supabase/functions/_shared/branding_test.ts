@@ -6,6 +6,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   DOMAINE,
+  DOMAINE_APP,
   DOMAINE_COURRIEL,
   EXPEDITEUR,
   PORTAILS,
@@ -17,9 +18,10 @@ Deno.test("toutes les URL de portail dérivent du domaine unique", () => {
   // Le défaut d'origine : une URL oubliée lors du renommage envoie l'usager
   // sur un domaine mort. Si une seule est écrite en dur, ce test échoue.
   for (const [nom, url] of Object.entries(PORTAILS)) {
-    assert(url.startsWith(`https://${DOMAINE}/`), `${nom} ne dérive pas de DOMAINE : ${url}`);
+    assert(url.startsWith(`https://${DOMAINE_APP}/`), `${nom} ne dérive pas de DOMAINE_APP : ${url}`);
   }
-  assertEquals(SITE_BASE_URL, `https://${DOMAINE}`);
+  assertEquals(SITE_BASE_URL, `https://${DOMAINE_APP}`);
+  assertEquals(DOMAINE_APP, `app.${DOMAINE}`);
 });
 
 Deno.test("l'expéditeur utilise le sous-domaine d'envoi, pas le domaine du site", () => {
@@ -48,7 +50,7 @@ Deno.test("le domaine et le CNAME de GitHub Pages restent d'accord", () => {
   const cname = Deno.readTextFileSync(new URL("../../../CNAME", import.meta.url)).trim();
   assertEquals(
     cname,
-    DOMAINE,
-    `CNAME (${cname}) et DOMAINE (${DOMAINE}) divergent : GitHub Pages ne servirait pas le domaine des liens.`,
+    DOMAINE_APP,
+    `CNAME (${cname}) et DOMAINE_APP (${DOMAINE_APP}) divergent : GitHub Pages ne servirait pas le domaine des liens.`,
   );
 });

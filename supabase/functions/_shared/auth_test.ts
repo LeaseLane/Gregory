@@ -32,8 +32,8 @@ Deno.test("origine autorisée est reflétée, avec Vary: Origin", () => {
 Deno.test("seules les origines leaselane.ca sont acceptées", () => {
   // L'ancien domaine a été retiré le 2026-09-26 : il n'héberge plus rien,
   // et le garder ouvrait une origine sans propriétaire actif.
-  assert(ALLOWED_ORIGINS.includes("https://leaselane.ca"));
-  for (const o of ALLOWED_ORIGINS) assert(/^https:\/\/(www\.)?leaselane\.ca$/.test(o), `origine inattendue : ${o}`);
+  assert(ALLOWED_ORIGINS.includes("https://app.leaselane.ca"));
+  for (const o of ALLOWED_ORIGINS) assert(/^https:\/\/((www|app)\.)?leaselane\.ca$/.test(o), `origine inattendue : ${o}`);
 });
 
 Deno.test("jeton falsifié est rejeté (critère d'acceptation P3)", async () => {

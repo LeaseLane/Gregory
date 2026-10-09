@@ -13,7 +13,10 @@
 // liens déjà envoyés par courriel cessent d'être ouverts : les retirer
 // tout de suite ferait échouer les appels des pages atteintes par un
 // ancien lien, sans message compréhensible pour l'usager.
+// 2026-10-09 : les portails passent sur app.leaselane.ca. leaselane.ca
+// reste permis le temps que les pages déjà ouvertes se rechargent.
 export const ALLOWED_ORIGINS = [
+  "https://app.leaselane.ca",
   "https://leaselane.ca",
   "https://www.leaselane.ca",
 ];

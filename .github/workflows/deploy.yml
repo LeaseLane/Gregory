@@ -135,8 +135,16 @@ jobs:
           liste=$(printf '%s' "$cfg" | python3 -c "import json,sys;print(json.load(sys.stdin).get('uri_allow_list') or '')")
           echo "site_url : $site"
           echo "redirections : $liste"
-          [ "$site" = "https://leaselane.ca" ] || { echo "::error::Site URL de Supabase Auth = « $site », attendu https://leaselane.ca"; exit 1; }
-          case "$liste" in *leaselane.ca*) ;; *) echo "::error::leaselane.ca absent des redirections autorisées de Supabase Auth"; exit 1;; esac
+          # 2026-10-09 : les portails sont sur app.leaselane.ca (leaselane.ca = site public).
+          # Réglé ici plutôt qu'à la main : idempotent, seulement si la valeur diffère.
+          attendu="https://app.leaselane.ca"
+          case ",$liste," in *",$attendu/**,"*) ;; *) liste="${liste:+$liste,}$attendu/**"; changer=1;; esac
+          [ "$site" = "$attendu" ] || changer=1
+          if [ "${changer:-}" = 1 ]; then
+            corps=$(python3 -c "import json,sys;print(json.dumps({'site_url':sys.argv[1],'uri_allow_list':sys.argv[2]}))" "$attendu" "$liste")
+            curl -sf -X PATCH "https://api.supabase.com/v1/projects/${REF}/config/auth" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" -d "$corps" >/dev/null
+            echo "Supabase Auth réglé : site_url=$attendu, redirections=$liste"
+          fi
 
       - name: Déployer en production
         # Les sources vivent dans supabase/functions/<nom>/index.ts —

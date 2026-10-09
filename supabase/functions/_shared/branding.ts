@@ -42,7 +42,11 @@ export const DOMAINE = "leaselane.ca";
 // greg@leaselane.ca et communique sous ce nom à ses clients.
 export const MARQUE = "Lease Lane";
 
-export const SITE_BASE_URL = `https://${DOMAINE}`;
+// Portails et pages de l'application (GitHub Pages). Depuis le 2026-10-09,
+// leaselane.ca sert le site public (Next.js, Coolify) et redirige les
+// anciennes adresses ici. Les courriels restent sur DOMAINE (mail.).
+export const DOMAINE_APP = `app.${DOMAINE}`;
+export const SITE_BASE_URL = `https://${DOMAINE_APP}`;
 
 export const PORTAILS = {
   proprietaire: `${SITE_BASE_URL}/app?p=proprietaire`,

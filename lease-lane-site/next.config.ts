@@ -2,7 +2,8 @@ import type { NextConfig } from 'next';
 
 /* Adresse de connexion du portail locataire (à confirmer, SEO.md : « Redirections vers le portail locataire »).
    Les anciennes adresses des services réservés au portail y redirigent. */
-const PORTAIL = process.env.LL_PORTAIL_URL || '/connexion';
+const APP = 'https://app.leaselane.ca';
+const PORTAIL = process.env.LL_PORTAIL_URL || APP + '/app';
 const ANCIENNES_ADRESSES_PORTAIL = [
   '/locataires/demande-de-travaux', '/locataires/suivi', '/locataires/ajout-au-bail', '/locataires/endossement',
   '/locataires/cession-de-bail', '/locataires/paiement', '/locataires/documents', '/locataires/avis-de-depart',
@@ -18,8 +19,19 @@ const nextConfig: NextConfig = {
   reactStrictMode: false,
   /* Deux gabarits racines (français, anglais) : page 404 commune (app/global-not-found.tsx). */
   experimental: { globalNotFound: true },
+  /* Les portails et les pages à lien (courriels déjà envoyés : confirmer une visite, signer un bail, logo des
+     courriels…) vivaient sur leaselane.ca jusqu'au 2026-10-09; ils sont maintenant sur app.leaselane.ca.
+     Temporaires (302) : rien d'éternel à mettre en cache chez les navigateurs. */
   async redirects() {
-    return ANCIENNES_ADRESSES_PORTAIL.map(source => ({ source, destination: PORTAIL, permanent: true }));
+    return [
+      ...ANCIENNES_ADRESSES_PORTAIL.map(source => ({ source, destination: PORTAIL, permanent: true })),
+      { source: '/connexion', destination: PORTAIL, permanent: false },
+      { source: '/en/connexion', destination: PORTAIL, permanent: false },
+      { source: '/app', destination: APP + '/app', permanent: false },
+      { source: '/pro', destination: APP + '/pro', permanent: false },
+      { source: '/:page([^/]+\\.html)', destination: APP + '/:page', permanent: false },
+      { source: '/assets/courriel/:fichier*', destination: APP + '/assets/courriel/:fichier*', permanent: false },
+    ];
   },
   /* En-têtes de base. La politique CSP complète (liste blanche : domaine Lease Lane + projet Supabase, B14/SB1)
      sera ajoutée avec la connexion à Supabase et aux tuiles de carte (SB5). */
