@@ -356,7 +356,7 @@ function Formulaire() {
         <div className="njx-fh"><div><span className="njx-caps">Votre demande</span><b aria-live="polite">{faits + ' sur ' + req.length + ' champs obligatoires remplis'}</b></div><span className="njx-prog" role="progressbar" aria-label="Progression du formulaire" aria-valuemin={0} aria-valuemax={req.length} aria-valuenow={faits}><i style={{
                 transform: 'scaleX(' + faits / req.length + ')'
               }}></i></span></div>
-        <fieldset className="njx-grp"><legend><span className="njx-n ok" aria-hidden="true">01</span>Vous êtes</legend>
+        <fieldset className="njx-grp"><legend style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' }}>Vous êtes</legend>
           <div className="njx-seg">{PROFILS.map(([k, l, ic]) => {
                 const on = pr === k;
                 return <button key={k} type="button" aria-pressed={on} onClick={() => {
@@ -370,14 +370,14 @@ function Formulaire() {
           <p key={pr} className="njx-note njx-entre" style={{
               margin: 0
             }}>{note[0]}<a href={note[2]}>{note[1]}<Icon name="arrow-right" size={14} color="currentColor" /></a></p></fieldset>
-        <fieldset className="njx-grp"><legend><span className={'njx-n' + (g2 ? ' ok' : '')} aria-hidden="true">02</span>Votre demande</legend>
+        <fieldset className="njx-grp"><legend><span className={'njx-n' + (g2 ? ' ok' : '')} aria-hidden="true">01</span>Votre demande</legend>
           <div className="njx-ch" role="radiogroup" aria-labelledby="njx-sujet-l" aria-describedby={E('sujet') ? 'njx-sujet-e' : undefined}><span id="njx-sujet-l" className="njx-lab">Sujet <em aria-hidden="true">*</em></span>
             <div className="njx-chips" key={pr}>{SUJETS[pr].map((s, i) => <label key={s} className="njx-chip njx-entre" style={{
                   animationDelay: i * 50 + 'ms'
                 }}><input type="radio" name="njx-sujet" id={i === 0 ? 'njx-sujet' : undefined} value={s} checked={v.sujet === s} onChange={maj('sujet')} onBlur={sort('sujet')} /><span className="njx-coche" aria-hidden="true"><Icon name="check" size={14} color="var(--bleu-600)" /></span>{s}</label>)}</div><Msg k="sujet" /></div>
           <div className="njx-ch"><div className="njx-cpt"><label htmlFor="njx-message" className="njx-lab">Votre message <em aria-hidden="true">*</em></label><b className={n >= 10 ? 'ok' : ''} aria-hidden="true">{n >= 10 ? <><Icon name="check" size={13} color="#2E8A5F" />Suffisant</> : n + ' / 10'}</b></div>
             <textarea id="njx-message" className="njx-in" rows={5} value={v.message} onChange={maj('message')} onBlur={sort('message')} {...aria('message')}></textarea><Msg k="message" aide="Quelques lignes suffisent. N’indiquez aucun renseignement bancaire ni numéro d’assurance sociale." /></div></fieldset>
-        <fieldset className="njx-grp"><legend><span className={'njx-n' + (g3 ? ' ok' : '')} aria-hidden="true">03</span>Vos coordonnées</legend>
+        <fieldset className="njx-grp"><legend><span className={'njx-n' + (g3 ? ' ok' : '')} aria-hidden="true">02</span>Vos coordonnées</legend>
           <div className="njx-2c">
             <div className="njx-ch"><label htmlFor="njx-nom" className="njx-lab">Nom complet <em aria-hidden="true">*</em></label><input id="njx-nom" className="njx-in" autoComplete="name" required value={v.nom} onChange={maj('nom')} onBlur={sort('nom')} {...aria('nom')} /><Msg k="nom" /></div>
             <div className="njx-ch"><label htmlFor="njx-courriel" className="njx-lab">Courriel <em aria-hidden="true">*</em></label><input id="njx-courriel" className="njx-in" type="email" autoComplete="email" inputMode="email" required value={v.courriel} onChange={maj('courriel')} onBlur={sort('courriel')} {...aria('courriel')} /><Msg k="courriel" /></div>
