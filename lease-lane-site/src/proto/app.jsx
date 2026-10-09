@@ -13,6 +13,7 @@ import { CleoAccroche } from '@/proto/cleo-panneau';
 import { __ssr } from '@/lib/hydratation';
 import { demanderCleo, envoyerDemande } from '@/lib/envoi';
 import { prochainsCreneaux } from '@/lib/creneaux';
+import { AUD, ORDRE, faqPour, normF, motsF, trouverFaq, cleScenario, decider, choisirDico } from '@/lib/cleo-routage';
 
 /* Repli si le paquet du système n'expose pas encore le contexte : la page s'affiche avec les pilules au lieu d'un écran blanc. */
 
@@ -124,58 +125,9 @@ const ACTIONS = [{
   pour: ['proprio', 'locataire', 'prospect']
 }];
 /* Public de chaque scénario : '*' = tous (droit du logement, relais humain). */
-const AUD = {
-  chercher: ['prospect', 'locataire'],
-  visite: ['prospect', 'locataire'],
-  aviser: ['prospect', 'locataire'],
-  travaux: ['locataire'],
-  plainte: ['locataire'],
-  frais: ['proprio'],
-  hausse: '*',
-  cession: '*',
-  depot: '*',
-  bail: '*',
-  humain: '*'
-};
 /* FAQ visible dans Cléo selon le profil : propriétaire = ses questions + tout le TAL (t*); locataire et futur locataire = leurs questions + le TAL côté locataire. */
-const faqPour = pr => {
-  const F = LL_FAQ;
-  return Object.keys(F).filter(id => {
-    const pub = F[id].public;
-    if (pr === 'proprio') return pub === 'proprietaires' || id[0] === 't';
-    if (pr === 'locataire' || pr === 'prospect') return pub === 'locataires';
-    return false;
-  });
-};
-const normF = x => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-const motsF = x => normF(x).split(/[^a-z0-9]+/).filter(w => w.length >= 4 && !['vous', 'votre', 'pour', 'avec', 'dans', 'quel', 'quelle', 'comment', 'est-ce', 'mon', 'puis', 'peut'].includes(w));
-/* Meilleure question de la FAQ pour un texte libre (au moins deux mots significatifs en commun). */
-/* Version anglaise : la FAQ est cherchée dans sa traduction (dictionnaire fourni par le panneau). */
-let __dicoCleo = null;
-const qFaq = (F, id) => {
-  const q = F[id].q;
-  const v = __dicoCleo && __dicoCleo[q.replace(/\s+/g, ' ').trim()];
-  return v ? String(v) : q;
-};
-const trouverFaq = (texte, ids) => {
-  const F = LL_FAQ,
-    m = new Set(motsF(texte));
-  let best = null,
-    sc = 1;
-  ids.forEach(id => {
-    const n = motsF(qFaq(F, id)).filter(w => m.has(w)).length;
-    if (n > sc) {
-      sc = n;
-      best = id;
-    }
-  });
-  return best;
-};
 const SCENARIOS = {
   chercher: {
-    /* Mots trop larges retirés (« québec », « logement », « trouver ») : « vos services pour un 6 logements » partait
-       en recherche d'appartement. */
-    cles: ['4 ½', '4 1/2', '3 ½', '5 ½', 'un logement à louer', 'logement à louer', 'logements à louer', 'à louer', 'appartement', 'je cherche un logement', 'chercher un logement', 'disponible', 'apartment', 'for rent', 'looking for an apartment', 'looking for a place', 'bedroom'],
     messages: d => [{
       role: 'agent',
       texte: 'Voici ce qui correspond à Québec sous 1 500 $ en ce moment. Les loyers affichés sont ceux du bail, sans surprise.'
@@ -205,7 +157,6 @@ const SCENARIOS = {
     suggestions: ['Visiter le 4 ½ de Montcalm', 'M\u2019aviser des nouveautés', 'Voir tout sur la carte']
   },
   visite: {
-    cles: ['visite', 'visiter', 'rendez-vous', 'rencontre', 'voir le', 'créneau', 'visit', 'viewing', 'appointment', 'tour', 'see the'],
     messages: () => [{
       role: 'agent',
       texte: 'Avec plaisir. Choisissez le moment qui vous convient; l\u2019équipe vous confirme la visite.'
@@ -213,7 +164,6 @@ const SCENARIOS = {
     creneaux: true
   },
   aviser: {
-    cles: ['aviser', 'alerte', 'nouveaut', 'nouvelles annonces', 'notify', 'notification', 'new listing'],
     messages: () => [{
       role: 'agent',
       texte: 'Je peux vous prévenir dès qu\u2019un logement correspond à vos critères, par courriel seulement et jamais plus d\u2019une fois par jour. Vous pourrez retirer votre consentement en un clic.'
@@ -225,7 +175,6 @@ const SCENARIOS = {
     suggestions: ['Modifier les critères', 'Plutôt une visite']
   },
   travaux: {
-    cles: ['fuite', 'réparation', 'urgence', 'bris', 'chauffe-eau', 'problème', 'panne', 'travaux', 'signaler', 'dégât', 'leak', 'repair', 'emergency', 'broken', 'water heater', 'problem', 'outage', 'maintenance', 'damage', 'heating'],
     messages: () => [{
       role: 'agent',
       texte: 'Je note le problème. Si de l\u2019eau coule activement ou s\u2019il n\u2019y a plus de chauffage, appelez d\u2019abord la ligne d\u2019urgence, 24 h sur 24 : ' + LL_SITE.urgence + '.'
@@ -239,7 +188,6 @@ const SCENARIOS = {
     suggestions: ['C\u2019est une urgence', 'Accéder au portail locataire', 'Parler à une personne']
   },
   plainte: {
-    cles: ['plainte', 'commentaire', 'administratif', 'administrative', 'complaint', 'comment'],
     messages: () => [{
       role: 'agent',
       texte: 'Un commentaire, une plainte ou une demande administrative se dépose en ligne, sans connexion. Vous recevez un accusé de réception immédiat.'
@@ -247,7 +195,6 @@ const SCENARIOS = {
     suggestions: ['Ouvrir le formulaire de plainte', 'Parler à une personne']
   },
   frais: {
-    cles: ['frais', 'tarif', 'coût', 'gestion', 'pourcentage', 'honoraires', 'confier', 'immeuble', 'propriétaire', 'vos services', 'services offerts', 'plex', 'multilogement', 'mes logements', 'mes locataires', 'fee', 'cost', 'price', 'pricing', 'percentage', 'owner', 'my building', 'manage my', 'your services', 'units'],
     messages: () => [{
       role: 'agent',
       texte: 'Chaque offre est préparée pour votre immeuble, après un appel de 30 minutes : nombre de portes, état de l\u2019immeuble et services voulus.'
@@ -263,7 +210,6 @@ const SCENARIOS = {
     suggestions: ['Oui, un rappel', 'Notre expertise', 'Obtenir une offre']
   },
   humain: {
-    cles: ['personne', 'humain', 'quelqu\u2019un', 'quelqu\'un', 'conseiller', 'agent', 'parler à', 'person', 'human', 'someone', 'talk to', 'speak to', 'representative'],
     messages: () => [{
       role: 'agent',
       texte: 'Bien sûr. Laissez-moi vos coordonnées : une personne de l\u2019équipe vous revient, avec le fil de notre conversation pour que vous n\u2019ayez pas à vous répéter.'
@@ -278,7 +224,6 @@ const SCENARIOS = {
     suggestions: ['Continuer avec Cléo']
   },
   hausse: {
-    cles: ['hausse', 'augmentation', 'fixation', 'increase', 'raise the rent', 'rent hike'],
     messages: () => [{
       role: 'agent',
       texte: 'Pour un bail de 12 mois, l\u2019avis de modification se donne de 3 à 6 mois avant la fin du bail : du 1er janvier au 31 mars pour un bail qui finit le 30 juin (C.c.Q., art. 1942).'
@@ -289,7 +234,6 @@ const SCENARIOS = {
     suggestions: ['Une cession de bail', 'Parler à une personne']
   },
   cession: {
-    cles: ['cession', 'céder', 'sous-lo', 'assignment', 'assign my lease', 'sublet', 'sublease'],
     messages: () => [{
       role: 'agent',
       texte: 'Le locataire avise par écrit, avec le nom et l\u2019adresse de la personne proposée. Le propriétaire a 15 jours pour répondre; son silence vaut consentement (C.c.Q., art. 1870 et 1871).'
@@ -300,7 +244,6 @@ const SCENARIOS = {
     suggestions: ['Une hausse de loyer', 'Parler à une personne']
   },
   depot: {
-    cles: ['dépôt', 'depot', 'caution', 'garantie', 'postdat', 'deposit', 'post-dated', 'key fee'],
     messages: () => [{
       role: 'agent',
       texte: 'Au Québec, seul le premier mois de loyer peut être exigé d\u2019avance (C.c.Q., art. 1904). Dépôt de garantie, dépôt pour les clés, chèques postdatés imposés et frais de dossier sont interdits; une somme perçue ainsi est remboursable avec intérêts.'
@@ -308,7 +251,6 @@ const SCENARIOS = {
     suggestions: ['Une hausse de loyer', 'Parler à une personne']
   },
   bail: {
-    cles: ['bail', 'endossement', 'résili', 'reprise', 'évict', 'tal', 'tribunal', 'lease', 'evict', 'repossess', 'terminate', 'cancel my lease'],
     messages: () => [{
       role: 'agent',
       texte: 'Je peux vous expliquer les règles générales du Code civil et du TAL sur le bail : avis, délais, cession, reprise, résiliation, recours. Décrivez-moi votre situation : je vous indique les règles qui s\u2019y rapportent et leurs sources, puis une personne de l\u2019équipe prend le relais pour votre cas précis.'
@@ -329,20 +271,13 @@ const DEFAUT = {
   creneaux: true,
   suggestions: ['Trouver un logement', 'Signaler un problème', 'Parler à une personne']
 };
-const ORDRE = ['humain', 'hausse', 'cession', 'depot', 'bail', 'plainte', 'travaux', 'visite', 'aviser', 'frais', 'chercher'];
-function cleScenario(texte) {
-  const t = texte.toLowerCase();
-  /* « 6 logements », « 12 portes », « 8 unités » : un propriétaire qui parle de son immeuble. */
-  if (/\b\d+\s*(logements|portes|unités|units|doors)\b/.test(t)) return 'frais';
-  return ORDRE.find(k => SCENARIOS[k].cles.some(m => t.includes(m))) || null;
-}
 function AgentIA({
   ouvert,
   setOuvert,
   aller
 }) {
   const __d = useDico();
-  __dicoCleo = __d.lang === 'en' ? __d.D : null;
+  choisirDico(__d.lang === 'en' ? __d.D : null);
   const data = LL_DATA;
   /* Le fil démarre vide : l'accueil du panneau (salutation, intentions, urgence) tient lieu de premier message. */
   const [messages, setMessages] = React.useState([]),
@@ -426,43 +361,17 @@ function AgentIA({
       suggestions: ['Une autre question', 'Parler à une personne']
     });
   };
-  const NAV = [[/carte|tout voir/i, '/logements-a-louer', ['prospect', 'locataire']], [/service de gestion|gestion immobili/i, '/gestion-immobiliere', ['proprio']], [/notre expertise/i, '/expertise-et-strategie', ['proprio']], [/obtenir une offre/i, '/offre-de-service', ['proprio']], [/formulaire de plainte/i, '/locataires/commentaire-ou-plainte', ['locataire']], [/^accéder au portail/i, null, ['locataire', 'proprio']]];
   const traiter = (t, pr) => {
-    const nav = NAV.find(([r]) => r.test(t));
-    if (nav) {
-      const [, to, aud] = nav;
-      if (pr && !aud.includes(pr)) {
-        bloquer(aud);
-        return;
-      }
+    const d = decider(t, pr);
+    if (d.type === 'nav') {
       setOuvert(false);
-      if (to) aller(to);else window.location.href = LL_SITE.portail;
+      if (d.to) aller(d.to);else window.location.href = LL_SITE.portail;
       return;
     }
-    const k = cleScenario(t),
-      aud = k ? AUD[k] : null,
-      F = LL_FAQ,
-      ok = pr ? faqPour(pr) : Object.keys(F);
-    if (k && (aud === '*' || !pr || aud.includes(pr))) {
-      if (!pr && aud !== '*') {
-        demanderProfil(t);
-        return;
-      }
-      repondre(SCENARIOS[k]);
-      return;
-    }
-    const fid = trouverFaq(t, ok);
-    if (fid) {
-      repondreFaq(fid);
-      return;
-    }
-    if (pr) {
-      const autre = trouverFaq(t, Object.keys(F).filter(id => !ok.includes(id)));
-      if (autre || k) {
-        bloquer(autre ? F[autre].public === 'proprietaires' ? ['proprio'] : ['locataire'] : aud);
-        return;
-      }
-    }
+    if (d.type === 'bloquer') return bloquer(d.aud);
+    if (d.type === 'profil') return demanderProfil(t);
+    if (d.type === 'scenario') return repondre(SCENARIOS[d.k]);
+    if (d.type === 'faq') return repondreFaq(d.id);
     /* Aucun scénario ni FAQ : l'IA répond (handle-public-faq, base de
        connaissance du site seulement). Si elle est indisponible, réponse
        prudente d'origine. */

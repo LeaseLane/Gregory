@@ -57,5 +57,6 @@ export function envoyerDemande({ type, nom, courriel, tel, sujet, message, ligne
 }
 
 export async function demanderCleo(question) {
-  return (await appeler('handle-public-faq', { question })).answer;
+  /* Le serveur refuse au-delà de 500 caractères : on coupe plutôt que d'échouer. */
+  return (await appeler('handle-public-faq', { question: String(question).slice(0, 500) })).answer;
 }

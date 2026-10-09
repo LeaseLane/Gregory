@@ -9,7 +9,8 @@
     "lint": "eslint",
     "convertir": "zsh scripts/conversion/convertir.sh && python3 scripts/conversion/convertir-langue.py ../lease-lane-design-system/project/ui_kits/site-public . && python3 scripts/generer-pages.py",
     "pages": "python3 scripts/generer-pages.py",
-    "verifier": "zsh scripts/verifier-routes.sh"
+    "verifier": "zsh scripts/verifier-routes.sh",
+    "test:cleo": "node scripts/tester-cleo.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
