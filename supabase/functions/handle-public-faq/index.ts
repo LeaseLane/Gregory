@@ -1,4 +1,4 @@
-import { corsHeadersFor } from "../_shared/auth.ts";
+import { corsHeadersFor, ORIGINES_SITE_PUBLIC } from "../_shared/auth.ts";
 import { refuserSiRobot } from "../_shared/turnstile.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
 // FAQ publique en question libre — sur le modèle du Copilot du portail
@@ -38,7 +38,7 @@ RÈGLES STRICTES :
 `.trim();
 
 Deno.serve(async (req) => {
-  const corsHeaders = corsHeadersFor(req.headers.get("origin"));
+  const corsHeaders = corsHeadersFor(req.headers.get("origin"), ORIGINES_SITE_PUBLIC);
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }

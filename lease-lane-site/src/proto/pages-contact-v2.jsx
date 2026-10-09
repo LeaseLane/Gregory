@@ -9,6 +9,7 @@ import { LL_FAQ } from '@/proto/faq';
 import { ouvrirCleo } from '@/proto/seo';
 import { PBHeros } from '@/proto/pages-proprio-b';
 import { __ssr } from '@/lib/hydratation';
+import { envoyerDemande } from '@/lib/envoi';
 const S_ = () => LL_SITE,
   FQ = () => LL_FAQ;
 const tel = () => 'tel:' + String(S_().telephone || '').replace(/\D/g, '');
@@ -237,7 +238,9 @@ function Formulaire() {
     [v, setV] = React.useState(VIDE),
     [vu, setVu] = React.useState({}),
     [tente, setTente] = React.useState(false),
-    [fini, setFini] = React.useState(false);
+    [fini, setFini] = React.useState(false),
+    [envoi, setEnvoi] = React.useState(false),
+    [echec, setEchec] = React.useState('');
   const err = valide(v),
     E = k => vu[k] || tente ? err[k] : null,
     note = NOTES[pr];
@@ -262,7 +265,18 @@ function Formulaire() {
       f && f.focus();
       return;
     }
-    setFini(true);
+    if (envoi) return;
+    setEnvoi(true);
+    setEchec('');
+    envoyerDemande({
+      type: 'contact',
+      nom: v.nom.trim(),
+      courriel: v.courriel.trim(),
+      tel: v.tel,
+      sujet: v.sujet,
+      message: v.message.trim(),
+      lignes: [['Profil', (PROFILS.find(x => x[0] === pr) || [])[1]], ['Préférence de réponse', v.pref]]
+    }).then(() => setFini(true), x => setEchec(x.message)).finally(() => setEnvoi(false));
   };
   const aria = k => ({
     'aria-invalid': !!E(k),
@@ -390,7 +404,7 @@ function Formulaire() {
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '14px 20px'
-            }}><Button variant="primaire" size="l" onClick={envoyer} iconeAvant={<Icon name="send" size={17} />}>Envoyer ma demande</Button><span style={{
+            }}><Button variant="primaire" size="l" onClick={envoyer} disabled={envoi} iconeAvant={<Icon name="send" size={17} />}>{envoi ? 'Envoi en cours…' : 'Envoyer ma demande'}</Button>{echec && <span role="alert" style={{ color: 'var(--urgence-600)', fontSize: '14px' }}>{echec}</span>}<span style={{
                 fontSize: '13px',
                 color: 'var(--texte-discret)'
               }}><span aria-hidden="true" style={{

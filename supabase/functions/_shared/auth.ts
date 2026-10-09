@@ -18,9 +18,14 @@ export const ALLOWED_ORIGINS = [
   "https://www.leaselane.ca",
 ];
 
-export function corsHeadersFor(origin: string | null) {
+// Fonctions publiques sans compte (formulaires, Cléo) : le nouveau site
+// Next.js est servi par Coolify à cette adresse avant la bascule du domaine.
+// Jamais utilisé par une fonction authentifiée.
+export const ORIGINES_SITE_PUBLIC = [...ALLOWED_ORIGINS, "https://leaselane.coolify.thewebismine.ca"];
+
+export function corsHeadersFor(origin: string | null, origines: string[] = ALLOWED_ORIGINS) {
   return {
-    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Origin": origin && origines.includes(origin) ? origin : origines[0],
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
     "Vary": "Origin",
     // Durcissement (Lot 7 TWIM) : ces en-têtes ne coûtent rien et

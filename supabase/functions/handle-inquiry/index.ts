@@ -1,6 +1,14 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
+// « contact » : formulaires généraux du nouveau site (nous joindre, rappel,
+// demande de location, plainte). Le sujet arrive en tête du message.
+const LIBELLE_TYPE: Record<string, string> = {
+  visite: "Demande de visite",
+  mandat: "Demande de mandat (nouveau client potentiel)",
+  contact: "Message du site",
+};
+
 Deno.serve(async (req) => {
   try {
     const payload = await req.json();
@@ -18,7 +26,7 @@ Deno.serve(async (req) => {
     // construits localement plus bas à partir de `record` directement.
     const prompt = `Tu es l'assistant du service à la clientèle de "Lease Lane", une entreprise de gestion immobilière résidentielle au Québec. Un formulaire a été soumis sur le site public. Ce courriel est envoyé AUTOMATIQUEMENT, sans relecture humaine avant l'envoi.
 
-Type de demande: ${record.type === "visite" ? "Demande de visite pour un logement" : "Propriétaire souhaitant confier son immeuble en gestion"}
+Type de demande: ${record.type === "visite" ? "Demande de visite pour un logement" : record.type === "contact" ? "Message envoyé depuis le site (question, rappel, demande de location ou plainte)" : "Propriétaire souhaitant confier son immeuble en gestion"}
 Message: ${record.message || "(aucun message)"}
 
 RÈGLES STRICTES (ce courriel part sans relecture humaine — ne jamais les enfreindre) :
@@ -73,19 +81,22 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
       replyBody += `\n\nEstimation préliminaire, sous réserve de la validation de l'immeuble et du mandat (${unitsLine}à confirmer avec un membre de notre équipe) : au taux de gestion de 6% du loyer perçu, les frais de gestion mensuels estimés seraient d'environ ${monthlyFee.toLocaleString("fr-CA")} $ sur un loyer total estimé de ${parsed.estimated_monthly_rent.toLocaleString("fr-CA")} $. Ce chiffre n'est pas un prix contractuel final.`;
     }
 
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(avecHtml({
-        from: EXPEDITEUR,
-        to: [record.email],
-        subject: parsed.reply_subject,
-        text: replyBody,
-      }, { pied: POURQUOI.prospect })),
-    });
+    // Demande de rappel par téléphone seulement : pas de courriel à qui répondre.
+    if (record.email) {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(avecHtml({
+          from: EXPEDITEUR,
+          to: [record.email],
+          subject: parsed.reply_subject,
+          text: replyBody,
+        }, { pied: POURQUOI.prospect })),
+      });
+    }
 
     // Avant ce correctif, une demande "mandat" (devenir client) recevait
     // une réponse automatique au prospect mais l'équipe n'était jamais
@@ -102,7 +113,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
     const admins = await adminsRes.json().catch(() => []);
     const adminEmails = Array.isArray(admins) ? admins.map((a: any) => a.email).filter(Boolean) : [];
     if (adminEmails.length && resendKey) {
-      const typeLabel = record.type === "visite" ? "Demande de visite" : "Demande de mandat (nouveau client potentiel)";
+      const typeLabel = LIBELLE_TYPE[record.type] || "Demande";
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },

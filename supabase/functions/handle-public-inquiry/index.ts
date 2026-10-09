@@ -1,4 +1,4 @@
-import { corsHeadersFor } from "../_shared/auth.ts";
+import { corsHeadersFor, ORIGINES_SITE_PUBLIC } from "../_shared/auth.ts";
 import { refuserSiRobot } from "../_shared/turnstile.ts";
 
 const RATE_LIMIT_PER_HOUR = 5;
@@ -6,7 +6,7 @@ const MESSAGE_MAX_LENGTH = 2000;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 Deno.serve(async (req) => {
-  const corsHeaders = corsHeadersFor(req.headers.get("origin"));
+  const corsHeaders = corsHeadersFor(req.headers.get("origin"), ORIGINES_SITE_PUBLIC);
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
@@ -33,13 +33,15 @@ Deno.serve(async (req) => {
     );
     if (refusRobot) return refusRobot;
 
-    if (!["visite", "mandat"].includes(type)) {
+    if (!["visite", "mandat", "contact"].includes(type)) {
       return new Response(JSON.stringify({ error: "Type de demande invalide" }), { status: 400, headers: corsHeaders });
     }
     if (!full_name || String(full_name).trim().length < 2 || String(full_name).length > 200) {
       return new Response(JSON.stringify({ error: "Nom invalide" }), { status: 400, headers: corsHeaders });
     }
-    if (!email || !EMAIL_RE.test(String(email)) || String(email).length > 200) {
+    // Demande de rappel du site : le téléphone peut remplacer le courriel.
+    const telSeul = type === "contact" && !email && String(phone || "").replace(/\D/g, "").length >= 10;
+    if (!telSeul && (!email || !EMAIL_RE.test(String(email)) || String(email).length > 200)) {
       return new Response(JSON.stringify({ error: "Courriel invalide" }), { status: 400, headers: corsHeaders });
     }
     if (phone && String(phone).length > 40) {
@@ -47,6 +49,9 @@ Deno.serve(async (req) => {
     }
     if (message && String(message).length > MESSAGE_MAX_LENGTH) {
       return new Response(JSON.stringify({ error: "Message trop long" }), { status: 400, headers: corsHeaders });
+    }
+    if (type === "contact" && !String(message || "").trim()) {
+      return new Response(JSON.stringify({ error: "Message manquant" }), { status: 400, headers: corsHeaders });
     }
     if (!consent) {
       return new Response(JSON.stringify({ error: "Le consentement est requis" }), { status: 400, headers: corsHeaders });
@@ -96,11 +101,11 @@ Deno.serve(async (req) => {
     const insertPayload: Record<string, unknown> = {
       type,
       full_name: String(full_name).trim().slice(0, 200),
-      email: String(email).trim().slice(0, 200),
+      email: String(email || "").trim().slice(0, 200),
       phone: phone ? String(phone).trim().slice(0, 40) : null,
       message: message ? String(message).trim().slice(0, MESSAGE_MAX_LENGTH) : null,
       consented_at: new Date().toISOString(),
-      consent_purpose: type === "visite" ? "Être contacté au sujet de cette demande de visite" : "Être contacté au sujet de cette demande d'évaluation",
+      consent_purpose: type === "visite" ? "Être contacté au sujet de cette demande de visite" : type === "contact" ? "Être contacté au sujet de ce message" : "Être contacté au sujet de cette demande d'évaluation",
     };
     if (type === "visite" && unit_id) insertPayload.unit_id = unit_id;
 

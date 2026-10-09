@@ -10,6 +10,7 @@ import { Note, gab } from '@/proto/blocs';
 import { FE_Signature } from '@/proto/formulaires';
 import { naviguer } from '@/lib/routeur';
 import { __maintenant, __ssr } from '@/lib/hydratation';
+import { envoyerDemande } from '@/lib/envoi';
 const MAR = '#0C2147',
   BL = '#4581CB',
   BL6 = '#3767A2',
@@ -113,6 +114,7 @@ function FormOffreP({
   const [err, setErr] = React.useState({}),
     [vu, setVu] = React.useState({}),
     [envoi, setEnvoi] = React.useState(false),
+    [echec, setEchec] = React.useState(''),
     [rdv, setRdv] = React.useState(null),
     resume = React.useRef(null),
     haut = React.useRef(null);
@@ -180,11 +182,20 @@ function FormOffreP({
       return;
     }
     setEnvoi(true);
-    setTimeout(() => {
-      setEnvoi(false);
+    setEchec('');
+    envoyerDemande({
+      type: 'mandat',
+      nom: (v.prenom.trim() + ' ' + v.nom.trim()).trim(),
+      courriel: v.courriel.trim(),
+      tel: v.tel,
+      sector: v.secteur,
+      num_doors: +v.portes || undefined,
+      current_management: v.actuel === 'Oui' ? 'sous_gestion' : v.actuel ? 'autogere' : undefined,
+      lignes: [['Type d\u2019immeuble', v.type], ['Début souhaité', v.debut]]
+    }).then(() => {
       setEt(3);
       allerHaut();
-    }, 900);
+    }, x => setEchec(x.message)).finally(() => setEnvoi(false));
   };
   const PI = PictoImmeuble,
     erreurs = Object.entries(err).filter(([k]) => regles[k](v));
@@ -529,7 +540,8 @@ function FormOffreP({
             borderTopColor: '#fff'
           }} />Envoi en cours</React.Fragment> : <React.Fragment>{et === 1 ? 'Continuer' : 'Envoyer ma demande'}<span className="fp-fl" aria-hidden="true" style={{
             display: 'grid'
-          }}><Icon name="arrow-right" size={17} color="#fff" /></span></React.Fragment>}</button></div>
+          }}><Icon name="arrow-right" size={17} color="#fff" /></span></React.Fragment>}</button>
+      {echec && <p role="alert" style={{ flexBasis: '100%', margin: 0, color: '#A3231B', fontSize: '14px' }}>{echec}</p>}</div>
   </form>;
 }
 /* ——— Demandes (location, administration et plaintes, travaux, bail…) : même langage, piloté par la configuration FORMS ——— */
@@ -873,6 +885,7 @@ function FormEtapesP({
     [vu, setVu] = React.useState({}),
     [fini, setFini] = React.useState(false),
     [envoi, setEnvoi] = React.useState(false),
+    [echec, setEchec] = React.useState(''),
     haut = React.useRef(null),
     resume = React.useRef(null);
   React.useEffect(() => {
@@ -928,11 +941,25 @@ function FormEtapesP({
       setTimeout(remonter, 30);
     } else {
       setEnvoi(true);
-      setTimeout(() => {
-        setEnvoi(false);
+      setEchec('');
+      /* Tous les champs remplis, avec leur libellé. Fichiers et signature ne
+         sont pas transmis : ils exigent un stockage sécurisé (à venir). */
+      const texte = x => Array.isArray(x) ? x.join(', ') : x === true ? 'oui' : typeof x === 'object' ? JSON.stringify(x) : String(x);
+      const lignes = cfg.etapes.flatMap(et => et.champs)
+        .filter(c => c.k && !['prenom', 'nom', 'courriel', 'tel', 'consent', 'fichiers', 'signature'].includes(c.k) && !['fichiers', 'signature', 'note'].includes(c.type))
+        .filter(c => v[c.k] !== undefined && v[c.k] !== '' && v[c.k] !== false)
+        .map(c => [String(c.label || c.k).replace(/[{}]/g, ''), texte(v[c.k])]);
+      envoyerDemande({
+        type: 'contact',
+        nom: ((v.prenom || '') + ' ' + (v.nom || '')).trim(),
+        courriel: (v.courriel || '').trim(),
+        tel: v.tel,
+        sujet: cfg.titre.replace(/[{}]/g, ''),
+        lignes
+      }).then(() => {
         setFini(true);
         setTimeout(remonter, 30);
-      }, 900);
+      }, x => setEchec(x.message)).finally(() => setEnvoi(false));
     }
   };
   const erreurs = Object.entries(err).filter(([k]) => {
@@ -1162,7 +1189,8 @@ function FormEtapesP({
             borderTopColor: '#fff'
           }} />Envoi en cours</React.Fragment> : <React.Fragment>{i < N - 1 ? 'Continuer' : 'Envoyer ma demande'}<span className="fp-fl" aria-hidden="true" style={{
             display: 'grid'
-          }}><Icon name={i < N - 1 ? 'arrow-right' : 'send'} size={17} color="#fff" /></span></React.Fragment>}</button></div>
+          }}><Icon name={i < N - 1 ? 'arrow-right' : 'send'} size={17} color="#fff" /></span></React.Fragment>}</button>
+      {echec && <p role="alert" style={{ flexBasis: '100%', margin: 0, color: '#A3231B', fontSize: '14px' }}>{echec}</p>}</div>
   </form>;
 }
 export { FormOffreP, FormEtapesP };

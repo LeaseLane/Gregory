@@ -11,6 +11,7 @@ import { ouvrirCleo } from '@/proto/seo';
 import { LL_TEL_URGENCE } from '@/proto/routes';
 import { PBSommaire } from '@/proto/pages-proprio-b';
 import { __ssr } from '@/lib/hydratation';
+import { envoyerDemande } from '@/lib/envoi';
 const uS = React.useState,
   uE = React.useEffect,
   uR = React.useRef;
@@ -266,7 +267,9 @@ function FormRappel() {
     [q, setQ] = uS(''),
     [ok, setOk] = uS(false),
     [e, setE] = uS({}),
-    [fait, setFait] = uS(false);
+    [fait, setFait] = uS(false),
+    [envoi, setEnvoi] = uS(false),
+    [echec, setEchec] = uS('');
   const telOk = v => v.replace(/\D/g, '').length >= 10;
   const valider = () => ({
     'cpb-n': !n.trim() ? 'Indiquez votre prénom.' : '',
@@ -286,7 +289,18 @@ function FormRappel() {
       focusPremiere(errs, ['cpb-n', 'cpb-t', 'cpb-c', 'cpb-mo', 'cpb-ok']);
       return;
     }
-    setFait(true);
+    if (envoi) return;
+    setEnvoi(true);
+    setEchec('');
+    envoyerDemande({
+      type: 'contact',
+      nom: n.trim(),
+      courriel: m === 'tel' ? '' : c.trim(),
+      tel: m === 'tel' ? t : undefined,
+      sujet: 'Demande de rappel',
+      message: q.trim(),
+      lignes: [['Moyen', m === 'tel' ? 'Téléphone' : 'Courriel'], ['Moment souhaité', (MOM.find(x => x[0] === mo) || [])[1]]]
+    }).then(() => setFait(true), x => setEchec(x.message)).finally(() => setEnvoi(false));
   };
   const MOM = [['matin', 'Matin', 'sun'], ['midi', 'Après-midi', 'clock'], ['soir', 'Soir', 'bell']];
   if (fait) return <Succes titre={'Merci ' + n.trim() + '. Une personne vous ' + (m === 'tel' ? 'rappelle.' : 'écrit.')}>
@@ -338,7 +352,7 @@ function FormRappel() {
           'cpb-ok': v ? '' : x['cpb-ok']
         }));
       }} err={e['cpb-ok']}>J’accepte d’être joint par Lease Lane au sujet de cette demande. <span className="cp-req">*</span></Consentement></div>
-    <div className="cp-form-pied cp-plein"><button type="submit" className="cp-btn cp-btn-p cp-btn-l">Demander un rappel<span className="cp-btn-fl" aria-hidden="true"><Icon name="phone" size={16} color="currentColor" /></span></button>
+    <div className="cp-form-pied cp-plein">{echec && <p role="alert" style={{ margin: 0, color: 'var(--urgence-600)', fontSize: '14px' }}>{echec}</p>}<button type="submit" disabled={envoi} className="cp-btn cp-btn-p cp-btn-l">{envoi ? 'Envoi en cours…' : 'Demander un rappel'}<span className="cp-btn-fl" aria-hidden="true"><Icon name="phone" size={16} color="currentColor" /></span></button>
       <span className="cp-aide"><Icon name="clock" size={13} color="currentColor" /> Rappel en jour ouvrable. Pour une urgence : <a href={telUrg()}>ligne de garde 24/7</a>.</span></div>
   </form>;
 }

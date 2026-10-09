@@ -11,6 +11,7 @@ import { LL_DATA } from '@/proto/data';
 import { CleoPanneau } from '@/proto/cleo-options';
 import { CleoAccroche } from '@/proto/cleo-panneau';
 import { __ssr } from '@/lib/hydratation';
+import { demanderCleo } from '@/lib/envoi';
 
 /* Repli si le paquet du système n'expose pas encore le contexte : la page s'affiche avec les pilules au lieu d'un écran blanc. */
 
@@ -462,7 +463,17 @@ function AgentIA({
         return;
       }
     }
-    repondre(DEFAUT);
+    /* Aucun scénario ni FAQ : l'IA répond (handle-public-faq, base de
+       connaissance du site seulement). Si elle est indisponible, réponse
+       prudente d'origine. */
+    setEcrit(true);
+    demanderCleo(t).then(texte => repondre({
+      messages: () => [{
+        role: 'agent',
+        texte
+      }],
+      suggestions: ['Parler à une personne', 'Une autre question']
+    }), () => repondre(DEFAUT));
   };
   const choisirProfil = k => {
     setProfil(k);
