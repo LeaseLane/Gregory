@@ -29,7 +29,7 @@ const demander = q => {
   try {
     ouvrirCleo(q);
   } catch (e) {
-    location.hash = "/cleo";
+    window.location.assign("/cleo");
   }
 };
 const liste = pub => {

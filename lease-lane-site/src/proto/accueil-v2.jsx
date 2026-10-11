@@ -427,11 +427,11 @@ function Preuve({
           color: '#fff',
           maxWidth: '17ch',
           textWrap: 'balance'
-        }}>Chiffres <span style={{
+        }}>Nos <span style={{
             color: '#6194D3'
-          }}>impressionnants</span>... ça fait <span style={{
+          }}>engagements</span>, écrits <span style={{
             color: '#6194D3'
-          }}>réfléchir</span> au changement.</h2> : <C7.Titre id="v2-p" max="17ch" />}<C7.CtaLien on={vu} ms={400} clair={clair} /></div>
+          }}>noir sur blanc</span>.</h2> : <C7.Titre id="v2-p" max="17ch" />}<C7.CtaLien on={vu} ms={400} clair={clair} /></div>
     <dl className="v2-g3" style={{
         margin: 0,
         display: 'grid',

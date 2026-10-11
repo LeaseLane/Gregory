@@ -286,8 +286,8 @@ const ENT3 = [{
 }, {
   k: 'loc',
   mot: 'Services aux locataires',
-  /* Portail locataire (l'ancien lien pointait vers le prototype). Logements à louer retiré le 11 oct. 2026 : aucun logement sous gestion. */
-  href: 'https://app.leaselane.ca/?p=locataire'
+  /* Page Service aux locataires (l'ancien lien pointait vers le prototype, introuvable). Logements à louer retiré le 11 oct. 2026. */
+  to: '/locataires'
 }];
 const SocleActuel = () => <nav aria-label="Choisissez votre profil" className="h3-monte h7-socle" style={{
   position: 'relative',

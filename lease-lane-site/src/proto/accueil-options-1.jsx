@@ -3,12 +3,12 @@
 
 /* Converti depuis ui_kits/site-public/accueil-options-1.jsx (prototype) — ne pas réintroduire de globaux window. */
 import React from 'react';
+import { naviguer } from '@/lib/routeur';
 import { Icon, Button, Badge, Overline } from '@/components/ds';
 import { Fleche } from '@/proto/blocs';
 import { __ssr } from '@/lib/hydratation';
-const aller = to => {
-  window.location.hash = to;
-};
+/* Navigation du site (l'ancien « #/chemin » du prototype restait sur la page d'accueil). */
+const aller = to => naviguer(String(to).replace(/^#/, ''));
 const sansMvt = () => !!(((__ssr() ? "undefined" : typeof window) !== "undefined" ? window.matchMedia : undefined) && ((__ssr() ? "undefined" : typeof window) !== "undefined" ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : undefined));
 const BOITE = {
   maxWidth: 'var(--web-conteneur)',

@@ -3,6 +3,18 @@
    LL_EN_TXT : clé = fragments de texte d’une phrase séparés par ␞ (U+241E); valeur = même nombre de fragments, en anglais.
    LL_EN_ATTR : aria-label, alt, title, placeholder. Pour corriger une traduction : modifier la valeur ici. */
 export const LL_EN_TXT = {
+"h maximum": "h maximum",
+"Première réponse": "First response",
+"urgences": "emergencies",
+"Ligne de garde": "On-call line",
+"du mois": "of the month",
+"Réponse aux prospects": "Replies to prospects",
+"Cléo répond en tout temps, même le soir": "Cléo answers at any time, even at night",
+"au plus, pour toute demande": "at most, for any request",
+"au plus tard le 15 de chaque mois": "no later than the 15th of each month",
+"Sans votre accord": "Without your approval",
+"au-delà du plafond prévu à votre mandat": "above the limit set in your agreement",
+"Nos␞engagements␞, écrits␞noir sur blanc␞.": "Our␞commitments␞, in␞black and white␞.",
 "Nous n’avons aucun logement à louer pour le moment. Demandez à Cléo de vous prévenir : l’équipe vous écrit dès qu’un logement se libère.": "We have no units for rent at the moment. Ask Cléo to let you know: our team will write to you as soon as a unit becomes available.",
 "Nous n’avons aucun logement à louer pour le moment. Laissez-moi vos coordonnées : l’équipe vous écrit dès qu’un logement se libère.": "We have no units for rent at the moment. Leave me your contact details: our team will write to you as soon as a unit becomes available.",
 "Me prévenir": "Notify me",

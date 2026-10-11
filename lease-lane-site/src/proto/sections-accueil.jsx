@@ -3,6 +3,7 @@
 
 /* Converti depuis ui_kits/site-public/sections-accueil.jsx (prototype) — ne pas réintroduire de globaux window. */
 import React from 'react';
+import { naviguer } from '@/lib/routeur';
 import { Icon, Button, Badge, Overline } from '@/components/ds';
 import { gab, Fleche } from '@/proto/blocs';
 import { LL_FAQ } from '@/proto/faq';
@@ -17,9 +18,8 @@ const CONTS = {
   padding: 'var(--web-section) var(--web-gouttiere)',
   boxSizing: 'border-box'
 };
-const aller = to => {
-  window.location.hash = to;
-};
+/* Navigation du site (l'ancien « #/chemin » du prototype restait sur la page d'accueil). */
+const aller = to => naviguer(String(to).replace(/^#/, ''));
 const Ex = () => <Badge ton="alerte" taille="s">Exemple</Badge>;
 const Tete = ({
   sur,

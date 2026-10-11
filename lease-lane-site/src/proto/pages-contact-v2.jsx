@@ -17,7 +17,7 @@ const cleo = t => {
   try {
     ouvrirCleo(t);
   } catch (e) {
-    window.location.hash = "/cleo";
+    window.location.assign("/cleo");
   }
 };
 const AUTH = "/connexion",

@@ -3,6 +3,7 @@
 
 /* Converti depuis ui_kits/site-public/kit-ll.jsx (prototype) — ne pas réintroduire de globaux window. */
 import React from 'react';
+import { naviguer } from '@/lib/routeur';
 const KITS = {
   A: {
     nom: 'Voie',
@@ -140,9 +141,8 @@ function Pastille({
     background: clair ? 'rgba(255,255,255,.12)' : '#0C2147'
   }}><Ico n={n} t={Math.round(t * .46)} c="#fff" /></span>;
 }
-const aller = to => {
-  window.location.hash = to;
-};
+/* Navigation du site (l'ancien « #/chemin » du prototype restait sur la page d'accueil). */
+const aller = to => naviguer(String(to).replace(/^#/, ''));
 function Btn({
   v = 'p',
   to,

@@ -25,7 +25,7 @@ const SR = {
   whiteSpace: 'nowrap',
   border: 0
 };
-const VERS = '/changer-de-gestionnaire';
+const VERS = '/offre-de-service';
 const go = e => {
   e.preventDefault();
   ACC_H.aller(VERS);
@@ -50,11 +50,11 @@ const Titre = ({
   maxWidth: max,
   textAlign: a,
   textWrap: 'balance'
-}}>Chiffres <span style={{
+}}>Nos <span style={{
     color: ACC_H.BL
-  }}>impressionnants</span>... ça fait <span style={{
+  }}>engagements</span>, écrits <span style={{
     color: ACC_H.BL
-  }}>réfléchir</span> au changement.</h2>;
+  }}>noir sur blanc</span>.</h2>;
 const Lib = ({
   x,
   max = '20ch',

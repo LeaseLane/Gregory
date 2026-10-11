@@ -19,7 +19,7 @@ const ouvrir = t => {
   try {
     ouvrirCleo(t);
   } catch (e) {
-    location.hash = "/cleo";
+    window.location.assign("/cleo");
   }
 };
 const CSS = `.acm{position:relative;overflow:clip;background:var(--degrade-marine);color:#fff;padding:72px 0 80px}

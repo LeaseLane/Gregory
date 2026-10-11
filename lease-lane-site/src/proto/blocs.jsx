@@ -91,7 +91,8 @@ const LLSol = ({
   sombre,
   h = '72%'
 }) => {
-  const r = (((__ssr() ? "undefined" : typeof location) !== "undefined" ? location.hash : undefined) || "/").replace(/^#/, '').split('?')[0];
+  /* Route réelle (le prototype lisait « #/chemin », toujours vide ici). */
+  const r = ((__ssr() ? "undefined" : typeof location) !== "undefined" ? location.pathname : "/") || "/";
   if (!undefined && r !== '/' && r !== '/gestion-immobiliere') return null;
   return <LLSolB sombre={sombre} h={h} />;
 };
@@ -230,27 +231,29 @@ function TitreBloc({
 /* Option 2b « Tableau vivant » (approuvée) : bande marine, une visualisation par indicateur. Valeurs d'exemple. */
 
 /* Option 15b « Chiffre vedette » (approuvée) : Cléo en grand sur marine, les deux autres indicateurs empilés. Valeurs d'exemple. */
+/* 11 oct. 2026 : les valeurs d'exemple (0 s, 17 jours, 98,6 %) sont remplacées par nos engagements publiés
+   (heures et délais de LL_SITE, rapport mensuel de la FAQ). Remettre des chiffres seulement s'ils sont mesurés. */
 const PREUVES_B = [{
-  v: '0',
-  u: 'secondes',
-  l: 'Délai de réponse',
+  v: '24',
+  u: 'h maximum',
+  l: 'Première réponse',
   d: '',
   p: 1,
   ic: 'message-circle'
 }, {
-  v: '17',
-  u: 'jours',
-  l: 'Délai de location',
+  v: '24/7',
+  u: 'urgences',
+  l: 'Ligne de garde',
   d: '',
-  p: 17 / 30,
-  ic: 'key-round'
+  p: 1,
+  ic: 'phone'
 }, {
-  v: '98,6',
-  u: '%',
-  l: 'Taux d\u2019occupation',
+  v: '15',
+  u: 'du mois',
+  l: 'Rapport mensuel',
   d: '',
-  p: .986,
-  ic: 'building-2'
+  p: 15 / 30,
+  ic: 'file-text'
 }];
 const ChiffrePreuve = ({
   x,

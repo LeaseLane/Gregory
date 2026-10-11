@@ -31,6 +31,8 @@ const nextConfig: NextConfig = {
       { source: '/locataires/demande-de-location', destination: '/locataires', permanent: false },
       { source: '/en/apartments-for-rent/:slug*', destination: '/en/tenants', permanent: false },
       { source: '/en/tenants/rental-application', destination: '/en/tenants', permanent: false },
+      /* « Espace locataire / propriétaire » (/connexion?profil=…) : ouvre directement le bon portail. */
+      { source: '/connexion', has: [{ type: 'query', key: 'profil', value: '(?<profil>locataire|proprietaire)' }], destination: APP + '/?p=:profil', permanent: false },
       { source: '/connexion', destination: PORTAIL, permanent: false },
       { source: '/en/connexion', destination: PORTAIL, permanent: false },
       { source: '/app/:onglet*', destination: APP + '/', permanent: false },
