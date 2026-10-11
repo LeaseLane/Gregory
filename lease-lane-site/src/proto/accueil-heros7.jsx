@@ -286,8 +286,13 @@ const ENT3 = [{
 }, {
   k: 'loc',
   mot: 'Services aux locataires',
-  /* Page Service aux locataires (l'ancien lien pointait vers le prototype, introuvable). Logements à louer retiré le 11 oct. 2026. */
+  /* Page Service aux locataires (l'ancien lien pointait vers le prototype, introuvable). */
   to: '/locataires'
+}, {
+  /* 4e case : Logements à louer retiré le 11 oct. 2026 (aucun logement sous gestion); même picto (maison et loupe) pour l'évaluation. */
+  k: 'rech',
+  mot: 'Soumission gratuite',
+  to: '/offre-de-service'
 }];
 const SocleActuel = () => <nav aria-label="Choisissez votre profil" className="h3-monte h7-socle" style={{
   position: 'relative',
