@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
     const action = body.action;
 
     if (action === "list_owners") {
-      const res = await fetch(`${supabaseUrl}/rest/v1/owners?select=id,full_name,company_name,management_rate,work_coordination_rate,spending_cap&order=full_name.asc`, { headers: adminHeaders });
+      const res = await fetch(`${supabaseUrl}/rest/v1/owners?select=id,full_name,company_name,management_rate,work_coordination_rate,spending_cap,archived_at&order=full_name.asc`, { headers: adminHeaders });
       return new Response(JSON.stringify({ owners: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

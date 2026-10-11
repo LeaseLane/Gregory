@@ -112,6 +112,24 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
     }
 
+    // Archiver (réversible) ou supprimer (définitif) un prospect.
+    if (action === "archive_prospect" || action === "delete_prospect") {
+      const { prospect_id, archiver } = body;
+      if (!prospect_id || !/^[0-9a-f-]{36}$/i.test(prospect_id)) return new Response(JSON.stringify({ error: "Prospect invalide" }), { status: 400, headers: corsHeaders });
+      const r = action === "delete_prospect"
+        ? await fetch(`${supabaseUrl}/rest/v1/prospects?id=eq.${prospect_id}`, { method: "DELETE", headers: adminHeaders })
+        : await fetch(`${supabaseUrl}/rest/v1/prospects?id=eq.${prospect_id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ archived_at: archiver ? new Date().toISOString() : null }) });
+      if (!r.ok) {
+        const detail = await r.text().catch(() => "");
+        return new Response(JSON.stringify({ error: action === "delete_prospect" && detail.includes("foreign key") ? "Ce prospect est lié à d'autres données (client signé, appels…). Archivez-le plutôt." : "Non enregistré" }), { status: 409, headers: corsHeaders });
+      }
+      await fetch(`${supabaseUrl}/rest/v1/audit_log`, {
+        method: "POST", headers: adminHeaders,
+        body: JSON.stringify({ actor_type: "admin", actor_id: userId, action: action === "delete_prospect" ? "prospect.deleted" : archiver ? "prospect.archived" : "prospect.restored", entity_type: "prospects", entity_id: prospect_id, details: {} }),
+      });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "update_stage") {
       const { prospect_id, stage, loss_reason } = body;
       const patchBody: Record<string, unknown> = { stage };

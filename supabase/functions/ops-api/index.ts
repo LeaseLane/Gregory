@@ -366,6 +366,59 @@ Deno.serve(async (req) => {
     // Archiver = retirer du tableau de bord sans rien effacer. Les rappels
     // de loyer encore en attente sont suspendus (un ancien locataire ne doit
     // plus en recevoir) ; la restauration ne les relance pas d'elle-même.
+    // Client propriétaire archivé : hors des listes actives, dossier intact.
+    if (action === "archive_owner") {
+      const { owner_id, archiver } = body;
+      if (!owner_id || !/^[0-9a-f-]{36}$/i.test(owner_id)) return new Response(JSON.stringify({ error: "owner_id invalide" }), { status: 400, headers: corsHeaders });
+      const r = await fetch(`${supabaseUrl}/rest/v1/owners?id=eq.${owner_id}`, {
+        method: "PATCH", headers: adminHeaders,
+        body: JSON.stringify(archiver ? { archived_at: new Date().toISOString(), archived_by: userId } : { archived_at: null, archived_by: null }),
+      });
+      if (!r.ok) return new Response(JSON.stringify({ error: "Non enregistré" }), { status: 502, headers: corsHeaders });
+      await logAudit(archiver ? "owner.archived" : "owner.restored", "owners", owner_id, {});
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Travaux à assigner : clôturer une demande réglée (ou la rouvrir).
+    if (action === "close_service_request") {
+      const { service_request_id, cloturer, note } = body;
+      if (!service_request_id || !/^[0-9a-f-]{36}$/i.test(service_request_id)) return new Response(JSON.stringify({ error: "Demande invalide" }), { status: 400, headers: corsHeaders });
+      const r = await fetch(`${supabaseUrl}/rest/v1/service_requests?id=eq.${service_request_id}`, {
+        method: "PATCH", headers: adminHeaders,
+        body: JSON.stringify(cloturer
+          ? { status: "closed", cloture_le: new Date().toISOString(), cloture_par: userId, cloture_note: String(note || "").trim().slice(0, 500) || null }
+          : { status: "open", cloture_le: null, cloture_par: null, cloture_note: null }),
+      });
+      if (!r.ok) return new Response(JSON.stringify({ error: "Non enregistré" }), { status: 502, headers: corsHeaders });
+      await logAudit(cloturer ? "service_request.closed" : "service_request.reopened", "service_requests", service_request_id, { note: note || null });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "list_closed_service_requests") {
+      const res = await fetch(`${supabaseUrl}/rest/v1/service_requests?status=eq.closed&select=id,description,ai_category,created_at,cloture_le,cloture_note,units(unit_number,buildings(address)),tenants(full_name),clotureur:users!service_requests_cloture_par_fkey(email)&order=cloture_le.desc.nullslast,created_at.desc&limit=100`, { headers: adminHeaders });
+      return new Response(JSON.stringify({ service_requests: await res.json().catch(() => []) }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Paiement en retard réglé ou résolu (entente, payé hors système…) : retiré de la liste active.
+    // Le paiement lui-même reste tel quel; « payé » le marque aussi comme reçu.
+    if (action === "resolve_late_payment") {
+      const { payment_id, resoudre, note, paye } = body;
+      if (!payment_id || !/^[0-9a-f-]{36}$/i.test(payment_id)) return new Response(JSON.stringify({ error: "Paiement invalide" }), { status: 400, headers: corsHeaders });
+      const maj: Record<string, unknown> = resoudre
+        ? { resolu_le: new Date().toISOString(), resolu_par: userId, resolu_note: String(note || "").trim().slice(0, 500) || null, reminder_paused: true }
+        : { resolu_le: null, resolu_par: null, resolu_note: null };
+      if (resoudre && paye) Object.assign(maj, { status: "paid", paid_date: new Date().toISOString().slice(0, 10) });
+      const r = await fetch(`${supabaseUrl}/rest/v1/payments?id=eq.${payment_id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify(maj) });
+      if (!r.ok) return new Response(JSON.stringify({ error: "Non enregistré" }), { status: 502, headers: corsHeaders });
+      await logAudit(resoudre ? (paye ? "payment.marked_paid" : "payment.resolved") : "payment.unresolved", "payments", payment_id, { note: note || null });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "list_resolved_payments") {
+      const res = await fetch(`${supabaseUrl}/rest/v1/payments?resolu_le=not.is.null&select=id,amount,due_date,status,paid_date,resolu_le,resolu_note,leases(tenants(full_name),units(unit_number,buildings(address)))&order=resolu_le.desc&limit=100`, { headers: adminHeaders });
+      return new Response(JSON.stringify({ payments: await res.json().catch(() => []) }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "archive_tenant") {
       const { tenant_id, archiver } = body;
       if (!tenant_id || !/^[0-9a-f-]{36}$/i.test(tenant_id)) return new Response(JSON.stringify({ error: "tenant_id invalide" }), { status: 400, headers: corsHeaders });
@@ -1160,7 +1213,7 @@ Deno.serve(async (req) => {
 
     if (action === "list_late_payments") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/payments?status=eq.late&select=*,leases(monthly_rent,tenants(full_name,email),units(unit_number,buildings(address)))&order=due_date.asc`,
+        `${supabaseUrl}/rest/v1/payments?status=eq.late&resolu_le=is.null&select=*,leases(monthly_rent,tenants(full_name,email),units(unit_number,buildings(address)))&order=due_date.asc`,
         { headers: adminHeaders },
       );
       return new Response(JSON.stringify({ payments: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });

@@ -1660,3 +1660,11 @@ body.ll-mdp-actif{ overflow:hidden; }
 .pf-doc-actions > * + *{ margin-left:8px; }
 .sr-lien-archives{ border:none; cursor:pointer; font:inherit; }
 .sr-lien-archives:hover{ text-decoration:underline; }
+
+/* Vue d'ensemble : « Traité » sur chaque élément à traiter. */
+.vo-element{display:flex;align-items:flex-start;gap:8px}
+.vo-element>span{flex:1;min-width:0}
+.vo-traite{flex:none;border:1px solid var(--bordure-fine,#dce3ec);background:#fff;color:var(--marine-900,#0a2038);font:600 11.5px/1 var(--police-texte);padding:5px 8px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.vo-traite:hover{background:var(--succes-100,#e3f4ea);border-color:var(--succes-500,#2e7d4f);color:var(--succes-600,#1e6b3e)}
+.vo-traite:disabled{opacity:.5;cursor:progress}
+.vo-pied{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center}

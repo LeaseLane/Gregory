@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
 
     if (action === "list_my_prospects") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/prospects?assigned_caller_id=eq.${callerId}&select=id,full_name,email,phone,company_name,num_doors,avg_rent,potential_monthly_revenue,stage,interest_level,next_followup_date,call_history,notes,created_at&order=next_followup_date.asc.nullslast`,
+        `${supabaseUrl}/rest/v1/prospects?assigned_caller_id=eq.${callerId}&archived_at=is.null&select=id,full_name,email,phone,company_name,num_doors,avg_rent,potential_monthly_revenue,stage,interest_level,next_followup_date,call_history,notes,created_at&order=next_followup_date.asc.nullslast`,
         { headers: adminHeaders },
       );
       const prospects = await res.json();

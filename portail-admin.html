@@ -79,7 +79,7 @@
     .metrics{grid-template-columns:1fr 1fr;}
   }
 </style>
-<link rel="stylesheet" href="assets/leaselane.css?v=202610021535">
+<link rel="stylesheet" href="assets/leaselane.css?v=202610111500">
 <script src="assets/charger-portail.js?v=202610091900"></script>
 <script src="assets/ui.js?v=202610021535"></script>
 <script src="assets/metiers.js?v=202610071200"></script>
@@ -223,7 +223,9 @@
     <div class="vo-titre">
       <h2>À traiter aujourd'hui</h2>
       <span id="vo-total" class="vo-compte"></span>
+      <button class="vo-lien" onclick="afficherTraites()">Historique des traités<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#clock"/></svg></button>
     </div>
+    <div id="vo-traites" class="tr-carte" hidden style="margin-bottom:16px;"></div>
     <div id="command-center-body" class="vo-grille"><p class="tr-vide">Chargement...</p></div>
 
     <div class="vo-titre">
@@ -616,6 +618,10 @@
       <button onclick="createProspect()" class="ll-bouton ll-bouton--primaire">Ajouter un prospect</button>
     </div>
 
+    <div style="display:flex;align-items:center;gap:10px;margin:0 0 10px;">
+      <label class="ch-label" for="pr-filtre" style="margin:0">Afficher</label>
+      <select id="pr-filtre" onchange="prChoisirFiltre(this.value)"></select>
+    </div>
     <table><thead><tr><th>Prospect</th><th class="num">Portes</th><th class="num">Revenu potentiel/mois</th><th>Intérêt</th><th>Statut</th><th class="num">Complétude</th><th class="num">Prob. signature</th><th>Prochain geste</th><th>Prochain suivi</th><th>Prospecteur</th><th></th></tr></thead>
       <tbody id="prospects-body"><tr class="empty-row"><td colspan="11">Chargement...</td></tr></tbody>
     </table>
@@ -1416,6 +1422,8 @@ async function loadAiErrors(){
     </div>`).join('');
 }
 
+/* Chaque élément porte sa clé (_cle, posée par admin-api) pour « Traité ». */
+const avecCle = (liste, fn) => (liste || []).map(o => ({ t: fn(o), cle: o._cle }));
 function renderCommandCenter(cc){
   const container = document.getElementById('command-center-body');
   if(!cc){ container.innerHTML = '<p class="tr-vide">Indisponible.</p>'; return; }
@@ -1424,42 +1432,42 @@ function renderCommandCenter(cc){
   const sections = [];
 
   if(cc.urgences?.length){
-    sections.push({ label: 'Urgences', ton: 'urgent', icone: 'flame', items: cc.urgences.map(s => `${esc(s.description)} — ${addr(s.units)} (${esc((s.safety_flags||[]).join(', ')) || esc(s.ai_urgency)})`) });
+    sections.push({ label: 'Urgences', ton: 'urgent', icone: 'flame', items: avecCle(cc.urgences, s => `${esc(s.description)} — ${addr(s.units)} (${esc((s.safety_flags||[]).join(', ')) || esc(s.ai_urgency)})`) });
   }
   const decisions = [
-    ...(cc.decisions_requises?.approbations_en_attente || []).map(a => `Approbation en attente — ${Number(a.requested_amount||0).toLocaleString('fr-CA')} $`),
-    ...(cc.decisions_requises?.demandes_a_valider || []).map(s => `Catégorisation IA à valider — ${esc(s.description)} (confiance ${s.ai_confidence != null ? Math.round(s.ai_confidence)+'%' : '—'})`),
-    ...(cc.decisions_requises?.documents_a_valider || []).map(d => `Document à valider — "${esc(d.title)}" (${esc(d.owners?.full_name) || 'client inconnu'})`),
-    ...(cc.decisions_requises?.decisions_travailleurs || []).map(w => `${esc(w.workers?.name) || 'Travailleur'} — ${w.worker_response === 'proposed_other_time' ? 'propose une autre heure' : 'demande des infos'}${w.worker_response_note ? ' : ' + esc(w.worker_response_note) : ''}`),
+    ...avecCle(cc.decisions_requises?.approbations_en_attente, a => `Approbation en attente — ${Number(a.requested_amount||0).toLocaleString('fr-CA')} $`),
+    ...avecCle(cc.decisions_requises?.demandes_a_valider, s => `Catégorisation IA à valider — ${esc(s.description)} (confiance ${s.ai_confidence != null ? Math.round(s.ai_confidence)+'%' : '—'})`),
+    ...avecCle(cc.decisions_requises?.documents_a_valider, d => `Document à valider — "${esc(d.title)}" (${esc(d.owners?.full_name) || 'client inconnu'})`),
+    ...avecCle(cc.decisions_requises?.decisions_travailleurs, w => `${esc(w.workers?.name) || 'Travailleur'} — ${w.worker_response === 'proposed_other_time' ? 'propose une autre heure' : 'demande des infos'}${w.worker_response_note ? ' : ' + esc(w.worker_response_note) : ''}`),
   ];
   if(decisions.length) sections.push({ label: 'Décisions à prendre', ton: 'att', icone: 'gavel', items: decisions });
 
   const blocked = [
-    ...(cc.dossiers_bloques?.refuses_a_reevaluer || []).map(s => `Refusé par le propriétaire — ${esc(s.description)} (${addr(s.units)}) — réévaluation d'ici le ${esc(s.reassessment_due)}`),
-    ...(cc.dossiers_bloques?.tous_travailleurs_ont_refuse || []).map(w => `Aucun travailleur disponible — ${esc(w.description)} (${addr(w.units)})`),
+    ...avecCle(cc.dossiers_bloques?.refuses_a_reevaluer, s => `Refusé par le propriétaire — ${esc(s.description)} (${addr(s.units)}) — réévaluation d'ici le ${esc(s.reassessment_due)}`),
+    ...avecCle(cc.dossiers_bloques?.tous_travailleurs_ont_refuse, w => `Aucun travailleur disponible — ${esc(w.description)} (${addr(w.units)})`),
   ];
   if(blocked.length) sections.push({ label: 'Dossiers bloqués', ton: 'urgent', icone: 'circle-x', tab: 'work-requests', items: blocked });
 
   if(cc.travailleurs_sans_reponse?.length){
-    sections.push({ label: 'Travailleurs sans réponse', ton: 'att', icone: 'clock', tab: 'work-orders', items: cc.travailleurs_sans_reponse.map(w => `${esc(w.workers?.name) || 'Travailleur'} — ${esc(w.description)} (notifié le ${new Date(w.worker_notified_at).toLocaleDateString('fr-CA')})`) });
+    sections.push({ label: 'Travailleurs sans réponse', ton: 'att', icone: 'clock', tab: 'work-orders', items: avecCle(cc.travailleurs_sans_reponse, w => `${esc(w.workers?.name) || 'Travailleur'} — ${esc(w.description)} (notifié le ${new Date(w.worker_notified_at).toLocaleDateString('fr-CA')})`) });
   }
   if(cc.loyers_en_retard?.length){
-    sections.push({ label: 'Loyers en retard', ton: 'urgent', icone: 'banknote', tab: 'late-payments', items: cc.loyers_en_retard.map(p => `${esc(p.leases?.tenants?.full_name) || ''} — ${Number(p.amount).toLocaleString('fr-CA')} $ dû le ${esc(p.due_date)} (${addr(p.leases?.units)})`) });
+    sections.push({ label: 'Loyers en retard', ton: 'urgent', icone: 'banknote', tab: 'late-payments', items: avecCle(cc.loyers_en_retard, p => `${esc(p.leases?.tenants?.full_name) || ''} — ${Number(p.amount).toLocaleString('fr-CA')} $ dû le ${esc(p.due_date)} (${addr(p.leases?.units)})`) });
   }
   if(cc.baux_a_renouveler?.length){
-    sections.push({ label: 'Baux à renouveler (60 jours)', icone: 'refresh-cw', tab: 'renewals', items: cc.baux_a_renouveler.map(l => `${esc(l.tenants?.full_name) || ''} — ${addr(l.units)} — échéance ${esc(l.end_date)}`) });
+    sections.push({ label: 'Baux à renouveler (60 jours)', icone: 'refresh-cw', tab: 'renewals', items: avecCle(cc.baux_a_renouveler, l => `${esc(l.tenants?.full_name) || ''} — ${addr(l.units)} — échéance ${esc(l.end_date)}`) });
   }
   if(cc.messages_sans_reponse?.length){
-    sections.push({ label: 'Messages sans réponse', ton: 'att', icone: 'message-circle', items: cc.messages_sans_reponse.map(m => `${esc(m.owners?.full_name) || 'Propriétaire'} : "${esc(m.body)}"`) });
+    sections.push({ label: 'Messages sans réponse', ton: 'att', icone: 'message-circle', items: avecCle(cc.messages_sans_reponse, m => `${esc(m.owners?.full_name) || 'Propriétaire'} : "${esc(m.body)}"`) });
   }
   if(cc.documents_expirant_bientot?.length){
-    sections.push({ label: 'Documents expirant bientôt', icone: 'file-text', items: cc.documents_expirant_bientot.map(d => `"${esc(d.title)}" — ${esc(d.owners?.full_name) || ''} — échéance ${esc(d.ai_expiry_date)}`) });
+    sections.push({ label: 'Documents expirant bientôt', icone: 'file-text', items: avecCle(cc.documents_expirant_bientot, d => `"${esc(d.title)}" — ${esc(d.owners?.full_name) || ''} — échéance ${esc(d.ai_expiry_date)}`) });
   }
   if(cc.prospects_a_relancer?.length){
-    sections.push({ label: 'Prospects à relancer', icone: 'handshake', tab: 'crm', items: cc.prospects_a_relancer.map(p => `${esc(p.full_name)} — suivi prévu le ${esc(p.next_followup_date)} (${stageLabel[p.stage] || esc(p.stage)})`) });
+    sections.push({ label: 'Prospects à relancer', icone: 'handshake', tab: 'crm', items: avecCle(cc.prospects_a_relancer, p => `${esc(p.full_name)} — suivi prévu le ${esc(p.next_followup_date)} (${stageLabel[p.stage] || esc(p.stage)})`) });
   }
   if(cc.anomalies_financieres?.length){
-    sections.push({ label: 'Anomalies financières', ton: 'urgent', icone: 'receipt', tab: 'anomalies', items: cc.anomalies_financieres.map(a => `${esc(a.description)} — ${esc(a.owners?.full_name) || ''}`) });
+    sections.push({ label: 'Anomalies financières', ton: 'urgent', icone: 'receipt', tab: 'anomalies', items: avecCle(cc.anomalies_financieres, a => `${esc(a.description)} — ${esc(a.owners?.full_name) || ''}`) });
   }
   const stuckLabel = {
     'repair_case.stuck_no_diagnosis': 'Diagnostic IA bloqué depuis plus de 2 jours',
@@ -1470,28 +1478,28 @@ function renderCommandCenter(cc){
     'repair_case.tenant_reopened': 'Le locataire signale que le problème persiste',
   };
   if(cc.dossiers_reparation_stagnants?.length){
-    sections.push({ label: 'Réparations qui stagnent', ton: 'urgent', icone: 'wrench', tab: 'work-orders', items: cc.dossiers_reparation_stagnants.map(a => `${stuckLabel[a.action] || esc(a.action)} — ${esc(a.details?.description) || ''}`) });
+    sections.push({ label: 'Réparations qui stagnent', ton: 'urgent', icone: 'wrench', tab: 'work-orders', items: avecCle(cc.dossiers_reparation_stagnants, a => `${stuckLabel[a.action] || esc(a.action)} — ${esc(a.details?.description) || ''}`) });
   }
   if(cc.ia_faible_confiance?.length){
-    sections.push({ label: 'IA incertaine ou en erreur (24 h)', ton: 'att', icone: 'bot', tab: 'observability', items: cc.ia_faible_confiance.map(r => `${esc(r.function_name)} — ${r.error ? 'erreur : ' + esc(r.error) : (esc(r.input_summary) || '') + (r.confidence != null ? ' (confiance ' + Math.round(r.confidence) + '%)' : '')}`) });
+    sections.push({ label: 'IA incertaine ou en erreur (24 h)', ton: 'att', icone: 'bot', tab: 'observability', items: avecCle(cc.ia_faible_confiance, r => `${esc(r.function_name)} — ${r.error ? 'erreur : ' + esc(r.error) : (esc(r.input_summary) || '') + (r.confidence != null ? ' (confiance ' + Math.round(r.confidence) + '%)' : '')}`) });
   }
   if(cc.onboarding_incomplet?.length){
-    sections.push({ label: 'Dossiers clients incomplets', icone: 'files', tab: 'clients', items: cc.onboarding_incomplet.map(o => `${esc(o.full_name)} — ${esc(o.gaps.join(', '))} <button class="vo-action" onclick="sendOnboardingReminder('${o.owner_id}')">Envoyer un rappel</button>`) });
+    sections.push({ label: 'Dossiers clients incomplets', icone: 'files', tab: 'clients', items: avecCle(cc.onboarding_incomplet, o => `${esc(o.full_name)} — ${esc(o.gaps.join(', '))} <button class="vo-action" onclick="sendOnboardingReminder('${o.owner_id}')">Envoyer un rappel</button>`) });
   }
   if(cc.travailleurs_a_verifier?.length){
-    sections.push({ label: 'Travailleurs à vérifier', ton: 'urgent', icone: 'shield-check', tab: 'workers', items: cc.travailleurs_a_verifier.map(v => v.action === 'worker_verification.non_compliant'
+    sections.push({ label: 'Travailleurs à vérifier', ton: 'urgent', icone: 'shield-check', tab: 'workers', items: avecCle(cc.travailleurs_a_verifier, v => v.action === 'worker_verification.non_compliant'
       ? `${esc(v.details?.name)} — ${esc((v.details?.reasons || []).join(', '))}`
       : `${esc(v.details?.name)} — expire bientôt (RBQ ${esc(v.details?.rbq_license_expiry) || '—'}, assurance ${esc(v.details?.insurance_expiry) || '—'})`) });
   }
   const visitItems = [
-    ...(cc.visites?.a_planifier || []).map(i => `À planifier — ${esc(i.full_name)} — ${addr(i.units)}`),
-    ...(cc.visites?.sans_reponse || []).map(v => `Sans réponse depuis 2+ jours — ${esc(v.prospect_name)} — ${addr(v.units)}${v.response_note ? ' — ' + esc(v.response_note) : ''}`),
-    ...(cc.visites?.resultat_manquant || []).map(v => `Résultat manquant — ${esc(v.prospect_name)} — ${addr(v.units)} — visite du ${new Date(v.proposed_at).toLocaleDateString('fr-CA')}`),
+    ...avecCle(cc.visites?.a_planifier, i => `À planifier — ${esc(i.full_name)} — ${addr(i.units)}`),
+    ...avecCle(cc.visites?.sans_reponse, v => `Sans réponse depuis 2+ jours — ${esc(v.prospect_name)} — ${addr(v.units)}${v.response_note ? ' — ' + esc(v.response_note) : ''}`),
+    ...avecCle(cc.visites?.resultat_manquant, v => `Résultat manquant — ${esc(v.prospect_name)} — ${addr(v.units)} — visite du ${new Date(v.proposed_at).toLocaleDateString('fr-CA')}`),
   ];
   if(visitItems.length) sections.push({ label: 'Visites à traiter', icone: 'calendar-check', tab: 'visits', items: visitItems });
   if(cc.signaux_insatisfaction?.length){
     const subjectLabel = { owner: 'Propriétaire', tenant: 'Locataire' };
-    sections.push({ label: 'Signaux d\'insatisfaction', ton: 'urgent', icone: 'triangle-alert', items: cc.signaux_insatisfaction.map(s => `${esc(subjectLabel[s.subject_type] || s.subject_type)} — "${esc(s.content_excerpt)}" — IA : ${esc(s.ai_sentiment)}${s.ai_reasoning ? ' (' + esc(s.ai_reasoning) + ')' : ''} <button class="vo-action" onclick="resolveDissatisfactionSignal('${s.id}')">Marquer résolu</button>`) });
+    sections.push({ label: 'Signaux d\'insatisfaction', ton: 'urgent', icone: 'triangle-alert', items: avecCle(cc.signaux_insatisfaction, s => `${esc(subjectLabel[s.subject_type] || s.subject_type)} — "${esc(s.content_excerpt)}" — IA : ${esc(s.ai_sentiment)}${s.ai_reasoning ? ' (' + esc(s.ai_reasoning) + ')' : ''} <button class="vo-action" onclick="resolveDissatisfactionSignal('${s.id}')">Marquer résolu</button>`) });
   }
 
   const total = sections.reduce((n, x) => n + x.items.length, 0);
@@ -1512,11 +1520,59 @@ function renderCommandCenter(cc){
         <span class="vo-nb">${x.items.length}</span>
       </header>
       <ul>
-        ${x.items.slice(0, 3).map(i => `<li>${i}</li>`).join('')}
+        ${x.items.map((i, k) => `<li class="vo-element"${k > 2 ? ' hidden' : ''}><span>${i.t}</span>${i.cle ? `<button class="vo-traite" data-cle="${esc(i.cle)}" onclick="traiterElement(this)" title="Marquer comme traité : retiré de la vue pour toute l'équipe">✓ Traité</button>` : ''}</li>`).join('')}
       </ul>
-      ${x.tab ? `<button class="vo-lien" onclick="showTab('${x.tab}')">${x.items.length > 3 ? `Voir les ${x.items.length}` : 'Ouvrir'}<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#arrow-right"/></svg></button>`
-        : x.items.length > 3 ? `<p class="vo-plus">… et ${x.items.length - 3} de plus</p>` : ''}
+      <div class="vo-pied">
+        ${x.items.length > 3 ? `<button class="vo-lien" onclick="this.closest('article').querySelectorAll('li[hidden]').forEach(l => l.hidden = false); this.remove()">Voir les ${x.items.length}</button>` : ''}
+        ${x.tab ? `<button class="vo-lien" onclick="showTab('${x.tab}')">Ouvrir<svg class="ic" aria-hidden="true"><use href="assets/icones.svg#arrow-right"/></svg></button>` : ''}
+      </div>
     </article>`).join('');
+}
+
+async function callAdminApi(payload){
+  const { data, error } = await supabaseClient.functions.invoke('admin-api', { body: payload });
+  if(error){
+    let detail = error.message;
+    try { const b = await error.context?.json(); if(b?.error) detail = b.error; } catch(e){}
+    llToast('Erreur : ' + detail, 'erreur');
+    return null;
+  }
+  return data;
+}
+/* Recharge seulement la liste « À traiter » (pas les 35 sections du portail). */
+async function rafraichirCentre(){
+  const { data } = await supabaseClient.functions.invoke('admin-api');
+  if(data?.command_center) renderCommandCenter(data.command_center);
+}
+
+/* « Traité » : retiré de la vue d'ensemble pour tous les admins (historique conservé, rétablissable). */
+async function traiterElement(btn){
+  const li = btn.closest('li');
+  const libelle = (li.querySelector('span')?.textContent || '').replace(/\s+/g, ' ').trim();
+  btn.disabled = true;
+  const res = await callAdminApi({ action: 'traiter_element', cle: btn.dataset.cle, libelle });
+  if(res?.ok){ li.remove(); llToast('Marqué comme traité.', 'succes'); await rafraichirCentre(); }
+  else btn.disabled = false;
+}
+
+async function afficherTraites(){
+  const boite = document.getElementById('vo-traites');
+  if(!boite.hidden){ boite.hidden = true; return; }
+  boite.hidden = false;
+  boite.innerHTML = '<p class="tr-vide">Chargement…</p>';
+  const res = await callAdminApi({ action: 'liste_traites' });
+  const el = res?.elements || [];
+  boite.innerHTML = el.length ? `<table class="tr-table"><thead><tr><th>Élément</th><th>Traité par</th><th>Le</th><th></th></tr></thead><tbody>${el.map(e => `
+    <tr><td>${esc(e.libelle) || esc(e.cle)}</td><td>${esc(e.users?.email) || '—'}</td><td>${new Date(e.traite_le).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' })}</td>
+    <td><button class="vo-action" data-cle="${esc(e.cle)}" onclick="retablirElement(this)">Rétablir</button></td></tr>`).join('')}</tbody></table>`
+    : '<p class="tr-vide">Aucun élément traité pour l\'instant.</p>';
+}
+
+async function retablirElement(btn){
+  btn.disabled = true;
+  const res = await callAdminApi({ action: 'retablir_element', cle: btn.dataset.cle });
+  if(res?.ok){ btn.closest('tr').remove(); llToast('Rétabli dans la vue d\'ensemble.', 'succes'); await rafraichirCentre(); }
+  else btn.disabled = false;
 }
 
 async function callOnboardingApi(payload){
@@ -1576,22 +1632,29 @@ function obNouveau(){
 async function obInit(){
   const data = await callOnboardingApi({ action: 'list_owners' });
   const owners = data?.owners || [];
-  const options = '<option value="">— Choisir —</option>' + owners.map(o => `<option value="${o.id}">${esc(o.full_name)}${o.company_name ? ' — ' + esc(o.company_name) : ''}</option>`).join('');
+  const options = '<option value="">— Choisir —</option>' + owners.filter(o => !o.archived_at).map(o => `<option value="${o.id}">${esc(o.full_name)}${o.company_name ? ' — ' + esc(o.company_name) : ''}</option>`).join('');
   document.getElementById('ob-building-owner').innerHTML = options;
   document.getElementById('bulk-import-owner').innerHTML = options;
   document.getElementById('gl-owner').innerHTML = options;
   renderOwnersList(owners);
 }
 
-function renderOwnersList(owners){
+/* Clients archivés : hors de la liste active, dossier intact (filtre « Archivés » pour les retrouver). */
+let ownersTous = [], clVoirArchives = false;
+function renderOwnersList(liste){
+  if(liste) ownersTous = liste;
   const container = document.getElementById('owners-list-body');
   if(!container) return;
+  const nArch = ownersTous.filter(o => o.archived_at).length;
+  const owners = ownersTous.filter(o => clVoirArchives ? o.archived_at : !o.archived_at);
+  const bascule = nArch || clVoirArchives
+    ? `<p style="margin:0 0 12px;"><button class="tr-pastille sr-lien-archives" onclick="clVoirArchives=!clVoirArchives;renderOwnersList()">${clVoirArchives ? '← Clients actifs' : `<b>${nArch}</b> client${nArch > 1 ? 's' : ''} archivé${nArch > 1 ? 's' : ''}`}</button></p>` : '';
   if(!owners.length){
-    container.innerHTML = '<p class="tr-vide">Aucun propriétaire pour l\'instant.</p>';
+    container.innerHTML = bascule + `<p class="tr-vide">${clVoirArchives ? 'Aucun client archivé.' : 'Aucun propriétaire pour l\'instant.'}</p>`;
     return;
   }
   const champ = (id, val, suffixe, pas) => `<label class="cl-champ"><input type="number" id="${id}" value="${val}" step="${pas}" min="0" data-initial="${val}" oninput="clModifie(this)"><span>${suffixe}</span></label>`;
-  container.innerHTML = `
+  container.innerHTML = bascule + `
   <table class="cl-table">
     <thead><tr>
       <th>Client</th>
@@ -1615,10 +1678,18 @@ function renderOwnersList(owners){
           <button class="ll-bouton ll-bouton--primaire" id="own-save-${o.id}" onclick="saveOwnerRates('${o.id}')" hidden>Enregistrer</button>
           <span id="own-msg-${o.id}" class="cl-msg"></span>
           <button class="vo-action" data-role="owner" data-target-id="${esc(o.id)}" onclick="impersonateFromButton(this)">Voir son portail</button>
+          <button class="vo-action" onclick="clArchiver('${o.id}', ${!o.archived_at})">${o.archived_at ? 'Réactiver' : 'Archiver'}</button>
         </td>
       </tr>`).join('')}
     </tbody>
   </table>`;
+}
+
+async function clArchiver(id, archiver){
+  const o = ownersTous.find(x => x.id === id);
+  if(archiver && !(await llConfirmer(`Archiver ${o?.full_name || 'ce client'} ? Il disparaît des clients actifs et du tableau de bord. Son dossier (immeubles, baux, paiements, documents, rapports) est conservé, et vous pourrez le réactiver en tout temps.`))) return;
+  const res = await callOpsApi({ action: 'archive_owner', owner_id: id, archiver });
+  if(res?.ok){ llToast(archiver ? 'Client archivé.' : 'Client réactivé.', 'succes'); await obInit(); }
 }
 
 // Le bouton Enregistrer n'apparaît que sur la ligne modifiée : cinq
@@ -3248,11 +3319,12 @@ async function loadLatePaymentsAdmin(){
   (disbData?.disbursements || []).forEach(d => {
     (disbursementsByLease[d.lease_id] = disbursementsByLease[d.lease_id] || []).push(d);
   });
+  const lienRegles = `<p style="margin:0 0 12px;"><button class="tr-pastille sr-lien-archives" onclick="lpVoirRegles()">Situations réglées</button></p>`;
   if(!payments.length){
-    container.innerHTML = '<p class="tr-vide">Aucun paiement en retard.</p>';
+    container.innerHTML = lienRegles + '<p class="tr-vide">Aucun paiement en retard.</p>';
     return;
   }
-  container.innerHTML = payments.map(p => {
+  container.innerHTML = lienRegles + payments.map(p => {
     const tenant = p.leases?.tenants;
     const unit = p.leases?.units;
     const statusBadge = p.escalated_to_human
@@ -3275,6 +3347,10 @@ async function loadLatePaymentsAdmin(){
         <button onclick="togglePaymentPause('${p.id}', ${!p.reminder_paused})" style="background:${p.reminder_paused ? 'var(--ink)' : 'transparent'};color:${p.reminder_paused ? 'var(--paper)' : 'var(--ink)'};border:1px solid var(--ink);padding:8px 14px;font-size:12.5px;cursor:pointer;">
           ${p.reminder_paused ? 'Reprendre les rappels' : 'Mettre en pause (entente conclue)'}
         </button>
+        <span style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="vo-action" onclick="lpRegler('${p.id}', true)" title="Le loyer a été reçu : marqué payé et retiré de la liste">Marquer payé</button>
+          <button class="vo-action" onclick="lpRegler('${p.id}', false)" title="Situation résolue autrement (entente, annulation…) : retirée de la liste, paiement conservé tel quel">Réglé autrement</button>
+        </span>
       </div>
       ${disbursementsHtml}
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-top:10px;border-top:1px solid var(--line);padding-top:10px;">
@@ -3289,6 +3365,31 @@ async function loadLatePaymentsAdmin(){
       </div>
     </div>`;
   }).join('');
+}
+
+/* Paiement en retard régularisé : retiré de la liste active, données et historique conservés. */
+async function lpRegler(id, paye){
+  const note = await llDemander(paye ? 'Marquer ce loyer comme payé ? Note (optionnelle) : date ou mode de paiement.' : 'Retirer cette situation de la liste (le paiement reste tel quel dans l\'historique) ? Note : comment a-t-elle été réglée ?', '');
+  if(note === null) return;
+  const res = await callOpsApi({ action: 'resolve_late_payment', payment_id: id, resoudre: true, paye, note });
+  if(res?.ok){ llToast(paye ? 'Loyer marqué payé.' : 'Situation retirée de la liste.', 'succes'); await loadLatePaymentsAdmin(); }
+}
+
+async function lpVoirRegles(){
+  const container = document.getElementById('late-payments-body');
+  container.innerHTML = '<p class="tr-vide">Chargement…</p>';
+  const data = await callOpsApi({ action: 'list_resolved_payments' });
+  const liste = data?.payments || [];
+  container.innerHTML = `<p style="margin:0 0 12px;"><button class="tr-pastille sr-lien-archives" onclick="loadLatePaymentsAdmin()">← Paiements en retard</button></p>` + (liste.length ? `<table class="tr-table"><thead><tr><th>Locataire</th><th>Montant</th><th>Réglé</th><th></th></tr></thead><tbody>${liste.map(p => `
+    <tr><td>${esc(p.leases?.tenants?.full_name) || ''}<br><small>${esc(p.leases?.units?.buildings?.address) || ''}${p.leases?.units?.unit_number ? ', unité ' + esc(p.leases.units.unit_number) : ''}</small></td>
+    <td>${Number(p.amount).toLocaleString('fr-CA')} $<br><small>dû le ${esc(p.due_date)}</small></td>
+    <td>${p.status === 'paid' ? 'Payé' : 'Réglé autrement'} · ${new Date(p.resolu_le).toLocaleDateString('fr-CA', { dateStyle: 'medium' })}${p.resolu_note ? `<br><small>${esc(p.resolu_note)}</small>` : ''}</td>
+    <td>${p.status === 'paid' ? '' : `<button class="vo-action" onclick="lpRetablir('${p.id}')">Remettre dans la liste</button>`}</td></tr>`).join('')}</tbody></table>` : '<p class="tr-vide">Aucune situation réglée.</p>');
+}
+
+async function lpRetablir(id){
+  const res = await callOpsApi({ action: 'resolve_late_payment', payment_id: id, resoudre: false });
+  if(res?.ok){ llToast('Remis dans la liste des retards.', 'succes'); await lpVoirRegles(); }
 }
 
 async function createDisbursement(leaseId){
@@ -3318,15 +3419,39 @@ function workerOptionsHtml(selectedId){
   return workersDirectory.map(w => `<option value="${w.id}" ${w.id === selectedId ? 'selected' : ''}>${esc(w.name)} — ${esc(w.specialty) || ''}</option>`).join('');
 }
 
+/* Clôturer une demande déjà réglée (retirée de la liste active) ou la rouvrir. */
+async function srCloturer(id, cloturer){
+  let note = null;
+  if(cloturer){
+    note = await llDemander('Clôturer cette demande ? Elle sort de la liste active; son historique est conservé. Note (optionnelle) : comment a-t-elle été réglée ?', '');
+    if(note === null) return;
+  }
+  const res = await callOpsApi({ action: 'close_service_request', service_request_id: id, cloturer, note });
+  if(res?.ok){ llToast(cloturer ? 'Demande clôturée.' : 'Demande rouverte.', 'succes'); cloturer ? await loadServiceRequestsAdmin() : await srVoirClotures(); }
+}
+
+async function srVoirClotures(){
+  const container = document.getElementById('service-requests-body');
+  container.innerHTML = '<p class="tr-vide">Chargement…</p>';
+  const data = await callOpsApi({ action: 'list_closed_service_requests' });
+  const liste = data?.service_requests || [];
+  container.innerHTML = `<p style="margin:0 0 12px;"><button class="tr-pastille sr-lien-archives" onclick="loadServiceRequestsAdmin()">← Demandes ouvertes</button></p>` + (liste.length ? `<table class="tr-table"><thead><tr><th>Demande</th><th>Logement</th><th>Clôturée</th><th></th></tr></thead><tbody>${liste.map(sr => `
+    <tr><td>${esc(sr.description)}${sr.cloture_note ? `<br><small style="color:var(--muted)">${esc(sr.cloture_note)}</small>` : ''}</td>
+    <td>${esc(sr.units?.buildings?.address) || ''}${sr.units?.unit_number ? ', unité ' + esc(sr.units.unit_number) : ''}${sr.tenants?.full_name ? `<br><small>${esc(sr.tenants.full_name)}</small>` : ''}</td>
+    <td>${sr.cloture_le ? new Date(sr.cloture_le).toLocaleDateString('fr-CA', { dateStyle: 'medium' }) : '—'}${sr.clotureur?.email ? `<br><small>${esc(sr.clotureur.email)}</small>` : ''}</td>
+    <td><button class="vo-action" onclick="srCloturer('${sr.id}', false)">Rouvrir</button></td></tr>`).join('')}</tbody></table>` : '<p class="tr-vide">Aucune demande clôturée.</p>');
+}
+
 async function loadServiceRequestsAdmin(){
   const data = await callOpsApi({ action: 'list_service_requests' });
   const container = document.getElementById('service-requests-body');
   const requests = (data?.service_requests || []).slice().sort((a,b) => (b.safety_override ? 1 : 0) - (a.safety_override ? 1 : 0) || (b.ai_needs_review ? 1 : 0) - (a.ai_needs_review ? 1 : 0));
+  const lienClos = `<p style="margin:0 0 12px;"><button class="tr-pastille sr-lien-archives" onclick="srVoirClotures()">Demandes clôturées</button></p>`;
   if(!requests.length){
-    container.innerHTML = '<p class="tr-vide">Aucune demande de service ouverte.</p>';
+    container.innerHTML = lienClos + '<p class="tr-vide">Aucune demande de service ouverte.</p>';
     return;
   }
-  container.innerHTML = requests.map(sr => {
+  container.innerHTML = lienClos + requests.map(sr => {
     const costRange = (sr.ai_cost_min != null && sr.ai_cost_max != null)
       ? Number(sr.ai_cost_min).toLocaleString('fr-CA') + ' – ' + Number(sr.ai_cost_max).toLocaleString('fr-CA') + ' $'
       : (sr.ai_estimated_cost != null ? Number(sr.ai_estimated_cost).toLocaleString('fr-CA') + ' $' : null);
@@ -3388,6 +3513,7 @@ async function loadServiceRequestsAdmin(){
         <footer class="sr-pied">
           <button class="ll-bouton ll-bouton--secondaire" onclick="dispatchServiceRequestAuto('${sr.id}', '${sr.unit_id}')" title="Sollicite les travailleurs admissibles par ordre de score, sans choix manuel"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#bot"/></svg>Assigner automatiquement</button>
           <button class="ll-bouton ll-bouton--primaire" onclick="assignServiceRequest('${sr.id}', '${sr.unit_id}')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Assigner ce travailleur</button>
+          <button class="tr-lien-danger" onclick="srCloturer('${sr.id}', true)" title="Déjà réglé : retiré de la liste active, historique conservé">Clôturer (déjà réglé)</button>
         </footer>
       </div>
     </article>`;
@@ -3885,12 +4011,30 @@ function callerOptionsHtml(selectedId){
   return '<option value="">— Non assigné —</option>' + callersDirectory.map(c => `<option value="${c.id}" ${c.id === selectedId ? 'selected' : ''}>${esc(c.full_name)}${c.active ? '' : ' (inactif)'}</option>`).join('');
 }
 
+/* Vue par défaut : sans les prospects perdus ni archivés. Le filtre est retenu sur ce navigateur. */
+let prospectsTous = [];
+let prFiltre = (() => { try { return localStorage.getItem('ll-filtre-crm') || 'actifs'; } catch(e){ return 'actifs'; } })();
 async function loadProspects(){
   const data = await callCrmApi({ action: 'list' });
+  prospectsTous = data?.prospects || [];
+  renderProspects();
+}
+function prChoisirFiltre(v){
+  prFiltre = v;
+  try { localStorage.setItem('ll-filtre-crm', v); } catch(e){}
+  renderProspects();
+}
+function renderProspects(){
   const body = document.getElementById('prospects-body');
-  const prospects = data?.prospects || [];
+  const n = f => prospectsTous.filter(f).length;
+  const filtres = { actifs: p => !p.archived_at && p.stage !== 'lost', tous: () => true, archives: p => !!p.archived_at };
+  Object.keys(stageLabel).forEach(k => { filtres[k] = p => !p.archived_at && p.stage === k; });
+  const sel = document.getElementById('pr-filtre');
+  if(sel) sel.innerHTML = [['actifs', 'Actifs (sans perdus ni archivés)'], ...Object.entries(stageLabel), ['archives', 'Archivés'], ['tous', 'Tous']]
+    .map(([k, l]) => `<option value="${k}"${k === prFiltre ? ' selected' : ''}>${l} (${n(filtres[k])})</option>`).join('');
+  const prospects = prospectsTous.filter(filtres[prFiltre] || filtres.actifs);
   if(!prospects.length){
-    body.innerHTML = '<tr class="empty-row"><td colspan="11">Aucun prospect.</td></tr>';
+    body.innerHTML = `<tr class="empty-row"><td colspan="11">${prospectsTous.length ? 'Aucun prospect pour ce filtre.' : 'Aucun prospect.'}</td></tr>`;
     return;
   }
   body.innerHTML = prospects.map(p => `
@@ -3907,6 +4051,8 @@ async function loadProspects(){
       <td><select onchange="assignCallerToProspect('${p.id}', this.value)">${callerOptionsHtml(p.cold_callers?.id)}</select></td>
       <td>
         <button onclick="promptAddCall('${p.id}')" class="vo-action">+ Appel</button>
+        <button onclick="prArchiver('${p.id}', ${!p.archived_at})" class="vo-action">${p.archived_at ? 'Désarchiver' : 'Archiver'}</button>
+        <button onclick="prSupprimer('${p.id}')" class="tr-lien-danger">Supprimer</button>
         ${(p.call_history && p.call_history.length) ? `<button onclick="toggleCallHistory('${p.id}')" class="vo-action">Historique (${p.call_history.length})</button>` : ''}
       </td>
     </tr>
@@ -3926,6 +4072,17 @@ async function loadProspects(){
           </div>`).join('')}
       </td>
     </tr>` : ''}`).join('');
+}
+
+async function prArchiver(id, archiver){
+  const res = await callCrmApi({ action: 'archive_prospect', prospect_id: id, archiver });
+  if(res?.ok){ llToast(archiver ? 'Prospect archivé.' : 'Prospect désarchivé.', 'succes'); await loadProspects(); }
+}
+async function prSupprimer(id){
+  const p = prospectsTous.find(x => x.id === id);
+  if(!(await llConfirmer(`Supprimer définitivement ${p?.full_name || 'ce prospect'} et son historique d'appels ? Cette action est irréversible. Pour simplement le retirer de la vue, utilisez plutôt « Archiver ».`))) return;
+  const res = await callCrmApi({ action: 'delete_prospect', prospect_id: id });
+  if(res?.ok){ llToast('Prospect supprimé.', 'succes'); await loadProspects(); }
 }
 
 async function assignCallerToProspect(prospect_id, caller_id){

@@ -109,6 +109,34 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true, ...result }), { status: 200, headers: corsHeaders });
     }
 
+    // Éléments « à traiter » de la vue d'ensemble marqués comme traités :
+    // retirés pour tous les admins, historique conservé, rétablissables.
+    if (body.action === "traiter_element" || body.action === "retablir_element") {
+      const cle = String(body.cle || "");
+      if (!/^[a-z_]+:[0-9a-f-]{36}$/i.test(cle)) {
+        return new Response(JSON.stringify({ error: "Élément invalide" }), { status: 400, headers: corsHeaders });
+      }
+      const r = body.action === "traiter_element"
+        ? await fetch(`${supabaseUrl}/rest/v1/elements_traites?on_conflict=cle`, {
+          method: "POST",
+          headers: { ...adminHeaders, Prefer: "resolution=merge-duplicates" },
+          body: JSON.stringify({ cle, categorie: cle.split(":")[0], libelle: String(body.libelle || "").slice(0, 300), traite_par: userId, traite_le: new Date().toISOString() }),
+        })
+        : await fetch(`${supabaseUrl}/rest/v1/elements_traites?cle=eq.${encodeURIComponent(cle)}`, { method: "DELETE", headers: adminHeaders });
+      if (!r.ok) return new Response(JSON.stringify({ error: "Non enregistré" }), { status: 502, headers: corsHeaders });
+      await fetch(`${supabaseUrl}/rest/v1/audit_log`, {
+        method: "POST",
+        headers: adminHeaders,
+        body: JSON.stringify({ actor_type: "admin", actor_id: userId, action: body.action === "traiter_element" ? "dashboard.item_treated" : "dashboard.item_restored", entity_type: "elements_traites", entity_id: null, details: { cle } }),
+      });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
+    }
+
+    if (body.action === "liste_traites") {
+      const r = await fetch(`${supabaseUrl}/rest/v1/elements_traites?select=cle,categorie,libelle,traite_le,users(email)&order=traite_le.desc&limit=200`, { headers: adminHeaders });
+      return new Response(JSON.stringify({ elements: await r.json().catch(() => []) }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (body.action === "resolve_dissatisfaction_signal") {
       const { signal_id, resolution_note } = body;
       if (!signal_id) {
@@ -149,7 +177,7 @@ Deno.serve(async (req) => {
     }
 
     const ownersRes = await fetch(
-      `${supabaseUrl}/rest/v1/owners?select=id,full_name,phone,management_rate,spending_cap,buildings(id,address,units(id,rent,status))`,
+      `${supabaseUrl}/rest/v1/owners?archived_at=is.null&select=id,full_name,phone,management_rate,spending_cap,buildings(id,address,units(id,rent,status))`,
       { headers: adminHeaders },
     );
     const owners = await ownersRes.json();
@@ -204,11 +232,11 @@ Deno.serve(async (req) => {
       fetch(`${supabaseUrl}/rest/v1/service_requests?pending_reassessment=eq.true&select=id,description,reassessment_due,units(unit_number,buildings(address))`, { headers: adminHeaders }).then((r) => r.json()),
       fetch(`${supabaseUrl}/rest/v1/work_orders?response_escalated=eq.true&worker_response=eq.declined&select=id,description,units(unit_number,buildings(address))`, { headers: adminHeaders }).then((r) => r.json()),
       fetch(`${supabaseUrl}/rest/v1/work_orders?worker_response=eq.pending&worker_notified=eq.true&select=id,description,worker_notified_at,workers(name)`, { headers: adminHeaders }).then((r) => r.json()),
-      fetch(`${supabaseUrl}/rest/v1/payments?status=eq.late&select=id,amount,due_date,leases(tenants(full_name),units(unit_number,buildings(address)))`, { headers: adminHeaders }).then((r) => r.json()),
+      fetch(`${supabaseUrl}/rest/v1/payments?status=eq.late&resolu_le=is.null&select=id,amount,due_date,leases(tenants(full_name),units(unit_number,buildings(address)))`, { headers: adminHeaders }).then((r) => r.json()),
       fetch(`${supabaseUrl}/rest/v1/leases?status=eq.active&end_date=lte.${in60days}&select=id,end_date,tenants(full_name),units(unit_number,buildings(address))`, { headers: adminHeaders }).then((r) => r.json()),
       fetch(`${supabaseUrl}/rest/v1/messages?select=id,owner_id,sender,body,created_at,owners(full_name)&order=created_at.desc`, { headers: adminHeaders }).then((r) => r.json()),
       fetch(`${supabaseUrl}/rest/v1/documents?ai_expiry_date=lte.${in30days}&ai_expiry_date=gte.${todayStr}&select=id,title,ai_expiry_date,owners(full_name)`, { headers: adminHeaders }).then((r) => r.json()),
-      fetch(`${supabaseUrl}/rest/v1/prospects?next_followup_date=lte.${todayStr}&stage=not.in.(signed,lost)&select=id,full_name,next_followup_date,stage`, { headers: adminHeaders }).then((r) => r.json()),
+      fetch(`${supabaseUrl}/rest/v1/prospects?next_followup_date=lte.${todayStr}&stage=not.in.(signed,lost)&archived_at=is.null&select=id,full_name,next_followup_date,stage`, { headers: adminHeaders }).then((r) => r.json()),
     ]);
 
     const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString();
@@ -259,35 +287,43 @@ Deno.serve(async (req) => {
     }
     const unansweredMessages = [...lastMessageByOwner.values()].filter((m) => m.sender === "owner");
 
+    const traitesRes = await fetch(`${supabaseUrl}/rest/v1/elements_traites?select=cle`, { headers: adminHeaders });
+    const traites = new Set(((await traitesRes.json().catch(() => [])) as { cle: string }[]).map((t) => t.cle));
+    // Retire ce qui est déjà traité et pose la clé (_cle) que le portail renvoie pour « Traité ».
+    const garder = (categorie: string, liste: any, champ = "id") =>
+      (Array.isArray(liste) ? liste : [])
+        .map((x: any) => ({ ...x, _cle: `${categorie}:${x[champ]}` }))
+        .filter((x: any) => !traites.has(x._cle));
+
     const commandCenter = {
-      urgences: urgentServiceRequests,
+      urgences: garder("urgences", urgentServiceRequests),
       decisions_requises: {
-        approbations_en_attente: pendingApprovals,
-        demandes_a_valider: needsReviewServiceRequests,
-        documents_a_valider: docsNeedingValidation,
-        decisions_travailleurs: workerDecisionsNeeded,
+        approbations_en_attente: garder("approbations_en_attente", pendingApprovals),
+        demandes_a_valider: garder("demandes_a_valider", needsReviewServiceRequests),
+        documents_a_valider: garder("documents_a_valider", docsNeedingValidation),
+        decisions_travailleurs: garder("decisions_travailleurs", workerDecisionsNeeded),
       },
       dossiers_bloques: {
-        refuses_a_reevaluer: blockedReassessment,
-        tous_travailleurs_ont_refuse: allDeclinedWorkOrders,
+        refuses_a_reevaluer: garder("refuses_a_reevaluer", blockedReassessment),
+        tous_travailleurs_ont_refuse: garder("tous_travailleurs_ont_refuse", allDeclinedWorkOrders),
       },
-      travailleurs_sans_reponse: pendingWorkerResponses,
-      loyers_en_retard: latePayments,
-      baux_a_renouveler: leaseRenewals,
-      messages_sans_reponse: unansweredMessages,
-      documents_expirant_bientot: expiringDocs,
-      prospects_a_relancer: prospectsToFollowUp,
-      anomalies_financieres: anomalies,
-      dossiers_reparation_stagnants: stuckRepairCases,
-      ia_faible_confiance: lowConfidenceAiRuns,
-      onboarding_incomplet: onboardingIncomplet,
-      travailleurs_a_verifier: workerVerificationIssues,
+      travailleurs_sans_reponse: garder("travailleurs_sans_reponse", pendingWorkerResponses),
+      loyers_en_retard: garder("loyers_en_retard", latePayments),
+      baux_a_renouveler: garder("baux_a_renouveler", leaseRenewals),
+      messages_sans_reponse: garder("messages_sans_reponse", unansweredMessages),
+      documents_expirant_bientot: garder("documents_expirant_bientot", expiringDocs),
+      prospects_a_relancer: garder("prospects_a_relancer", prospectsToFollowUp),
+      anomalies_financieres: garder("anomalies_financieres", anomalies),
+      dossiers_reparation_stagnants: garder("dossiers_reparation_stagnants", stuckRepairCases),
+      ia_faible_confiance: garder("ia_faible_confiance", lowConfidenceAiRuns),
+      onboarding_incomplet: garder("onboarding_incomplet", onboardingIncomplet, "owner_id"),
+      travailleurs_a_verifier: garder("travailleurs_a_verifier", workerVerificationIssues),
       visites: {
-        a_planifier: visitsToSchedule,
-        sans_reponse: visitsAwaitingResponse,
-        resultat_manquant: visitsNeedingOutcome,
+        a_planifier: garder("visites_a_planifier", visitsToSchedule),
+        sans_reponse: garder("visites_sans_reponse", visitsAwaitingResponse),
+        resultat_manquant: garder("visites_resultat_manquant", visitsNeedingOutcome),
       },
-      signaux_insatisfaction: dissatisfactionSignals,
+      signaux_insatisfaction: garder("signaux_insatisfaction", dissatisfactionSignals),
     };
 
     const clients = owners.map((o: any) => {
