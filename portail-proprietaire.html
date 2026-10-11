@@ -211,7 +211,7 @@
 
       <section id="buildings" class="section">
         <div class="toolbar"><h2>Immeubles</h2></div>
-        <p class="subtitle">Clique sur un immeuble pour voir seulement ses logements et ses locataires.</p>
+        <p class="subtitle">Cliquez sur un immeuble pour voir seulement ses logements et ses locataires.</p>
         <div class="tr-outils">
           <label class="tr-recherche"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#search"/></svg><input type="search" id="pf-b-q" placeholder="Rechercher une adresse…" oninput="pfSet('bq', this.value);renderBuildingsTab()"></label>
         </div>
@@ -245,7 +245,7 @@
           <span class="vo-icone"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wallet"/></svg></span>
           <div class="pp-banque__texte">
             <h3>Compte bancaire</h3>
-            <p>Les loyers reçus sont rapprochés automatiquement. Accès en lecture seule : tes identifiants restent chez Flinks, notre partenaire, jamais chez nous.</p>
+            <p>Les loyers reçus sont rapprochés automatiquement. Accès en lecture seule : vos identifiants restent chez Flinks, notre partenaire, jamais chez nous.</p>
             <div id="bank-connections-body"><p class="tr-vide">Chargement...</p></div>
             <p id="bank-connect-msg" class="pp-note"></p>
           </div>
@@ -286,7 +286,7 @@
           <span class="vo-icone"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg></span>
           <div class="pp-banque__texte">
             <h3>Plafond d'approbation automatique</h3>
-            <p>Sous ce montant, on lance la réparation sans te déranger. Au-delà, on te demande toujours ton accord avant d'envoyer un travailleur.</p>
+            <p>Sous ce montant, nous lançons la réparation sans vous déranger. Au-delà, nous vous demandons toujours votre accord avant d'envoyer un travailleur.</p>
           </div>
           <div class="pp-plafond__champ">
             <label class="pp-montant"><input type="number" id="spending-cap-input" min="0" max="50000" step="10" aria-label="Plafond en dollars"><span>$</span></label>
@@ -294,7 +294,7 @@
             <span id="spending-cap-status" class="pp-note"></span>
           </div>
         </div>
-        <h3 class="sous-titre">En attente de ta décision</h3>
+        <h3 class="sous-titre">En attente de votre décision</h3>
         <div id="approvals-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
@@ -310,7 +310,7 @@
         <div class="pp-carte pp-question">
           <span class="vo-icone"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg></span>
           <div class="pp-banque__texte">
-            <h3>Poser une question sur tes documents</h3>
+            <h3>Poser une question sur vos documents</h3>
             <div class="pp-demande">
               <input type="text" id="doc-question" placeholder="Ex. : Quand expire l'assurance de cet entrepreneur ?" onkeydown="if(event.key==='Enter') askDocuments();">
               <button class="ll-bouton ll-bouton--primaire" onclick="askDocuments()" id="doc-ask-btn">Demander</button>
@@ -347,11 +347,11 @@
 
       <section id="messages" class="section">
         <div class="toolbar"><h2>Messages</h2></div>
-        <p class="subtitle">Écris à l'équipe Lease Lane. On te répond ici, en général le jour même.</p>
+        <p class="subtitle">Écrivez à l'équipe Lease Lane. Nous vous répondons ici, en général le jour même.</p>
         <div class="pp-carte pp-messages">
           <div id="messages-body" class="ms-fil"><p class="tr-vide">Chargement...</p></div>
           <div class="ms-ecrire">
-            <textarea id="message-text" rows="3" placeholder="Ton message…" aria-label="Nouveau message" onkeydown="if(event.key==='Enter' && (event.metaKey||event.ctrlKey)) sendMessage();"></textarea>
+            <textarea id="message-text" rows="3" placeholder="Votre message…" aria-label="Nouveau message" onkeydown="if(event.key==='Enter' && (event.metaKey||event.ctrlKey)) sendMessage();"></textarea>
             <div class="ms-actions"><span class="ms-dest">Ctrl + Entrée pour envoyer</span><button class="ll-bouton ll-bouton--primaire" onclick="sendMessage()"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#send"/></svg>Envoyer</button></div>
           </div>
         </div>
@@ -362,17 +362,17 @@
         <div id="reports-body"><p class="tr-vide">Chargement...</p></div>
 
         <div class="toolbar" style="margin-top:32px;"><h2>Factures — frais de gestion Lease Lane</h2></div>
-        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Frais de gestion et de coordination des travaux, déjà déduits du montant net qui te revient chaque mois — voici le détail formel pour ta comptabilité.</p>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Frais de gestion et de coordination des travaux, déjà déduits du montant net qui vous revient chaque mois — voici le détail formel pour votre comptabilité.</p>
         <div id="invoices-body-owner"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="decisions" class="section">
         <div class="toolbar"><h2>Décisions automatisées</h2></div>
-        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Certaines décisions vous concernant sont prises automatiquement par le système, selon des règles fixes (ex. : réparation lancée sans approbation parce que son coût respecte votre plafond). Voici l'historique et les facteurs qui ont mené à chacune — tu peux demander qu'un humain la révise.</p>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Certaines décisions vous concernant sont prises automatiquement par le système, selon des règles fixes (ex. : réparation lancée sans approbation parce que son coût respecte votre plafond). Voici l'historique et les facteurs qui ont mené à chacune — vous pouvez demander qu'un humain la révise.</p>
         <div id="decisions-body"><p class="tr-vide">Chargement...</p></div>
 
         <div class="toolbar" style="margin-top:32px;"><h2>Mes renseignements personnels</h2></div>
-        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Demande d'accès à tes renseignements, de rectification ou d'effacement — conformément à la Loi 25. Une réponse te sera communiquée sous 30 jours.</p>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Demande d'accès à vos renseignements, de rectification ou d'effacement — conformément à la Loi 25. Une réponse vous sera communiquée sous 30 jours.</p>
         <div class="fo-carte">
           <div><label class="ch-label" for="pdr-type">Type de demande</label>
             <select id="pdr-type"><option value="access">Accès à mes renseignements</option><option value="rectification">Rectification</option><option value="deletion">Effacement</option></select>
@@ -386,11 +386,11 @@
 
       <section id="copilot" class="section">
         <div class="toolbar"><h2>Copilot financier</h2></div>
-        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Pose une question sur tes revenus, tes dépenses ou tes travaux — les réponses sont calculées à partir de tes vraies données des 24 derniers mois, jamais inventées.</p>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Posez une question sur vos revenus, vos dépenses ou vos travaux — les réponses sont calculées à partir de vos vraies données des 24 derniers mois, jamais inventées.</p>
         <div class="pp-carte pp-question">
           <span class="vo-icone"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#sparkles"/></svg></span>
           <div class="pp-banque__texte">
-            <h3>Ta question</h3>
+            <h3>Votre question</h3>
             <div class="pp-demande">
               <input type="text" id="copilot-question" placeholder="Ex. : Combien j'ai dépensé en plomberie cet été ?" onkeydown="if(event.key==='Enter') askFinances();">
               <button class="ll-bouton ll-bouton--primaire" onclick="askFinances()" id="copilot-ask-btn">Demander</button>
@@ -462,7 +462,7 @@ async function sendResetLink(){
   const okEl = document.getElementById('reset-success');
   if(error){ errEl.textContent = error.message; errEl.style.display = 'block'; okEl.style.display = 'none'; return; }
   errEl.style.display = 'none';
-  okEl.textContent = 'Lien envoyé ! Vérifie ta boîte courriel.';
+  okEl.textContent = 'Lien envoyé ! Vérifiez votre boîte courriel.';
   okEl.style.display = 'block';
 }
 
@@ -473,7 +473,7 @@ async function confirmNewPassword(){
   if(error){ errEl.textContent = error.message; errEl.style.display = 'block'; return; }
   await supabaseClient.auth.signOut();
   showLoginForm();
-  showLoginError('Mot de passe mis à jour — reconnecte-toi.');
+  showLoginError('Mot de passe mis à jour — reconnectez-vous.');
 }
 
 async function handleLogin(){
@@ -720,7 +720,7 @@ function renderLogement(){
     corps = `<h4 class="lo-fil-titre">Documents de ${loc ? esc(loc.full_name) : 'ce logement'}</h4>
       ${docsLoc.length ? `<table class="tr-table"><tbody>${docsLoc.map(d => ligne(d, `<button class="vo-lien" onclick="lierDocument('${d.id}', null)">Retirer</button>`)).join('')}</tbody></table>` : `<p class="tr-vide">Aucun document lié${bail ? ' : associe un document de l\'immeuble ci-dessous' : ' (pas de bail sur ce logement)'}.</p>`}
       <h4 class="lo-fil-titre">Autres documents de l'immeuble</h4>
-      ${docsImm.length ? `<table class="tr-table"><tbody>${docsImm.map(d => ligne(d, bail && !d.lease_id ? `<button class="ll-bouton ll-bouton--primaire lo-petit" onclick="lierDocument('${d.id}', '${bail.id}')">Associer à ${esc(loc?.full_name?.split(' ')[0] || 'ce locataire')}</button>` : '')).join('')}</tbody></table>` : '<p class="tr-vide">Aucun autre document rattaché à cet immeuble. Choisis l\'immeuble en téléversant un document.</p>'}`;
+      ${docsImm.length ? `<table class="tr-table"><tbody>${docsImm.map(d => ligne(d, bail && !d.lease_id ? `<button class="ll-bouton ll-bouton--primaire lo-petit" onclick="lierDocument('${d.id}', '${bail.id}')">Associer à ${esc(loc?.full_name?.split(' ')[0] || 'ce locataire')}</button>` : '')).join('')}</tbody></table>` : '<p class="tr-vide">Aucun autre document rattaché à cet immeuble. Choisissez l\'immeuble en téléversant un document.</p>'}`;
   } else {
     corps = `<div class="lo-infos">
         <div><span>Locataire</span><b>${loc ? esc(loc.full_name) : 'Vacant'}</b>${loc?.email ? `<small>${esc(loc.email)}</small>` : ''}${loc?.phone ? `<small>${esc(loc.phone)}</small>` : ''}</div>
@@ -775,7 +775,7 @@ async function startOwnerBankConnect(){
   const iframe = document.getElementById('bank-connect-iframe');
   iframe.src = `${res.iframe_base_url}/v2/?customerId=${res.customer_id}&authorizeToken=${res.token}${res.is_sandbox ? '&demo=true' : ''}`;
   document.getElementById('bank-connect-widget-wrap').style.display = 'block';
-  msg.textContent = 'Connecte-toi à ta banque dans la fenêtre ci-dessous.';
+  msg.textContent = 'Connectez-vous à votre banque dans la fenêtre ci-dessous.';
 
   const expectedOrigin = new URL(res.iframe_base_url).origin;
 
@@ -796,7 +796,7 @@ async function startOwnerBankConnect(){
         document.getElementById('bank-connect-widget-wrap').style.display = 'none';
         await loadOwnerBankConnections();
       } else {
-        msg.textContent = 'Échec de la liaison — réessaie.';
+        msg.textContent = 'Échec de la liaison — réessayez.';
       }
     }
   };
@@ -865,7 +865,7 @@ async function loadServiceRequests(){
     const aiLine = sr.ai_category
       ? `<span><span class="tag ${urgencyTag[sr.ai_urgency] || 'neutral'}">${esc(sr.ai_urgency) || ''}</span> IA : ${esc(sr.ai_category)} — estimation ${sr.ai_estimated_cost != null ? Number(sr.ai_estimated_cost).toLocaleString('fr-CA') + ' $' : '—'}</span>`
       : sr.ai_status === 'echec'
-        ? `<span style="color:var(--muted);">Pas d'estimation automatique : l'équipe Lease Lane évalue la demande et te revient.</span>`
+        ? `<span style="color:var(--muted);">Pas d'estimation automatique : l'équipe Lease Lane évalue la demande et vous revient.</span>`
         : `<span style="color:var(--muted);">Estimation IA en traitement…</span>`;
     return `
     <div class="approve-row">
@@ -943,7 +943,7 @@ async function saveSpendingCap(){
   statusEl.textContent = 'Enregistrement...';
   const { data, error } = await supabaseClient.functions.invoke('owner-api', { body: { action: 'update_spending_cap', spending_cap: newCap } });
   if(error || data?.error){
-    statusEl.textContent = data?.error || "Erreur — réessaie.";
+    statusEl.textContent = data?.error || "Erreur — réessayez.";
     return;
   }
   ownerRecord.spending_cap = data.spending_cap;
@@ -988,7 +988,7 @@ async function loadAutomatedDecisions(){
 }
 
 async function requestDecisionReview(id){
-  const note = await llDemander("Explique brièvement pourquoi tu demandes une révision de cette décision (optionnel) :") || null;
+  const note = await llDemander("Expliquez brièvement pourquoi vous demandez une révision de cette décision (optionnel) :") || null;
   await supabaseClient.from('automated_decisions').update({ review_requested_at: new Date().toISOString(), review_note: note }).eq('id', id);
   await loadAutomatedDecisions();
 }
@@ -1029,7 +1029,7 @@ async function submitPersonalDataRequest(){
     request_details,
   });
   if(error){
-    errorEl.textContent = "Erreur — réessaie.";
+    errorEl.textContent = "Erreur — réessayez.";
     errorEl.style.display = 'block';
     return;
   }
@@ -1043,7 +1043,7 @@ async function requestAnotherQuote(approvalId){
     sender: 'owner',
     body: `Demande d'une autre soumission pour l'approbation #${approvalId.slice(0,8)} — merci de proposer un autre travailleur ou une autre estimation.`,
   });
-  alert('Ta demande a été envoyée à l\'équipe Lease Lane — consulte l\'onglet Messages pour suivre la réponse.');
+  alert('Votre demande a été envoyée à l\'équipe Lease Lane — consultez l\'onglet Messages pour suivre la réponse.');
   await loadMessages();
 }
 
@@ -1055,7 +1055,7 @@ async function askApprovalQuestion(approvalId){
     sender: 'owner',
     body: `Question sur l'approbation #${approvalId.slice(0,8)} : ${question}`,
   });
-  alert('Ta question a été envoyée à l\'équipe Lease Lane — consulte l\'onglet Messages pour suivre la réponse.');
+  alert('Votre question a été envoyée à l\'équipe Lease Lane — consultez l\'onglet Messages pour suivre la réponse.');
   await loadMessages();
 }
 
@@ -1182,7 +1182,7 @@ async function addDocument(){
   const errEl = document.getElementById('doc-error');
   errEl.style.display = 'none';
 
-  if(!title || !file){ errEl.textContent = 'Donne un titre et choisis un fichier.'; errEl.style.display = 'block'; return; }
+  if(!title || !file){ errEl.textContent = 'Donnez un titre et choisissez un fichier.'; errEl.style.display = 'block'; return; }
 
   const btn = document.getElementById('doc-submit-btn');
   btn.disabled = true;
@@ -1217,12 +1217,12 @@ async function loadMessages(){
   const { data } = await supabaseClient.from('messages').select('*').eq('owner_id', ownerRecord.id).order('created_at', { ascending: true });
   const body = document.getElementById('messages-body');
   if(!data || !data.length){
-    body.innerHTML = '<p class="tr-vide">Aucun message pour l\'instant. Écris-nous ci-dessous.</p>';
+    body.innerHTML = '<p class="tr-vide">Aucun message pour l\'instant. Écrivez-nous ci-dessous.</p>';
     return;
   }
   body.innerHTML = data.map(m => `
     <div class="ms-bulle ${m.sender === 'owner' ? 'ms-bulle--sortant' : 'ms-bulle--entrant'}">
-      <div class="ms-meta">${m.sender === 'owner' ? 'Toi' : 'Équipe Lease Lane'} · ${new Date(m.created_at).toLocaleString('fr-CA', { dateStyle:'medium', timeStyle:'short' })}</div>
+      <div class="ms-meta">${m.sender === 'owner' ? 'Vous' : 'Équipe Lease Lane'} · ${new Date(m.created_at).toLocaleString('fr-CA', { dateStyle:'medium', timeStyle:'short' })}</div>
       <div class="ms-corps"><div>${esc(m.body)}</div></div>
     </div>`).join('');
   body.scrollTop = body.scrollHeight;
@@ -1279,7 +1279,7 @@ async function loadReports(){
 
       ${(r.owner_actions_needed && r.owner_actions_needed.length) ? `
       <div style="background:#fdf3e0;border-left:2px solid var(--brass);padding:10px 14px;font-size:12.5px;width:100%;">
-        <b>Actions attendues de ta part :</b>
+        <b>Actions attendues de votre part :</b>
         <ul style="margin:6px 0 0 18px;padding:0;">${r.owner_actions_needed.map(a => `<li>${esc(a)}</li>`).join('')}</ul>
       </div>` : ''}
       ${(r.missing_receipts && r.missing_receipts.length) ? `
