@@ -288,11 +288,6 @@ const ENT3 = [{
   mot: 'Services aux locataires',
   /* Page Service aux locataires (l'ancien lien pointait vers le prototype, introuvable). */
   to: '/locataires'
-}, {
-  /* 4e case : Logements à louer retiré le 11 oct. 2026 (aucun logement sous gestion); même picto (maison et loupe) pour l'évaluation. */
-  k: 'rech',
-  mot: 'Soumission gratuite',
-  to: '/offre-de-service'
 }];
 const SocleActuel = () => <nav aria-label="Choisissez votre profil" className="h3-monte h7-socle" style={{
   position: 'relative',
@@ -373,9 +368,10 @@ const Mot = ({
   lineHeight: 1.2,
   whiteSpace: 'nowrap'
 }}>{e.mot}</span>;
+/* Une seule rangée : autant de colonnes que d'entrées (3 depuis le retrait de Logements à louer, 11 oct. 2026). */
 const GrilleA = () => <div className="h7s h7s-a2" style={{
   display: 'grid',
-  gridTemplateColumns: 'repeat(2,minmax(0,1fr))'
+  gridTemplateColumns: 'repeat(' + ENT3.length + ',minmax(0,1fr))'
 }}>
     {ENT3.map((e, i) => <a key={e.k} href={lienS(e)} className="h7-socle-a" style={{
     position: 'relative',
@@ -384,11 +380,10 @@ const GrilleA = () => <div className="h7s h7s-a2" style={{
     minHeight: '84px',
     textDecoration: 'none',
     color: '#fff',
-    borderLeft: i % 2 ? LIGNE : 0,
-    borderTop: i > 1 ? LIGNE : 0
+    borderLeft: i ? LIGNE : 0
   }}>
       <Trait style={{
-      top: i > 1 ? 0 : '-1px',
+      top: '-1px',
       background: 'rgba(255,255,255,.6)',
       height: '1px'
     }} />
@@ -404,7 +399,7 @@ const GrilleA = () => <div className="h7s h7s-a2" style={{
       gap: '20px',
       padding: '0 15px 0 clamp(20px,2.6vw,44px)',
       minWidth: 0
-    }}><Mot e={e} t="clamp(18px,1.98vw,30.5px)" ls="-0.009em" /><ChvLogo h={20.47} cadre /></span></a>)}</div>;
+    }}><Mot e={e} t="clamp(17px,1.5vw,25px)" ls="-0.009em" /><ChvLogo h={20.47} cadre /></span></a>)}</div>;
 /* Bandeau figé : A « Deux rangées » retenu, sélecteur de revue retiré (options B et C conservées dans le code). */
 function SocleRevue() {
   const v = 'a',
