@@ -9,7 +9,7 @@ const F = (lbl, path, extra) => Object.assign({
   index: false,
   schemas: ['WebPage', 'BreadcrumbList'],
   page: 'formulaire',
-  liens: ['/locataires', '/logements-a-louer', '/faq']
+  liens: ['/locataires', '/faq']
 }, extra);
 const Q = [['limoilou', 'Limoilou', 'à Limoilou'], ['montcalm', 'Montcalm', 'à Montcalm'], ['saint-roch', 'Saint-Roch', 'à Saint-Roch'], ['saint-sauveur', 'Saint-Sauveur', 'à Saint-Sauveur'], ['sainte-foy', 'Sainte-Foy', 'à Sainte-Foy'], ['charlesbourg', 'Charlesbourg', 'à Charlesbourg'], ['beauport', 'Beauport', 'à Beauport'], ['lebourgneuf', 'Lebourgneuf', 'à Lebourgneuf'], ['vieux-quebec', 'Vieux-Québec', 'dans le Vieux-Québec']];
 let LL_ROUTES = [{
@@ -21,7 +21,7 @@ let LL_ROUTES = [{
   fil: [A],
   schemas: ['WebSite', 'RealEstateAgent', 'FAQPage', 'BreadcrumbList'],
   faq: ['p1', 'p4', 'p5', 'p13', 't1'],
-  liens: ['/gestion-immobiliere', '/logements-a-louer', '/changer-de-gestionnaire', '/offre-de-service', '/cleo', '/faq']
+  liens: ['/gestion-immobiliere', '/changer-de-gestionnaire', '/offre-de-service', '/cleo', '/faq']
 }, {
   path: '/gestion-immobiliere',
   page: 'gestion',
@@ -74,6 +74,7 @@ let LL_ROUTES = [{
   liens: ['/gestion-immobiliere/location', '/locataires', '/confidentialite', '/offre-de-service']
 }, {
   path: '/logements-a-louer',
+  index: false,
   page: 'logements',
   requete: 'appartement à louer Québec',
   titre: 'Appartements à louer Québec | Lease Lane',
@@ -81,9 +82,10 @@ let LL_ROUTES = [{
   fil: [A, ['Logements à louer', '/logements-a-louer']],
   schemas: ['WebPage', 'ItemList', 'BreadcrumbList'],
   faq: ['l1', 'l2'],
-  liens: ['/locataires/demande-de-location', '/locataires', '/cleo', '/quartiers']
+  liens: ['/locataires', '/cleo', '/quartiers']
 }, {
   path: '/logements-a-louer/4-et-demi-renove-montcalm',
+  index: false,
   image: 'https://leaselane.ca/images/logements/montcalm-cartier.jpg',
   imageAlt: '4 ½ rénové à louer sur l\u2019avenue Cartier, Montcalm',
   page: 'fiche',
@@ -92,7 +94,7 @@ let LL_ROUTES = [{
   description: '4 ½ rénové de 880 pi² à Montcalm, 1 450 $ par mois, libre le 1er juillet. Réservez une visite avec Cléo ou faites votre demande en ligne.',
   fil: [A, ['Logements à louer', '/logements-a-louer'], ['4 ½ rénové, Montcalm', '/logements-a-louer/4-et-demi-renove-montcalm']],
   schemas: ['RealEstateListing', 'BreadcrumbList'],
-  liens: ['/logements-a-louer', '/locataires/demande-de-location', '/quartiers/montcalm', '/cleo']
+  liens: ['/quartiers/montcalm', '/cleo']
 }, {
   path: '/locataires',
   page: 'locataires',
@@ -102,7 +104,7 @@ let LL_ROUTES = [{
   fil: [A, LOC],
   schemas: ['WebPage', 'FAQPage', 'BreadcrumbList'],
   faq: ['l5', 'l4', 'l6', 'l7', 'l8', 'l9', 'l10', 'l1'],
-  liens: ['/locataires/demande-de-location', '/locataires/commentaire-ou-plainte', '/logements-a-louer', '/faq']
+  liens: ['/locataires/commentaire-ou-plainte', '/faq']
 }, F('Demande de location', '/locataires/demande-de-location', {
   form: 'location',
   titre: 'Demande de location | Lease Lane',
@@ -131,7 +133,7 @@ let LL_ROUTES = [{
   description: 'Droit du logement, gestion d’immeubles et nouvelles de Lease Lane : des articles rédigés par notre équipe, révisés et datés, avec leurs sources.',
   fil: [A, ['Blogue & nouvelles', '/blogue']],
   schemas: ['Blog', 'BreadcrumbList'],
-  liens: ['/faq', '/cleo', '/gestion-immobiliere', '/offre-de-service', '/logements-a-louer']
+  liens: ['/faq', '/cleo', '/gestion-immobiliere', '/offre-de-service']
 }, {
   path: '/blogue/hausse-de-loyer-2026',
   page: 'article',
@@ -140,7 +142,7 @@ let LL_ROUTES = [{
   description: 'Les délais d’avis, le calcul du TAL et les options du locataire et du propriétaire, avec les articles du Code civil cités. Révisé par un juriste.',
   fil: [A, ['Blogue & nouvelles', '/blogue'], ['Hausse de loyer 2026', '/blogue/hausse-de-loyer-2026']],
   schemas: ['Article', 'BreadcrumbList', 'FAQPage'],
-  liens: ['/blogue', '/cleo', '/faq', '/offre-de-service', '/logements-a-louer']
+  liens: ['/blogue', '/cleo', '/faq', '/offre-de-service']
 }, {
   path: '/a-propos',
   page: 'apropos',
@@ -174,9 +176,9 @@ let LL_ROUTES = [{
   requete: 'quartiers de Québec où louer',
   titre: 'Quartiers de Québec : guides pour locataires | Lease Lane',
   description: 'Neuf guides de quartier à Québec : arrondissement, repères et logements à louer gérés par Lease Lane, avec visite réservée en tout temps avec Cléo.',
-  fil: [A, ['Logements à louer', '/logements-a-louer'], ['Guides de quartier', '/quartiers']],
+  fil: [A, ['Guides de quartier', '/quartiers']],
   schemas: ['WebPage', 'ItemList', 'BreadcrumbList'],
-  liens: ['/logements-a-louer', '/locataires/demande-de-location', '/cleo']
+  liens: ['/cleo']
 }, ...Q.map(([s, n, dans]) => ({
   path: '/quartiers/' + s,
   page: 'quartier',
@@ -186,7 +188,7 @@ let LL_ROUTES = [{
   fil: [A, ['Guides de quartier', '/quartiers'], [n, '/quartiers/' + s]],
   schemas: ['WebPage', 'FAQPage', 'BreadcrumbList'],
   faq: ['l1', 'l2', 't6'],
-  liens: ['/logements-a-louer', '/locataires/demande-de-location', '/quartiers', '/cleo']
+  liens: ['/quartiers', '/cleo']
 })), {
   path: '/glossaire-bail-residentiel',
   page: 'glossaire',

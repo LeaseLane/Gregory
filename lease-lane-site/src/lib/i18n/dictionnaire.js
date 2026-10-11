@@ -3,6 +3,13 @@
    LL_EN_TXT : clé = fragments de texte d’une phrase séparés par ␞ (U+241E); valeur = même nombre de fragments, en anglais.
    LL_EN_ATTR : aria-label, alt, title, placeholder. Pour corriger une traduction : modifier la valeur ici. */
 export const LL_EN_TXT = {
+"Nous n’avons aucun logement à louer pour le moment. Demandez à Cléo de vous prévenir : l’équipe vous écrit dès qu’un logement se libère.": "We have no units for rent at the moment. Ask Cléo to let you know: our team will write to you as soon as a unit becomes available.",
+"Nous n’avons aucun logement à louer pour le moment. Laissez-moi vos coordonnées : l’équipe vous écrit dès qu’un logement se libère.": "We have no units for rent at the moment. Leave me your contact details: our team will write to you as soon as a unit becomes available.",
+"Me prévenir": "Notify me",
+"Être prévenu quand un logement se libère": "Get notified when a unit becomes available",
+"Nous n’avons aucun logement à louer pour le moment.": "We have no units for rent at the moment.",
+"Une question sur nos services?": "A question about our services?",
+"Voir la foire aux questions": "See the FAQ",
 "Le délai dépend du secteur, du prix et de la saison. Cléo répond aux prospects en tout temps et organise les visites sans attendre les heures de bureau : moins de jours vacants, moins de loyer perdu.": "It depends on the area, the price and the season. Cléo answers prospects at any time and arranges visits without waiting for office hours: fewer vacant days, less lost rent.",
 "Les loyers perçus sont versés dans votre compte selon la fréquence prévue à votre mandat, déduction faite des dépenses autorisées. Chaque versement est détaillé dans votre espace propriétaire.": "Collected rents are deposited into your account at the frequency set in your management agreement, net of authorized expenses. Each payment is detailed in your owner space.",
 "Un rapport mensuel, au plus tard le 15 du mois : loyers dus et reçus, arriérés, logements vacants, travaux, factures et échéances. Le tableau de bord en ligne présente les mêmes chiffres en continu.": "A monthly report, no later than the 15th: rents due and received, arrears, vacant units, work, invoices and deadlines. The online dashboard shows the same figures at all times.",

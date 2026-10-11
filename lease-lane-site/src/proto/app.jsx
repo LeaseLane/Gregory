@@ -57,23 +57,9 @@ const ACTIONS = [{
   k: 'chercher',
   icone: 'key',
   titre: 'Trouver un logement',
-  desc: 'Logements à Québec, loyers du bail',
+  desc: 'Être prévenu quand un logement se libère',
   groupe: 'Pour vous',
   pour: ['prospect', 'locataire']
-}, {
-  k: 'visite',
-  icone: 'calendar-check',
-  titre: 'Planifier une visite',
-  desc: 'Créneaux du gestionnaire de secteur',
-  groupe: 'Pour vous',
-  pour: ['prospect']
-}, {
-  k: 'demande',
-  icone: 'file-text',
-  titre: 'Déposer une demande de location',
-  desc: 'En ligne, avec votre consentement',
-  groupe: 'Pour vous',
-  pour: ['prospect']
 }, {
   k: 'travaux',
   icone: 'wrench',
@@ -128,51 +114,49 @@ const ACTIONS = [{
 /* FAQ visible dans Cléo selon le profil : propriétaire = ses questions + tout le TAL (t*); locataire et futur locataire = leurs questions + le TAL côté locataire. */
 const SCENARIOS = {
   chercher: {
-    messages: d => [{
-      role: 'agent',
-      texte: 'Voici ce qui correspond à Québec sous 1 500 $ en ce moment. Les loyers affichés sont ceux du bail, sans surprise.'
-    }, {
-      type: 'logements',
-      items: [{
-        id: 'L1',
-        photo: PHOTO_L1,
-        titre: d.logements[0].titre,
-        detail: '2 ch. · 880 pi² · libre le 1er juillet',
-        prix: d.logements[0].prix
-      }, {
-        id: 'L4',
-        titre: d.logements[3].titre,
-        detail: '2 ch. · 790 pi² · chauffé, éclairé',
-        prix: d.logements[3].prix
-      }, {
-        id: 'L2',
-        titre: d.logements[1].titre,
-        detail: '1 ch. · 640 pi² · libre immédiatement',
-        prix: d.logements[1].prix
-      }]
-    }, {
-      role: 'agent',
-      texte: 'Voulez-vous en visiter un cette semaine, ou que je vous avise des nouvelles annonces qui correspondent ?'
-    }],
-    suggestions: ['Visiter le 4 ½ de Montcalm', 'M\u2019aviser des nouveautés', 'Voir tout sur la carte']
-  },
-  visite: {
+    /* Aucun logement sous gestion pour l'instant (11 oct. 2026) : on le dit, et la demande part à l'équipe. */
     messages: () => [{
       role: 'agent',
-      texte: 'Avec plaisir. Choisissez le moment qui vous convient; l\u2019équipe vous confirme la visite.'
-    }],
-    creneaux: true
-  },
-  aviser: {
-    messages: () => [{
-      role: 'agent',
-      texte: 'Je peux vous prévenir dès qu\u2019un logement correspond à vos critères, par courriel seulement et jamais plus d\u2019une fois par jour. Vous pourrez retirer votre consentement en un clic.'
+      texte: 'Nous n\u2019avons aucun logement à louer pour le moment. Laissez-moi vos coordonnées : l\u2019équipe vous écrit dès qu\u2019un logement se libère.'
     }, {
       type: 'formulaire',
-      variante: 'alerte',
-      lignes: [['Type', '4 ½'], ['Secteur', 'Montcalm, Saint-Roch, Limoilou'], ['Budget', 'Jusqu\u2019à 1 500 $'], ['Canal', 'Courriel']]
+      variante: 'humain',
+      titre: 'Vos coordonnées',
+      bouton: 'Me prévenir',
+      usage: 'me prévenir quand un logement se libère',
+      onOk: x => transmettre(x, 'Cléo : prévenir quand un logement se libère')
     }],
-    suggestions: ['Modifier les critères', 'Plutôt une visite']
+    suggestions: ['Continuer avec Cléo']
+  },
+  visite: {
+    /* Aucun logement sous gestion pour l'instant (11 oct. 2026) : on le dit, et la demande part à l'équipe. */
+    messages: () => [{
+      role: 'agent',
+      texte: 'Nous n\u2019avons aucun logement à louer pour le moment. Laissez-moi vos coordonnées : l\u2019équipe vous écrit dès qu\u2019un logement se libère.'
+    }, {
+      type: 'formulaire',
+      variante: 'humain',
+      titre: 'Vos coordonnées',
+      bouton: 'Me prévenir',
+      usage: 'me prévenir quand un logement se libère',
+      onOk: x => transmettre(x, 'Cléo : prévenir quand un logement se libère')
+    }],
+    suggestions: ['Continuer avec Cléo']
+  },
+  aviser: {
+    /* Aucun logement sous gestion pour l'instant (11 oct. 2026) : on le dit, et la demande part à l'équipe. */
+    messages: () => [{
+      role: 'agent',
+      texte: 'Nous n\u2019avons aucun logement à louer pour le moment. Laissez-moi vos coordonnées : l\u2019équipe vous écrit dès qu\u2019un logement se libère.'
+    }, {
+      type: 'formulaire',
+      variante: 'humain',
+      titre: 'Vos coordonnées',
+      bouton: 'Me prévenir',
+      usage: 'me prévenir quand un logement se libère',
+      onOk: x => transmettre(x, 'Cléo : prévenir quand un logement se libère')
+    }],
+    suggestions: ['Continuer avec Cléo']
   },
   travaux: {
     messages: () => [{

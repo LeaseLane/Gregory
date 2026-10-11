@@ -142,7 +142,7 @@ function HLB({
         flexWrap: 'wrap',
         gap: '12px'
       }}>
-        <Button forme="fleche" as="a" href="/locataires/demande-de-location" variant="inverse" size="m" icone="file-text">Demande de location</Button>
+        
         <Button forme="fleche" variant="contour_inverse" size="m" icone="message-circle" onClick={() => ouvrirCleo('Je cherche un logement à Québec')}>Écrire à Cléo</Button></div></div>
     {Q.length > 0 && <nav aria-label="Logements par quartier" style={{
       border: LIG,
@@ -282,7 +282,7 @@ function PageLogements({
               fontSize: '13px',
               color: 'var(--bleu-100)'
             }}>Déposez votre demande en ligne. Aucun dépôt exigé.</span></span>
-          <Button forme="fleche" as="a" href="/locataires/demande-de-location" variant="inverse" size="m" icone="file-text">Demande de location</Button></div>
+          </div>
       </div>
     </div>
     <Recherche aller={aller} data={data} selection={selection} setSelection={setSelection} />

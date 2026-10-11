@@ -647,7 +647,7 @@ function Territoire2() {
         }}>{T.terrP}</p>
     <div className="apc-r" style={{
           '--d': '220ms'
-        }}><Fleche clair to="/logements-a-louer">Nos logements à louer</Fleche></div></div></Vu>
+        }}></div></div></Vu>
   <span className="ap2-terr-lieu" aria-hidden="true">Partout au Québec</span>
 </section>;
 }

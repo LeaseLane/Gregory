@@ -286,11 +286,8 @@ const ENT3 = [{
 }, {
   k: 'loc',
   mot: 'Services aux locataires',
-  href: '../authentification/index.html?profil=locataire'
-}, {
-  k: 'rech',
-  mot: 'Logements à louer',
-  to: '/logements-a-louer'
+  /* Portail locataire (l'ancien lien pointait vers le prototype). Logements à louer retiré le 11 oct. 2026 : aucun logement sous gestion. */
+  href: 'https://app.leaselane.ca/?p=locataire'
 }];
 const SocleActuel = () => <nav aria-label="Choisissez votre profil" className="h3-monte h7-socle" style={{
   position: 'relative',

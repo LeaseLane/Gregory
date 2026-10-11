@@ -45,13 +45,6 @@ const PROFILS = [{
   ic: 'key-round',
   ids: ['service', 'travaux', 'suivi', 'plainte', 'endossement', 'cession', 'ploc', 'tal']
 }, {
-  k: 'prospect',
-  t: 'Je cherche un logement',
-  court: 'Futurs locataires',
-  d: 'Visiter, déposer un dossier',
-  ic: 'house',
-  ids: ['logements', 'candidature', 'quartiers', 'faq']
-}, {
   k: 'info',
   t: 'Informations générales',
   court: 'Lease Lane',

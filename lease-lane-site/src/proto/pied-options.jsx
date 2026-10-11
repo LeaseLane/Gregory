@@ -14,7 +14,7 @@ const ESPACE = {
   'Propriétaires': [AUTH + '?profil=proprietaire', 'Espace propriétaire', 'building-2'],
   'Locataires': [AUTH + '?profil=locataire', 'Espace locataire', 'key-round']
 };
-const COLS = [['Propriétaires', [['/gestion-immobiliere', 'Gestion d\u2019immeubles'], ['/gestion-immobiliere/location', 'Location et mise en marché'], ['/expertise-et-strategie', 'Expertise et stratégie'], ['/changer-de-gestionnaire', 'Changer de gestionnaire']]], ['Locataires', [['/locataires', 'Service aux locataires'], ['/logements-a-louer', 'Logements à louer'], ['/locataires/demande-de-location', 'Demande de location'], ['/locataires/commentaire-ou-plainte', 'Administration et plaintes']]], ['Lease Lane', [['/cleo', 'Agent IA - Cléo'], ['/a-propos', 'À propos'], ['/blogue', 'Blogue & nouvelles'], ['/faq', 'Foire aux questions']]]];
+const COLS = [['Propriétaires', [['/gestion-immobiliere', 'Gestion d\u2019immeubles'], ['/gestion-immobiliere/location', 'Location et mise en marché'], ['/expertise-et-strategie', 'Expertise et stratégie'], ['/changer-de-gestionnaire', 'Changer de gestionnaire']]], ['Locataires', [['/locataires', 'Service aux locataires'], ['/locataires/commentaire-ou-plainte', 'Administration et plaintes']]], ['Lease Lane', [['/cleo', 'Agent IA - Cléo'], ['/a-propos', 'À propos'], ['/blogue', 'Blogue & nouvelles'], ['/faq', 'Foire aux questions']]]];
 const RS = [['linkedin', 'LinkedIn'], ['instagram', 'Instagram'], ['facebook', 'Facebook'], ['github', 'GitHub'], ['tiktok', 'TikTok']];
 const TAG = 'Une gestion d\'immeubles à la fine pointe de la technologie. Nos automatisations prennent le maximum d\'opérations en charge; notre équipe s\'occupe du reste.';
 const SLOGAN = 'Une clé d’avance et ce, en permanence.';

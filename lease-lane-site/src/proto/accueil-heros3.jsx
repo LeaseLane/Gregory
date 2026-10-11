@@ -67,8 +67,7 @@ const Actions = ({
   marginTop: '8px',
   animationDelay: '180ms'
 }}>
-  <BoutonLien to="/logements-a-louer" variant={clair ? 'inverse' : 'primaire'}>Nos propriétés à louer</BoutonLien>
-  <BoutonLien to="/offre-de-service" variant={clair ? 'contour_inverse' : 'secondaire'} icone={false}>Obtenir une offre de service</BoutonLien></div>;
+  <BoutonLien to="/offre-de-service" variant={clair ? 'inverse' : 'primaire'}>Obtenir une offre de service</BoutonLien></div>;
 const Ex = () => <Exemple />;
 /* Étapes minutées depuis le montage; état final immédiat si le mouvement est réduit. */
 function useSequence(delais) {

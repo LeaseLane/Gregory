@@ -87,7 +87,7 @@ let LL_FAQ = {
   l1: {
     public: 'locataires',
     q: 'Comment voir les logements disponibles et réserver une visite?',
-    r: 'Tous nos logements libres sont sur la page Logements à louer, avec leur date de disponibilité. Cléo réserve votre visite en tout temps, selon les plages ouvertes.'
+    r: 'Nous n\u2019avons aucun logement à louer pour le moment. Demandez à Cléo de vous prévenir : l\u2019équipe vous écrit dès qu\u2019un logement se libère.'
   },
   l2: {
     public: 'locataires',

@@ -210,7 +210,7 @@ const SUJETS = {
 const NOTES = {
   proprietaire: ['Vous voulez une offre écrite pour votre immeuble?', 'Obtenir une offre de service', "/offre-de-service"],
   locataire: ['Déjà locataire chez nous? Votre portail regroupe vos demandes, vos paiements et vos documents.', 'Connexion locataire', AUTH],
-  autre: ['Vous cherchez un logement?', 'Voir les logements à louer', "/logements-a-louer"]
+  autre: ['Une question sur nos services?', 'Voir la foire aux questions', "/faq"]
 };
 const VIDE = {
   nom: '',

@@ -34,22 +34,6 @@ const SV = {
     lieu: 'site',
     k: 'urgence fuite eau dégât chauffage froid électricité électrique panne serrure porte barré détecteur fumée danger 911 garde'
   },
-  location: {
-    ic: 'key',
-    t: 'Demande de location',
-    d: 'Lancée depuis la fiche du logement; réponse écrite.',
-    href: "/locataires/demande-de-location",
-    lieu: 'site',
-    k: 'location louer logement appartement demande dossier emménager'
-  },
-  logements: {
-    ic: 'map-pin',
-    t: 'Logements à louer',
-    d: 'Disponibilités à jour, visite réservée avec Cléo.',
-    href: "/logements-a-louer",
-    lieu: 'site',
-    k: 'logements louer appartement disponible visite quartier'
-  },
   plainte: {
     ic: 'message-square',
     t: 'Commentaire ou plainte',

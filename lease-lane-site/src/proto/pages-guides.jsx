@@ -150,7 +150,8 @@ function PageQuartier({
   route
 }) {
   const q = quartierDe(route.path) || QUARTIERS[0],
-    logs = logementsDe(q),
+    /* Aucun logement sous gestion pour l'instant (décision du 11 oct. 2026). */
+    logs = [],
     autres = QUARTIERS.filter(x => x.s !== q.s);
   return <div>
     <PBHeros compact route={route} surtitre={'Guide de quartier · ' + q.arr} titre={'Appartement à louer ' + q.dans + ' : {guide du quartier}'} lead={q.d} />
@@ -194,7 +195,7 @@ function PageQuartier({
           display: 'grid',
           gap: '16px'
         }}>
-          <TitreBloc surtitre="Logements à louer" titre={logs.length ? 'Disponibles ' + q.dans + '.' : 'Aucun logement libre ' + q.dans + ' pour le moment.'} texte={logs.length ? 'Loyer du bail, date de disponibilité et visite réservée avec Cléo.' : 'Cléo peut vous avertir dès qu’un logement correspond à vos critères.'} marge={8} />
+          <TitreBloc surtitre="Logements à louer" titre={logs.length ? 'Disponibles ' + q.dans + '.' : 'Aucun logement libre ' + q.dans + ' pour le moment.'} texte={logs.length ? 'Loyer du bail, date de disponibilité et visite réservée avec Cléo.' : 'Nous n’avons aucun logement à louer pour le moment.'} marge={8} />
           {logs.map(l => <a key={l.id} href={l.id === 'L1' ? "/logements-a-louer/4-et-demi-renove-montcalm" : "/logements-a-louer"} className="ll-carte-survol" style={{
             display: 'grid',
             gridTemplateColumns: 'minmax(0,1fr) auto',
@@ -225,7 +226,7 @@ function PageQuartier({
             display: 'flex',
             flexWrap: 'wrap',
             gap: '12px 24px'
-          }}><Fleche to="/logements-a-louer">Tous les logements à louer</Fleche><Fleche to="/locataires/demande-de-location">Demande de location</Fleche></div>
+          }}><Fleche to="/nous-joindre">Nous joindre</Fleche></div>
         </div></div>
     </Section>
     <FAQListe ids={['l1', 'l2', 't6']} fond="douce" titre="Avant de {louer}." />
@@ -276,7 +277,7 @@ const GLOSSAIRE = [['Régie du logement', 'Tribunal administratif du logement (T
 }, ['/locataires#urgence', 'Urgence 24/7']], ['3 ½, 4 ½, appartement', 'Logement', {
   t: 'Au Québec, un logement se désigne souvent par son nombre de pièces, la salle de bain comptant pour une demie : un 4 ½ compte quatre pièces et une salle de bain.',
   nouveau: 1
-}, ['/logements-a-louer', 'Logements à louer']], ['Soumission, prix, tarif', 'Offre de service', {
+}, ['/quartiers', 'Quartiers de Québec']], ['Soumission, prix, tarif', 'Offre de service', {
   f: 'p1'
 }, ['/offre-de-service', 'Offre de service']]];
 function PageGlossaire({
