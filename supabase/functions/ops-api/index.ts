@@ -527,6 +527,81 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // ---- Étape 4 : versements du 15 ----
+    const rpcFiducie = async (fn: string, args: Record<string, unknown>) => {
+      const r = await fetch(`${supabaseUrl}/rest/v1/rpc/${fn}`, { method: "POST", headers: adminHeaders, body: JSON.stringify(args) });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data?.message || "Opération refusée");
+      return data;
+    };
+    const dateValide = (d: unknown) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d);
+    const idValide = (x: unknown) => typeof x === "string" && /^[0-9a-f-]{36}$/i.test(x);
+
+    if (action === "fiducie_lot_apercu" || action === "fiducie_lot_executer") {
+      if (!dateValide(body.date)) return new Response(JSON.stringify({ error: "Date de versement invalide" }), { status: 400, headers: corsHeaders });
+      try {
+        const r = await rpcFiducie("fiducie_lot", { p_date: body.date, p_par: userId, p_executer: action === "fiducie_lot_executer" });
+        if (action === "fiducie_lot_executer") await logAudit("fiducie.lot_prepare", "fiducie_lots", r.lot_id, { date: body.date, total: r.total, nombre: r.nombre });
+        return new Response(JSON.stringify({ ok: true, ...r }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders });
+      }
+    }
+
+    if (action === "fiducie_lots") {
+      const res = await fetch(`${supabaseUrl}/rest/v1/fiducie_lots?select=*,fiducie_lot_lignes(owner_id,montant,owners(full_name)),users(email)&order=date_versement.desc&limit=24`, { headers: adminHeaders });
+      return new Response(JSON.stringify({ lots: await res.json().catch(() => []) }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Fichier du lot pour la banque (CSV). Le format exact du dépôt direct BMO
+    // sera ajusté à l'ouverture du compte; colonnes standard d'ici là.
+    if (action === "fiducie_lot_fichier") {
+      if (!idValide(body.lot_id)) return new Response(JSON.stringify({ error: "Lot invalide" }), { status: 400, headers: corsHeaders });
+      const [lot] = await fetch(`${supabaseUrl}/rest/v1/fiducie_lots?id=eq.${body.lot_id}&select=date_versement,statut,fiducie_lot_lignes(nom_compte,institution,transit,compte,montant)`, { headers: adminHeaders }).then((r) => r.json());
+      if (!lot) return new Response(JSON.stringify({ error: "Lot introuvable" }), { status: 404, headers: corsHeaders });
+      if (lot.statut === "annule") return new Response(JSON.stringify({ error: "Lot annulé : aucun fichier" }), { status: 409, headers: corsHeaders });
+      const champ = (x: unknown) => `"${String(x ?? "").replace(/"/g, '""')}"`;
+      const ref = `LEASELANE ${String(lot.date_versement).replace(/-/g, "")}`;
+      const lignes = [["Nom du bénéficiaire", "Institution", "Transit", "Compte", "Montant", "Référence"].map(champ).join(",")]
+        .concat((lot.fiducie_lot_lignes || []).map((l: any) => [l.nom_compte, l.institution, l.transit, l.compte, Number(l.montant).toFixed(2), ref].map(champ).join(",")));
+      await logAudit("fiducie.lot_fichier", "fiducie_lots", body.lot_id, {});
+      return new Response(JSON.stringify({ nom: `versements-${lot.date_versement}.csv`, contenu: lignes.join("\r\n") + "\r\n" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "fiducie_lot_envoye" || action === "fiducie_lot_annuler") {
+      if (!idValide(body.lot_id)) return new Response(JSON.stringify({ error: "Lot invalide" }), { status: 400, headers: corsHeaders });
+      try {
+        if (action === "fiducie_lot_annuler") await rpcFiducie("fiducie_annuler_lot", { p_lot: body.lot_id, p_par: userId });
+        else {
+          const r = await fetch(`${supabaseUrl}/rest/v1/fiducie_lots?id=eq.${body.lot_id}&statut=eq.prepare`, { method: "PATCH", headers: { ...adminHeaders, Prefer: "return=representation" }, body: JSON.stringify({ statut: "envoye", envoye_le: new Date().toISOString() }) });
+          if (!r.ok || !(await r.json()).length) throw new Error("Seul un lot préparé peut être marqué envoyé");
+        }
+        await logAudit(action === "fiducie_lot_annuler" ? "fiducie.lot_annule" : "fiducie.lot_envoye", "fiducie_lots", body.lot_id, {});
+        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders });
+      }
+    }
+
+    // Coordonnées bancaires de versement d'un propriétaire.
+    if (action === "fiducie_coordonnees") {
+      const { owner_id } = body;
+      if (!idValide(owner_id)) return new Response(JSON.stringify({ error: "owner_id invalide" }), { status: 400, headers: corsHeaders });
+      if (body.lire) {
+        const [o] = await fetch(`${supabaseUrl}/rest/v1/owners?id=eq.${owner_id}&select=versement_nom_compte,versement_institution,versement_transit,versement_compte`, { headers: adminHeaders }).then((r) => r.json());
+        return new Response(JSON.stringify({ coordonnees: o || {} }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const chiffres = (x: unknown) => String(x ?? "").replace(/\D/g, "");
+      const maj = { versement_nom_compte: String(body.nom_compte || "").trim().slice(0, 120) || null, versement_institution: chiffres(body.institution) || null, versement_transit: chiffres(body.transit) || null, versement_compte: chiffres(body.compte) || null };
+      if ((maj.versement_institution && !/^\d{3}$/.test(maj.versement_institution)) || (maj.versement_transit && !/^\d{5}$/.test(maj.versement_transit)) || (maj.versement_compte && !/^\d{5,12}$/.test(maj.versement_compte))) {
+        return new Response(JSON.stringify({ error: "Coordonnées invalides : institution 3 chiffres, transit 5 chiffres, compte 5 à 12 chiffres" }), { status: 400, headers: corsHeaders });
+      }
+      const r = await fetch(`${supabaseUrl}/rest/v1/owners?id=eq.${owner_id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify(maj) });
+      if (!r.ok) return new Response(JSON.stringify({ error: "Non enregistré" }), { status: 502, headers: corsHeaders });
+      await logAudit("fiducie.coordonnees", "owners", owner_id, { complet: !!(maj.versement_institution && maj.versement_transit && maj.versement_compte) });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "fiducie_reserve") {
       const { building_id, montant } = body;
       const m = Math.round(Number(montant) * 100) / 100;

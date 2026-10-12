@@ -505,6 +505,17 @@
       <p id="fid-import-msg" class="subtitle" style="flex-basis:100%;margin:0"></p>
     </div>
     <div id="fiducie-depots"><p class="tr-vide">Chargement...</p></div>
+
+    <div class="tr-entete" style="margin-top:28px"><div>
+      <h2>Versements aux propriétaires</h2>
+      <p class="subtitle">Une fois par mois (le 15) : les factures Lease Lane émises sont retenues sur les loyers, puis chaque propriétaire reçoit son disponible (solde moins la réserve de ses immeubles). Faites un aperçu, confirmez, téléchargez le fichier pour la banque, puis marquez le lot envoyé.</p>
+    </div></div>
+    <div class="fo-carte" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:12px;">
+      <div><label class="ch-label" for="fid-lot-date">Date du versement</label><input type="date" id="fid-lot-date"></div>
+      <button class="ll-bouton ll-bouton--secondaire" onclick="fidLotApercu()">Aperçu</button>
+    </div>
+    <div id="fiducie-lot-apercu"></div>
+    <div id="fiducie-lots"></div>
       </section>
 
       <section id="bank-recon" class="section">
@@ -4838,6 +4849,86 @@ async function loadFiducie(){
   </tbody></table>`;
   if(fidProprio) await fidOuvrir(fidProprio, true);
   await fidChargerDepots();
+  await fidChargerLots();
+}
+
+/* ---- Versements aux propriétaires (étape 4) ---- */
+function fidProchain15(){ const d = new Date(); if(d.getDate() > 15) d.setMonth(d.getMonth() + 1); d.setDate(15); return d.toISOString().slice(0, 10); }
+
+async function fidLotApercu(){
+  const champ = document.getElementById('fid-lot-date');
+  if(!champ.value) champ.value = fidProchain15();
+  const boite = document.getElementById('fiducie-lot-apercu');
+  boite.innerHTML = '<p class="tr-vide">Calcul…</p>';
+  const r = await callOpsApi({ action: 'fiducie_lot_apercu', date: champ.value });
+  if(!r){ boite.innerHTML = ''; return; }
+  const lignes = r.lignes || [];
+  if(!lignes.length){ boite.innerHTML = '<p class="tr-vide">Aucun propriétaire n\'a de solde au compte en fidéicommis.</p>'; return; }
+  boite.innerHTML = `<table class="tr-table"><thead><tr><th>Propriétaire</th><th class="num">Honoraires retenus</th><th class="num">Réserve gardée</th><th class="num">Versement</th><th class="num">Solde après</th><th>Remarque</th></tr></thead><tbody>
+    ${lignes.map(l => `<tr><td>${esc(l.proprietaire)}</td><td class="num">${fidArgent(l.honoraires)}</td><td class="num">${fidArgent(l.reserve)}</td><td class="num"><b>${fidArgent(l.versement)}</b></td><td class="num">${fidArgent(l.solde_apres)}</td><td>${l.note ? `<small>${esc(l.note)}</small>` : ''}</td></tr>`).join('')}
+    <tr><td><b>Total à virer</b></td><td></td><td></td><td class="num"><b>${fidArgent(r.total)}</b></td><td colspan="2">${r.nombre} virement(s)</td></tr></tbody></table>
+    ${r.nombre ? `<p style="margin:10px 0 0"><button class="ll-bouton ll-bouton--primaire" onclick="fidLotExecuter('${esc(r.date)}', ${Number(r.total)}, ${Number(r.nombre)})">Confirmer le lot du ${esc(r.date)}</button></p>` : ''}`;
+}
+
+async function fidLotExecuter(date, total, nombre){
+  if(!(await llConfirmer(`Confirmer le lot du ${date} : ${nombre} virement(s) pour ${fidArgent(total)} ? Les factures sont retenues et les versements inscrits au registre. Vous pourrez annuler tant que le fichier n'est pas envoyé à la banque.`))) return;
+  const r = await callOpsApi({ action: 'fiducie_lot_executer', date });
+  if(r?.ok){ llToast(`Lot préparé : ${r.nombre} virement(s), ${fidArgent(r.total)}.`, 'succes'); document.getElementById('fiducie-lot-apercu').innerHTML = ''; await loadFiducie(); }
+}
+
+async function fidChargerLots(){
+  const r = await callOpsApi({ action: 'fiducie_lots' });
+  const boite = document.getElementById('fiducie-lots');
+  const lots = r?.lots || [];
+  if(!document.getElementById('fid-lot-date').value) document.getElementById('fid-lot-date').value = fidProchain15();
+  if(!lots.length){ boite.innerHTML = ''; return; }
+  const STATUT = { prepare: ['Préparé — fichier à envoyer', 'att'], envoye: ['Envoyé à la banque', 'ok'], annule: ['Annulé', ''] };
+  boite.innerHTML = `<h3 class="sous-titre">Lots</h3><table class="tr-table"><thead><tr><th>Date</th><th>Statut</th><th class="num">Virements</th><th class="num">Total</th><th></th></tr></thead><tbody>
+    ${lots.map(l => { const [lib, ton] = STATUT[l.statut] || [l.statut, '']; return `<tr><td>${esc(l.date_versement)}<small>${(l.fiducie_lot_lignes || []).map(x => esc(x.owners?.full_name || '') + ' ' + fidArgent(x.montant)).join(' · ')}</small></td>
+      <td><span class="tr-pastille tr-pastille--${ton}">${lib}</span></td><td class="num">${l.nombre}</td><td class="num">${fidArgent(l.total)}</td>
+      <td>${l.statut !== 'annule' ? `<button class="vo-action" onclick="fidLotFichier('${l.id}')">Fichier pour la banque</button>` : ''}
+        ${l.statut === 'prepare' ? `<button class="vo-action" onclick="fidLotStatut('${l.id}', 'fiducie_lot_envoye')">Marquer envoyé</button> <button class="tr-lien-danger" onclick="fidLotStatut('${l.id}', 'fiducie_lot_annuler')">Annuler</button>` : ''}</td></tr>`; }).join('')}
+  </tbody></table>`;
+}
+
+async function fidLotFichier(lotId){
+  const r = await callOpsApi({ action: 'fiducie_lot_fichier', lot_id: lotId });
+  if(!r?.contenu) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + r.contenu], { type: 'text/csv;charset=utf-8' }));
+  a.download = r.nom; document.body.appendChild(a); a.click(); a.remove();
+}
+
+async function fidLotStatut(lotId, action){
+  const annuler = action === 'fiducie_lot_annuler';
+  if(!(await llConfirmer(annuler ? 'Annuler ce lot ? Chaque versement est remis au registre du propriétaire (les factures retenues restent payées).' : 'Marquer ce lot comme envoyé à la banque ? Il ne pourra plus être annulé.'))) return;
+  const r = await callOpsApi({ action, lot_id: lotId });
+  if(r?.ok){ llToast(annuler ? 'Lot annulé : versements remis au registre.' : 'Lot marqué envoyé.', 'succes'); await loadFiducie(); }
+}
+
+/* Coordonnées de versement et impression du relevé (panneau d'un propriétaire). */
+async function fidChargerCoordonnees(ownerId){
+  const r = await callOpsApi({ action: 'fiducie_coordonnees', owner_id: ownerId, lire: true });
+  const c = r?.coordonnees || {};
+  const v = (id, x) => { const e = document.getElementById(id); if(e) e.value = x || ''; };
+  v('fid-co-nom', c.versement_nom_compte); v('fid-co-inst', c.versement_institution); v('fid-co-transit', c.versement_transit); v('fid-co-compte', c.versement_compte);
+}
+
+async function fidCoordonnees(){
+  const v = id => document.getElementById(id).value;
+  const r = await callOpsApi({ action: 'fiducie_coordonnees', owner_id: fidProprio, nom_compte: v('fid-co-nom'), institution: v('fid-co-inst'), transit: v('fid-co-transit'), compte: v('fid-co-compte') });
+  if(r?.ok) llToast('Coordonnées de versement enregistrées.', 'succes');
+}
+
+function fidImprimer(){
+  const boite = document.getElementById('fiducie-releve');
+  const tableau = boite.querySelector('table');
+  const p = (fidDonnees.soldes || []).find(x => x.owner_id === fidProprio) || {};
+  const w = window.open('', '_blank');
+  if(!w){ llToast('Autorisez les fenêtres pour imprimer.', 'erreur'); return; }
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>Relevé — ${esc(p.full_name || '')}</title><style>body{font:13px system-ui,sans-serif;color:#0A2038;margin:32px}h1{font-size:18px;margin:0 0 4px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{text-align:left;padding:6px;border-bottom:1px solid #dce3ec}td:nth-child(4),td:nth-child(5),th:nth-child(4),th:nth-child(5){text-align:right}small{display:block;color:#5a6b80}</style>
+    <h1>Relevé du compte en fidéicommis — ${esc(p.full_name || '')}</h1><p>Lease Lane · émis le ${new Date().toLocaleDateString('fr-CA', { dateStyle: 'long' })} · solde ${fidArgent(p.solde)} · réserve ${fidArgent(p.reserve)}</p>${tableau ? tableau.outerHTML : '<p>Aucun mouvement.</p>'}`);
+  w.document.close(); w.focus(); w.print();
 }
 
 /* ---- Dépôts du compte en fidéicommis (étape 3) ---- */
@@ -4925,7 +5016,7 @@ async function fidOuvrir(ownerId, silencieux){
       <h2 style="margin:0">${esc(p.full_name || '')}</h2>
       <span>Solde <b>${fidArgent(p.solde)}</b> · réserve ${fidArgent(p.reserve)} · disponible <b>${fidArgent(p.disponible)}</b></span>
     </div>
-    <h3 class="sous-titre">Relevé</h3>
+    <h3 class="sous-titre">Relevé <button class="vo-action" onclick="fidImprimer()" style="margin-left:8px">Imprimer</button></h3>
     ${lignes ? `<table class="tr-table"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th class="num">Montant</th><th class="num">Solde</th></tr></thead><tbody>${lignes}</tbody></table>` : '<p class="tr-vide">Aucun mouvement pour l\'instant.</p>'}
     <h3 class="sous-titre">Inscrire un mouvement</h3>
     <div class="fo-carte" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
@@ -4938,12 +5029,22 @@ async function fidOuvrir(ownerId, silencieux){
       <button class="ll-bouton ll-bouton--primaire" onclick="fidAjouter()">Inscrire</button>
     </div>
     <p class="subtitle" style="margin-top:6px">Le registre ne se modifie pas : une erreur se corrige par un ajustement.</p>
+    <h3 class="sous-titre">Compte de versement du propriétaire</h3>
+    <div class="fo-carte" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
+      <div style="flex:1;min-width:180px"><label class="ch-label" for="fid-co-nom">Titulaire du compte</label><input type="text" id="fid-co-nom" maxlength="120" style="width:100%"></div>
+      <div><label class="ch-label" for="fid-co-inst">Institution</label><input type="text" id="fid-co-inst" inputmode="numeric" maxlength="3" placeholder="001" style="width:70px"></div>
+      <div><label class="ch-label" for="fid-co-transit">Transit</label><input type="text" id="fid-co-transit" inputmode="numeric" maxlength="5" placeholder="12345" style="width:90px"></div>
+      <div><label class="ch-label" for="fid-co-compte">Compte</label><input type="text" id="fid-co-compte" inputmode="numeric" maxlength="12" style="width:140px"></div>
+      <button class="ll-bouton ll-bouton--primaire" onclick="fidCoordonnees()">Enregistrer</button>
+    </div>
+    <p class="subtitle" style="margin-top:6px">Sans ces coordonnées, le propriétaire n'est pas inclus dans les versements (il apparaît dans l'aperçu avec une remarque).</p>
     ${imm.length ? `<h3 class="sous-titre">Références de paiement</h3>
       <p class="subtitle" style="margin:0 0 8px">À inscrire par le locataire dans le message de son virement : c'est ainsi qu'un dépôt est attribué au bon logement.</p>
       <table class="tr-table"><tbody>${imm.map(b => `<tr><td>${esc(b.address)}</td><td>${(b.logements || []).map(u => `<span class="tr-spec" style="margin:2px 4px 2px 0;display:inline-block">Log. ${esc(u.unit_number)} · <b>${esc(u.reference_paiement)}</b></span>`).join('') || '—'}</td></tr>`).join('')}</tbody></table>` : ''}
     ${imm.length ? `<h3 class="sous-titre">Réserves par immeuble</h3><table class="tr-table"><tbody>${imm.map(b => `<tr><td>${esc(b.address)}</td>
       <td class="num"><input type="number" id="fid-res-${b.id}" value="${Number(b.reserve)}" min="0" step="50" style="width:110px"> $</td>
       <td><button class="vo-action" onclick="fidReserve('${b.id}')">Enregistrer</button></td></tr>`).join('')}</tbody></table>` : ''}`;
+  fidChargerCoordonnees(ownerId);
 }
 
 async function fidCourriel(){
