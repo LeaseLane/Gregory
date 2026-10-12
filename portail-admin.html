@@ -176,6 +176,7 @@
       <button class="tab-btn" data-tab="billing" onclick="showTab('billing')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#credit-card"/></svg><span>Facturation & PAD</span></button>
       <button class="tab-btn" data-tab="accounting" onclick="showTab('accounting')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#scale"/></svg><span>Comptabilité</span></button>
       <button class="tab-btn" data-tab="bank-recon" onclick="showTab('bank-recon')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#table-2"/></svg><span>Rapprochement bancaire</span></button>
+      <button class="tab-btn" data-tab="fiducie" onclick="showTab('fiducie')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#scale"/></svg><span>Fidéicommis</span></button>
       <button class="tab-btn" data-tab="flinks" onclick="showTab('flinks')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wallet"/></svg><span>Connexions bancaires</span></button>
       <button class="tab-btn" data-tab="anomalies" onclick="showTab('anomalies')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg><span>Anomalies financières</span></button>
       <button class="tab-btn" data-tab="supplier-invoices" onclick="showTab('supplier-invoices')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#files"/></svg><span>Factures fournisseurs</span></button>
@@ -476,6 +477,15 @@
     <h3 class="sous-titre">Journal des écritures (200 dernières)</h3>
     <div id="gl-journal-body" style="margin-bottom:32px;"><p class="tr-vide">Choisis un propriétaire.</p></div>
 
+      </section>
+
+      <section id="fiducie" class="section">
+    <div class="tr-entete"><div>
+      <h1>Fidéicommis</h1>
+      <p class="subtitle">Un seul compte en fidéicommis pour tous les propriétaires; ce registre dit combien appartient à chacun. Lease Lane n'avance jamais d'argent : aucun débit ne peut rendre un solde négatif, et la réserve de chaque immeuble reste au compte lors des versements.</p>
+    </div></div>
+    <div id="fiducie-body"><p class="tr-vide">Chargement...</p></div>
+    <div id="fiducie-releve" class="tr-carte" hidden style="margin-top:20px;"></div>
       </section>
 
       <section id="bank-recon" class="section">
@@ -2161,7 +2171,7 @@ function photoLinksHtml(bucket, paths, label){
 async function loadOps(){
   await Promise.allSettled([
     loadMarketplaceListings(), loadBuildingsForReceipts(), loadServiceCatalog(),
-    loadVisitInquiries(), loadMandatInquiries(), loadSiteMessages(), loadVisitsAdmin(),
+    loadVisitInquiries(), loadMandatInquiries(), loadSiteMessages(), loadFiducie(), loadVisitsAdmin(),
     // Les listes de demandes et de travaux proposent les travailleurs :
     // elles attendent que workersDirectory soit rempli.
     loadWorkersAdmin().then(() => Promise.allSettled([loadServiceRequestsAdmin(), loadWorkOrdersAdmin()])),
@@ -4781,6 +4791,78 @@ async function disconnectFlinks(connection_id){
   if(!await llConfirmer('Déconnecter ce compte bancaire ? La synchronisation automatique s\'arrêtera.')) return;
   await callFlinksApi({ action: 'disconnect', connection_id });
   await loadFlinksConnections();
+}
+
+/* ---- Fidéicommis : registre par propriétaire ---- */
+const fidArgent = n => Number(n || 0).toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' $';
+const FID_TYPES = { loyer: 'Loyer reçu', honoraires: 'Honoraires de gestion', coordination: 'Frais de coordination', fournisseur: 'Fournisseur', debours: 'Débours', versement: 'Versement au propriétaire', ajustement: 'Ajustement' };
+let fidDonnees = { soldes: [], immeubles: [] }, fidProprio = null;
+
+async function loadFiducie(){
+  const res = await callOpsApi({ action: 'fiducie_soldes' });
+  if(!res) return;
+  fidDonnees = res;
+  const corps = document.getElementById('fiducie-body');
+  const liste = (res.soldes || []).filter(x => !x.archive || Number(x.solde));
+  if(!liste.length){ corps.innerHTML = '<p class="tr-vide">Aucun propriétaire.</p>'; return; }
+  const total = liste.reduce((t, x) => t + Number(x.solde || 0), 0);
+  corps.innerHTML = `<table class="tr-table"><thead><tr><th>Propriétaire</th><th class="num">Solde</th><th class="num">Réserve</th><th class="num">Disponible au versement</th><th>Dernier mouvement</th><th></th></tr></thead><tbody>
+    ${liste.map(x => `<tr><td>${esc(x.full_name)}${x.archive ? ' <small>archivé</small>' : ''}</td><td class="num"><b>${fidArgent(x.solde)}</b></td><td class="num">${fidArgent(x.reserve)}</td><td class="num">${fidArgent(x.disponible)}</td>
+      <td>${x.dernier_mouvement ? new Date(x.dernier_mouvement).toLocaleDateString('fr-CA', { dateStyle: 'medium' }) : '—'}</td>
+      <td><button class="vo-action" onclick="fidOuvrir('${x.owner_id}')">Relevé</button></td></tr>`).join('')}
+    <tr><td><b>Total en fidéicommis</b><small>Doit égaler le solde du compte bancaire en fidéicommis.</small></td><td class="num"><b>${fidArgent(total)}</b></td><td colspan="4"></td></tr>
+  </tbody></table>`;
+  if(fidProprio) await fidOuvrir(fidProprio, true);
+}
+
+async function fidOuvrir(ownerId, silencieux){
+  fidProprio = ownerId;
+  const boite = document.getElementById('fiducie-releve');
+  const p = (fidDonnees.soldes || []).find(x => x.owner_id === ownerId) || {};
+  const imm = (fidDonnees.immeubles || []).filter(b => b.owner_id === ownerId);
+  boite.hidden = false;
+  if(!silencieux) boite.innerHTML = '<p class="tr-vide">Chargement…</p>';
+  const res = await callOpsApi({ action: 'fiducie_releve', owner_id: ownerId });
+  if(!res) return;
+  let courant = Number(res.ouverture || 0);
+  const lignes = (res.mouvements || []).map(m => { courant += Number(m.montant); return `<tr>
+    <td>${esc(m.date_valeur)}</td><td>${esc(FID_TYPES[m.type] || m.type)}</td>
+    <td>${esc(m.description)}${m.buildings?.address ? `<small>${esc(m.buildings.address)}</small>` : ''}${m.users?.email ? `<small>par ${esc(m.users.email)}</small>` : ''}</td>
+    <td class="num" style="color:${Number(m.montant) < 0 ? 'var(--urgence-600)' : 'var(--succes-600)'}">${Number(m.montant) > 0 ? '+' : ''}${fidArgent(m.montant)}</td>
+    <td class="num">${fidArgent(courant)}</td></tr>`; }).join('');
+  const optImm = '<option value="">— Tout le dossier —</option>' + imm.map(b => `<option value="${b.id}">${esc(b.address)}</option>`).join('');
+  boite.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+      <h2 style="margin:0">${esc(p.full_name || '')}</h2>
+      <span>Solde <b>${fidArgent(p.solde)}</b> · réserve ${fidArgent(p.reserve)} · disponible <b>${fidArgent(p.disponible)}</b></span>
+    </div>
+    <h3 class="sous-titre">Relevé</h3>
+    ${lignes ? `<table class="tr-table"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th class="num">Montant</th><th class="num">Solde</th></tr></thead><tbody>${lignes}</tbody></table>` : '<p class="tr-vide">Aucun mouvement pour l\'instant.</p>'}
+    <h3 class="sous-titre">Inscrire un mouvement</h3>
+    <div class="fo-carte" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
+      <div><label class="ch-label" for="fid-type">Type</label><select id="fid-type" onchange="document.getElementById('fid-sens-c').hidden = this.value !== 'ajustement'">${Object.entries(FID_TYPES).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></div>
+      <div id="fid-sens-c" hidden><label class="ch-label" for="fid-sens">Sens</label><select id="fid-sens"><option value="credit">Crédit (+)</option><option value="debit">Débit (−)</option></select></div>
+      <div><label class="ch-label" for="fid-montant">Montant ($)</label><input type="number" id="fid-montant" min="0.01" step="0.01" style="width:120px"></div>
+      <div><label class="ch-label" for="fid-imm">Immeuble</label><select id="fid-imm">${optImm}</select></div>
+      <div><label class="ch-label" for="fid-date">Date</label><input type="date" id="fid-date" value="${new Date().toISOString().slice(0, 10)}"></div>
+      <div style="flex:1;min-width:220px"><label class="ch-label" for="fid-desc">Description</label><input type="text" id="fid-desc" maxlength="300" placeholder="Ex. Loyer d'octobre — logement 3" style="width:100%"></div>
+      <button class="ll-bouton ll-bouton--primaire" onclick="fidAjouter()">Inscrire</button>
+    </div>
+    <p class="subtitle" style="margin-top:6px">Le registre ne se modifie pas : une erreur se corrige par un ajustement.</p>
+    ${imm.length ? `<h3 class="sous-titre">Réserves par immeuble</h3><table class="tr-table"><tbody>${imm.map(b => `<tr><td>${esc(b.address)}</td>
+      <td class="num"><input type="number" id="fid-res-${b.id}" value="${Number(b.reserve)}" min="0" step="50" style="width:110px"> $</td>
+      <td><button class="vo-action" onclick="fidReserve('${b.id}')">Enregistrer</button></td></tr>`).join('')}</tbody></table>` : ''}`;
+}
+
+async function fidAjouter(){
+  const v = id => document.getElementById(id).value;
+  const res = await callOpsApi({ action: 'fiducie_ajouter', owner_id: fidProprio, type: v('fid-type'), sens: v('fid-sens'), montant: v('fid-montant'), building_id: v('fid-imm') || null, date_valeur: v('fid-date'), description: v('fid-desc') });
+  if(res?.ok){ llToast('Mouvement inscrit.', 'succes'); await loadFiducie(); }
+}
+
+async function fidReserve(buildingId){
+  const res = await callOpsApi({ action: 'fiducie_reserve', building_id: buildingId, montant: document.getElementById('fid-res-' + buildingId).value });
+  if(res?.ok){ llToast('Réserve enregistrée.', 'succes'); await loadFiducie(); }
 }
 
 async function callReconApi(payload){

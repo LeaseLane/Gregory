@@ -3,6 +3,7 @@ import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { courrielTravailleur } from "../_shared/journal-travailleur.ts";
 import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
+import { montantSigne } from "../_shared/fiducie.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
 // navigateur d'un usager (CSRF via fetch). Les appels serveur à
@@ -366,6 +367,77 @@ Deno.serve(async (req) => {
     // Archiver = retirer du tableau de bord sans rien effacer. Les rappels
     // de loyer encore en attente sont suspendus (un ancien locataire ne doit
     // plus en recevoir) ; la restauration ne les relance pas d'elle-même.
+    // ---- Compte en fidéicommis : registre par propriétaire (étape 1) ----
+    // Les règles (pas d'avance, réserve intouchable au versement, registre
+    // immuable) sont tenues par la base : voir 20261012120000_fideicommis_registre.sql.
+    if (action === "fiducie_soldes") {
+      const [soldes, immeubles] = await Promise.all([
+        fetch(`${supabaseUrl}/rest/v1/fiducie_soldes?select=*&order=full_name.asc`, { headers: adminHeaders }).then((r) => r.json()),
+        fetch(`${supabaseUrl}/rest/v1/buildings?select=id,owner_id,address,fiducie_reserves(montant)&order=address.asc`, { headers: adminHeaders }).then((r) => r.json()),
+      ]);
+      const archives = await fetch(`${supabaseUrl}/rest/v1/owners?archived_at=not.is.null&select=id`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+      const arch = new Set((Array.isArray(archives) ? archives : []).map((o: { id: string }) => o.id));
+      return new Response(JSON.stringify({
+        soldes: (Array.isArray(soldes) ? soldes : []).map((x: Record<string, unknown>) => ({ ...x, archive: arch.has(x.owner_id as string) })),
+        immeubles: (Array.isArray(immeubles) ? immeubles : []).map((b: any) => ({ id: b.id, owner_id: b.owner_id, address: b.address, reserve: b.fiducie_reserves?.montant ?? 1000 })),
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "fiducie_releve") {
+      const { owner_id, debut, fin } = body;
+      if (!owner_id || !/^[0-9a-f-]{36}$/i.test(owner_id)) return new Response(JSON.stringify({ error: "owner_id invalide" }), { status: 400, headers: corsHeaders });
+      const date = (d: unknown) => (typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null);
+      const d0 = date(debut), d1 = date(fin);
+      const filtre = (d0 ? `&date_valeur=gte.${d0}` : "") + (d1 ? `&date_valeur=lte.${d1}` : "");
+      const [mouvements, avant] = await Promise.all([
+        fetch(`${supabaseUrl}/rest/v1/fiducie_mouvements?owner_id=eq.${owner_id}${filtre}&select=id,type,montant,date_valeur,description,source_type,created_at,buildings(address),users(email)&order=date_valeur.asc,created_at.asc`, { headers: adminHeaders }).then((r) => r.json()),
+        d0 ? fetch(`${supabaseUrl}/rest/v1/fiducie_mouvements?owner_id=eq.${owner_id}&date_valeur=lt.${d0}&select=montant`, { headers: adminHeaders }).then((r) => r.json()) : Promise.resolve([]),
+      ]);
+      const ouverture = (Array.isArray(avant) ? avant : []).reduce((t: number, m: { montant: number }) => t + Number(m.montant), 0);
+      return new Response(JSON.stringify({ ouverture: Math.round(ouverture * 100) / 100, mouvements: Array.isArray(mouvements) ? mouvements : [] }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "fiducie_ajouter") {
+      const { owner_id, building_id, type, montant, sens, description, date_valeur } = body;
+      if (!owner_id || !/^[0-9a-f-]{36}$/i.test(owner_id)) return new Response(JSON.stringify({ error: "owner_id invalide" }), { status: 400, headers: corsHeaders });
+      const signe = montantSigne(String(type || ""), montant, sens);
+      if (typeof signe === "string") return new Response(JSON.stringify({ error: signe }), { status: 400, headers: corsHeaders });
+      const texte = String(description || "").trim().slice(0, 300);
+      if (!texte) return new Response(JSON.stringify({ error: "Description requise" }), { status: 400, headers: corsHeaders });
+      const r = await fetch(`${supabaseUrl}/rest/v1/fiducie_mouvements`, {
+        method: "POST",
+        headers: { ...adminHeaders, Prefer: "return=representation" },
+        body: JSON.stringify({
+          owner_id, building_id: building_id || null, type, montant: signe, description: texte,
+          date_valeur: typeof date_valeur === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date_valeur) ? date_valeur : undefined,
+          source_type: "manuel", cree_par: userId,
+        }),
+      });
+      if (!r.ok) {
+        // Le refus vient des règles de la base (solde insuffisant, réserve…) : on transmet le message tel quel.
+        const detail = await r.json().catch(() => ({}));
+        return new Response(JSON.stringify({ error: detail?.message || "Mouvement refusé" }), { status: 409, headers: corsHeaders });
+      }
+      const [m] = await r.json();
+      await logAudit("fiducie.mouvement", "fiducie_mouvements", m?.id ?? null, { owner_id, type, montant: signe });
+      return new Response(JSON.stringify({ ok: true, mouvement: m }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "fiducie_reserve") {
+      const { building_id, montant } = body;
+      const m = Math.round(Number(montant) * 100) / 100;
+      if (!building_id || !/^[0-9a-f-]{36}$/i.test(building_id) || !Number.isFinite(m) || m < 0 || m > 100000) {
+        return new Response(JSON.stringify({ error: "Réserve invalide (0 à 100 000 $)" }), { status: 400, headers: corsHeaders });
+      }
+      const r = await fetch(`${supabaseUrl}/rest/v1/fiducie_reserves?on_conflict=building_id`, {
+        method: "POST", headers: { ...adminHeaders, Prefer: "resolution=merge-duplicates" },
+        body: JSON.stringify({ building_id, montant: m, updated_at: new Date().toISOString() }),
+      });
+      if (!r.ok) return new Response(JSON.stringify({ error: "Non enregistré" }), { status: 502, headers: corsHeaders });
+      await logAudit("fiducie.reserve", "buildings", building_id, { montant: m });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // Client propriétaire archivé : hors des listes actives, dossier intact.
     if (action === "archive_owner") {
       const { owner_id, archiver } = body;
