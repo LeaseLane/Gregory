@@ -492,6 +492,19 @@
     </div>
     <div id="fiducie-body"><p class="tr-vide">Chargement...</p></div>
     <div id="fiducie-releve" class="tr-carte" hidden style="margin-top:20px;"></div>
+
+    <div class="tr-entete" style="margin-top:28px"><div>
+      <h2>Dépôts du compte en fidéicommis</h2>
+      <p class="subtitle">Importez le relevé du compte (CSV : date, description, montant). Un dépôt avec la référence LL-xxxxx est rapproché tout seul : loyer marqué payé et registre du propriétaire crédité. Sans référence, vous confirmez ou choisissez le bail.</p>
+    </div></div>
+    <div class="fo-carte" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:12px;">
+      <div><label class="ch-label" for="fid-csv">Relevé CSV</label><input type="file" id="fid-csv" accept=".csv"></div>
+      <button class="ll-bouton ll-bouton--primaire" onclick="fidImporter()">Importer</button>
+      <div><label class="ch-label" for="fid-filtre">Afficher</label>
+        <select id="fid-filtre" onchange="fidAfficherDepots()"><option value="a_traiter">À traiter</option><option value="tous">Tous les dépôts</option></select></div>
+      <p id="fid-import-msg" class="subtitle" style="flex-basis:100%;margin:0"></p>
+    </div>
+    <div id="fiducie-depots"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="bank-recon" class="section">
@@ -4824,6 +4837,71 @@ async function loadFiducie(){
     <tr><td><b>Total en fidéicommis</b><small>Doit égaler le solde du compte bancaire en fidéicommis.</small></td><td class="num"><b>${fidArgent(total)}</b></td><td colspan="4"></td></tr>
   </tbody></table>`;
   if(fidProprio) await fidOuvrir(fidProprio, true);
+  await fidChargerDepots();
+}
+
+/* ---- Dépôts du compte en fidéicommis (étape 3) ---- */
+let fidDepots = { depots: [], baux: [] };
+const FID_STATUT = { matched: ['Rapproché', 'ok'], overpaid: ['Rapproché · excédent', 'att'], suggested: ['À confirmer', 'att'], unmatched: ['À rapprocher', 'ko'], ignored: ['Ignoré', ''] };
+
+async function fidChargerDepots(){
+  const res = await callOpsApi({ action: 'fiducie_depots' });
+  if(!res) return;
+  fidDepots = res;
+  fidAfficherDepots();
+}
+
+function fidAfficherDepots(){
+  const boite = document.getElementById('fiducie-depots');
+  const tous = document.getElementById('fid-filtre').value === 'tous';
+  const liste = (fidDepots.depots || []).filter(d => tous || d.match_status === 'unmatched' || d.match_status === 'suggested');
+  if(!liste.length){ boite.innerHTML = `<p class="tr-vide">${tous ? 'Aucun dépôt importé.' : 'Rien à traiter : tous les dépôts sont rapprochés.'}</p>`; return; }
+  const optBaux = '<option value="">— Choisir le bail —</option>' + (fidDepots.baux || []).map(b => `<option value="${b.lease_id}">${esc(b.reference)} · ${esc(b.locataire)} · ${fidArgent(b.loyer)}</option>`).join('');
+  boite.innerHTML = `<table class="tr-table"><thead><tr><th>Date</th><th>Libellé</th><th class="num">Montant</th><th>Statut</th><th>Bail</th><th></th></tr></thead><tbody>${liste.map(d => {
+    const [lib, ton] = FID_STATUT[d.match_status] || [d.match_status, ''];
+    const l = d.leases;
+    const bail = l ? `${esc(l.tenants?.full_name || '')}<small>${esc(l.units?.buildings?.address || '')}, log. ${esc(l.units?.unit_number || '')} · ${esc(l.units?.reference_paiement || '')} · ${esc(l.units?.buildings?.owners?.full_name || '')}</small>` : '—';
+    let actions = '';
+    if(d.match_status === 'suggested') actions = `<button class="ll-bouton ll-bouton--primaire lo-petit" onclick="fidAssigner('${d.id}', '${d.lease_id}')">Confirmer</button> <button class="vo-action" onclick="fidChoisir('${d.id}')">Autre bail</button>`;
+    else if(d.match_status === 'unmatched') actions = `<button class="vo-action" onclick="fidChoisir('${d.id}')">Rapprocher</button>`;
+    if(d.match_status === 'unmatched' || d.match_status === 'suggested') actions += ` <button class="tr-lien-danger" onclick="fidIgnorer('${d.id}', true)">Ignorer</button>`;
+    if(d.match_status === 'ignored' && Number(d.amount) > 0) actions = `<button class="vo-action" onclick="fidIgnorer('${d.id}', false)">Rétablir</button>`;
+    return `<tr><td>${esc(d.transaction_date)}</td><td>${esc(d.description)}${d.ai_suggestion_note ? `<small>${esc(d.ai_suggestion_note)}</small>` : ''}</td>
+      <td class="num" style="color:${Number(d.amount) < 0 ? 'var(--urgence-600)' : 'inherit'}">${fidArgent(d.amount)}</td>
+      <td><span class="tr-pastille tr-pastille--${ton}">${lib}</span></td><td>${bail}</td>
+      <td>${actions}<div id="fid-choix-${d.id}" hidden style="margin-top:6px"><select id="fid-bail-${d.id}">${optBaux}</select> <button class="ll-bouton ll-bouton--primaire lo-petit" onclick="fidAssigner('${d.id}', document.getElementById('fid-bail-${d.id}').value)">Rapprocher</button></div></td></tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+function fidChoisir(id){ const c = document.getElementById('fid-choix-' + id); c.hidden = !c.hidden; }
+
+async function fidAssigner(transactionId, leaseId){
+  if(!leaseId){ llToast('Choisissez le bail.', 'erreur'); return; }
+  const res = await callOpsApi({ action: 'fiducie_assigner', transaction_id: transactionId, lease_id: leaseId });
+  if(res?.ok){ llToast(res.excedent > 0 ? `Rapproché. Excédent de ${fidArgent(res.excedent)} gardé au registre du propriétaire.` : 'Rapproché : loyer payé et registre crédité.', 'succes'); await loadFiducie(); }
+}
+
+async function fidIgnorer(transactionId, ignorer){
+  let note = null;
+  if(ignorer){ note = await llDemander('Ignorer ce dépôt ? Il ne sera pas crédité à un propriétaire. Raison :', 'Pas un loyer'); if(note === null) return; }
+  const res = await callOpsApi({ action: 'fiducie_ignorer', transaction_id: transactionId, ignorer, note });
+  if(res?.ok){ llToast(ignorer ? 'Dépôt ignoré.' : 'Dépôt rétabli.', 'succes'); await fidChargerDepots(); }
+}
+
+async function fidImporter(){
+  const champ = document.getElementById('fid-csv'), msg = document.getElementById('fid-import-msg');
+  if(!champ.files.length){ msg.textContent = 'Choisissez le fichier CSV du relevé.'; return; }
+  const lignes = parseQuotedCsv(await champ.files[0].text());
+  const rows = lignes.map(c => ({ date: (c[0] || '').trim(), description: (c[1] || '').trim(), amount: String(c[2] || '').trim().replace(/\s/g, '').replace(',', '.'), reference: (c[3] || '').trim() || undefined }))
+    .filter(r => /^\d{4}-\d{2}-\d{2}/.test(r.date) && r.amount && !isNaN(Number(r.amount)));
+  if(!rows.length){ msg.textContent = 'Aucune ligne valide (format attendu : date AAAA-MM-JJ, description, montant).'; return; }
+  msg.textContent = `Import de ${rows.length} ligne(s)…`;
+  const res = await callOpsApi({ action: 'fiducie_importer', rows });
+  if(res?.ok){
+    msg.textContent = `${res.importes} importé(s) : ${res.auto} rapproché(s) automatiquement, ${res.suggestions} à confirmer, ${res.a_traiter} à rapprocher, ${res.sorties} sortie(s)${res.doublons ? `, ${res.doublons} déjà importé(s)` : ''}.${res.erreurs?.length ? ' ' + res.erreurs.length + ' ligne(s) en erreur.' : ''}`;
+    champ.value = '';
+    await loadFiducie();
+  } else msg.textContent = '';
 }
 
 async function fidOuvrir(ownerId, silencieux){

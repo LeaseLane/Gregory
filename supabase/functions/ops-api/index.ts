@@ -4,6 +4,7 @@ import { courrielTravailleur } from "../_shared/journal-travailleur.ts";
 import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 import { montantSigne } from "../_shared/fiducie.ts";
+import { classer, type Bail } from "../_shared/rapprochement-fiducie.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
 // navigateur d'un usager (CSRF via fetch). Les appels serveur à
@@ -438,6 +439,91 @@ Deno.serve(async (req) => {
       });
       if (!r.ok) return new Response(JSON.stringify({ error: "Non enregistré" }), { status: 502, headers: corsHeaders });
       await logAudit("fiducie.courriel_interac", "company_settings", null, { actif: !!courriel });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ---- Étape 3 : dépôts du compte en fidéicommis ----
+    // Baux actifs avec leur référence, le locataire et ce qui reste dû (pour classer).
+    const bauxFiducie = async (): Promise<Bail[]> => {
+      const rows = await fetch(`${supabaseUrl}/rest/v1/leases?status=eq.active&select=id,monthly_rent,tenants(full_name),units(reference_paiement),payments(amount,amount_received,status)`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+      return (Array.isArray(rows) ? rows : []).filter((l: any) => l.units?.reference_paiement).map((l: any) => ({
+        lease_id: l.id, reference: l.units.reference_paiement, locataire: l.tenants?.full_name || "", loyer: Number(l.monthly_rent || 0),
+        du_ouvert: (l.payments || []).filter((p: any) => p.status === "pending" || p.status === "late").map((p: any) => Number(p.amount) - Number(p.amount_received || 0)),
+      }));
+    };
+    const appliquerDepot = async (transaction_id: string, lease_id: string) => {
+      const r = await fetch(`${supabaseUrl}/rest/v1/rpc/fiducie_appliquer_depot`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ p_transaction: transaction_id, p_lease: lease_id, p_par: userId }) });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data?.message || "Rapprochement refusé");
+      return data;
+    };
+
+    if (action === "fiducie_importer") {
+      const rows = Array.isArray(body.rows) ? body.rows.slice(0, 2000) : [];
+      if (!rows.length) return new Response(JSON.stringify({ error: "Aucune ligne à importer" }), { status: 400, headers: corsHeaders });
+      const existants = new Set(((await fetch(`${supabaseUrl}/rest/v1/bank_transactions?compte=eq.fiducie&select=external_id`, { headers: adminHeaders }).then((r) => r.json()).catch(() => [])) as { external_id: string }[]).map((x) => x.external_id));
+      const baux = await bauxFiducie();
+      const bilan = { importes: 0, doublons: 0, auto: 0, suggestions: 0, a_traiter: 0, sorties: 0, erreurs: [] as string[] };
+      for (const row of rows) {
+        const montant = Math.round(Number(row.amount) * 100) / 100;
+        const date = String(row.date || "").slice(0, 10);
+        const description = String(row.description || "").slice(0, 300);
+        if (!Number.isFinite(montant) || !montant || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { bilan.erreurs.push(`Ligne illisible : ${date} ${description}`); continue; }
+        const externe = String(row.reference || `csv:${date}|${montant}|${description}`).slice(0, 300);
+        if (existants.has(externe)) { bilan.doublons++; continue; }
+        existants.add(externe);
+        const c = montant > 0 ? classer({ description, amount: montant }, baux) : null;
+        const ins = await fetch(`${supabaseUrl}/rest/v1/bank_transactions`, {
+          method: "POST", headers: { ...adminHeaders, Prefer: "return=representation" },
+          body: JSON.stringify({
+            compte: "fiducie", transaction_date: date, description, amount: montant, external_id: externe,
+            match_status: montant < 0 ? "ignored" : c?.type === "suggestion" ? "suggested" : "unmatched",
+            lease_id: c?.type === "suggestion" ? c.lease_id : null,
+            reference_detectee: c && "reference" in c ? c.reference ?? null : null,
+            ai_suggestion_note: montant < 0 ? "Sortie du compte (versement, fournisseur ou frais) : vérifiée au rapprochement mensuel" : c && "raison" in c ? c.raison : null,
+          }),
+        });
+        if (!ins.ok) { bilan.erreurs.push(`Non importée : ${date} ${description}`); continue; }
+        const [tx] = await ins.json();
+        bilan.importes++;
+        if (montant < 0) { bilan.sorties++; continue; }
+        if (c?.type === "auto") {
+          try { await appliquerDepot(tx.id, c.lease_id); bilan.auto++; } catch (e) { bilan.a_traiter++; bilan.erreurs.push(`${description} : ${(e as Error).message}`); }
+        } else if (c?.type === "suggestion") bilan.suggestions++;
+        else bilan.a_traiter++;
+      }
+      await logAudit("fiducie.import", "bank_transactions", null, { ...bilan, erreurs: bilan.erreurs.length });
+      return new Response(JSON.stringify({ ok: true, ...bilan }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "fiducie_depots") {
+      const res = await fetch(`${supabaseUrl}/rest/v1/bank_transactions?compte=eq.fiducie&select=id,transaction_date,description,amount,match_status,reference_detectee,ai_suggestion_note,lease_id,leases(tenants(full_name),units(unit_number,reference_paiement,buildings(address,owners(full_name))))&order=transaction_date.desc,created_at.desc&limit=300`, { headers: adminHeaders });
+      const baux = (await bauxFiducie()).map((b) => ({ lease_id: b.lease_id, reference: b.reference, locataire: b.locataire, loyer: b.loyer }));
+      return new Response(JSON.stringify({ depots: await res.json().catch(() => []), baux }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "fiducie_assigner") {
+      const { transaction_id, lease_id } = body;
+      if (![transaction_id, lease_id].every((x) => typeof x === "string" && /^[0-9a-f-]{36}$/i.test(x))) return new Response(JSON.stringify({ error: "Dépôt ou bail invalide" }), { status: 400, headers: corsHeaders });
+      try {
+        const r = await appliquerDepot(transaction_id, lease_id);
+        await logAudit("fiducie.depot_rapproche", "bank_transactions", transaction_id, { lease_id, ...r });
+        return new Response(JSON.stringify({ ok: true, ...r }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders });
+      }
+    }
+
+    if (action === "fiducie_ignorer") {
+      const { transaction_id, ignorer, note } = body;
+      if (typeof transaction_id !== "string" || !/^[0-9a-f-]{36}$/i.test(transaction_id)) return new Response(JSON.stringify({ error: "Dépôt invalide" }), { status: 400, headers: corsHeaders });
+      const r = await fetch(`${supabaseUrl}/rest/v1/bank_transactions?id=eq.${transaction_id}&compte=eq.fiducie&match_status=in.(unmatched,suggested,ignored)`, {
+        method: "PATCH", headers: { ...adminHeaders, Prefer: "return=representation" },
+        body: JSON.stringify(ignorer ? { match_status: "ignored", ai_suggestion_note: String(note || "Ignoré par l'admin").slice(0, 300), reconciled_by: userId, reconciled_at: new Date().toISOString() } : { match_status: "unmatched", reconciled_by: null, reconciled_at: null }),
+      });
+      const maj = await r.json().catch(() => []);
+      if (!r.ok || !maj.length) return new Response(JSON.stringify({ error: "Un dépôt déjà rapproché ne s'ignore pas (son loyer est inscrit au registre)" }), { status: 409, headers: corsHeaders });
+      await logAudit(ignorer ? "fiducie.depot_ignore" : "fiducie.depot_retabli", "bank_transactions", transaction_id, {});
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

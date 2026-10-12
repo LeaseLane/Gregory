@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "owner_id manquant" }), { status: 400, headers: corsHeaders });
       }
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/bank_transactions?owner_id=eq.${owner_id}&select=*,matched_payment:matched_payment_id(amount,due_date),ai_suggested_tenant:ai_suggested_tenant_id(full_name)&order=transaction_date.desc`,
+        `${supabaseUrl}/rest/v1/bank_transactions?owner_id=eq.${owner_id}&compte=eq.proprietaire&select=*,matched_payment:matched_payment_id(amount,due_date),ai_suggested_tenant:ai_suggested_tenant_id(full_name)&order=transaction_date.desc`,
         { headers: adminHeaders },
       );
       return new Response(JSON.stringify({ transactions: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
