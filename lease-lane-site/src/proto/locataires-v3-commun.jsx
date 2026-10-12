@@ -20,16 +20,16 @@ const port = () => LL_SITE.portail || '#';
 const tel = () => LL_TEL_URGENCE();
 const numero = () => LL_SITE.urgence || '[numéro de garde]';
 const G = t => gab ? gab(t) : t;
-const URG_TXT = 'Fuite d\u2019eau importante, panne de chauffage en hiver, panne électrique, porte ou serrure qui ne ferme plus, détecteur défectueux : appelez, une personne de garde répond.',
+const URG_TXT = 'Fuite d\u2019eau importante, panne de chauffage en hiver, panne électrique, porte ou serrure qui ne ferme plus, détecteur défectueux : appelez ce numéro, une personne de garde vous répond.',
   URG_911 = 'En cas de danger, faites le 911.';
-const LEAD = 'Vos demandes, leur suivi, votre loyer et votre bail se gèrent dans le portail locataire. Cléo vous répond 24/7, vous explique vos droits selon les règles du TAL (Tribunal administratif du logement, l\u2019ancienne Régie du logement) et trie les urgences; l\u2019équipe prend le relais quand il le faut.';
+const LEAD = 'Dans le portail locataire, vous faites vos demandes, suivez leur avancement, payez votre loyer et consultez votre bail. Cléo répond 24/7 : il explique vos droits selon les règles du TAL (Tribunal administratif du logement, l\u2019ancienne Régie du logement), repère les urgences et passe la main à l\u2019équipe au besoin.';
 
 /* lieu : site = page publique, port = portail locataire (connexion). k = mots de recherche (option B). */
 const SV = {
   urgence: {
     ic: 'triangle-alert',
     t: 'Urgence 24/7',
-    d: 'Fuite, chauffage, électricité, serrure : quoi faire, quel numéro.',
+    d: 'Fuite, chauffage, électricité, serrure : quoi faire et qui appeler.',
     href: '#urgence',
     lieu: 'site',
     k: 'urgence fuite eau dégât chauffage froid électricité électrique panne serrure porte barré détecteur fumée danger 911 garde'
@@ -122,7 +122,7 @@ const Fleche = ({
 const SR = ({
   children
 }) => <span className="lv-sr">{children}</span>;
-const Phase = () => <Badge ton="neutre" taille="s">Phase 2</Badge>;
+const Phase = () => <Badge ton="neutre" taille="s">Bientôt</Badge>;
 const Ex = () => <Badge ton="alerte" taille="s">Exemple</Badge>;
 const Fil = ({
   route,

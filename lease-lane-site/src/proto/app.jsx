@@ -27,8 +27,6 @@ const FORME_VOIE = {
   }
 };
 const AVATAR_CLEO = "/assets/img/cleo-avatar.png";
-const PHOTO_L1 = "/assets/img/logements/montcalm-cartier.jpg";
-
 /* Cléo — scénarios de conversation. Chaque réponse = suite de messages (texte ou carte), avec
    relances et créneaux optionnels. Ton : vouvoiement, phrases courtes, aucune promesse, escalade
    vers une personne dès qu'une décision légale ou financière est en jeu. */
@@ -113,6 +111,7 @@ const ACTIONS = [{
 /* Public de chaque scénario : '*' = tous (droit du logement, relais humain). */
 /* FAQ visible dans Cléo selon le profil : propriétaire = ses questions + tout le TAL (t*); locataire et futur locataire = leurs questions + le TAL côté locataire. */
 const SCENARIOS = {
+  /* Logements à louer : page pas encore en ligne (consigne du 11 oct. 2026). Cléo l'annonce et propose une alerte. */
   chercher: {
     /* Aucun logement sous gestion pour l'instant (11 oct. 2026) : on le dit, et la demande part à l'équipe. */
     messages: () => [{
@@ -240,7 +239,7 @@ const SCENARIOS = {
       texte: 'Je peux vous expliquer les règles générales du Code civil et du TAL sur le bail : avis, délais, cession, reprise, résiliation, recours. Décrivez-moi votre situation : je vous indique les règles qui s\u2019y rapportent et leurs sources, puis une personne de l\u2019équipe prend le relais pour votre cas précis.'
     }, {
       role: 'agent',
-      texte: 'Information juridique générale, pas un avis juridique. Un humain prend le relais dès que votre dossier le demande.'
+      texte: 'Information juridique générale, pas un avis juridique. Une personne de l’équipe prend le relais dès que votre dossier le demande.'
     }],
     suggestions: ['Une hausse de loyer', 'Une cession de bail', 'Parler à une personne']
   }
@@ -340,7 +339,7 @@ function AgentIA({
         texte: F.r
       }, ...(id[0] === 't' ? [{
         role: 'agent',
-        texte: 'Information juridique générale, pas un avis juridique. Un humain prend le relais dès que votre dossier le demande.'
+        texte: 'Information juridique générale, pas un avis juridique. Une personne de l’équipe prend le relais dès que votre dossier le demande.'
       }] : [])],
       suggestions: ['Une autre question', 'Parler à une personne']
     });
@@ -564,4 +563,4 @@ function AgentIA({
     <AIAgentLauncher className="cp-lanceur" avatar={AVATAR_CLEO} ouvert={ouvert} pastille={nonLus} onClick={basculer} etiquette="Parler à Cléo" />
   </div>;
 }
-export { ICONES_BOUTON, FORME_VOIE, AVATAR_CLEO, PHOTO_L1, CRENEAUX, PROFILS, ACTIONS, ACTIONS as LL_CLEO_ACTIONS, AUD, faqPour, normF, motsF, trouverFaq, SCENARIOS, DEFAUT, ORDRE, cleScenario, AgentIA };
+export { ICONES_BOUTON, FORME_VOIE, AVATAR_CLEO, CRENEAUX, PROFILS, ACTIONS, ACTIONS as LL_CLEO_ACTIONS, AUD, faqPour, normF, motsF, trouverFaq, SCENARIOS, DEFAUT, ORDRE, cleScenario, AgentIA };

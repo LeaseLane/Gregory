@@ -3,6 +3,6 @@
  ["cleo-concepts","PageCleoV2"],["apropos-concepts","PageAProposV2"],["pages-contact-v2","PageContact"],
  ["pages-lease","PageFAQ"],["pages-lease","PageLegal"],["pages-locataires","PageLogements"],["fiche-concepts","FicheV2"],
  ["locataires-v3-commun","PageLocatairesV3"],["formulaires","PageFormulaire"],["pages-blogue","PageBlogue"],["pages-blogue","PageArticle"],
- ["pages-guides","PageQuartiers"],["pages-guides","PageQuartier"],["pages-guides","PageGlossaire"],
+ ["pages-guides","PageQuartiers"],["pages-guides","PageQuartier"],["pages-guides","PageBientot"],["pages-guides","PageGlossaire"],
  ["app","FORME_VOIE"],["app","AgentIA"],["chrome","Entete"],["pied-options","PiedRevue"],["cleo-temoins","CleoTemoins"],["seo","ouvrirCleo"],
- ["routes","LL_ROUTES"],["routes","LL_SITE"],["routes","LL_ALIAS"],["faq","LL_FAQ"]]
+ ["routes","LL_ROUTES"],["routes","LL_SITE"],["routes","LL_ALIAS"],["faq","LL_FAQ"],["articles-blogue","LL_ARTICLES"],["pages-levis","PageLevis"],["pages-levis","PageLocale"],["pages-levis","PageRegion"],["levis-donnees","LL_LEVIS"],["localites-donnees","LL_LOCALITES"],["localites-donnees","LL_REGION"],["localites-routes","LL_LOCALITES_ROUTES"]]

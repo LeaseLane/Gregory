@@ -5,10 +5,11 @@ import React from 'react';
 import { useRoute, naviguer } from '@/lib/routeur';
 import { usePagePrete } from '@/lib/finitions';
 import { PageFormulaire } from '@/proto/formulaires';
+import { PageBientot } from '@/proto/pages-guides';
 
 export default function Vue() {
   const { route } = useRoute();
   usePagePrete();
   void route; void naviguer;
-  return <PageFormulaire route={route} />;
+  return route.path === '/locataires/demande-de-location' ? <PageBientot route={route} sujet="demande" /> : <PageFormulaire route={route} />;
 }

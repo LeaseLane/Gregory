@@ -5,12 +5,13 @@
 import React from 'react';
 import { Icon, Button } from '@/components/ds';
 import { PPC, PP_TYPES } from '@/proto/pages-proprietaires';
-import { gab, LLSol, MentionJuridique, Exemple, Fleche, Note, CONT } from '@/proto/blocs';
+import { gab, MentionJuridique, LLSol, Exemple, Fleche, Note, CONT } from '@/proto/blocs';
 import { LL_FAQ } from '@/proto/faq';
 import { PictoImmeuble } from '@/proto/pictos-immeubles';
 import { LLBandes } from '@/proto/pages-proprio-b';
 import { FormOffreP } from '@/proto/forms-principal';
 import { GO_useRevue, GO_BasculeRevue, GO_OptionsSection } from '@/proto/gestion-options-a';
+import { __ssr } from '@/lib/hydratation';
 const F = '1px solid var(--bordure-fine)',
   FC = '1px solid rgba(200,218,240,.16)';
 const O1 = '0 1px 2px rgba(12,33,71,.05),0 12px 32px rgba(12,33,71,.08)',
@@ -61,7 +62,7 @@ const Pastille = ({
   color: '#fff',
   whiteSpace: 'nowrap'
 }}>{ic && <Icon name={ic} size={13} color="#fff" />}{children}</span>;
-const CAP = [['key', 'Location', 'Vos logements loués plus vite', ['Répond aux prospects : prix, dates, inclusions', 'Réserve les visites selon vos plages ouvertes', 'Relance chaque visiteur le lendemain', 'Reçoit des demandes de location complètes']], ['message-square', 'Locataires', 'Chaque locataire a sa réponse', ['Bail, loyer et services, en français d’abord', 'Paiements et reçus, dans le portail', 'Ajout au bail, cession et départ', 'Un avis à chaque étape, par courriel ou texto']], ['wrench', 'Entretien', 'Des demandes prêtes à traiter', ['Demande de travaux avec module de suivi complet', 'Urgences traitées très rapidement', 'Plages de rendez-vous proposées au locataire', 'Suivi jusqu’à la fermeture du dossier']], ['building-2', 'Pour vous', 'Rien ne vous échappe', ['Aucun message sans réponse, jour et nuit', 'Le fil complet transmis au gestionnaire', 'Vos approbations demandées en un geste', 'Les échanges résumés dans votre rapport mensuel']]];
+const CAP = [['key', 'Location', 'Vos logements loués plus vite', ['Répond aux locataires potentiels : prix, dates, inclusions', 'Réserve les visites selon vos plages ouvertes', 'Relance chaque visiteur le lendemain', 'Reçoit des demandes de location complètes']], ['message-square', 'Locataires', 'Chaque locataire a sa réponse', ['Bail, loyer et services, en français d’abord', 'Paiements et reçus, dans le portail', 'Ajout au bail, cession et départ', 'Un avis à chaque étape, par courriel ou texto']], ['wrench', 'Entretien', 'Des demandes prêtes à traiter', ['Demande de travaux avec module de suivi complet', 'Urgences prises en charge 24/7', 'Plages de rendez-vous proposées au locataire', 'Suivi jusqu’à la fermeture du dossier']], ['building-2', 'Pour vous', 'Rien ne vous échappe', ['Aucun message sans réponse, jour et nuit', 'Le fil complet transmis au gestionnaire', 'Vos approbations demandées en un geste', 'Les échanges résumés dans votre rapport mensuel']]];
 /* Capacités : un seul cadre à fine bordure marine, deux rangées de deux colonnes séparées par des filets (« Tableau unique » de l'accueil). */
 const BORD = '1px solid rgba(12,33,71,.16)';
 function Capacites() {
@@ -135,204 +136,190 @@ const TAL_Q = {
   proprietaires: ['t5', 't7', 't6'],
   locataires: ['t2', 't3', 't4']
 };
-function CleoTAL() {
-  const FQ = LL_FAQ,
-    [p, setP] = React.useState('proprietaires'),
-    [k, setK] = React.useState(0),
-    f = FQ[TAL_Q[p][k]];
-  const liste = (t, items) => <div style={{
-    display: 'grid',
-    gap: '4px',
-    alignContent: 'start'
-  }}><span style={{
-      fontSize: '14px',
-      fontWeight: 700,
-      color: '#fff',
-      paddingBottom: '12px',
-      marginBottom: '4px',
-      borderBottom: FC
-    }}>{t}</span>
-    <ul style={{
-      listStyle: 'none',
-      margin: 0,
-      padding: 0,
-      display: 'grid'
-    }}>{items.map((x, j) => <li key={x} style={{
-        display: 'grid',
-        gridTemplateColumns: '22px minmax(0,1fr)',
-        gap: '12px',
-        alignItems: 'start',
-        padding: '9px 0',
-        borderTop: j ? FC : 'none',
-        fontSize: '14px',
-        lineHeight: 1.5,
-        color: '#fff'
-      }}><span aria-hidden="true" style={{
-          width: '22px',
-          height: '22px',
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,.14)',
-          display: 'grid',
-          placeItems: 'center'
-        }}><Icon name="check" size={13} color="#fff" /></span><span>{x}</span></li>)}</ul></div>;
-  return <figure className="ll-sombre go-2c" style={{
-    position: 'relative',
-    isolation: 'isolate',
-    overflow: 'hidden',
+/* Textes du bloc (partagés par les options). */
+const TAL_T = 'Cléo explique les règles du Tribunal administratif du logement.';
+const TAL_D = 'Code civil du Québec, procédures, délais et frais du TAL : Cléo explique le droit du logement aux propriétaires comme aux locataires, avec la même rigueur. Chaque réponse suit le même ordre : la situation, la règle et sa source, les options de chaque partie, la prochaine étape.';
+const TAL_L = {
+  proprietaires: ['Avis de modification : fenêtres et délais', 'Hausse 2026 : taux de base de 3,1 % et outil du TAL', 'Loyer impayé : recours dès 3 semaines de retard', 'Reprise, éviction et moratoire de la Loi 65'],
+  locataires: ['Accepter ou refuser une hausse, dans le mois', 'Reprise, éviction et protection des 65 ans et plus', 'Cession de bail et sous-location (Loi 31)', 'Réparations, urgences et accès au logement']
+};
+const TAL_P = [['proprietaires', 'Propriétaire'], ['locataires', 'Locataire']];
+const AVATAR = "/assets/img/cleo-avatar.png";
+const poserCleo = () => (__ssr() ? "undefined" : typeof window) !== "undefined" ? window.dispatchEvent(new CustomEvent('ll-cleo', {
+  detail: {
+    texte: ''
+  }
+})) : undefined;
+
+/* Morceaux réutilisés par les trois options. */
+const TalPastilles = () => <div className="go-tal-pas" style={{
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '8px'
+}}><Pastille ic="sparkles" vive>Compétence phare</Pastille><Pastille ic="scale">Droit du logement · TAL</Pastille></div>;
+const TalTitre = () => <h3 style={{
+  margin: 0,
+  fontSize: 'clamp(26px,2.6vw,34px)',
+  lineHeight: 1.265,
+  letterSpacing: '-0.03em',
+  color: '#fff',
+  textWrap: 'balance'
+}}>{TAL_T}</h3>;
+const TalIntro = ({
+  style
+}) => <p style={{
+  margin: 0,
+  fontSize: '14px',
+  lineHeight: 1.6,
+  color: 'var(--bleu-100)',
+  maxWidth: '60ch',
+  ...style
+}}>{TAL_D}</p>;
+const TalRevision = ({
+  encadre = true
+}) => <p className="go-tal-rev" style={{
+  margin: 0,
+  display: 'grid',
+  gridTemplateColumns: '20px minmax(0,1fr)',
+  gap: '10px',
+  padding: encadre ? '14px 16px' : 0,
+  borderRadius: '14px',
+  border: encadre ? '1px solid rgba(255,255,255,.7)' : 0,
+  fontSize: '14px',
+  lineHeight: 1.6,
+  color: 'var(--bleu-100)'
+}}><Icon name="refresh-cw" size={18} color="#fff" style={{
+    marginTop: '2px'
+  }} /><span><strong style={{
+      color: '#fff'
+    }}>Révisé à chaque changement publié par le TAL ; date de révision affichée.</strong> Taux de l’année, frais en vigueur, formulaires et modèles officiels : sa base est révisée chaque janvier, chaque novembre et à chaque changement de loi.</span></p>;
+const TalMention = () => <MentionJuridique clair />;
+/* Liste de sujets sur fond marine (coches blanches). */
+const TalListe = ({
+  titre,
+  items,
+  id
+}) => <div style={{
+  display: 'grid',
+  gap: '4px',
+  alignContent: 'start'
+}}>
+  <h4 id={id} style={{
     margin: 0,
-    borderRadius: '24px',
-    background: 'var(--degrade-marine)',
-    padding: 'clamp(24px,3.4vw,44px)',
+    fontSize: '14px',
+    fontWeight: 700,
+    color: '#fff',
+    paddingBottom: '12px',
+    marginBottom: '4px',
+    borderBottom: FC
+  }}>{titre}</h4>
+  <ul aria-labelledby={id} style={{
+    listStyle: 'none',
+    margin: 0,
+    padding: 0,
+    display: 'grid'
+  }}>{items.map((x, j) => <li key={x} style={{
+      display: 'grid',
+      gridTemplateColumns: '22px minmax(0,1fr)',
+      gap: '12px',
+      alignItems: 'start',
+      padding: '9px 0',
+      borderTop: j ? FC : 'none',
+      fontSize: '14px',
+      lineHeight: 1.5,
+      color: '#fff'
+    }}><span aria-hidden="true" style={{
+        width: '22px',
+        height: '22px',
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,.14)',
+        display: 'grid',
+        placeItems: 'center'
+      }}><Icon name="check" size={13} color="#fff" /></span><span>{x}</span></li>)}</ul></div>;
+const TalListes = ({
+  className,
+  style
+}) => <div className={'go-tal-2 ' + (className || '')} style={{
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2,minmax(0,1fr))',
+  gap: '24px clamp(28px,3.4vw,48px)',
+  ...style
+}}>
+  <TalListe id="tal-l-p" titre="Aux propriétaires" items={TAL_L.proprietaires} /><TalListe id="tal-l-l" titre="Aux locataires" items={TAL_L.locataires} /></div>;
+
+/* Onglets Propriétaire / Locataire (flèches gauche-droite au clavier). */
+function TalOnglets({
+  p,
+  choisir,
+  uid,
+  compact
+}) {
+  const refs = React.useRef([]);
+  const clavier = e => {
+    const n = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!n) return;
+    e.preventDefault();
+    const i = (TAL_P.findIndex(x => x[0] === p) + n + TAL_P.length) % TAL_P.length;
+    choisir(TAL_P[i][0]);
+    refs.current[i] && refs.current[i].focus();
+  };
+  return <div role="tablist" aria-label="Je suis" onKeyDown={clavier} style={{
     display: 'grid',
-    gridTemplateColumns: 'minmax(0,6fr) minmax(0,5fr)',
-    gap: '40px',
-    alignItems: 'stretch',
-    boxShadow: O2
+    gridTemplateColumns: '1fr 1fr',
+    gap: '4px',
+    padding: '3px',
+    borderRadius: '12px',
+    background: 'var(--surface-douce)',
+    border: F
   }}>
-    <Lueur />{<LLSol sombre h="55%" />}
-    <div style={{
-      position: 'relative',
-      display: 'grid',
-      gap: '24px'
-    }}>
-      {/* Mobile : trois diapositives (présentation · sujets · mise à jour); sur grand écran, les enveloppes s'effacent (display: contents). */}
-      <div className="go-tal-car" data-hauteur-auto="" style={{
-        display: 'contents'
-      }}><div className="go-tal-p" style={{
-          display: 'contents'
-        }}>
-      <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '8px'
-          }}><Pastille ic="sparkles" vive>Compétence phare</Pastille><Pastille ic="scale">Droit du logement · TAL</Pastille></div>
-      <div style={{
-            display: 'grid',
-            gap: '12px'
-          }}><h3 style={{
-              margin: 0,
-              fontSize: 'clamp(26px,2.6vw,34px)',
-              lineHeight: 1.265,
-              letterSpacing: '-0.03em',
-              color: '#fff',
-              textWrap: 'balance'
-            }}>Cléo explique les règles du Tribunal administratif du logement.</h3>
-        <p style={{
-              margin: 0,
-              fontSize: '14px',
-              lineHeight: 1.6,
-              color: 'var(--bleu-100)',
-              maxWidth: '56ch'
-            }}>Code civil du Québec, procédures, délais et frais du TAL : Cléo explique le droit du logement aux propriétaires comme aux locataires, avec la même rigueur. Chaque réponse suit le même ordre : la situation, la règle et sa source, les options de chaque partie, la prochaine étape.</p></div>
-      </div><div className="go-tal-p" style={{
-          display: 'contents'
-        }}>
-      <div className="go-2c" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2,minmax(0,1fr))',
-            gap: '24px',
-            paddingTop: '20px',
-            borderTop: FC
-          }}>
-        {liste('Aux propriétaires', ['Avis de modification : fenêtres et délais', 'Hausse 2026 : taux de base de 3,1 % et outil du TAL', 'Loyer impayé : recours dès 3 semaines de retard', 'Reprise, éviction et moratoire de la Loi 65'])}
-        {liste('Aux locataires', ['Accepter ou refuser une hausse, dans le mois', 'Reprise, éviction et protection des 65 ans et plus', 'Cession de bail et sous-location (Loi 31)', 'Réparations, urgences et accès au logement'])}</div>
-      </div><div className="go-tal-p" style={{
-          display: 'contents'
-        }}>
-      <p className="go-tal-rev" style={{
-            margin: '4px 0 0',
-            display: 'grid',
-            gridTemplateColumns: '20px minmax(0,1fr)',
-            gap: '10px',
-            padding: '14px 16px',
-            borderRadius: '14px',
-            border: '1px solid rgba(255,255,255,.7)',
-            fontSize: '14px',
-            lineHeight: 1.6,
-            color: 'var(--bleu-100)'
-          }}><Icon name="refresh-cw" size={18} color="#fff" style={{
-              marginTop: '2px'
-            }} /><span><strong style={{
-                color: '#fff'
-              }}>Révisé à chaque changement publié par le TAL ; date de révision affichée.</strong> Taux de l’année, frais en vigueur, formulaires et modèles officiels : sa base est révisée chaque janvier, chaque novembre et à chaque changement de loi.</span></p>
-      {<MentionJuridique clair />}
-      </div></div>
-    </div>
-    <div className="go-tal-demo" style={{
-      position: 'relative',
-      display: 'grid',
-      gridTemplateRows: 'auto auto auto 1fr',
-      gap: '14px',
-      alignSelf: 'stretch',
-      padding: '20px',
-      borderRadius: '20px',
-      background: '#fff',
-      boxShadow: '0 12px 32px rgba(4,14,28,.25)'
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        paddingBottom: '14px',
+    {TAL_P.map(([v, t], i) => {
+      const on = p === v;
+      return <button key={v} ref={el => refs.current[i] = el} id={uid + '-t-' + v} type="button" role="tab" aria-selected={on} aria-controls={uid + '-pan'} tabIndex={on ? 0 : -1} onClick={() => choisir(v)} style={{
+        height: compact ? '34px' : '38px',
+        border: 0,
+        borderRadius: '9px',
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+        fontSize: '13.5px',
+        fontWeight: 700,
+        background: on ? 'var(--marine-900)' : 'transparent',
+        color: on ? '#fff' : 'var(--marine-900)',
+        transition: 'background 200ms'
+      }}>{t}</button>;
+    })}</div>;
+}
+/* Questions en accordéon : la réponse s'ouvre sous la question choisie. */
+function TalAccordeon({
+  p,
+  k,
+  setK,
+  uid
+}) {
+  const FQ = LL_FAQ;
+  return <ul style={{
+    listStyle: 'none',
+    margin: 0,
+    padding: 0,
+    display: 'grid',
+    borderTop: F
+  }}>{TAL_Q[p].map((id, j) => {
+      const on = j === k,
+        rid = uid + '-r-' + j;
+      return <li key={id} style={{
         borderBottom: F
-      }}><img src="/assets/img/cleo-avatar.png" alt="" style={{
-          width: '36px',
-          height: '36px',
-          borderRadius: '50%',
-          objectFit: 'cover'
-        }} />
-        <span style={{
-          display: 'grid'
-        }}><span style={{
-            fontSize: '14px',
-            fontWeight: 700,
-            color: 'var(--marine-900)'
-          }}>Demandez à Cléo</span><span style={{
-            fontSize: '12px',
-            color: 'var(--texte-discret)'
-          }}>Exemples de questions</span></span></div>
-      <div role="tablist" aria-label="Je suis" style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '4px',
-        padding: '4px',
-        borderRadius: '999px',
-        background: 'var(--surface-douce)',
-        border: F
       }}>
-        {[['proprietaires', 'Propriétaire'], ['locataires', 'Locataire']].map(([v, t]) => {
-          const on = p === v;
-          return <button key={v} type="button" role="tab" aria-selected={on} onClick={() => {
-            setP(v);
-            setK(0);
-          }} style={{
-            height: '40px',
-            border: 0,
-            borderRadius: 'var(--rayon-bouton)',
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            fontSize: '14px',
-            fontWeight: 700,
-            background: on ? 'var(--marine-900)' : 'transparent',
-            color: on ? '#fff' : 'var(--marine-900)',
-            transition: 'background 200ms'
-          }}>{t}</button>;
-        })}</div>
-      <div style={{
-        display: 'grid',
-        gap: '6px'
-      }}>{TAL_Q[p].map((id, j) => {
-          const on = j === k;
-          return <button key={id} type="button" aria-pressed={on} onClick={() => setK(j)} style={{
+    <h4 style={{
+          margin: 0
+        }}><button type="button" aria-expanded={on} aria-controls={rid} onClick={() => setK(on ? -1 : j)} style={{
+            width: '100%',
             display: 'grid',
             gridTemplateColumns: 'minmax(0,1fr) 16px',
-            gap: '10px',
+            gap: '12px',
             alignItems: 'center',
             minHeight: '44px',
-            padding: '10px 14px',
-            borderRadius: '12px',
-            border: '1px solid ' + (on ? 'var(--marine-900)' : 'var(--bordure-fine)'),
-            background: on ? 'var(--bleu-025)' : '#fff',
+            padding: '11px 2px',
+            border: 0,
+            background: 'transparent',
             cursor: 'pointer',
             textAlign: 'left',
             fontFamily: 'inherit',
@@ -340,32 +327,262 @@ function CleoTAL() {
             fontWeight: on ? 700 : 500,
             lineHeight: 1.4,
             color: 'var(--marine-900)'
-          }}>{FQ[id].q}<Icon name="chevron-right" size={16} color="var(--marine-900)" /></button>;
-        })}</div>
-      <div style={{
-        display: 'grid',
-        alignContent: 'end'
-      }}><div key={p + k} className="lls-fondu" style={{
+          }}>{FQ[id].q}<Icon name="chevron-down" size={16} color="var(--marine-900)" style={{
+              transform: on ? 'rotate(180deg)' : 'none',
+              transition: 'transform 200ms'
+            }} /></button></h4>
+    {on && <div id={rid} className="lls-fondu" style={{
           display: 'grid',
-          gridTemplateColumns: '32px minmax(0,1fr)',
+          gridTemplateColumns: '26px minmax(0,1fr)',
           gap: '10px',
-          alignItems: 'end'
-        }}><img src="/assets/img/cleo-avatar.png" alt="" style={{
-            width: '32px',
-            height: '32px',
+          alignItems: 'start',
+          padding: '0 0 14px'
+        }}><img src={AVATAR} alt="" style={{
+            width: '26px',
+            height: '26px',
             borderRadius: '50%',
             objectFit: 'cover'
           }} />
-        <div className="ll-sombre" style={{
-            padding: '14px 16px',
-            borderRadius: '16px 16px 16px 4px',
-            background: 'var(--marine-900)',
-            color: '#fff',
+      <p style={{
+            margin: 0,
+            padding: '12px 14px',
+            borderRadius: '4px 14px 14px 14px',
+            background: 'var(--bleu-025)',
+            color: 'var(--marine-900)',
             fontSize: '14px',
             lineHeight: 1.6
-          }}>{f.r}</div></div></div>
-    </div>
-  </figure>;
+          }}>{FQ[id].r}</p></div>}</li>;
+    })}</ul>;
+}
+const TalEnteteDemo = () => <div style={{
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px'
+}}><img src={AVATAR} alt="" style={{
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    objectFit: 'cover'
+  }} />
+  <span style={{
+    display: 'grid'
+  }}><span style={{
+      fontSize: '14px',
+      fontWeight: 700,
+      color: 'var(--marine-900)'
+    }}>Demandez à Cléo</span><span style={{
+      fontSize: '12px',
+      color: 'var(--texte-discret)'
+    }}>Exemples de questions</span></span></div>;
+const TalPoser = ({
+  clair
+}) => <button type="button" onClick={poserCleo} style={{
+  justifySelf: 'start',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '8px',
+  minHeight: '44px',
+  padding: 0,
+  border: 0,
+  background: 'transparent',
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  fontSize: '14px',
+  fontWeight: 700,
+  color: clair ? '#fff' : 'var(--marine-900)'
+}}>Poser ma propre question<Icon name="arrow-right" size={16} color={clair ? '#fff' : 'var(--marine-900)'} /></button>;
+const BLANC = {
+  position: 'relative',
+  borderRadius: '20px',
+  background: '#fff',
+  boxShadow: '0 12px 32px rgba(4,14,28,.25)'
+};
+/* Démo compacte (options 1 et 3). */
+const TalDemo = ({
+  p,
+  choisir,
+  k,
+  setK,
+  uid
+}) => <div className="go-tal-demo" style={{
+  ...BLANC,
+  display: 'grid',
+  gap: '14px',
+  alignSelf: 'start',
+  padding: '20px'
+}}>
+  <TalEnteteDemo /><TalOnglets p={p} choisir={choisir} uid={uid} compact />
+  <div id={uid + '-pan'} role="tabpanel" aria-labelledby={uid + '-t-' + p}><TalAccordeon p={p} k={k} setK={setK} uid={uid} /></div><TalPoser /></div>;
+
+/* Le bloc est divisé en deux morceaux : bandeau marine (présentation + démo de Cléo) et deux cartes de sujets. */
+const Marine = ({
+  children,
+  style,
+  className
+}) => <div className={'ll-sombre ' + (className || '')} style={{
+  position: 'relative',
+  isolation: 'isolate',
+  overflow: 'hidden',
+  borderRadius: '24px',
+  background: 'var(--degrade-marine)',
+  padding: 'clamp(24px,3vw,40px)',
+  boxShadow: O2,
+  ...style
+}}><Lueur />{<LLSol sombre h="55%" />}<div style={{
+    position: 'relative',
+    display: 'grid',
+    gap: 'inherit'
+  }}>{children}</div></div>;
+/* Carte de sujets sur fond blanc (une par public). */
+const CarteSujets = ({
+  p,
+  ic,
+  titre,
+  id,
+  children
+}) => <section aria-labelledby={id} style={{
+  display: 'grid',
+  gridTemplateRows: 'auto 1fr',
+  borderRadius: '18px',
+  background: '#fff',
+  border: '1px solid rgba(12,33,71,.16)',
+  overflow: 'hidden'
+}}>
+  <header style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '16px 20px',
+    background: 'var(--bleu-025)',
+    borderBottom: '1px solid rgba(12,33,71,.12)'
+  }}><span aria-hidden="true" style={{
+      width: '36px',
+      height: '36px',
+      flex: 'none',
+      borderRadius: '10px',
+      display: 'grid',
+      placeItems: 'center',
+      background: 'var(--marine-900)'
+    }}><Icon name={ic} size={17} color="#fff" /></span>
+    <h4 id={id} style={{
+      margin: 0,
+      fontSize: '17px',
+      fontWeight: 700,
+      letterSpacing: '-0.01em',
+      color: 'var(--marine-900)'
+    }}>{titre}</h4></header>
+  <div style={{
+    display: 'grid',
+    gap: '18px',
+    alignContent: 'start',
+    padding: '18px 20px 20px'
+  }}>
+    <ul style={{
+      listStyle: 'none',
+      margin: 0,
+      padding: 0,
+      display: 'grid',
+      gap: '10px'
+    }}>{TAL_L[p].map(x => <li key={x} style={{
+        display: 'grid',
+        gridTemplateColumns: '18px minmax(0,1fr)',
+        gap: '10px',
+        alignItems: 'start',
+        fontSize: '14px',
+        lineHeight: 1.5,
+        color: 'var(--texte-corps)'
+      }}><span aria-hidden="true" style={{
+          display: 'grid',
+          placeItems: 'center',
+          height: '21px'
+        }}><Icon name="check" size={15} color="var(--bleu-600)" /></span><span>{x}</span></li>)}</ul>
+    {children}</div></section>;
+const DeuxCartes = () => <div className="go-tal-2" style={{
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2,minmax(0,1fr))',
+  gap: '16px'
+}}>
+  <CarteSujets p="proprietaires" ic="building-2" titre="Aux propriétaires" id="tal-c-p" /><CarteSujets p="locataires" ic="users" titre="Aux locataires" id="tal-c-l" /></div>;
+const MentionSombre = () => <MentionJuridique />;
+
+/* Grand écran : 1) bandeau marine (présentation et note de révision à gauche, démo à droite); 2) deux cartes de sujets, une par public. */
+const TalBureau = ({
+  d
+}) => <div style={{
+  display: 'grid',
+  gap: '16px'
+}}>
+  <Marine style={{
+    gap: '0'
+  }}><div className="go-tal-2" style={{
+      display: 'grid',
+      gridTemplateColumns: 'minmax(0,1fr) minmax(300px,400px)',
+      gap: '28px clamp(28px,3.4vw,48px)',
+      alignItems: 'center'
+    }}>
+    <div style={{
+        display: 'grid',
+        gap: '20px',
+        alignContent: 'start'
+      }}><TalPastilles /><div style={{
+          display: 'grid',
+          gap: '12px'
+        }}><TalTitre /><TalIntro /></div><TalRevision /></div>
+    <TalDemo {...d} /></div></Marine>
+  <DeuxCartes /><MentionSombre /></div>;
+
+/* Mobile : trois diapositives (présentation · sujets · mise à jour), la démo est masquée — inchangé. */
+const TalMobile = () => <div className="go-tal-car" data-hauteur-auto="" style={{
+  display: 'grid',
+  gap: '24px'
+}}>
+  <div className="go-tal-p" style={{
+    display: 'grid',
+    gap: '20px'
+  }}><TalPastilles /><div style={{
+      display: 'grid',
+      gap: '12px'
+    }}><TalTitre /><TalIntro /></div></div>
+  <div className="go-tal-p" style={{
+    display: 'grid',
+    gap: '20px'
+  }}><TalListes className="go-2c" /></div>
+  <div className="go-tal-p" style={{
+    display: 'grid',
+    gap: '20px'
+  }}><TalRevision /><TalMention /></div></div>;
+function CleoTAL() {
+  const [p, setP] = React.useState('proprietaires'),
+    [k, setK] = React.useState(0),
+    uid = 'tal' + React.useId().replace(/[^a-zA-Z0-9]/g, '');
+  const d = {
+    p,
+    choisir: v => {
+      setP(v);
+      setK(0);
+    },
+    k,
+    setK,
+    uid
+  };
+  return <div style={{
+    display: 'grid'
+  }}>
+    <div className="go-tal-mob"><figure className="ll-sombre go-tal" style={{
+        position: 'relative',
+        isolation: 'isolate',
+        overflow: 'hidden',
+        margin: 0,
+        borderRadius: '24px',
+        background: 'var(--degrade-marine)',
+        padding: 'clamp(24px,3.4vw,44px)',
+        boxShadow: O2
+      }}>
+      <Lueur />{<LLSol sombre h="55%" />}<div style={{
+          position: 'relative'
+        }}><TalMobile /></div></figure></div>
+    <div className="go-tal-bur"><TalBureau d={d} /></div>
+  </div>;
 }
 function S04Horloge() {
   return <div style={{
@@ -1400,7 +1617,7 @@ function OffreGuidee({
           color: 'var(--marine-900)',
           maxWidth: '24ch',
           textWrap: 'balance'
-        }}>{gab('Obtenez votre soumission {dès maintenant}. Un processus gratuit et sans engagements.')}</h2>
+        }}>{gab('Demandez votre soumission : c’est {gratuit et sans engagement}.')}</h2>
 </div>
       <div style={{
         width: '100%',

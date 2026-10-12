@@ -814,13 +814,13 @@ function ChampP({
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))',
         gap: '10px'
-      }}>{c.options.map(([k, t, d]) => {
+      }}>{c.options.map(([k, t, d, ic]) => {
           const on = val === k;
           return <button key={k} type="button" role="radio" aria-checked={on} onClick={() => S(k)} className="fp-carte" style={{
             position: 'relative',
             textAlign: 'left',
-            padding: c.sansDesc ? '0 16px' : '16px',
-            minHeight: c.sansDesc ? '56px' : undefined,
+            padding: c.sansDesc ? ic ? '14px 18px' : '0 16px' : '16px',
+            minHeight: c.sansDesc ? ic ? '76px' : '56px' : undefined,
             borderRadius: '12px',
             border: on ? '1.5px solid ' + MAR : BD,
             background: on ? '#F3F7FC' : '#fff',
@@ -828,9 +828,22 @@ function ChampP({
             fontFamily: 'var(--police-corps)',
             display: 'grid',
             alignContent: 'center',
-            gap: '4px'
+            gap: '4px',
+            ...(ic ? {
+              gridTemplateColumns: '42px minmax(0,1fr)',
+              alignItems: 'center',
+              gap: '14px'
+            } : {})
           }}>
-        <span style={{
+        {ic && <span aria-hidden="true" style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              display: 'grid',
+              placeItems: 'center',
+              background: on ? MAR : '#F3F7FC',
+              transition: 'background-color .2s'
+            }}><Icon name={ic} size={20} color={on ? '#fff' : MAR} /></span>}<span style={{
               fontSize: '15px',
               fontWeight: 650,
               color: MAR

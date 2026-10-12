@@ -26,7 +26,9 @@ const H3 = {
   lineHeight: 1.15,
   color: ACC_H.MAR
 };
-const apercu = (v, i) => SV12_D.SV_CHOIX[i] ? SV12_D.SV_CHOIX[i].map(k => v.taches[k]).filter(Boolean) : v.taches;
+/* Cinq points par volet (Comptabilité en compte cinq) : les cartes ont la même hauteur et leurs points s'alignent ligne à ligne. */
+const CHOIX5 = [[0, 4, 5, 9, 10], [0, 2, 4, 5, 6], [0, 1, 2, 3, 4], [0, 1, 2, 3, 5]];
+const apercu = (v, i) => CHOIX5[i] ? CHOIX5[i].map(k => v.taches[k]).filter(Boolean) : v.taches.slice(0, 5);
 const Tuile = ({
   ic,
   t = 44
@@ -119,7 +121,7 @@ function Coquille({
 /* D1 · Chiffre clé */
 
 /* D2 · En-tête */
-const C2 = (v, i) => <article style={ART}>
+const C2 = (v, i) => <article className="sv-al" style={ART}>
   <header style={{
     display: 'grid',
     gap: '8px',
@@ -151,23 +153,23 @@ const C2 = (v, i) => <article style={ART}>
       padding: 0,
       display: 'grid',
       gap: '10px',
-      width: 'fit-content',
-      maxWidth: '100%'
+      width: '100%'
     }}>{apercu(v, i).map(t => <li key={t} style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '10px',
+        display: 'block',
+        textAlign: 'center',
         fontSize: '13.5px',
         lineHeight: 1.45,
-        color: 'var(--texte-corps)'
+        color: 'var(--texte-corps)',
+        textWrap: 'balance'
       }}><span aria-hidden="true" style={{
+          display: 'inline-block',
           width: '6px',
           height: '6px',
-          flex: 'none',
-          marginTop: '7px',
+          marginRight: '9px',
+          verticalAlign: '.12em',
           borderRadius: '2px',
           background: '#4581CB'
-        }} /><span>{t}</span></li>)}</ul>
+        }} />{t}</li>)}</ul>
     <Pied v={v} i={i} /></div></article>;
 
 /* D3 · Index */

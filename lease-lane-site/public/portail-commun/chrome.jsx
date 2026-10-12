@@ -4,7 +4,10 @@ const BASE_LOGO='../../assets/logo/';
 /* Chrome commun aux espaces propriétaire et locataire (grammaire relevée dans DESIGN-admin.md, jetons Lease Lane).
    Rail clair ou marine, condensable ; barre de page avec notifications et menu de compte ; pièces de tableau de bord. */
 const FILET='1px solid var(--bordure-portail, var(--bordure-fine))';
-const CARTE={background:'var(--gris-000)',border:FILET,borderRadius:'var(--rayon-carte)'};
+/* --bordure-carte : posée par les portails (filet marine de l'admin, AJ-01) ; sinon le filet habituel. */
+const CARTE={background:'var(--gris-000)',border:'var(--bordure-carte-l,1px) solid var(--bordure-carte, var(--bordure-portail, var(--bordure-fine)))',borderRadius:'var(--rayon-carte)'};
+/* Vrai dans les portails (Coquille portail) : les pièces prennent alors les briques de l'admin. */
+const PortailCtx=React.createContext(false);
 const CHIFFRE={fontFamily:'var(--police-titre)',fontWeight:600,fontVariantNumeric:'tabular-nums',letterSpacing:'-0.01em',color:'var(--marine-900)'};
 const REF={fontSize:'12px',fontWeight:500,letterSpacing:'.06em',textTransform:'uppercase',color:'var(--texte-discret)'};
 const chiffre=(taille,extra)=>({...CHIFFRE,fontSize:taille,...extra});
@@ -102,8 +105,17 @@ function Rail({nav,page,aller,theme='clair',condense=false,badges={},utilisateur
         <Icon name="chevrons-up" size={19} color={marine?'var(--marine-900)':'#fff'}/></span>
         :(logoSrc&&!marine&&!sombre)?<img src={logoSrc} alt="Lease Lane" width="152" height="47" style={{display:'block',height:'47px',width:'auto',maxWidth:'100%'}}/>:<Logo base={BASE_LOGO} fond={(marine||sombre)?'marine':'blanc'} hauteur={48}/>}
     </div>
-    <nav style={{display:'grid',gap:'2px',padding:condense?'16px 12px':'16px 12px',alignContent:'start'}} aria-label="Sections">
-      {nav.map(([k,ic,t])=>{const actif=page===k; const n=badges[k];
+    <nav className="ll-rail-nav" style={{display:'grid',gridTemplateColumns:'minmax(0,1fr)',overflowX:'hidden',gap:'2px',padding:condense?'16px 12px':'16px 12px',alignContent:'start',flex:'1 1 auto',minHeight:0,overflowY:'auto'}} aria-label="Sections">
+      {nav.map(([k,ic,t,o])=>{
+        /* Entrée de groupe : ['#', 'Libellé'] — intitulé en petites capitales (filet seul en mode condensé). */
+        if(k==='#')return condense?<span key={'g-'+ic} role="separator" style={{height:'1px',margin:'10px 8px',background:'var(--bordure-fine)'}}/>
+          :<span key={'g-'+ic} style={{...REF,fontSize:'11px',padding:'14px 12px 6px',lineHeight:1.2}}>{ic}</span>;
+        /* Entrée à concevoir : { aVenir: true } — visible pour la revue de l'architecture, non cliquable. */
+        if(o&&o.aVenir)return <span key={k} aria-disabled="true" title={t+' — à concevoir'}
+          style={{display:'flex',alignItems:'center',justifyContent:condense?'center':'flex-start',gap:'12px',height:'40px',padding:condense?0:'0 12px',borderRadius:'var(--rayon-2)',
+            color:c.pale,fontFamily:'var(--police-corps)',fontSize:'14px',fontWeight:500,whiteSpace:'nowrap',opacity:.62,cursor:'default'}}>
+          <Icon name={ic} size={18} color={c.pale}/>{!condense&&<span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis'}}>{t}</span>}</span>;
+        const actif=page===k; const n=badges[k];
         return <button key={k} onClick={()=>aller(k)} aria-current={actif?'page':undefined} title={t}
           style={{display:'flex',alignItems:'center',justifyContent:condense?'center':'flex-start',gap:'12px',height:'44px',padding:condense?0:'0 12px',border:0,borderRadius:'var(--rayon-2)',cursor:'pointer',textAlign:'left',
             background:actif?c.actif:'transparent',color:actif?c.actifTexte:c.texte,position:'relative',
@@ -118,7 +130,7 @@ function Rail({nav,page,aller,theme='clair',condense=false,badges={},utilisateur
               color:actif?c.actifTexte:(marine?'var(--bleu-200)':'var(--bleu-600)')}}>{n}</span>)}
         </button>;})}
     </nav>
-    <div style={{flex:1}}/>
+    <div style={{flex:'0 1 0'}}/>
     {pied&&!condense&&<div style={{margin:'12px',padding:'14px 16px',background:marine?'rgba(255,255,255,.06)':'var(--surface-douce)',borderRadius:'var(--rayon-3)',color:c.texte}}>
       <div style={{display:'flex',alignItems:'center',gap:'8px',...REF,color:c.texte}}><Icon name="shield-check" size={14}/>{pied.titre}</div>
       <p style={{fontSize:'12.5px',margin:'8px 0 0',lineHeight:1.5,color:c.pale}}>{pied.texte}</p></div>}
@@ -213,6 +225,9 @@ function Carte({titre,sous,action,children,rembourrage=24,style,className}){
 }
 
 function Tuile({libelle,valeur,precision,ton,icone,variation}){
+  const B=window.BRIQUES;
+  if(React.useContext(PortailCtx)&&B)return <B.Kpi lib={libelle} val={valeur} desc={precision} variation={variation} ic={icone}
+    t={{urgence:'ur',alerte:'at',succes:'ok'}[ton]||'bl'}/>;
   const urg=ton==='urgence';
   const haut=variation&&variation.startsWith('+'), bas=variation&&variation.startsWith('−');
   return <div style={{...CARTE,padding:'20px',display:'grid',gridTemplateColumns:'minmax(0,1fr) auto',gap:'8px 16px',alignContent:'start',minWidth:0}}>
@@ -282,7 +297,7 @@ function Tableau2({colonnes,lignes,sur,selId}){
         style={{cursor:sur?'pointer':'default',borderBottom:FILET,background:sel?'var(--bleu-025)':'transparent',transition:'background var(--duree-2) var(--courbe-sortie)'}}
         onMouseEnter={e=>{if(sur&&!sel)e.currentTarget.style.background='var(--surface-survol)'}}
         onMouseLeave={e=>{if(!sel)e.currentTarget.style.background='transparent'}}>
-        {colonnes.map((c,j)=><td key={c.k} style={{padding:'14px 12px',paddingLeft:j===0?(sel?'8px':0):undefined,paddingRight:j===colonnes.length-1?0:undefined,
+        {colonnes.map((c,j)=><td key={c.k} style={{padding:'25px 12px',paddingLeft:j===0?(sel?'8px':0):undefined,paddingRight:j===colonnes.length-1?0:undefined,
           textAlign:c.a||'left',color:'var(--texte-corps)',verticalAlign:'middle',boxShadow:sel&&j===0?'inset 3px 0 0 var(--bleu-500)':'none'}}>{c.rendu?c.rendu(l):l[c.k]}</td>)}
       </tr>;})}</tbody></table></div>;
 }
@@ -423,16 +438,18 @@ function Vide({icone,titre,texte,action}){
   </div>;
 }
 
-function Coquille({nav,page,aller,titres,data,reglages,setReglages,badges,pied,actions,aCote,menuCompte,logoSrc,children,onDeconnexion,sansCarteUtilisateur}){
+function Coquille({nav,page,aller,titres,data,reglages,setReglages,badges,pied,actions,aCote,menuCompte,logoSrc,children,onDeconnexion,sansCarteUtilisateur,portail=false}){
   const [t,st]=titres[page]||['',''];
-  return <div style={{display:'flex',height:'100vh',background:'var(--surface-douce)'}}>
+  const B=portail&&window.BRIQUES;
+  return <PortailCtx.Provider value={!!portail}><div className={portail?'lo-portail':undefined} style={{display:'flex',height:'100vh',background:'var(--surface-douce)'}}>
+    {B&&<style>{B.CSS+B.CSS_PORTAIL}</style>}
     <Rail sansCarteUtilisateur={sansCarteUtilisateur} nav={nav} page={page} aller={aller} theme="clair" condense={reglages.condense} badges={badges} utilisateur={data.utilisateur} pied={pied} sombre={reglages.apparence==='sombre'} logoSrc={logoSrc}/>
     <div style={{flex:1,minWidth:0,display:'flex',flexDirection:'column'}}>
       <Barre titre={t} sousTitre={st} actions={actions} aCote={aCote} menuCompte={menuCompte} notifications={data.notifications} utilisateur={data.utilisateur} reglages={reglages} setReglages={setReglages} onDeconnexion={onDeconnexion}/>
       <main id="ll-main" style={{flex:1,overflowY:'auto'}}><div style={{maxWidth:'1320px',margin:'0 auto',padding:'28px 32px 32px'}}>{children}<PiedPortail/></div></main>
     </div>
-  </div>;
+  </div></PortailCtx.Provider>;
 }
 
-Object.assign(window,{useReglages,Rail,Barre,Carte,Tuile,Jauge,GrapheBarres,Progression,Tableau2,Avatar,FichePersonne,ZoneDepot,Pilules,BoiteReception,Calendrier,FAQ,Facture,Avis,Vide,Coquille,
+Object.assign(window,{PortailCtx,useReglages,Rail,Barre,Carte,Tuile,Jauge,GrapheBarres,Progression,Tableau2,Avatar,FichePersonne,ZoneDepot,Pilules,BoiteReception,Calendrier,FAQ,Facture,Avis,Vide,Coquille,
   CHIFFRE,REF,FILET,CARTE,BASE_LOGO,chiffre,LiensLegaux,MesRenseignements,PiedPortail});

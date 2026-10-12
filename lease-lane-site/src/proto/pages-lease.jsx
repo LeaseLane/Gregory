@@ -31,8 +31,8 @@ function PageFAQ({
   const visible = k => F[k].public === onglet && (!q || norm(F[k].q + ' ' + F[k].r).includes(norm(q)));
   const nb = ids.filter(visible).length;
   return <div>
-    <BandeauPage compact route={route} surtitre="FAQ" titre="FAQ : questions fréquentes sur la {gestion immobilière} et la {location}" lead="Des réponses directes sur l’offre, la location, le bail et le TAL (l’ancienne Régie du logement), tirées des questions posées à Cléo et validées par notre équipe." />
-    {<F12C clair />}
+    <BandeauPage compact route={route} surtitre="FAQ" titre="FAQ : questions fréquentes sur la {gestion immobilière} et la {location}" lead="Les réponses à vos questions sur l’offre, la location, le bail et le TAL (l’ancienne Régie du logement). Elles partent des questions posées à Cléo, et l’équipe les vérifie avant de les publier." />
+    {<F12C clair titre="Les questions {par sujet}" guides={['hausse-de-loyer-2026', 'reprise-de-logement', 'loyer-impaye', 'depot-de-garantie', 'cession-de-bail-loi-31', 'urgences-locatives']} />}
     
   </div>;
 }

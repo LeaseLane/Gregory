@@ -3,8 +3,10 @@
 
 /* Converti depuis ui_kits/site-public/pages-blogue.jsx (prototype) — ne pas réintroduire de globaux window. */
 import React from 'react';
+import { useLangue } from '@/lib/i18n/contexte';
 import { Icon } from '@/components/ds';
 import { gab, AppelFinal } from '@/proto/blocs';
+import { LL_ARTICLES } from '@/proto/articles-blogue';
 import { PBHeros } from '@/proto/pages-proprio-b';
 import { __ssr } from '@/lib/hydratation';
 const MAR = '#0C2147',
@@ -21,27 +23,23 @@ const BOITE = {
 };
 const g = t => gab ? gab(t) : t;
 const CATS = [['tous', 'Tous les articles'], ['proprietaires', 'Propriétaires'], ['locataires', 'Locataires'], ['droit', 'Droit du logement'], ['nouvelles', 'Nouvelles Lease Lane']];
+/* Auteurs : l'équipe signe tant que les rédacteurs ne sont pas nommés (aucun nom réel sans consentement). Réviseur : à nommer. */
 const AUTEURS = {
   /* Aucun nom de personne publié (décision du 9 oct. 2026) : articles signés par l'équipe. */
   jt: {
-    nom: 'L\u2019équipe Lease Lane',
-    role: 'Administration et baux',
-    bio: 'Responsable des baux, des cessions et des dossiers au TAL chez Lease Lane.',
+    nom: 'Équipe Lease Lane',
+    role: 'Droit du logement et baux',
+    bio: 'Baux, cessions et dossiers au TAL chez Lease Lane.',
     ini: 'LL'
   },
   cd: {
-    nom: 'L\u2019équipe Lease Lane',
-    role: 'Gestionnaire immobilière',
+    nom: 'Équipe Lease Lane',
+    role: 'Gestion immobilière',
     bio: 'Accompagne les propriétaires dans la gestion de leurs immeubles.',
     ini: 'LL'
-  },
-  rev: {
-    nom: '[Nom du réviseur]',
-    role: '[Avocat ou notaire, membre du Barreau ou de la Chambre des notaires]',
-    bio: 'Révision juridique indépendante des articles de droit du logement.',
-    ini: 'R'
   }
 };
+/* Articles : la hausse de loyer (gabarit d'origine, traduit par le dictionnaire) + les articles de articles-blogue.js (contenu FR et EN dans les données). */
 const ARTICLES = [{
   slug: 'hausse-de-loyer-2026',
   cat: 'droit',
@@ -52,52 +50,27 @@ const ARTICLES = [{
   min: 7,
   aut: 'jt',
   une: 1
-}, {
-  slug: 'cession-de-bail-loi-31',
-  cat: 'locataires',
-  t: 'Cession de bail : ce qui change avec la Loi 31',
-  r: 'Avis, délai de réponse du propriétaire et motifs sérieux de refus.',
-  d: '2025-11-12',
-  m: '2025-11-12',
-  min: 5,
-  aut: 'jt'
-}, {
-  slug: 'logement-vacant-cout',
-  cat: 'proprietaires',
-  t: 'Combien coûte vraiment un logement vacant?',
-  r: 'Le calcul jour par jour, et les leviers qui raccourcissent la période de location.',
-  d: '2025-10-02',
-  m: '2025-10-02',
-  min: 4,
-  aut: 'cd'
-}, {
-  slug: 'urgences-locatives',
-  cat: 'locataires',
-  t: 'Fuite, chauffage, serrure : qu’est-ce qu’une urgence?',
-  r: 'Les quatre niveaux d’urgence et qui appeler, à toute heure.',
-  d: '2025-09-18',
-  m: '2025-09-18',
-  min: 3,
-  aut: 'cd'
-}, {
-  slug: 'cleo-tal',
-  cat: 'nouvelles',
-  t: 'Cléo explique maintenant les règles du TAL',
-  r: 'Ce que l’agent IA peut répondre, ses limites et le relais humain.',
-  d: '2025-08-27',
-  m: '2025-08-27',
-  min: 3,
-  aut: 'cd'
-}, {
-  slug: 'depot-de-garantie',
-  cat: 'droit',
-  t: 'Dépôt de garantie : pourquoi il est interdit au Québec',
-  r: 'Ce que le propriétaire peut exiger, et ce qu’il ne peut pas.',
-  d: '2025-08-05',
-  m: '2025-08-05',
-  min: 4,
-  aut: 'jt'
-}];
+}, ...LL_ARTICLES.map(x => ({
+  slug: x.slug,
+  cat: x.cat,
+  t: x.fr.t,
+  r: x.fr.r,
+  d: x.d,
+  m: x.m,
+  min: x.min,
+  aut: x.aut,
+  en: x.en,
+  donnees: x
+}))];
+/* Langue d'affichage (prototype : LL_LANGUE; site Next.js : contexte de langue). */
+const useEN = () => useLangue() === 'en';
+const texteDe = (a, en) => en && a.en ? {
+  t: a.en.t,
+  r: a.en.r
+} : {
+  t: a.t,
+  r: a.r
+};
 const catNom = k => (CATS.find(c => c[0] === k) || [])[1];
 const dateFr = iso => {
   try {
@@ -111,7 +84,7 @@ const dateFr = iso => {
   }
 };
 /* Données structurées : injectées dans <head> le temps de la page. Nom encore en gabarit : l'organisation signe à sa place. */
-const gabarit = n => /\[/.test(n || ''),
+const gabarit = n => /\[|^Équipe /.test(n || ''),
   ORG_AUTEUR = {
     '@type': 'Organization',
     '@id': 'https://leaselane.ca/#organisation',
@@ -147,27 +120,42 @@ const Meta = ({
     fontWeight: 700,
     color: clair ? '#fff' : BL6
   }}>{catNom(a.cat)}</span><time dateTime={a.d}>{dateFr(a.d)}</time><span>{a.min} min de lecture</span></span>;
+/* Couvertures (scripts/couvertures.mjs du site Next.js) : <slug>.webp / <slug>-en.webp (logo, slogan et titre), affichées entières (format 1376 × 768) dans les cartes et en tête d'article. */
+const COUV_ALT = {
+  'hausse-de-loyer-2026': {
+    "fr": "Bail, stylo et calculatrice sur une table, devant des maisons en rangée de Québec en hiver",
+    "en": "Lease, pen and calculator on a table, in front of Québec City row houses in winter"
+  }
+};
+const altDe = (slug, en) => {
+  const x = LL_ARTICLES.find(z => z.slug === slug);
+  const c = x && x.couv ? x.couv : COUV_ALT[slug];
+  return c ? en ? c.en : c.fr : '';
+};
 const Photo = ({
-  id,
-  h,
-  lab,
-  cls
+  slug,
+  cls,
+  en,
+  prio
 }) => <div className={cls} style={{
   position: 'relative',
-  height: h,
-  minHeight: cls ? '340px' : undefined,
-  background: 'linear-gradient(160deg,#EAF1FA,#D5E2F2)',
+  width: '100%',
+  aspectRatio: '1376 / 768',
+  alignSelf: 'center',
+  background: '#0C2147',
   overflow: 'hidden'
-}}><image-slot id={id} shape="rect" placeholder={lab} style={{
+}}><img src={"/assets/img/blogue/" + slug + (en ? '-en' : '') + '.webp'} alt={altDe(slug, en)} width="1376" height="768" loading={prio ? 'eager' : 'lazy'} decoding="async" style={{
     display: 'block',
     width: '100%',
-    height: '100%'
-  }}></image-slot></div>;
+    height: '100%',
+    objectFit: 'cover'
+  }} /></div>;
 const lien = s => "/blogue/" + s;
 function CarteArticle({
   a,
   i
 }) {
+  const x = texteDe(a, useEN());
   return <article className="bl-carte fn-in" style={{
     position: 'relative',
     display: 'flex',
@@ -178,7 +166,7 @@ function CarteArticle({
     overflow: 'hidden',
     animationDelay: Math.min(i, 6) * 50 + 'ms'
   }}>
-  <Photo id={'bl-img-' + a.slug} h="190px" lab={'Image · ' + a.t} />
+  <Photo slug={a.slug} h="190px" en={useEN()} />
   <div style={{
       display: 'grid',
       gap: '10px',
@@ -200,13 +188,13 @@ function CarteArticle({
         }}><span aria-hidden="true" style={{
             position: 'absolute',
             inset: 0
-          }} />{a.t}</a></h3>
+          }} />{x.t}</a></h3>
     <p style={{
         margin: 0,
         fontSize: '14px',
         lineHeight: 1.6,
         color: TXT
-      }}>{a.r}</p>
+      }}>{x.r}</p>
     <span aria-hidden="true" style={{
         marginTop: 'auto',
         paddingTop: '8px',
@@ -224,9 +212,10 @@ function PageBlogue({
   route
 }) {
   const [cat, setCat] = React.useState('tous'),
-    [q, setQ] = React.useState('');
+    [q, setQ] = React.useState(''),
+    EN = useEN();
   const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const L = ARTICLES.filter(a => (cat === 'tous' || a.cat === cat) && (!q || norm(a.t + ' ' + a.r).includes(norm(q))));
+  const L = ARTICLES.filter(a => (cat === 'tous' || a.cat === cat) && (!q || norm(texteDe(a, EN).t + ' ' + texteDe(a, EN).r).includes(norm(q))));
   const une = cat === 'tous' && !q ? ARTICLES.find(a => a.une) : null,
     reste = une ? L.filter(a => a !== une) : L;
   useJsonLd('ld-blogue', {
@@ -238,16 +227,19 @@ function PageBlogue({
     publisher: ORG_AUTEUR,
     blogPost: ARTICLES.map(a => ({
       '@type': 'BlogPosting',
-      headline: a.t,
+      headline: texteDe(a, EN).t,
       datePublished: a.d,
       dateModified: a.m,
       url: 'https://leaselane.ca/blogue/' + a.slug,
-      author: ORG_AUTEUR
+      author: gabarit(AUTEURS[a.aut].nom) ? ORG_AUTEUR : {
+        '@type': 'Person',
+        name: AUTEURS[a.aut].nom
+      }
     }))
   });
   const H = typeof PBHeros !== 'undefined' ? PBHeros : null;
   return <div>
-    {H && <H route={route} titre="Blogue & nouvelles sur la {gestion immobilière} à Québec" lead="Droit du logement, gestion d’immeubles et nouvelles de Lease Lane. Chaque article est rédigé par notre équipe, révisé et daté, avec ses sources." />}
+    {H && <H route={route} titre="Blogue & nouvelles sur la {gestion immobilière} à Québec" lead="Droit du logement, gestion d’immeubles et nouvelles de Lease Lane. Chaque article est rédigé par notre équipe, daté et appuyé sur ses sources." />}
     <section aria-labelledby="bl-liste" style={{
       background: '#fff'
     }}><div style={{
@@ -330,7 +322,7 @@ function PageBlogue({
           borderRadius: '22px',
           overflow: 'hidden'
         }}>
-        <Photo cls="bl-une-ph" id={'bl-img-' + une.slug + '-une'} h="100%" lab={'Image · ' + une.t} />
+        <Photo cls="bl-une-ph" slug={une.slug} h="100%" en={EN} prio />
         <div style={{
             display: 'grid',
             gap: '16px',
@@ -412,18 +404,17 @@ function PageBlogue({
 
 /* ——— Article ——— */
 const A0 = ARTICLES[0];
-const SRC = [['Code civil du Québec, art. 1942 (avis de modification du bail)', 'https://www.legisquebec.gouv.qc.ca/fr/document/lc/CCQ-1991', 'LégisQuébec'], ['Code civil du Québec, art. 1945 et 1947 (réponse du locataire, demande de fixation)', 'https://www.legisquebec.gouv.qc.ca/fr/document/lc/CCQ-1991', 'LégisQuébec'], ['Tribunal administratif du logement · Calcul de l’augmentation de loyer [année à valider]', 'https://www.tal.gouv.qc.ca/', 'TAL'], ['Tribunal administratif du logement · Modèle d’avis d’augmentation de loyer', 'https://www.tal.gouv.qc.ca/', 'TAL'], ['Code civil du Québec, art. 1950 et 1955 (loyer du nouveau locataire, immeuble neuf)', 'https://www.legisquebec.gouv.qc.ca/fr/document/lc/CCQ-1991', 'LégisQuébec']];
+const SRC = [['Code civil du Québec, art. 1942 (avis de modification du bail)', 'https://www.legisquebec.gouv.qc.ca/fr/document/lc/CCQ-1991', 'LégisQuébec'], ['Code civil du Québec, art. 1945 et 1947 (réponse du locataire, demande de fixation)', 'https://www.legisquebec.gouv.qc.ca/fr/document/lc/CCQ-1991', 'LégisQuébec'], ['Tribunal administratif du logement · Calcul de l’augmentation de loyer (méthode en vigueur depuis le 1er janvier 2026)', 'https://www.tal.gouv.qc.ca/', 'TAL'], ['Tribunal administratif du logement · Modèle d’avis d’augmentation de loyer', 'https://www.tal.gouv.qc.ca/', 'TAL'], ['Code civil du Québec, art. 1950 et 1955 (loyer du nouveau locataire, immeuble neuf)', 'https://www.legisquebec.gouv.qc.ca/fr/document/lc/CCQ-1991', 'LégisQuébec']];
 const SECTIONS = [['reponse', 'La réponse courte'], ['delais', 'Les délais de l’avis'], ['calcul', 'Le calcul de la hausse'], ['calendrier', 'Un exemple de calendrier'], ['reponse-loc', 'La réponse du locataire'], ['tal', 'Le recours au TAL'], ['cas', 'Deux cas particuliers'], ['erreurs', 'Les erreurs à éviter'], ['faq', 'Questions fréquentes'], ['sources', 'Sources']];
 const FQ = [['Le propriétaire peut-il augmenter le loyer en cours de bail?', 'Non, sauf si le bail le prévoit expressément pour un bail de plus de 12 mois. La modification prend effet au renouvellement.'], ['Que se passe-t-il si le locataire ne répond pas à l’avis?', 'Son silence vaut acceptation de la hausse : le bail est reconduit aux nouvelles conditions.'], ['Le taux du TAL est-il obligatoire?', 'Non. Il sert de référence au calcul; les parties peuvent s’entendre sur un autre montant. En cas de désaccord, le TAL fixe le loyer.']];
 const Ref = ({
   n
 }) => <sup><a href={'#src-' + n} aria-label={'Source ' + n}>[{n}]</a></sup>;
-function PageArticle({
+function PageArticleHausse({
   route
 }) {
   const a = A0,
     au = AUTEURS[a.aut],
-    rv = AUTEURS.rev,
     [act, setAct] = React.useState(SECTIONS[0][0]);
   React.useEffect(() => {
     const sc = (__ssr() ? "undefined" : typeof document) !== "undefined" ? document.getElementById('ll-scroll') : undefined;
@@ -463,14 +454,16 @@ function PageArticle({
     dateModified: a.m,
     mainEntityOfPage: url,
     image: url + '/couverture.jpg',
-    author: ORG_AUTEUR,
-    ...(gabarit(rv.nom) ? {} : {
-      reviewedBy: {
-        '@type': 'Person',
-        name: rv.nom,
-        jobTitle: rv.role
-      }
-    }),
+    author: gabarit(au.nom) ? ORG_AUTEUR : {
+      '@type': 'Person',
+      name: au.nom,
+      jobTitle: au.role,
+      worksFor: {
+        '@type': 'Organization',
+        name: 'Lease Lane'
+      },
+      url: 'https://leaselane.ca/a-propos'
+    },
     publisher: ORG_AUTEUR,
     citation: SRC.map(s => s[0]),
     about: ['Augmentation de loyer', 'Tribunal administratif du logement', 'Bail résidentiel au Québec']
@@ -627,6 +620,19 @@ function PageArticle({
           minWidth: 0,
           maxWidth: '70ch'
         }}>
+        <figure style={{
+            margin: '0 0 28px',
+            borderRadius: '18px',
+            overflow: 'hidden',
+            border: BD,
+            aspectRatio: '1376 / 768',
+            background: '#EAF1FA'
+          }}><img src={"/assets/img/blogue/" + a.slug + (useEN() ? '-en' : '') + '.webp'} alt={altDe(a.slug, useEN())} width="1376" height="768" loading="eager" fetchPriority="high" itemProp="image" style={{
+              display: 'block',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover'
+            }} /></figure>
         <section id="reponse" aria-labelledby="h-reponse" style={{
             padding: '24px 26px',
             borderRadius: '16px',
@@ -661,8 +667,8 @@ function PageArticle({
         <ul><li>Le nouveau loyer, en dollars, ou l’augmentation, en dollars ou en pourcentage.</li><li>La durée du bail proposée, si elle change.</li><li>Toute autre modification des conditions, par exemple un service retiré ou ajouté.</li><li>Le délai dont le locataire dispose pour refuser, soit un mois après la réception.</li></ul>
         <p>L’avis doit être rédigé dans la langue du bail. Gardez une preuve de sa réception : un envoi recommandé, un huissier ou une remise en main propre contre signature. En cas de litige, c’est la date de réception qui compte, pas celle de l’envoi<Ref n={1} />.</p>
         <h2 id="calcul">Le calcul de la hausse</h2>
-        <p>Depuis le 1er janvier 2026, le calcul suit une nouvelle méthode. La base est la moyenne sur trois ans de l’indice des prix à la consommation du Québec, publiée par le TAL. S’y ajoutent, s’il y a lieu, un ajustement pour les taxes municipales et scolaires et pour les assurances, quand leur hausse dépasse ce pourcentage de base ; les dépenses de travaux majeurs, au taux de 5 % ; et l’ajout d’un service, d’un accessoire ou d’une dépendance. Les aides gouvernementales reçues sont prises en compte. Un avis donné avant le 1er janvier 2026 suit l’ancienne méthode. Le résultat est une référence : les parties peuvent s’entendre sur un autre montant<Ref n={3} />.</p>
-        <p>{g('[Taux de référence de l’année et exemple chiffré à valider par le réviseur avant publication.]')}</p>
+        <p>Depuis le 1er janvier 2026, le calcul suit une nouvelle méthode. La base est la moyenne sur trois ans de l’indice des prix à la consommation du Québec, publiée par le TAL. S’y ajoutent, s’il y a lieu, un ajustement pour les taxes municipales et scolaires et pour les assurances, quand leur hausse dépasse ce pourcentage de base; les dépenses de travaux majeurs, au taux de 5 %; et l’ajout d’un service, d’un accessoire ou d’une dépendance. Les aides gouvernementales reçues sont prises en compte. Un avis donné avant le 1er janvier 2026 suit l’ancienne méthode. Le résultat est une référence : les parties peuvent s’entendre sur un autre montant<Ref n={3} />.</p>
+        <p>Le TAL publie chaque année le pourcentage de base et un outil de calcul en ligne : utilisez la version qui correspond à l’année visée par l’avis<Ref n={3} />.</p>
         <p>Le calcul repose sur des pièces : comptes de taxes municipales et scolaires, primes d’assurance, factures des travaux majeurs et factures des services ou accessoires ajoutés. Rassemblez-les avant d’envoyer l’avis. Une hausse appuyée sur des chiffres vérifiables se discute plus facilement et se défend mieux devant le TAL.</p>
         <h2 id="calendrier">Un exemple de calendrier</h2>
         <p>Prenons un bail de 12 mois qui se termine le 30 juin. Les dates ci-dessous découlent directement des délais du Code civil<Ref n={1} /><Ref n={2} />.</p>
@@ -866,5 +872,464 @@ function PageArticle({
           gap: '20px'
         }}>{ARTICLES.filter(x => x !== a).slice(0, 3).map((x, i) => <CarteArticle key={x.slug} a={x} i={i} />)}</div></div></section>
   </article>;
+}
+
+/* ——— Articles tirés des données (articles-blogue.js) ———
+   Blocs : ['p',texte] ['h3',texte] ['ul',[…]] ['ol',[…]] ['table',{cap,th:[…],lignes:[[…]]}] ['note',texte].
+   Texte enrichi : **gras**, [n] = renvoi à la source n, [libellé](/chemin) = lien interne. */
+function riche(t, k) {
+  const out = [];
+  let i = 0;
+  const re = /\*\*([^*]+)\*\*|\[(\d+)\]|\[([^\]]+)\]\((\/[^)\s]*)\)/g;
+  let m;
+  while (m = re.exec(t)) {
+    if (m.index > i) out.push(t.slice(i, m.index));
+    if (m[1]) out.push(<strong key={k + '-' + m.index}>{m[1]}</strong>);else if (m[2]) out.push(<Ref key={k + '-' + m.index} n={+m[2]} />);else out.push(<a key={k + '-' + m.index} href={m[4]}>{m[3]}</a>);
+    i = re.lastIndex;
+  }
+  if (i < t.length) out.push(t.slice(i));
+  return out;
+}
+function Bloc({
+  b,
+  k
+}) {
+  const [ty, v] = b;
+  if (ty === 'p') return <p>{riche(v, k)}</p>;
+  if (ty === 'h3') return <h3>{riche(v, k)}</h3>;
+  if (ty === 'ul' || ty === 'ol') {
+    const L = ty;
+    return <L>{v.map((x, j) => <li key={j}>{riche(x, k + '-' + j)}</li>)}</L>;
+  }
+  if (ty === 'note') return <p style={{
+    padding: '14px 16px',
+    borderRadius: '12px',
+    background: '#F7FAFD',
+    border: FIN
+  }}>{riche(v, k)}</p>;
+  if (ty === 'table') return <div style={{
+    overflowX: 'auto',
+    border: BD,
+    borderRadius: '14px',
+    margin: '0 0 20px'
+  }}><table><caption style={{
+        position: 'absolute',
+        width: '1px',
+        height: '1px',
+        overflow: 'hidden',
+        clip: 'rect(0 0 0 0)'
+      }}>{v.cap}</caption>
+    <thead><tr>{v.th.map(h => <th key={h} scope="col">{h}</th>)}</tr></thead>
+    <tbody>{v.lignes.map((l, j) => <tr key={j}>{l.map((c, n) => <td key={n}>{n === 0 ? <strong>{riche(c, k + j + n)}</strong> : riche(c, k + j + n)}</td>)}</tr>)}</tbody></table></div>;
+  return null;
+}
+function PageArticleDonnees({
+  route,
+  x
+}) {
+  const EN = useEN(),
+    c = EN && x.en ? x.en : x.fr,
+    a = {
+      slug: x.slug,
+      cat: x.cat,
+      t: c.t,
+      r: c.r,
+      d: x.d,
+      m: x.m,
+      min: x.min,
+      aut: x.aut
+    },
+    au = AUTEURS[a.aut];
+  const SECS = [['reponse', 'La réponse courte'], ...c.sections.map(z => [z.id, z.h]), ['faq', 'Questions fréquentes'], ['sources', 'Sources']];
+  const [act, setAct] = React.useState('reponse');
+  React.useEffect(() => {
+    const sc = (__ssr() ? "undefined" : typeof document) !== "undefined" ? document.getElementById('ll-scroll') : undefined;
+    if (!sc) return;
+    const f = () => {
+      const h = sc.getBoundingClientRect().top + 160;
+      let v = SECS[0][0];
+      SECS.forEach(([id]) => {
+        const el = (__ssr() ? "undefined" : typeof document) !== "undefined" ? document.getElementById(id) : undefined;
+        if (el && el.getBoundingClientRect().top <= h) v = id;
+      });
+      setAct(v);
+    };
+    f();
+    sc.addEventListener('scroll', f, {
+      passive: true
+    });
+    return () => sc.removeEventListener('scroll', f);
+  }, [x.slug]);
+  const aller = id => e => {
+    e.preventDefault();
+    const sc = (__ssr() ? "undefined" : typeof document) !== "undefined" ? document.getElementById('ll-scroll') : undefined,
+      el = (__ssr() ? "undefined" : typeof document) !== "undefined" ? document.getElementById(id) : undefined;
+    if (sc && el) sc.scrollTo({
+      top: el.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 130,
+      behavior: 'smooth'
+    });
+  };
+  const url = 'https://leaselane.ca/blogue/' + a.slug;
+  useJsonLd('ld-article-' + x.slug, [{
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: a.t,
+    description: a.r,
+    inLanguage: EN ? 'en-CA' : 'fr-CA',
+    datePublished: a.d,
+    dateModified: a.m,
+    mainEntityOfPage: url,
+    author: gabarit(au.nom) ? ORG_AUTEUR : {
+      '@type': 'Person',
+      name: au.nom,
+      jobTitle: au.role,
+      worksFor: {
+        '@type': 'Organization',
+        name: 'Lease Lane'
+      },
+      url: 'https://leaselane.ca/a-propos'
+    },
+    publisher: ORG_AUTEUR,
+    citation: c.src.map(z => z[0]),
+    about: c.about
+  }, {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: c.faq.map(([q, r]) => ({
+      '@type': 'Question',
+      name: q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: r
+      }
+    }))
+  }]);
+  const H = typeof PBHeros !== 'undefined' ? PBHeros : null;
+  const autres = [...ARTICLES.filter(z => z.slug !== a.slug && z.cat === a.cat), ...ARTICLES.filter(z => z.slug !== a.slug && z.cat !== a.cat)].slice(0, 3);
+  return <article itemScope itemType="https://schema.org/Article">
+    {H && <H route={route} titre={a.t} lead={a.r}>
+      <dl className="bl-meta" style={{
+        margin: '8px 0 0',
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'stretch',
+        gap: '16px 0',
+        width: 'fit-content',
+        maxWidth: '100%',
+        paddingTop: '24px',
+        borderTop: '1px solid rgba(255,255,255,.16)'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          paddingRight: '24px'
+        }}>
+          <span aria-hidden="true" style={{
+            width: '44px',
+            height: '44px',
+            flex: 'none',
+            borderRadius: '12px',
+            background: 'rgba(255,255,255,.12)',
+            border: '1px solid rgba(255,255,255,.24)',
+            color: '#fff',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: '14px',
+            fontWeight: 700
+          }}>{au.ini}</span>
+          <span style={{
+            display: 'grid',
+            gap: '3px'
+          }}><dt style={{
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
+              overflow: 'hidden',
+              clip: 'rect(0 0 0 0)'
+            }}>Rédigé par</dt><dd style={{
+              margin: 0,
+              fontSize: '14px',
+              fontWeight: 650,
+              lineHeight: 1.3,
+              color: '#fff'
+            }}>{g(au.nom)}</dd><dd style={{
+              margin: 0,
+              fontSize: '12px',
+              lineHeight: 1.3,
+              color: 'var(--bleu-100)'
+            }}>{g(au.role)}</dd></span></div>
+        {[['Publié le', <time dateTime={a.d} itemProp="datePublished">{dateFr(a.d)}</time>], ['Mis à jour le', <time dateTime={a.m} itemProp="dateModified">{dateFr(a.m)}</time>], ['Lecture', a.min + ' min']].map(([k, v]) => <div key={k} className="bl-meta-i" style={{
+          display: 'grid',
+          gap: '3px',
+          alignContent: 'center',
+          padding: '0 24px',
+          borderLeft: '1px solid rgba(255,255,255,.16)'
+        }}><dt style={{
+            fontSize: '12px',
+            color: 'var(--bleu-200)'
+          }}>{k}</dt><dd style={{
+            margin: 0,
+            fontSize: '14px',
+            fontWeight: 650,
+            lineHeight: 1.3,
+            color: '#fff',
+            whiteSpace: 'nowrap'
+          }}>{v}</dd></div>)}
+      </dl></H>}
+    <section style={{
+      background: '#fff'
+    }}><div className="bl-art" style={{
+        ...BOITE,
+        display: 'grid',
+        gridTemplateColumns: '220px minmax(0,1fr) 280px',
+        gap: 'clamp(32px,4vw,64px)',
+        alignItems: 'start'
+      }}>
+      <nav aria-label="Sommaire de l’article" className="bl-toc-col bl-toc" style={{
+          position: 'sticky',
+          top: '130px',
+          display: 'grid',
+          gap: '4px'
+        }}>
+        <span style={{
+            fontSize: '13px',
+            fontWeight: 700,
+            color: MAR,
+            marginBottom: '8px'
+          }}>Dans cet article</span>
+        {SECS.map(([id, t]) => <a key={id} href={'#' + id} onClick={aller(id)} aria-current={act === id ? 'true' : undefined} style={{
+            display: 'block',
+            padding: '8px 0 8px 14px',
+            fontSize: '13.5px',
+            fontWeight: 500,
+            lineHeight: 1.4,
+            color: DIS,
+            textDecoration: 'none',
+            boxShadow: 'inset 2px 0 0 var(--bordure-fine)'
+          }}>{t}</a>)}</nav>
+      <div className="bl-corps" itemProp="articleBody" style={{
+          minWidth: 0,
+          maxWidth: '70ch'
+        }}>
+        <figure style={{
+            margin: '0 0 28px',
+            borderRadius: '18px',
+            overflow: 'hidden',
+            border: BD,
+            aspectRatio: '1376 / 768',
+            background: '#EAF1FA'
+          }}><img src={"/assets/img/blogue/" + a.slug + (useEN() ? '-en' : '') + '.webp'} alt={altDe(a.slug, useEN())} width="1376" height="768" loading="eager" fetchPriority="high" itemProp="image" style={{
+              display: 'block',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover'
+            }} /></figure>
+        <section id="reponse" aria-labelledby="h-reponse" style={{
+            padding: '24px 26px',
+            borderRadius: '16px',
+            background: '#F3F7FC',
+            border: BD,
+            scrollMarginTop: '140px'
+          }}>
+          <h2 id="h-reponse" style={{
+              margin: '0 0 10px',
+              fontSize: '18px'
+            }}>La réponse courte</h2>
+          <p style={{
+              margin: 0
+            }}>{riche(c.reponse, 'rc')}</p></section>
+        {c.sections.map(z => <React.Fragment key={z.id}><h2 id={z.id}>{z.h}</h2>{z.blocs.map((b, j) => <Bloc key={j} b={b} k={z.id + j} />)}</React.Fragment>)}
+        <aside style={{
+            margin: '28px 0',
+            padding: '20px 22px',
+            borderRadius: '14px',
+            background: '#fff',
+            border: BD,
+            display: 'grid',
+            gridTemplateColumns: '40px minmax(0,1fr)',
+            gap: '14px'
+          }}>
+          <img src="/assets/img/cleo-avatar.png" alt="" style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              objectFit: 'cover'
+            }} />
+          <span style={{
+              display: 'grid',
+              gap: '8px'
+            }}><strong style={{
+                fontSize: '14px',
+                color: MAR
+              }}>Votre situation est particulière?</strong><span style={{
+                fontSize: '14px',
+                lineHeight: 1.6,
+                color: TXT
+              }}>{c.cleo}</span>
+            <button type="button" onClick={() => (__ssr() ? "undefined" : typeof window) !== "undefined" ? window.dispatchEvent(new CustomEvent('ll-cleo', {
+                detail: {
+                  texte: c.cleoQ
+                }
+              })) : undefined} style={{
+                justifySelf: 'start',
+                height: '44px',
+                padding: '0 16px',
+                borderRadius: '10px',
+                border: 0,
+                background: MAR,
+                color: '#fff',
+                fontFamily: 'var(--police-corps)',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}>Demander à Cléo</button></span></aside>
+        <h2 id="faq">Questions fréquentes</h2>
+        <div style={{
+            borderTop: FIN
+          }}>{c.faq.map(([q, r], i) => <details key={q} className="ll-faq-item" open={i === 0}><summary><span>{q}</span><span className="ll-plus" aria-hidden="true"><Icon name="plus" size={18} color={BL6} /></span></summary><p>{r}</p></details>)}</div>
+        <h2 id="sources">Sources</h2>
+        <ol className="bl-src" style={{
+            listStyle: 'none',
+            padding: 0
+          }}>{c.src.map(([t, u, ed], i) => <li key={i} id={'src-' + (i + 1)} style={{
+              display: 'grid',
+              gridTemplateColumns: '32px minmax(0,1fr)',
+              gap: '10px',
+              padding: '8px 6px'
+            }}><span style={{
+                fontSize: '13px',
+                fontWeight: 700,
+                color: BL6
+              }}>[{i + 1}]</span>
+          <span style={{
+                fontSize: '14px',
+                lineHeight: 1.6
+              }}>{t} · <a href={u} target="_blank" rel="noopener noreferrer">{ed}<span style={{
+                    position: 'absolute',
+                    width: '1px',
+                    height: '1px',
+                    overflow: 'hidden',
+                    clip: 'rect(0 0 0 0)'
+                  }}> (nouvel onglet)</span></a> · consulté le {dateFr(a.m)}</span></li>)}</ol>
+        <p style={{
+            marginTop: '32px',
+            padding: '16px 18px',
+            borderRadius: '12px',
+            background: '#F7FAFD',
+            border: FIN,
+            fontSize: '13px',
+            lineHeight: 1.65
+          }}>{c.avert || (x.cat === 'proprietaires' ? 'Cet article fournit de l’information générale, à jour à la date indiquée. Il ne constitue pas un avis juridique, fiscal ou financier.' : 'Cet article fournit de l’information juridique générale, à jour à la date indiquée. Il ne constitue pas un avis juridique. Pour une situation précise, consultez le TAL, Éducaloi, un avocat ou un notaire.')}</p>
+      </div>
+      <aside className="bl-aside" aria-label="Validation de l’article" style={{
+          position: 'sticky',
+          top: '130px',
+          display: 'grid',
+          gap: '16px'
+        }}>
+        <div style={{
+            padding: '22px',
+            borderRadius: '18px',
+            border: BD,
+            background: '#fff',
+            display: 'grid',
+            gap: '14px'
+          }}>
+          <span style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              fontSize: '14px',
+              fontWeight: 700,
+              color: MAR
+            }}><Icon name="shield-check" size={18} color="#1F7A52" />Contenu vérifié</span>
+          <ul style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              display: 'grid',
+              gap: '10px'
+            }}>{[['Rédigé par', au.nom + ', ' + au.role.toLowerCase()], ['Sources', c.src.length + ' ' + (EN ? 'sources cited in the text' : 'sources citées dans le texte')], ['Prochaine révision', c.revision]].map(([k, v]) => <li key={k} style={{
+                display: 'grid',
+                gap: '2px',
+                paddingTop: '10px',
+                borderTop: FIN
+              }}><span style={{
+                  fontSize: '12px',
+                  color: DIS
+                }}>{k}</span><span style={{
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  color: MAR,
+                  lineHeight: 1.45
+                }}>{g(v)}</span></li>)}</ul></div>
+        <details style={{
+            padding: '16px 18px',
+            borderRadius: '14px',
+            border: BD,
+            background: '#fff'
+          }}><summary style={{
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 650,
+              color: MAR
+            }}>Journal des modifications</summary>
+          <ul style={{
+              listStyle: 'none',
+              margin: '12px 0 0',
+              padding: 0,
+              display: 'grid',
+              gap: '10px',
+              fontSize: '13px',
+              lineHeight: 1.5,
+              color: TXT
+            }}><li><time dateTime={a.d} style={{
+                  fontWeight: 650,
+                  color: MAR
+                }}>{dateFr(a.d)}</time> · {EN ? 'Published.' : 'Publication.'}</li></ul></details>
+        <div style={{
+            padding: '16px 18px',
+            borderRadius: '14px',
+            background: '#F7FAFD',
+            border: FIN,
+            fontSize: '13px',
+            lineHeight: 1.6,
+            color: TXT
+          }}><strong style={{
+              display: 'block',
+              color: MAR,
+              marginBottom: '4px'
+            }}>Notre méthode</strong>Chaque article de droit du logement cite ses sources officielles et porte sa date de mise à jour. <a href="/a-propos">En savoir plus</a></div>
+      </aside>
+    </div></section>
+    <section aria-labelledby="bl-suite" style={{
+      background: '#F7FAFD',
+      borderTop: FIN
+    }}><div style={{
+        ...BOITE,
+        display: 'grid',
+        gap: '28px'
+      }}>
+      <h2 id="bl-suite" style={{
+          margin: 0,
+          fontSize: 'var(--titre-l)',
+          letterSpacing: '-0.03em',
+          color: MAR
+        }}>À lire aussi</h2>
+      <div className="bl-g3" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3,minmax(0,1fr))',
+          gap: '20px'
+        }}>{autres.map((z, i) => <CarteArticle key={z.slug} a={z} i={i} />)}</div></div></section>
+  </article>;
+}
+/* Aiguillage : chaque adresse /blogue/<slug> affiche son article. */
+function PageArticle({
+  route
+}) {
+  const slug = String(route && route.path || '').split('/').filter(Boolean).pop();
+  const x = LL_ARTICLES.find(z => z.slug === slug);
+  return x ? <PageArticleDonnees key={x.slug} route={route} x={x} /> : <PageArticleHausse route={route} />;
 }
 export { PageBlogue, PageArticle, ARTICLES as LL_BLOGUE };

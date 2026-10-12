@@ -112,7 +112,8 @@ function useCleo() {
   };
 }
 const TeteF = ({
-  sombre
+  sombre,
+  titre
 }) => <h2 style={{
   margin: 0,
   fontSize: 'var(--titre-l)',
@@ -122,7 +123,7 @@ const TeteF = ({
   color: sombre ? '#fff' : ACC_H.MAR,
   maxWidth: '22ch',
   textWrap: 'balance'
-}}>{ACC_H.surl('On répond à vos questions {franchement et dans les temps}.', sombre ? '#6194D3' : sombre ? ACC_H.CL : ACC_H.BL)}</h2>;
+}}>{ACC_H.surl(titre || 'Vos questions, {nos réponses}.', sombre ? '#6194D3' : sombre ? ACC_H.CL : ACC_H.BL)}</h2>;
 const Seg = ({
   pub,
   set,
@@ -335,7 +336,9 @@ const NavB = ({
   transition: 'background 200ms,border-color 200ms'
 }}><ACC_H.Icon name={ic} size={18} color={ACC_H.MAR} /></button>;
 function F12C({
-  clair
+  clair,
+  titre,
+  guides
 }) {
   const [pub, setPub] = React.useState('proprietaires'),
     L = liste(pub),
@@ -383,7 +386,7 @@ function F12C({
       display: 'grid',
       gap: '40px'
     }}>
-      <Rang><TeteF sombre={!clair} /><Seg pub={pub} set={changer} sombre={!clair} /></Rang>
+      <Rang><TeteF sombre={!clair} titre={titre} /><Seg pub={pub} set={changer} sombre={!clair} /></Rang>
       <div className="f12-g2" style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(0,5fr) minmax(0,7fr)',
@@ -498,8 +501,42 @@ function F12C({
               display: 'flex',
               gap: '8px'
             }}><NavB ic="chevron-left" lbl="Question précédente" disabled={idx <= 0} onClick={() => choisir(L[idx - 1])} /><NavB ic="chevron-right" lbl="Question suivante" disabled={idx < 0 || idx >= L.length - 1} onClick={() => choisir(L[idx + 1])} /></div></div></div></div>
+      {guides && <LiensGuides slugs={guides} sombre={!clair} />}
       <Repli pub={pub === 'proprietaires' ? 'locataires' : 'proprietaires'} /></div></section>;
 }
+/* Liens vers les guides du blogue (maillage interne des pages principales). */
+const GUIDES = {
+  'hausse-de-loyer-2026': 'Hausse de loyer 2026',
+  'depot-de-garantie': 'Dépôt de garantie',
+  'cession-de-bail-loi-31': 'Cession de bail',
+  'reprise-de-logement': 'Reprise de logement',
+  'loyer-impaye': 'Loyer impayé',
+  'urgences-locatives': 'Réparations urgentes',
+  'logement-vacant-cout': 'Coût d’un logement vacant',
+  'frais-gestion-immobiliere-quebec': 'Frais de gestion',
+  'enquete-prelocation': 'Enquête de prélocation'
+};
+const LiensGuides = ({
+  slugs,
+  sombre
+}) => <nav aria-label="Guides du blogue" style={{
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  alignItems: 'center',
+  columnGap: '20px',
+  fontSize: '14px',
+  color: sombre ? 'var(--bleu-100)' : 'var(--gris-700)'
+}}><span style={{
+    fontWeight: 600
+  }}>Nos guides :</span>{slugs.map(x => <a key={x} href={"/blogue/" + x} style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: '44px',
+    fontWeight: 600,
+    textDecoration: 'none',
+    color: sombre ? '#fff' : 'var(--bleu-600)'
+  }}>{GUIDES[x]}</a>)}</nav>;
 /* Onglet inactif : questions et réponses présentes dans le HTML (onglet replié), pour l'indexation et les moteurs génératifs. */
 const Repli = ({
   pub
@@ -512,4 +549,4 @@ const Repli = ({
 /* Revue : « Actuelle » = B · Réponse en direct (série 11), puis les trois options séparées. */
 /* FAQ figée : C « Sujets et réponse » retenue, barre de revue retirée. */
 let AccFaq = () => <F12C clair />;
-export { AccFaq, F12C };
+export { AccFaq, F12C, LiensGuides };

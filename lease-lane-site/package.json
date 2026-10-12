@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "convertir": "zsh scripts/conversion/convertir.sh && python3 scripts/conversion/convertir-langue.py ../lease-lane-design-system/project/ui_kits/site-public . && python3 scripts/generer-pages.py",
+    "convertir": "zsh scripts/conversion/convertir.sh && python3 scripts/conversion/convertir-langue.py ../lease-lane-design-system/project/ui_kits/site-public . && python3 scripts/generer-pages.py && node scripts/generer-llms.mjs",
     "pages": "python3 scripts/generer-pages.py",
     "verifier": "zsh scripts/verifier-routes.sh",
     "test:cleo": "node scripts/tester-cleo.mjs"

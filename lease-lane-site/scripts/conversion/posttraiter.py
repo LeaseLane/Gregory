@@ -132,3 +132,26 @@ def inert_booleen(s):
     import re
     return re.sub(r"inert=\{([^{}]*?) \? '' : undefined\}", r"inert={\1 ? true : undefined}", s)
 edit('cleo-options.jsx', inert_booleen)
+
+# Accueil, « Votre arrivée » (A12) : l'effet d'entrée lit `v`, qui vaut la valeur du serveur (visible) pendant l'hydratation
+# puis passe à false juste après; avec des dépendances [], l'effet garde l'ancienne valeur et n'observe jamais la section
+# (contenu resté transparent). Dépendre de `v` relance l'observation.
+def entree_a12(s):
+    a = """    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return [r, v];"""
+    assert a in s, 'useEntree A12'
+    return s.replace(a, a.replace('}, []);', '}, [v]);'), 1)
+edit('accueil-arrivee-12.jsx', entree_a12)
+
+# Blogue : la langue d'affichage vient du contexte de langue du site (le prototype lit LL_LANGUE).
+def blogue_langue(s):
+    a = "const useEN=()=>!!(W.LL_LANGUE&&W.LL_LANGUE.en);"
+    b = "const useEN = () => !!(LL_LANGUE && LL_LANGUE.en);"
+    c = a if a in s else b
+    assert c in s, 'useEN'
+    s = s.replace(c, "const useEN = () => useLangue() === 'en';", 1)
+    return s.replace("import React from 'react';", "import React from 'react';\nimport { useLangue } from '@/lib/i18n/contexte';", 1)
+edit('pages-blogue.jsx', blogue_langue)
+edit('pages-levis.jsx', blogue_langue)

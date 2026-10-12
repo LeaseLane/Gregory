@@ -444,11 +444,11 @@ const FORMS = {
       champs: [{
         k: 'categorie',
         type: 'choix',
-        label: 'Catégorie',
+        label: 'Catégories',
         req: 1,
         col: 2,
         sansDesc: 1,
-        options: [['commentaire', 'Commentaire', 'Une suggestion, une appréciation'], ['plainte', 'Plainte', 'Un problème qui n\u2019est pas réglé'], ['admin', 'Demande administrative', 'Un document, une attestation, un changement'], ['partenariat', 'Partenariats', 'Une collaboration ou une proposition d\u2019affaires']]
+        options: [['commentaire', 'Commentaire', 'Une suggestion, une appréciation', 'message-square'], ['plainte', 'Plainte', 'Un problème qui n\u2019est pas réglé', 'triangle-alert'], ['admin', 'Demande administrative', 'Un document, une attestation, un changement', 'file-text'], ['partenariat', 'Partenariats', 'Une collaboration ou une proposition d\u2019affaires', 'handshake']]
       }, LOGEMENT, {
         k: 'description',
         type: 'zone',

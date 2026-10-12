@@ -57,7 +57,7 @@ const TeteV = ({
     color: ACC_H.MAR,
     maxWidth: 'none',
     textWrap: 'balance'
-  }}>{ACC_H.surl('Des services adaptés à vos besoins et nécessairement {clé en main}.', ACC_H.BL)}</h2>
+  }}>{ACC_H.surl('Des services {clé en main}, adaptés à votre immeuble.', ACC_H.BL)}</h2>
   {!sansD && <p style={{
     margin: 0,
     fontSize: '14px',

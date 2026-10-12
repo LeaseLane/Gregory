@@ -135,9 +135,9 @@ const Bouton = ({
 const QUI = [['clock', 'En tout temps', 'Jour, soir, fin de semaine et jours fériés : il répond 24/7, sans file d’attente.'], ['message-square', 'En français d’abord', 'Puis dans la langue de votre message, dont l’anglais. Un ton clair et calme, le vouvoiement par défaut.'], ['scale', 'Les deux côtés du bail', 'Propriétaire ou locataire : la même qualité de réponse, et le droit qui s’applique à chaque partie.'], ['files', 'Une FAQ validée', 'Une question posée 3 fois en 30 jours devient une réponse, approuvée par une personne avant sa publication.']];
 const POUR = {
   locataire: ['Vos droits expliqués : hausse de loyer, reprise, cession, réparations, TAL', 'Urgences triées en 4 niveaux et transmises à la bonne personne', 'Un numéro de billet, puis un suivi 48 h après l’intervention', 'Visites et rendez-vous réservés, rappels 24 h et 2 h avant', 'Préavis de 24 h et plage de 9 h à 21 h respectés chez vous', 'Une alerte quand un logement correspond à vos critères'],
-  proprio: ['Les règles du TAL appliquées à vos baux : avis, délais, fixation, recours', 'Rappel des fenêtres d’avis, 7 mois et 4 mois avant la fin du bail', 'Chaque demande attribuée à un responsable, avec un délai cible', 'Visites réservées et prospects relancés, au plus 3 fois', 'Relances de loyer factuelles et courtoises, entre 8 h et 21 h', 'Chaque échange résumé et consigné au dossier de l’immeuble']
+  proprio: ['Les règles du TAL appliquées à vos baux : avis, délais, fixation, recours', 'Rappel des fenêtres d’avis, 7 mois et 4 mois avant la fin du bail', 'Chaque demande attribuée à un responsable, avec un délai cible', 'Visites réservées et locataires potentiels relancés, au plus 3 fois', 'Relances de loyer factuelles et courtoises, entre 8 h et 21 h', 'Chaque échange résumé et consigné au dossier de l’immeuble']
 };
-const DONNEES = [['bot', 'Toujours identifié', 'Cléo se présente comme un agent IA dès le premier message et ne se fait jamais passer pour une personne.'], ['clock', 'Conservation limitée', 'Conversations et billets : durée du bail plus 3 ans. Candidats refusés : 90 jours. Prospects inactifs : 24 mois. Puis destruction sécurisée.'], ['user', 'Une personne décide', 'Aucune décision fondée uniquement sur un traitement automatisé : Cléo trie et propose, une personne décide.'], ['shield-check', 'Vos droits', 'Accès, rectification, retrait du consentement : Cléo ouvre une demande confidentielle, avec réponse sous 30 jours (Loi 25).']];
+const DONNEES = [['bot', 'Toujours identifié', 'Cléo se présente comme un agent IA dès le premier message et ne se fait jamais passer pour une personne.'], ['clock', 'Conservation limitée', 'Conversations et billets : durée du bail plus 3 ans. Candidats refusés : 90 jours. Locataires potentiels inactifs : 24 mois. Puis destruction sécurisée.'], ['user', 'Une personne décide', 'Aucune décision fondée uniquement sur un traitement automatisé : Cléo trie et propose, une personne décide.'], ['shield-check', 'Vos droits', 'Accès, rectification, retrait du consentement : Cléo ouvre une demande confidentielle, avec réponse sous 30 jours (Loi 25).']];
 
 /* Questions servies par profil : propriétaire = siennes + TAL; locataire et futur locataire = questions locataires */
 
@@ -418,7 +418,7 @@ function Declencheurs() {
   }}>
   <h3 className="cpb-cas-t">Transfert immédiat dans 4 cas</h3>
   <ul>{DECL_G.map(([ic, t, d, u]) => <li key={t}><span className={'cp-ic' + (u ? ' u' : '')} aria-hidden="true"><Icon name={ic} size={18} color="currentColor" /></span><b>{t}</b><small>{d}</small></li>)}</ul>
-  <p className="cpb-cas-pied"><span className="cpb-decl2-pt" aria-hidden="true" /><span>Un agent vous contacte très rapidement.</span></p>
+  <p className="cpb-cas-pied"><span className="cpb-decl2-pt" aria-hidden="true" /><span>Une personne de l’équipe vous contacte, et une urgence passe en premier.</span></p>
 </Vu>;
 }
 const LIM_B = [['gavel', 'Aucun avis juridique', 'De l’information générale, jamais de pronostic.'], ['file-text', 'Aucun avis rédigé seul', 'Le modèle officiel du TAL, validé par une personne.'], ['triangle-alert', 'Aucune pratique illégale', 'Il le dit et propose l’option légale.'], ['users', 'Aucune décision qui vous lie', 'Candidat, dépôt, résiliation : une personne décide.'], ['calendar', 'Aucune promesse non confirmée', 'Ni date, ni montant sans confirmation.'], ['wallet', 'Aucun paiement', 'Il n’encaisse rien et ne négocie pas.'], ['banknote', 'Aucun conseil financier', 'Ni fiscal, ni hypothécaire, ni assurance.'], ['lock', 'Aucun renseignement sensible', 'Ni NAS, ni carte, ni santé.'], ['map-pin', 'Québec seulement', 'Ailleurs, il vous dirige vers votre province.']];
@@ -491,6 +491,27 @@ function CleoB({
       <p className="cp-lead cp-r1" style={{
           '--d': '240ms'
         }}>Un agent IA formé au droit du logement du Québec. Il répond 24/7 aux propriétaires, aux locataires et aux visiteurs, et passe la main à une personne dès qu’un dossier le demande.</p>
+      <p className="cp-ia cp-r1" style={{
+          '--d': '280ms',
+          margin: 0,
+          display: 'grid',
+          gridTemplateColumns: '20px minmax(0,1fr)',
+          gap: '10px',
+          alignItems: 'start',
+          maxWidth: '60ch',
+          padding: '12px 16px',
+          borderRadius: '12px',
+          background: 'var(--bleu-025)',
+          border: '1px solid rgba(12,33,71,.12)',
+          fontSize: '13.5px',
+          lineHeight: 1.55,
+          color: 'var(--texte-corps)',
+          textAlign: 'left',
+          justifySelf: 'center',
+          marginInline: 'auto'
+        }}><Icon name="info" size={18} color="var(--bleu-600)" style={{
+            marginTop: '1px'
+          }} /><span>Cléo est une intelligence artificielle : il peut lui arriver de se tromper. Ses réponses sont informatives et ne remplacent pas un avis juridique; une personne de l’équipe prend le relais pour chaque décision.</span></p>
       <div className="cp-actions cp-r1" style={{
           '--d': '320ms'
         }}><Bouton ic="message-circle" onClick={() => ecrire()}>Écrire à Cléo</Bouton><Bouton v="s" ic="chevron-down" onClick={() => allerA('cpb-c1')}>Découvrir Cléo en 7 chapitres</Bouton></div>

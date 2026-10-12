@@ -4,28 +4,28 @@ window.LL_PROP = {
     {icone:'wallet', texte:'Autorisation demandée : remplacement du chauffe-eau, 1 250 $ (Plomberie Capitale).', quand:'Il y a 2 h', lu:false},
     {icone:'triangle-alert', texte:'Urgence reprise par Camille D. : détecteur de fumée, 420 Saint-Joseph Est — 5.', quand:'Hier · 17 h 40', lu:false},
     {icone:'banknote', texte:'Loyer partiel reçu : 640 3e Avenue, logement 7 (700 $ sur 1 195 $).', quand:'19 sept.', lu:false},
-    {icone:'file-text', texte:'Rapport d\u2019août disponible dans Finances.', quand:'15 sept.', lu:true}
+    {icone:'file-text', texte:'Rapport de septembre disponible dans Finances.', quand:'5 oct.', lu:true}
   ],
   approbations:[
     {id:'TRV-2026-0311', demande:'DEM-2026-0151', titre:'Remplacement du chauffe-eau', adresse:'640, 3e Avenue — logement 3', montant:'1 250 $', fournisseur:'Plomberie Capitale', seuil:'Au-delà de votre seuil de 500 $'},
     {id:'TRV-2026-0309', demande:'DEM-2026-0153', titre:'Réparation de la porte d\u2019entrée arrière', adresse:'420, rue Saint-Joseph Est — commun', montant:'640 $', fournisseur:'Menuiserie Lauzon', seuil:'Au-delà de votre seuil de 500 $'}
   ],
   demandes:[
-    {id:'DEM-2026-0148', titre:'Fuite sous l\u2019évier', logement:'1180 Cartier — 2', locataire:'Samuel Fortin', etat:'fermee', date:'18 sept.', cout:'210 $', urgence:'normale',
+    {id:'DEM-2026-0148', titre:'Fuite sous l\u2019évier', logement:'1180 Cartier — 2', locataire:'Samuel Fortin', etat:'fermee', date:'8 oct.', cout:'210 $', urgence:'normale',
      texte:'Fuite lente sous l\u2019évier de la cuisine, l\u2019armoire est humide. Photos jointes.', pieces:2,
-     etapes:[['Signalement','Locataire','18 sept. · 8 h 42'],['Qualification','Plateforme','18 sept. · 8 h 43'],['Assignation','Camille D.','18 sept. · 9 h 10'],['Autorisation','Sous le seuil','18 sept. · 9 h 26'],['Intervention','Plomberie Capitale','19 sept. · 13 h 05'],['Fermeture','Camille D.','19 sept. · 16 h 40']]},
-    {id:'DEM-2026-0151', titre:'Chauffe-eau hors service', logement:'640 3e Avenue — 3', locataire:'Nadia Tremblay', etat:'attente_approbation', date:'19 sept.', cout:'1 250 $', urgence:'elevee',
+     etapes:[['Signalement','Locataire','8 oct. · 8 h 42'],['Qualification','Plateforme','8 oct. · 8 h 43'],['Assignation','Camille D.','8 oct. · 9 h 10'],['Autorisation','Sous le seuil','8 oct. · 9 h 26'],['Intervention','Plomberie Capitale','9 oct. · 13 h 05'],['Fermeture','Camille D.','9 oct. · 16 h 40']]},
+    {id:'DEM-2026-0151', titre:'Chauffe-eau hors service', logement:'640 3e Avenue — 3', locataire:'Nadia Tremblay', etat:'attente_approbation', date:'9 oct.', cout:'1 250 $', urgence:'elevee',
      texte:'Plus d\u2019eau chaude depuis ce matin. Le réservoir fait un bruit métallique.', pieces:1,
-     etapes:[['Signalement','Locataire','19 sept. · 8 h 42'],['Qualification','Plateforme','19 sept. · 8 h 43'],['Assignation','Camille D.','19 sept. · 9 h 10'],['Autorisation','Vous','En attente'],['Intervention','Plomberie Capitale','—'],['Fermeture','—','—']]},
-    {id:'DEM-2026-0152', titre:'Détecteur de fumée défectueux', logement:'420 Saint-Joseph Est — 5', locataire:'Olivier Gagnon', etat:'urgence', date:'20 sept.', cout:'—', urgence:'urgence',
+     etapes:[['Signalement','Locataire','9 oct. · 8 h 42'],['Qualification','Plateforme','9 oct. · 8 h 43'],['Assignation','Camille D.','9 oct. · 9 h 10'],['Autorisation','Vous','En attente'],['Intervention','Plomberie Capitale','—'],['Fermeture','—','—']]},
+    {id:'DEM-2026-0152', titre:'Détecteur de fumée défectueux', logement:'420 Saint-Joseph Est — 5', locataire:'Olivier Gagnon', etat:'urgence', date:'10 oct.', cout:'—', urgence:'urgence',
      texte:'Le détecteur sonne en continu sans fumée, impossible de l\u2019arrêter.', pieces:0,
-     etapes:[['Signalement','Locataire','20 sept. · 17 h 31'],['Reprise humaine','Camille D.','20 sept. · 17 h 40'],['Assignation','Électrique Duval','20 sept. · 17 h 55'],['Intervention','Électrique Duval','20 sept. · 19 h 10'],['Fermeture','—','—']]},
-    {id:'DEM-2026-0153', titre:'Porte d\u2019entrée arrière qui ferme mal', logement:'420 Saint-Joseph Est — commun', locataire:'Signalement interne', etat:'assignee', date:'20 sept.', cout:'640 $', urgence:'normale',
+     etapes:[['Signalement','Locataire','10 oct. · 17 h 31'],['Reprise humaine','Camille D.','10 oct. · 17 h 40'],['Assignation','Électrique Duval','10 oct. · 17 h 55'],['Intervention','Électrique Duval','10 oct. · 19 h 10'],['Fermeture','—','—']]},
+    {id:'DEM-2026-0153', titre:'Porte d\u2019entrée arrière qui ferme mal', logement:'420 Saint-Joseph Est — commun', locataire:'Signalement interne', etat:'assignee', date:'10 oct.', cout:'640 $', urgence:'normale',
      texte:'Le pêne n\u2019accroche plus ; la porte reste entrouverte la nuit.', pieces:3,
-     etapes:[['Signalement','Équipe Lease Lane','20 sept. · 10 h 02'],['Qualification','Plateforme','20 sept. · 10 h 03'],['Assignation','Menuiserie Lauzon','20 sept. · 11 h 20'],['Autorisation','Vous','En attente'],['Intervention','—','—'],['Fermeture','—','—']]},
-    {id:'DEM-2026-0154', titre:'Robinet de baignoire qui goutte', logement:'2880 Sainte-Foy — 1', locataire:'Léa Bouchard', etat:'qualifiee', date:'21 sept.', cout:'—', urgence:'normale',
+     etapes:[['Signalement','Équipe Lease Lane','10 oct. · 10 h 02'],['Qualification','Plateforme','10 oct. · 10 h 03'],['Assignation','Menuiserie Lauzon','10 oct. · 11 h 20'],['Autorisation','Vous','En attente'],['Intervention','—','—'],['Fermeture','—','—']]},
+    {id:'DEM-2026-0154', titre:'Robinet de baignoire qui goutte', logement:'2880 Sainte-Foy — 1', locataire:'Léa Bouchard', etat:'qualifiee', date:'11 oct.', cout:'—', urgence:'normale',
      texte:'Goutte à goutte constant, même robinet bien fermé.', pieces:1,
-     etapes:[['Signalement','Locataire','21 sept. · 19 h 12'],['Qualification','Plateforme','21 sept. · 19 h 13'],['Assignation','—','—'],['Autorisation','—','—'],['Intervention','—','—'],['Fermeture','—','—']]}
+     etapes:[['Signalement','Locataire','11 oct. · 19 h 12'],['Qualification','Plateforme','11 oct. · 19 h 13'],['Assignation','—','—'],['Autorisation','—','—'],['Intervention','—','—'],['Fermeture','—','—']]}
   ],
   immeubles:[
     {id:'I1', adresse:'1180, avenue Cartier', secteur:'Montcalm', ville:'Québec', portes:8, occupees:8, loyer:'11 240 $', arriere:'0 $', annee:1962, etages:3, photo:'../../assets/img/logements/montcalm-cartier.jpg',
@@ -40,12 +40,12 @@ window.LL_PROP = {
      logements:[['1','Maison','2 050 $','Occupé','Famille Roy'],['2','—','—','Occupé','—'],['3','—','—','Occupé','—']]}
   ],
   locataires:[
-    {id:'T1', nom:'Samuel Fortin', initiales:'SF', logement:'1180 Cartier — 2', bail:'1 juill. 2025 → 30 juin 2026', loyer:'1 450 $', etat:'paye', tel:'418 555-0187', courriel:'s.fortin@courriel.ca', depuis:'2023', demandes:1},
+    {id:'T1', nom:'Samuel Fortin', initiales:'SF', logement:'1180 Cartier — 2', bail:'1 juill. 2026 → 30 juin 2027', loyer:'1 450 $', etat:'paye', tel:'418 555-0187', courriel:'s.fortin@courriel.ca', depuis:'2023', demandes:1},
     {id:'T2', nom:'Nadia Tremblay', initiales:'NT', logement:'640 3e Avenue — 3', bail:'1 juill. 2026 → 30 juin 2027', loyer:'1 320 $', etat:'paye', tel:'418 555-0234', courriel:'n.tremblay@courriel.ca', depuis:'2026', demandes:1},
     {id:'T3', nom:'Olivier Gagnon', initiales:'OG', logement:'420 Saint-Joseph Est — 5', bail:'1 juill. 2024 → 30 juin 2027', loyer:'1 385 $', etat:'paye', tel:'418 555-0311', courriel:'o.gagnon@courriel.ca', depuis:'2024', demandes:1},
-    {id:'T4', nom:'Gabriel Paquet', initiales:'GP', logement:'640 3e Avenue — 7', bail:'1 juill. 2025 → 30 juin 2026', loyer:'1 195 $', etat:'retard', tel:'418 555-0402', courriel:'g.paquet@courriel.ca', depuis:'2022', demandes:0},
+    {id:'T4', nom:'Gabriel Paquet', initiales:'GP', logement:'640 3e Avenue — 7', bail:'1 juill. 2026 → 30 juin 2027', loyer:'1 195 $', etat:'retard', tel:'418 555-0402', courriel:'g.paquet@courriel.ca', depuis:'2022', demandes:0},
     {id:'T5', nom:'Sophie Ménard', initiales:'SM', logement:'2880 Sainte-Foy — 4', bail:'1 juill. 2026 → 30 juin 2027', loyer:'1 100 $', etat:'retard', tel:'418 555-0456', courriel:'s.menard@courriel.ca', depuis:'2026', demandes:0},
-    {id:'T6', nom:'Léa Bouchard', initiales:'LB', logement:'2880 Sainte-Foy — 1', bail:'1 juill. 2025 → 30 juin 2026', loyer:'1 780 $', etat:'paye', tel:'418 555-0519', courriel:'l.bouchard@courriel.ca', depuis:'2021', demandes:1}
+    {id:'T6', nom:'Léa Bouchard', initiales:'LB', logement:'2880 Sainte-Foy — 1', bail:'1 juill. 2026 → 30 juin 2027', loyer:'1 780 $', etat:'paye', tel:'418 555-0519', courriel:'l.bouchard@courriel.ca', depuis:'2021', demandes:1}
   ],
   releves31:[
     {id:'R1',immeuble:'1180, avenue Cartier',logement:'2',locataires:'Samuel Fortin',statut:'À produire'},
@@ -58,10 +58,10 @@ window.LL_PROP = {
   messages:[
     {id:'M1', de:'Camille Desrosiers', initiales:'CD', role:'Gestionnaire Lease Lane', objet:'Chauffe-eau — 640 3e Avenue, log. 3 : votre autorisation', quand:'Aujourd\u2019hui · 9 h 12', lu:false, dossier:'boite',
      corps:'Bonjour Marie-Josée,\n\nLe plombier confirme que le réservoir de 2011 est en fin de vie. L\u2019estimation de Plomberie Capitale est de 1 250 $ (remplacement 60 gal., installation, disposition). Elle dépasse votre seuil de 500 $ : nous attendons votre autorisation dans le dossier DEM-2026-0151.\n\nLa locataire est sans eau chaude depuis hier ; nous pouvons intervenir demain matin si vous approuvez aujourd\u2019hui.\n\nCamille', pieces:['Estimation-Plomberie-Capitale.pdf']},
-    {id:'M2', de:'Lease Lane', initiales:'LL', role:'Rapports', objet:'Votre rapport d\u2019août 2026 est disponible', quand:'15 sept.', lu:true, dossier:'boite',
-     corps:'Le rapport mensuel d\u2019août est prêt : loyers dus et reçus, arriérés, logements vacants, travaux, factures et échéances. Vous le trouverez dans Finances › Relevés.', pieces:['Rapport-aout-2026.pdf']},
-    {id:'M3', de:'Camille Desrosiers', initiales:'CD', role:'Gestionnaire Lease Lane', objet:'Logement 4, 640 3e Avenue : deux visites planifiées', quand:'12 sept.', lu:true, dossier:'boite',
-     corps:'Deux candidatures qualifiées pour le 4 ½ vacant. Visites jeudi 17 h et samedi 10 h. Je vous reviens avec les dossiers complets après les visites.', pieces:[]},
+    {id:'M2', de:'Lease Lane', initiales:'LL', role:'Rapports', objet:'Votre rapport de septembre 2026 est disponible', quand:'5 oct.', lu:true, dossier:'boite',
+     corps:'Le rapport mensuel de septembre est prêt : loyers dus et reçus, arriérés, logements vacants, travaux, factures et échéances. Vous le trouverez dans Finances › Relevés.', pieces:['Rapport-septembre-2026.pdf']},
+    {id:'M3', de:'Camille Desrosiers', initiales:'CD', role:'Gestionnaire Lease Lane', objet:'Logement 4, 640 3e Avenue : deux visites planifiées', quand:'2 oct.', lu:true, dossier:'boite',
+     corps:'Deux candidatures qualifiées pour le 4 ½ vacant. Visites jeudi 8 octobre à 17 h et samedi 10 octobre à 10 h. Je vous reviens avec les dossiers complets après les visites.', pieces:[]},
     {id:'M4', de:'Vous', initiales:'MB', role:'', objet:'Toiture 1180 Cartier — soumissions', quand:'4 sept.', lu:true, dossier:'envoyes',
      corps:'Merci pour les trois soumissions. Je retiens Toitures Beauport, échéancier de mai 2027. On en reparle au rapport d\u2019octobre.', pieces:[]}
   ],
@@ -70,16 +70,16 @@ window.LL_PROP = {
     {id:'E1', date:'2026-09-01', libelle:'Loyers encaissés — 1180 Cartier', categorie:'Revenu', montant:'+11 240,00 $', ton:'succes'},
     {id:'E2', date:'2026-09-01', libelle:'Loyers encaissés — 420 Saint-Joseph Est', categorie:'Revenu', montant:'+7 910,00 $', ton:'succes'},
     {id:'E3', date:'2026-09-03', libelle:'Honoraires de gestion 6 %', categorie:'Honoraires', montant:'−2 476,80 $', ton:'neutre'},
-    {id:'E4', date:'2026-09-08', libelle:'Plomberie Capitale — DEM-2026-0148', categorie:'Entretien', montant:'−210,00 $', ton:'neutre'},
-    {id:'E5', date:'2026-09-08', libelle:'Coordination 10 % — DEM-2026-0148', categorie:'Coordination', montant:'−21,00 $', ton:'neutre'},
+    {id:'E4', date:'2026-09-08', libelle:'Plomberie Capitale — DEM-2026-0139', categorie:'Entretien', montant:'−210,00 $', ton:'neutre'},
+    {id:'E5', date:'2026-09-08', libelle:'Coordination 10 % — DEM-2026-0139', categorie:'Coordination', montant:'−21,00 $', ton:'neutre'},
     {id:'E6', date:'2026-09-15', libelle:'Assurance immeuble — 420 Saint-Joseph Est', categorie:'Assurance', montant:'−742,00 $', ton:'neutre'},
     {id:'E7', date:'2026-09-19', libelle:'Loyer partiel — 640 3e Avenue, log. 7', categorie:'Revenu', montant:'+700,00 $', ton:'alerte'}
   ],
-  calendrier:{nom:'Septembre',annee:2026,jours:30,premier:2,aujourdhui:21},
+  calendrier:{nom:'Octobre',annee:2026,jours:31,premier:4,aujourdhui:11},
   evenements:[
-    {jour:1,titre:'Loyers du mois',ton:'succes'},{jour:15,titre:'Rapport d\u2019août',ton:'marine'},{jour:17,titre:'Visite 17 h — 640 3e Av. log. 4',ton:'bleu'},
-    {jour:19,titre:'Visite 10 h — 640 3e Av. log. 4',ton:'bleu'},{jour:20,titre:'Urgence — détecteur, 420 S-J Est',ton:'urgence'},{jour:22,titre:'Chauffe-eau — intervention',ton:'alerte'},
-    {jour:24,titre:'Inspection toiture — 1180 Cartier',ton:'bleu'},{jour:30,titre:'Versement net',ton:'succes'},{jour:30,titre:'Fin de période',ton:'marine'}
+    {jour:1,titre:'Loyers du mois',ton:'succes'},{jour:5,titre:'Rapport de septembre',ton:'marine'},{jour:8,titre:'Visite 17 h — 640 3e Av. log. 4',ton:'bleu'},
+    {jour:10,titre:'Visite 10 h — 640 3e Av. log. 4',ton:'bleu'},{jour:10,titre:'Urgence — détecteur, 420 S-J Est',ton:'urgence'},{jour:12,titre:'Chauffe-eau — intervention',ton:'alerte'},
+    {jour:14,titre:'Inspection toiture — 1180 Cartier',ton:'bleu'},{jour:30,titre:'Versement net',ton:'succes'},{jour:31,titre:'Fin de période',ton:'marine'}
   ],
   faq:[
     {t:'Frais et versements',items:[

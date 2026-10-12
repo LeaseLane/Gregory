@@ -18,15 +18,18 @@ VUES = {
  'contact': ('PageContact', 'pages-contact-v2', None, []),
  'faq': ('PageFAQ', 'pages-lease', None, []),
  'legal': ('PageLegal', 'pages-lease', None, []),
- 'logements': ('PageLogements', 'pages-locataires', '<PageLogements route={route} aller={naviguer} data={LL_DATA} selection={selection} setSelection={setSelection} />', ['LL_DATA', 'selection']),
- 'fiche': ('FicheV2', 'fiche-concepts', '<FicheV2 aller={naviguer} ouvrirAgent={() => ouvrirCleo()} />', ['ouvrirCleo']),
+ 'logements': ('PageBientot', 'pages-guides', '<PageBientot route={route} sujet="logements" />', []),  # logements à louer : bientôt disponibles (12 oct. 2026)
+ 'fiche': ('PageBientot', 'pages-guides', '<PageBientot route={route} sujet="logements" />', []),
  'locataires': ('PageLocatairesV3', 'locataires-v3-commun', None, []),
- 'formulaire': ('PageFormulaire', 'formulaires', None, []),
+ 'formulaire': ('PageFormulaire', 'formulaires', "route.path === '/locataires/demande-de-location' ? <PageBientot route={route} sujet=\"demande\" /> : <PageFormulaire route={route} />", ['bientot']),
  'blogue': ('PageBlogue', 'pages-blogue', None, []),
  'article': ('PageArticle', 'pages-blogue', None, []),
  'quartiers': ('PageQuartiers', 'pages-guides', None, []),
  'quartier': ('PageQuartier', 'pages-guides', None, []),
  'glossaire': ('PageGlossaire', 'pages-guides', None, []),
+ 'levis': ('PageLevis', 'pages-levis', None, []),
+ 'locale': ('PageLocale', 'pages-levis', None, []),
+ 'region': ('PageRegion', 'pages-levis', None, []),
 }
 
 def ecrire(p, texte):
@@ -45,6 +48,7 @@ for page, (comp, mod, jsx, extra) in VUES.items():
               "import { %s } from '@/proto/%s';" % (comp, mod)]
     if 'LL_DATA' in extra: lignes.append("import { LL_DATA } from '@/proto/data';")
     if 'ouvrirCleo' in extra: lignes.append("import { ouvrirCleo } from '@/proto/seo';")
+    if 'bientot' in extra: lignes.append("import { PageBientot } from '@/proto/pages-guides';")
     corps = ["  const { route } = useRoute();", "  usePagePrete();"]
     if 'selection' in extra: corps.append("  const [selection, setSelection] = useState('L1');")
     rendu = jsx or '<%s route={route} />' % comp

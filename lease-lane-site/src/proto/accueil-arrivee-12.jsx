@@ -11,7 +11,7 @@ const ED = () => ACC_ETAPES,
   d = ms => ({
     '--d': ms + 'ms'
   });
-const TITRE = "Se lancer avec nous, c'est comme faire un trou d'un coup.";
+const TITRE = "Votre arrivée chez Lease Lane, en quatre étapes.";
 const CAPS = {
   fontSize: '12px',
   fontWeight: 700,
@@ -54,7 +54,7 @@ function useEntree() {
     });
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [v]);
   return [r, v];
 }
 const Section = ({

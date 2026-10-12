@@ -11,11 +11,13 @@ ICI=${0:A:h}
 N=${ICI:h:h}
 P=${1:-"$N/../lease-lane-design-system/project/ui_kits/site-public"}
 T=$(mktemp -d)
+node "$ICI/routes-json.mjs" "$P" "$N/scripts/routes.json"
 node "$ICI/convertir.mjs" "$P" "$T/proto"
 python3 "$ICI/posttraiter.py" "$T/proto"
 node "$ICI/elaguer.mjs" "$T/proto" "$ICI/racines.json"
 rsync -a --delete --checksum --inplace --include='*.jsx' --exclude='*' "$T/proto/" "$N/src/proto/"
 rsync -a --delete --checksum --inplace --include='*.css' --exclude='*' "$T/styles/" "$N/src/styles/proto/"
+python3 "$ICI/feuilles.py" "$P" "$N"
 cp "$T/rapport-conversion.json" "$ICI/rapport-conversion.json"
 rm -rf "$T"
 # 5. Aperçu de l'espace propriétaire (iframe des pages Gestion) : copie du prototype du portail, servie telle quelle.
@@ -26,4 +28,6 @@ rsync -a --checksum --inplace --exclude='Export*' --include='*.html' --include='
 rsync -a --checksum --inplace --include='*.js' --include='*.jsx' --include='*.css' --exclude='*' "${P:h}/portail-commun/" "$N/public/portail-commun/"
 rsync -a --checksum --inplace --include='*.css' --exclude='*' "$K/tokens/" "$N/public/tokens/"
 rsync -a --checksum --inplace "$K/styles.css" "$K/_ds_bundle.js" "$N/public/"
+# llms.txt et robots.txt du prototype (adresses, contact, articles) : copiés tels quels.
+rsync -a --checksum --inplace "$P/public/llms.txt" "$P/public/robots.txt" "$N/public/"
 echo "Modules : $(ls "$N/src/proto" | wc -l | tr -d ' ') · rapport : scripts/conversion/rapport-conversion.json"

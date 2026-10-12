@@ -13,18 +13,31 @@ npm run build      # compilation de production (toutes les pages pré-rendues)
 npm run start      # serveur de production
 npm run verifier   # chaque adresse FR et EN sans JavaScript : code HTTP, lang, H1, JSON-LD, canonique, hreflang (serveur sur :3010 par défaut)
 node scripts/francais-restant.mjs http://localhost:3010   # texte resté en français sur les pages /en
+npm run convertir  # régénère src/proto, le dictionnaire anglais, les pages et public/llms.txt depuis le prototype (voir plus bas)
+python3 scripts/localites/generer.py   # régénère les 21 pages locales « gestion immobilière » (puis npm run convertir)
+node scripts/couvertures.mjs           # régénère les images de couverture et de partage des articles du blogue
 ```
 
 ## Ce qui est en place
 
-- **32 adresses** de `routes.js`, une URL par page sans `#` (`/gestion-immobiliere`, `/quartiers/limoilou`…), pré-rendues en HTML
-  complet : `<title>`, description, canonique, Open Graph, `lang="fr-CA"` et JSON-LD (`@graph`) rendus côté serveur, lisibles sans JavaScript.
+- **80 adresses** de `routes.js` (160 avec l'anglais, dont 152 indexables), une URL par page sans `#` (`/gestion-immobiliere`,
+  `/quartiers/limoilou`…), pré-rendues en HTML complet : `<title>`, description, canonique, Open Graph, `lang="fr-CA"` et JSON-LD
+  (`@graph`) rendus côté serveur, lisibles sans JavaScript. Titres de 60 caractères et descriptions de 160 caractères au plus.
+- **26 guides de quartier et de ville** (`/quartiers/…`, gabarit « Mosaïque » de `pages-guides.jsx`) : 9 quartiers et arrondissements
+  de Québec et 17 villes de la Rive-Nord, de la Rive-Sud et de Portneuf. Page `/quartiers` : sélecteur avec recherche, filtres par zone
+  et carte régionale tirée d'OpenStreetMap (© contributeurs OpenStreetMap, ODbL), intégrée au code : aucune requête externe.
+- **21 pages locales** « gestion immobilière » (`/gestion-immobiliere/<secteur>`), générées par `scripts/localites/generer.py`,
+  plus la page Lévis et la page centrale `/gestion-immobiliere/grande-region-de-quebec`.
+- **Bientôt disponible** : `/logements-a-louer`, l'ancienne fiche d'exemple et `/locataires/demande-de-location` affichent la page
+  `PageBientot` (non indexée pour la fiche et la demande); les liens du menu et du pied de page portent la mention « Bientôt ».
+- **Blogue** : 9 articles FR et leurs jumeaux EN, chacun avec son image de couverture et de partage (`public/assets/img/blogue`).
 - Pages retenues seulement (choix de revue du 8 et du 9 octobre 2026), barres de revue et sélecteurs de variantes retirés,
   fiche SEO intégrée et `image-slot` retirés, ni Babel ni React en mode développement dans le build.
 - Stockage navigateur limité aux clés de la politique des témoins (`ll-cleo-accroche`, `ll-temoins`) : les clés de revue sont neutralisées,
   le `sessionStorage` du prototype est remplacé par une mémoire de visite (`src/lib/memoire.js`).
-- Polices servies depuis le domaine (`public/assets/fonts`), `robots.txt`, `sitemap.xml` (généré depuis `routes.js`), `llms.txt`,
-  image de partage et logo des données structurées.
+- Polices servies depuis le domaine (`public/assets/fonts`), `robots.txt` (moteurs de réponse IA autorisés), `sitemap.xml`
+  (généré depuis `routes.js`, avec `hreflang`), `llms.txt` (**généré** par `scripts/generer-llms.mjs` à chaque `npm run convertir`,
+  sans adresse civique), image de partage, icône Apple (`src/app/apple-icon.png`) et logo des données structurées. Domaine : `https://leaselane.ca`.
 - **Version anglaise** : 32 adresses jumelles `/en/…` (table de `langue.js`), traduites **pendant le rendu serveur** (HTML anglais
   sans JavaScript), `lang="en-CA"`, titres et descriptions anglais, `hreflang` fr-CA / en-CA / x-default, JSON-LD anglais.
   Le dictionnaire n'est téléchargé que sur les pages anglaises. Cléo comprend et répond en anglais. Bouton FR / EN dans l'en-tête.
@@ -67,7 +80,9 @@ régénère aussi le dictionnaire, la table des adresses et les pages.
 
 - Aperçu de l'espace propriétaire : reste en français sur les pages anglaises (comme dans le prototype); `refonte/icones.svg`,
   référencé par le bundle du design system, n'existe pas (404 hérité du prototype).
-- Données structurées `ItemList` : les URL `/logements-a-louer/l1…` (héritées du prototype) ne correspondent à aucune page.
+- Lien « Espace propriétaire / locataire » (`/connexion`) : 404 tant que le portail n'est pas reconnecté.
+- Politique de confidentialité : deux passages à compléter (rôle du propriétaire, fournisseur d'IA de Cléo).
+- Logements à louer et demande de location : remplacer la page « Bientôt disponible » quand les annonces seront publiées.
 - **SB1 point 5 / B14** : politique CSP complète (liste blanche : domaine Lease Lane + projet Supabase).
 - **SB1 point 4** : lecture serveur des annonces publiées (Supabase) au lieu des données de démonstration.
 - **SB2 à SB7** : pages légales servies depuis `textes_juridiques`, preuve du choix de témoins côté serveur, validation serveur des

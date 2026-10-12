@@ -6,7 +6,7 @@ import React from 'react';
 import { H3 } from '@/proto/accueil-heros3';
 import { __ssr } from '@/lib/hydratation';
 
-/* Titre de la bannière d'accueil (fourni par le client, mot pour mot). */
+/* Titre de la bannière d'accueil (revu le 11 oct. 2026 : « la première » retiré, affirmation non vérifiable). */
 const H1 = ({
   clair = true,
   bleu = '#6194D3'
@@ -19,17 +19,15 @@ const H1 = ({
   color: clair ? '#fff' : 'var(--marine-900)',
   textWrap: 'balance',
   maxWidth: '24ch'
-}}><span style={{
-    display: 'block'
-  }}>Bienvenue chez Lease Lane.</span>La première gestion immobilière <span style={{
+}}>Lease Lane, la gestion immobilière <span style={{
     color: bleu
-  }}>propulsée par l'IA</span> au <span style={{
+  }}>propulsée par l'IA</span> à <span style={{
     color: bleu
-  }}>Québec</span></h1>;
+  }}>Québec</span>.</h1>;
 const BLEU = '#6194D3',
   IMG = "/assets/img/";
 /* Sous-texte de la bannière d'accueil (fourni par le client, mot pour mot). */
-const LEAD = 'Lease Lane n’est pas qu’une simple gestion immobilière. C’est une plateforme automatisée qui permet aux propriétaires d\'optimiser leurs opérations et aux locataires d\'obtenir un service digne de ce nom.';
+const LEAD = 'Lease Lane gère vos immeubles avec une plateforme automatisée. Vous gagnez du temps, et vos locataires obtiennent une réponse rapide, à toute heure.';
 const Lead = ({
   centre
 }) => <p className="h3-monte" style={{
@@ -337,7 +335,7 @@ const SocleActuel = () => <nav aria-label="Choisissez votre profil" className="h
           letterSpacing: '-0.025em',
           lineHeight: 1.2,
           whiteSpace: 'nowrap'
-        }}>{e.mot}</span><ChvLogo h={14.59} /></span></a>)}
+        }}>{e.mot}</span>{e.k === 'rech' && <span className="h7-bt">Bientôt disponible</span>}<ChvLogo h={14.59} /></span></a>)}
   </div></nav>;
 
 /* Revue du bandeau : A deux rangées (2 × 2), B cartes posées dans la grille du contenu, C ligne compacte (icône dans le libellé). Choix gardé dans le navigateur. */
@@ -361,13 +359,13 @@ const Mot = ({
   e,
   t,
   ls = '-0.02em'
-}) => <span className="h7-socle-mot" style={{
-  fontSize: t,
-  fontWeight: 700,
-  letterSpacing: ls,
-  lineHeight: 1.2,
-  whiteSpace: 'nowrap'
-}}>{e.mot}</span>;
+}) => <React.Fragment><span className="h7-socle-mot" style={{
+    fontSize: t,
+    fontWeight: 700,
+    letterSpacing: ls,
+    lineHeight: 1.2,
+    whiteSpace: 'nowrap'
+  }}>{e.mot}</span>{e.k === 'rech' && <span className="h7-bt">Bientôt disponible</span>}</React.Fragment>;
 /* Une seule rangée : autant de colonnes que d'entrées (3 depuis le retrait de Logements à louer, 11 oct. 2026). */
 const GrilleA = () => <div className="h7s h7s-a2" style={{
   display: 'grid',

@@ -1,8 +1,8 @@
 const { Icon, Button, Dialog, Input, Toast } = window.LeaseLaneDesignSystem_b7a479;
 
-const NAV=[['tableau','layout-grid','Tableau de bord'],['immeubles','building-2','Immeubles'],['locataires','users','Locataires'],['demandes','wrench','Demandes et travaux'],
+const NAV=[['tableau','layout-grid','Tableau de bord'],['immeubles','building-2','Immeubles'],['locataires','users','Locataires'],['demandes','wrench','Demandes'],
   ['messages','message-square','Messages'],['finances','wallet','Finance'],['calendrier','calendar','Calendrier'],['acces','shield-check','Utilisateurs et accès'],['conformite','scale','Conformité Loi 25'],['aide','circle-help','Aide']];
-const TITRES={tableau:['Tableau de bord','Septembre 2026 · 34 portes · 5 immeubles'],immeubles:['Vos immeubles','Votre parc et son occupation'],locataires:['Locataires','Baux, paiements et demandes par personne'],
+const TITRES={tableau:['Tableau de bord','Octobre 2026 · 34 portes · 5 immeubles'],immeubles:['Vos immeubles','Votre parc et son occupation'],locataires:['Locataires','Baux, paiements et demandes par personne'],
   demandes:['Demandes et travaux','Du signalement à la fermeture du dossier'],messages:['Messages','Vos échanges avec l\u2019équipe Lease Lane'],finances:['Finance','Encaissements, honoraires, dépenses et relevés'],
   calendrier:['Calendrier','Visites, travaux, versements et échéances'],acces:['Utilisateurs et accès',''],conformite:['Conformité Loi 25',''],aide:['Aide','Questions fréquentes des propriétaires']};
 
@@ -18,7 +18,7 @@ function App(){
   const badges={demandes:data.approbations.length+data.demandes.filter(d=>d.etat==='urgence').length,messages:data.messages.filter(m=>!m.lu).length};
   const notifier=(titre,message)=>{setToast({titre,message});setTimeout(()=>setToast(null),4200)};
   const im=data.immeubles.find(i=>i.id===sous.immeubles);
-  return <Coquille nav={NAV} page={page} aller={aller} titres={TITRES} data={data} reglages={reglages} setReglages={setReglages} badges={badges}
+  return <Coquille portail nav={NAV} page={page} aller={aller} titres={TITRES} data={data} reglages={reglages} setReglages={setReglages} badges={badges}
     pied={{titre:'Loi 25',texte:'Toute décision automatisée peut être révisée par une personne. Demandez-le depuis le dossier.'}}
     actions={<Button size="s" variant="primaire" onClick={()=>aller('messages')} iconeAvant={<Icon name="message-square" size={15} color="#fff"/>}>Écrire à l'équipe</Button>}>
     {page==='tableau'&&<TableauBord data={data} ouvrir={setAppro} aller={aller}/>}

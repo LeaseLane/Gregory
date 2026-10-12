@@ -24,11 +24,11 @@ let LL_FAQ = {
   p5: {
     public: 'proprietaires',
     q: 'En combien de temps un logement vacant est-il loué?',
-    r: 'Le délai dépend du secteur, du prix et de la saison. Cléo répond aux prospects en tout temps et organise les visites sans attendre les heures de bureau : moins de jours vacants, moins de loyer perdu.'
+    r: 'Cela dépend du secteur, du prix et de la saison. Cléo répond aux locataires potentiels en tout temps et réserve les visites sans attendre les heures de bureau. Le logement reste donc vide moins longtemps.'
   },
   p6: {
     public: 'proprietaires',
-    q: 'Comment Cléo répond-il à mes locataires et aux prospects, et quand un humain prend-il le relais?',
+    q: 'Comment Cléo répond-il à mes locataires et aux locataires potentiels, et quand un humain prend-il le relais?',
     r: 'Cléo répond 24/7, en français d\u2019abord, puis dans la langue de votre interlocuteur. Il donne de l\u2019information générale sur les règles du Code civil et du TAL qui s\u2019appliquent aux deux parties, réserve les visites et trie les urgences. Il passe la main à une personne de l\u2019équipe pour une urgence, un litige ou une mise en demeure, une reprise, une éviction ou une résiliation, une plainte de harcèlement ou de discrimination, ou dès qu\u2019on le lui demande. Il annonce chaque transfert : à qui, pourquoi et dans quel délai.'
   },
   p7: {
@@ -39,7 +39,7 @@ let LL_FAQ = {
   p8: {
     public: 'proprietaires',
     q: 'Quand et comment les loyers sont-ils versés dans mon compte?',
-    r: 'Les loyers perçus sont versés dans votre compte selon la fréquence prévue à votre mandat, déduction faite des dépenses autorisées. Chaque versement est détaillé dans votre espace propriétaire.'
+    r: 'Les loyers perçus sont versés dans votre compte selon la fréquence prévue à votre contrat, déduction faite des dépenses autorisées. Chaque versement est détaillé dans votre espace propriétaire.'
   },
   p9: {
     public: 'proprietaires',
@@ -54,17 +54,17 @@ let LL_FAQ = {
   p11: {
     public: 'proprietaires',
     q: 'Est-ce que je garde le contrôle sur les décisions importantes?',
-    r: 'Oui. Le choix du locataire, les travaux au-delà de votre seuil, la hausse de loyer et tout recours au TAL vous sont soumis. Vous approuvez en ligne, en un geste, et la décision est consignée au dossier.'
+    r: 'Oui. Le choix du locataire, les travaux au-delà de votre seuil, la hausse de loyer et tout recours au TAL vous sont soumis. Vous approuvez en ligne, et la décision est consignée au dossier.'
   },
   p12: {
     public: 'proprietaires',
     q: 'Gérez-vous les plex de deux à cinq logements?',
-    r: 'Oui, les plex sont au cœur de notre offre, avec tous les immeubles locatifs résidentiels, sauf la copropriété divise et la location de courte durée. Le service et les rapports sont les mêmes, quel que soit le nombre de portes.'
+    r: 'Oui. Nous gérons les plex et tous les immeubles locatifs résidentiels, sauf la copropriété divise et la location de courte durée. Le service et les rapports sont les mêmes, quel que soit le nombre de portes.'
   },
   p13: {
     public: 'proprietaires',
     q: 'Quels secteurs desservez-vous?',
-    r: 'Nous desservons tout le Québec. Écrivez-nous pour une offre : nous vous répondons en moins de 24 h.'
+    r: 'Nous desservons la grande région de Québec, dans un rayon de 50 km : Québec, Lévis, la rive nord, la rive sud et l’île d’Orléans. Écrivez-nous pour une offre : nous répondons en moins de 24 h.'
   },
   p14: {
     public: 'proprietaires',
@@ -87,7 +87,7 @@ let LL_FAQ = {
   l1: {
     public: 'locataires',
     q: 'Comment voir les logements disponibles et réserver une visite?',
-    r: 'Nous n\u2019avons aucun logement à louer pour le moment. Demandez à Cléo de vous prévenir : l\u2019équipe vous écrit dès qu\u2019un logement se libère.'
+    r: 'La page de nos logements à louer n\u2019est pas encore prête : elle sera bientôt disponible sur le site, avec la date de disponibilité de chaque logement. Cléo pourra alors réserver votre visite en tout temps. En attendant, demandez-lui de vous avertir dès sa mise en ligne.'
   },
   l2: {
     public: 'locataires',
@@ -127,7 +127,7 @@ let LL_FAQ = {
   l9: {
     public: 'locataires',
     q: 'Qu\u2019est-ce qu\u2019un endosseur, et à quoi s\u2019engage-t-il?',
-    r: 'L\u2019endosseur, ou caution, s\u2019engage à payer le loyer et à respecter le bail si le locataire ne le fait pas. Il choisit comment démontrer sa capacité de payer : enquête de crédit avec son consentement, ou reçus et factures payées. Il signe électroniquement ; nous ne demandons jamais sa carte d\u2019assurance maladie.'
+    r: 'L\u2019endosseur, ou caution, s\u2019engage à payer le loyer et à respecter le bail si le locataire ne le fait pas. Il choisit comment démontrer sa capacité de payer : enquête de crédit avec son consentement, ou reçus et factures payées. Il signe électroniquement; nous ne demandons jamais sa carte d\u2019assurance maladie.'
   },
   l10: {
     public: 'locataires',
@@ -138,7 +138,7 @@ let LL_FAQ = {
     public: 'locataires',
     phase: 2,
     q: 'Comment fonctionne le renouvellement de bail?',
-    r: 'Votre bail se renouvelle aux mêmes conditions. Si le propriétaire veut le modifier, il vous envoie un avis de trois à six mois avant la fin d\u2019un bail de douze mois. Vous avez un mois après la réception de l\u2019avis pour lui répondre par écrit que vous refusez la modification ou que vous quittez le logement ; sans réponse de votre part, vous êtes réputé l\u2019avoir acceptée (art. 1945 C.c.Q.).'
+    r: 'Votre bail se renouvelle aux mêmes conditions. Si le propriétaire veut le modifier, il vous envoie un avis de trois à six mois avant la fin d\u2019un bail de douze mois. Vous avez un mois après la réception de l\u2019avis pour lui répondre par écrit que vous refusez la modification ou que vous quittez le logement; sans réponse de votre part, vous êtes réputé l\u2019avoir acceptée (art. 1945 C.c.Q.).'
   },
   l12: {
     public: 'locataires',
@@ -176,7 +176,7 @@ let LL_FAQ = {
   t4: {
     public: 'locataires',
     q: 'Le propriétaire peut-il entrer dans mon logement?',
-    r: 'Oui. Avec un préavis de 24 heures, il peut vérifier l\u2019état du logement, y faire des travaux ou le faire visiter à un acheteur ; les visites ont lieu entre 9 h et 21 h, les travaux entre 7 h et 19 h. Après votre avis de non-reconduction, il peut le faire visiter à de futurs locataires sans préavis, entre 9 h et 21 h. Des travaux majeurs exigent un avis écrit d\u2019au moins 10 jours, ou de 3 mois si vous devez quitter le logement plus d\u2019une semaine. Vous pouvez refuser une visite si le propriétaire ou son représentant ne peut être présent. En cas d\u2019urgence, aucun préavis n\u2019est requis.'
+    r: 'Oui. Avec un préavis de 24 heures, il peut vérifier l\u2019état du logement, y faire des travaux ou le faire visiter à un acheteur; les visites ont lieu entre 9 h et 21 h, les travaux entre 7 h et 19 h. Après votre avis de non-reconduction, il peut le faire visiter à de futurs locataires sans préavis, entre 9 h et 21 h. Des travaux majeurs exigent un avis écrit d\u2019au moins 10 jours, ou de 3 mois si vous devez quitter le logement plus d\u2019une semaine. Vous pouvez refuser une visite si le propriétaire ou son représentant ne peut être présent. En cas d\u2019urgence, aucun préavis n\u2019est requis.'
   },
   t5: {
     public: 'proprietaires',

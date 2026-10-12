@@ -619,7 +619,7 @@ function CleoEnAction({
   titre = 'De la question à la {visite réservée}, sans attendre le lendemain.',
   texte
 }) {
-  const etapes = [['22 h 14', 'La question arrive', 'Un prospect écrit un soir de semaine.'], ['22 h 14', 'Disponibilité en temps réel', 'Cléo répond avec le logement, le loyer et la date.'], ['22 h 15', 'Visite réservée', 'Deux créneaux proposés, la visite confirmée par écrit.'], ['Avant la visite', 'Rappels', 'Un rappel 24 h, puis 2 h avant; le gestionnaire reçoit le fil.']];
+  const etapes = [['22 h 14', 'La question arrive', 'Un locataire potentiel écrit un soir de semaine.'], ['22 h 14', 'Disponibilité en temps réel', 'Cléo répond avec le logement, le loyer et la date.'], ['22 h 15', 'Visite réservée', 'Deux créneaux proposés, la visite confirmée par écrit.'], ['Avant la visite', 'Rappels', 'Un rappel 24 h, puis 2 h avant; le gestionnaire reçoit le fil.']];
   return <Section fond={fond}>
     <div className="ll-deux" style={{
       display: 'grid',
@@ -1214,7 +1214,7 @@ function Cartes({
   </div>;
 }
 /* Mention d'information juridique générale (S4) : sous chaque affirmation sur ce que Cléo explique du droit. */
-const LL_MENTION = 'Information juridique générale, pas un avis juridique. Un humain prend le relais dès que votre dossier le demande.';
+const LL_MENTION = 'Information juridique générale, pas un avis juridique. Une personne de l’équipe prend le relais dès que votre dossier le demande.';
 const MentionJuridique = ({
   clair,
   style

@@ -1,15 +1,14 @@
 /** @jsxImportSource @/lib/i18n */
 'use client';
-/* Vue de la page « fiche » : page retenue du prototype (fiche-concepts). Généré par scripts/generer-pages.py. */
+/* Vue de la page « fiche » : page retenue du prototype (pages-guides). Généré par scripts/generer-pages.py. */
 import React from 'react';
 import { useRoute, naviguer } from '@/lib/routeur';
 import { usePagePrete } from '@/lib/finitions';
-import { FicheV2 } from '@/proto/fiche-concepts';
-import { ouvrirCleo } from '@/proto/seo';
+import { PageBientot } from '@/proto/pages-guides';
 
 export default function Vue() {
   const { route } = useRoute();
   usePagePrete();
   void route; void naviguer;
-  return <FicheV2 aller={naviguer} ouvrirAgent={() => ouvrirCleo()} />;
+  return <PageBientot route={route} sujet="logements" />;
 }

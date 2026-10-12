@@ -515,10 +515,10 @@ body>.ll-haut~.ll-haut{display:none!important}
   #ll-page .pc-hong{justify-content:center}
   #ll-page .pc [role="tabpanel"]{justify-items:center;text-align:center}
   #ll-page .pc .pc-t:not(:has(ul,ol)){text-align:center}
-  /* Fils d'Ariane (toutes les pages) : texte 40 % plus petit (13 → 7,8 px), interligne et espaces réduits de 80 % */
-  #ll-page nav[aria-label^="Fil d"] ol{font-size:7.8px!important;line-height:1.2!important;row-gap:1.6px!important;column-gap:4.8px!important}
-  #ll-page nav[aria-label^="Fil d"] li{gap:4.8px!important}
-  #ll-page nav[aria-label^="Fil d"] svg{width:7.8px!important;height:7.8px!important}
+  /* Fils d'Ariane (toutes les pages) sur mobile : texte de 10 px (choix du 12 oct. 2026), interligne et espaces réduits */
+  #ll-page nav[aria-label^="Fil d"] ol{font-size:10px!important;line-height:1.3!important;row-gap:2px!important;column-gap:6px!important}
+  #ll-page nav[aria-label^="Fil d"] li{gap:6px!important}
+  #ll-page nav[aria-label^="Fil d"] svg{width:10px!important;height:10px!important}
 }
 @keyframes ll-fq-ouvre{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){#ll-page .f12-qs[aria-current="true"]+p[hidden]{animation:none}}
@@ -657,3 +657,112 @@ body>.ll-haut~.ll-haut{display:none!important}
 /* En-tête · sélecteur FR/EN 15 % plus petit sur mobile (36 → 30,6 px de haut) */
 /* Mobile : sélecteur FR/EN encore 15 % plus petit (0,85 → 0,7225); bandeau d'en-tête 20 % moins haut (108 → 86,4 px) */
 @media (max-width:620px){.ll-langue-entete{zoom:.7225}:root{--web-entete:86.4px}}
+
+/* Accueil, volets de services (D2) : en-têtes, points et boutons alignés d'une carte à l'autre (grille partagée, subgrid).
+   1 en-tête + 5 points + « Et bien plus encore » + bouton = 8 rangées. Mobile : carrousel, inchangé. */
+@media (min-width:621px){
+  .sv-ecrans:has(>.sv-al){grid-auto-rows:auto!important}
+  .sv-ecrans>article.sv-al{display:grid!important;grid-row:span 8;grid-template-rows:subgrid;row-gap:0}
+  .sv-al>div,.sv-al>div>ul{display:contents!important}
+  .sv-al>div>ul>li{padding:5px 22px;align-self:center}
+  .sv-al>div>ul>li:first-child{padding-top:24px}
+  .sv-al>div>div:first-of-type{margin-top:11px!important;padding:0 22px;justify-self:center}
+  .sv-al>div>div:last-child{padding:24px 22px;justify-self:center;align-self:end}
+}
+
+/* Gestion immobilière, bloc « Cléo et le TAL » : divisé en morceaux sur grand écran et tablette; mobile = carrousel de trois diapositives (démo masquée). */
+#ll-page .go-tal-mob{display:none}
+/* La mise en page suit la largeur du bloc (la page Gestion a un sommaire latéral) : colonnes empilées sous 780 px de contenu. */
+#ll-page .go-tal-bur{container-type:inline-size}
+@container (max-width:780px){
+  #ll-page .go-tal-bur .go-tal-2{grid-template-columns:minmax(0,1fr)!important}
+}
+@media (max-width:620px){
+  #ll-page .go-tal-mob{display:block}
+  #ll-page .go-tal-bur{display:none}
+  #ll-page .go-tal-mob .go-2c{grid-template-columns:minmax(0,1fr)!important}
+}
+
+/* Pied : secteurs en quatre zones (11 oct. 2026) — 2 colonnes sur tablette et mobile. */
+@media (max-width:900px){footer .ao-secteurs,footer .ao-secteurs *{text-align:left!important}footer .ao-sb-tete{justify-content:flex-start!important}footer .ao-secteurs .ao-lien{justify-content:flex-start}}
+@media (max-width:480px){footer .ao-sb-tabs{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))}footer .ao-sb-tabs button{justify-content:space-between;padding:0 12px!important;font-size:13px!important;white-space:nowrap}}
+footer .ao-sb-c:hover{background:rgba(255,255,255,.12)!important;color:#fff!important}
+
+/* Pied centré (11 oct. 2026) : colonnes, secteurs et mentions légales centrés; réseaux sociaux sous « Nous joindre ». */
+footer.pd-centre .ao-g4{justify-content:center!important;column-gap:clamp(24px,3vw,48px)!important}
+@media (min-width:901px){footer.pd-centre .ao-g4{display:grid!important;grid-template-columns:auto repeat(4,auto);justify-content:space-between!important;align-items:start!important}}
+footer.pd-centre .ao-g4>nav,footer.pd-centre .ao-g4>div{justify-items:center!important;text-align:center!important}
+footer.pd-centre .ao-g4>nav>*,footer.pd-centre .ao-g4>div>*,footer.pd-centre .ao-g4 nav a{justify-self:center!important;justify-content:center}
+footer.pd-centre .ao-g4 span[aria-hidden="true"]{margin-left:auto;margin-right:auto}
+footer.pd-centre .pd-rs>div{justify-content:center}
+footer.pd-centre .ao-secteurs{justify-items:center;text-align:center}
+footer.pd-centre .ao-sb-tete{flex-direction:column!important;align-items:center!important;text-align:center}
+footer.pd-centre .ao-sb-tete>div{justify-items:center}
+footer.pd-centre .ao-sb-tabs,footer.pd-centre .ao-secteurs [role="tabpanel"]{justify-content:center}
+footer.pd-centre .pd-legal,footer.pd-centre .pd-copy{justify-content:center!important;text-align:center}
+footer.pd-centre .pd-legal>*{justify-content:center}
+@media (max-width:900px){footer.pd-centre .ao-secteurs,footer.pd-centre .ao-secteurs *{text-align:center!important}footer.pd-centre .ao-sb-tete{justify-content:center!important}footer.pd-centre .ao-secteurs .ao-lien{justify-content:center}}
+
+/* Pied : secteurs repliés (commun) */
+footer .pe-l{transition:color .15s}footer .pe-l:hover{color:#fff!important}
+footer .pe-sec>summary::-webkit-details-marker{display:none}footer .pe-sec .pe-chev{transition:transform .2s}footer .pe-sec[open] .pe-chev{transform:rotate(180deg)}
+footer .pe-sec>summary:focus-visible{outline:2px solid #fff;outline-offset:4px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){footer .pe-sec .pe-chev,footer .pe-l{transition:none}}
+@media (max-width:640px){footer .pe-sec>summary span{display:none}}
+/* Pied « 5 · Raffiné » (retenu le 11 oct. 2026) */
+footer .pr-l{transition:color .18s}footer .pr-l .pr-chev{opacity:0;transform:translateX(-4px);transition:opacity .18s,transform .18s;color:#91B5E0}
+footer .pr-l:hover{color:#fff!important}footer .pr-l:hover .pr-chev,footer .pr-l:focus-visible .pr-chev{opacity:1;transform:none}
+footer .pr-l:focus-visible{outline:2px solid #fff;outline-offset:3px;border-radius:6px}
+footer .pr-sky{stroke-dasharray:3000;stroke-dashoffset:0}
+@media (prefers-reduced-motion:no-preference){footer .pr-sky{animation:pr-trace 3.2s ease-out both}@keyframes pr-trace{from{stroke-dashoffset:3000}to{stroke-dashoffset:0}}}
+@media (prefers-reduced-motion:reduce){footer .pr-l,footer .pr-l .pr-chev{transition:none}}
+@media (max-width:1180px){footer .pr-g{grid-template-columns:repeat(2,minmax(0,1fr))!important}footer .pr-g>div:first-child{grid-column:1/-1}}@media (min-width:700px) and (max-width:1180px){footer .pr-g{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media (max-width:640px){footer .pr-g{grid-template-columns:repeat(2,minmax(0,1fr))!important}footer .pr-bas{flex-direction:column;align-items:flex-start!important}}
+@media (max-width:640px){footer .pr-contact,footer .pr-contact>div{flex-direction:column;align-items:flex-start!important}}
+/* Pied : barre légale centrée; flèches animées après « 50 km autour de Québec » (estompées vers la droite). */
+footer .pr-bas,footer .pr-bas>*,footer .pr-bas nav{justify-content:center!important;text-align:center!important}
+footer .pe-fl{display:inline-flex;align-items:center;gap:1px;margin-left:2px}
+@media (prefers-reduced-motion:no-preference){footer .pe-fl svg{animation:pe-fl 1.6s ease-in-out infinite;animation-delay:calc(var(--k) * .12s)}@keyframes pe-fl{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}}
+@media (max-width:640px){footer .pe-fl{display:none}}
+/* Pied : secteurs desservis centrés (repli et contenu ouvert). */
+footer .pr-g~div details.pe-sec,footer details.pe-sec{justify-items:stretch}footer details.pe-sec::details-content{width:100%;justify-self:stretch}
+footer details.pe-sec>summary{justify-self:center!important}
+footer details.pe-sec>a{justify-self:center!important}
+footer details.pe-sec>a,footer details.pe-sec>summary{display:flex!important;width:max-content;max-width:100%;margin-left:auto;margin-right:auto}
+
+/* Secteurs desservis (pied) : quatre cartes vitrées, listes alignées à gauche, apparition en cascade à l'ouverture (12 oct. 2026). */
+footer details.pe-sec .pe-zg{display:grid;grid-template-columns:1fr 1.18fr 1fr .9fr;gap:16px;width:100%;justify-self:stretch;box-sizing:border-box;padding:18px 0 22px;text-align:left}
+footer .pe-z{display:grid;align-content:start;padding:20px 20px 14px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transition:border-color .3s,background .3s}
+footer .pe-z:hover{border-color:rgba(145,181,224,.32);background:rgba(255,255,255,.05)}
+footer .pe-zl{width:100%;line-height:1.35;padding:4px 0}
+footer .pe-zp{flex:none;width:5px;height:5px;border-radius:50%;background:#6A9AD5;transition:transform .25s,background .25s}
+footer .pe-zl:hover .pe-zp{transform:scale(1.5);background:#C8DAF0}
+footer details.pe-sec .pe-zg ul{justify-items:stretch!important}
+@media (prefers-reduced-motion:no-preference){footer .pe-sec[open] .pe-z{animation:pe-z .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i) * 70ms)}@keyframes pe-z{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}}
+@media (max-width:960px){footer details.pe-sec .pe-zg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){footer details.pe-sec .pe-zg{grid-template-columns:minmax(0,1fr)}}
+
+/* Pied : trait animé sous le slogan, qui pointe vers le plan du site à droite (12 oct. 2026). */
+footer .pr-vers{display:flex;align-items:center;gap:6px;margin:auto 0 11px;width:min(100%,250px)}
+footer .pr-vers-l{position:relative;flex:1;height:2px;border-radius:2px;overflow:hidden;background:linear-gradient(90deg,rgba(145,181,224,0),rgba(145,181,224,.45))}
+footer .pr-vers-l::after{content:"";position:absolute;top:-1px;left:0;width:56px;height:4px;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,0),#C8DAF0);transform:translateX(-60px)}
+@media (prefers-reduced-motion:no-preference){footer .pr-vers-l::after{animation:pr-vers 2.4s cubic-bezier(.45,0,.2,1) infinite}@keyframes pr-vers{0%{transform:translateX(-60px);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translateX(220px);opacity:0}}}
+@media (max-width:960px){footer .pr-vers{display:none}}
+
+footer .pr-bt{display:inline-flex;align-items:center;margin-left:8px;padding:2px 7px;border-radius:6px;background:rgba(145,181,224,.14);border:1px solid rgba(145,181,224,.28);font-size:11px;font-weight:600;letter-spacing:.04em;color:#C8DAF0;line-height:1.4}
+footer .pr-g>div:first-child{display:flex!important;flex-direction:column;align-items:flex-start;align-self:stretch}
+footer .pr-bas{padding-bottom:8px;gap:12px!important}
+footer .pr-bas>span{justify-content:center;opacity:.85}
+
+/* Logements à louer : pastille « Bientôt disponible » sur les tuiles de l'accueil et du pied (12 oct. 2026). */
+.h7-bt{display:inline-flex;align-items:center;flex:none;padding:3px 9px;border-radius:7px;background:rgba(145,181,224,.16);border:1px solid rgba(181,212,247,.35);color:#DCE8F6;font-size:11px;font-weight:600;letter-spacing:.03em;line-height:1.4;white-space:nowrap}
+@media (max-width:640px){.h7-bt{font-size:11px;padding:2px 7px}}
+/* Tuile « Logements à louer » sur mobile : pastille sous le libellé, qui reste sur une ligne comme les autres tuiles. */
+@media (max-width:640px){
+  :has(>.h7-bt){display:grid!important;grid-template-columns:minmax(0,1fr) auto;row-gap:6px;align-items:center}
+  :has(>.h7-bt)>.h7-socle-mot{grid-column:1;grid-row:1;white-space:nowrap}
+  :has(>.h7-bt)>.h7-bt{grid-column:1;grid-row:2;justify-self:start}
+  :has(>.h7-bt)>svg{grid-column:2;grid-row:1/3}
+}
+/* Photos d’équipe (À propos) : recadrées, jamais étirées, quelle que soit la largeur de la carte (12 oct. 2026). */
+.ap1-eq-img img,.ap2-tilt img,.ap3-eq-in img{object-fit:cover;object-position:50% 20%}

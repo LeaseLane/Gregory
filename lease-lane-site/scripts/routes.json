@@ -1,130 +1,80 @@
-[
-{
-"path": "/",
-"page": "accueil"
-},
-{
-"path": "/gestion-immobiliere",
-"page": "gestion"
-},
-{
-"path": "/gestion-immobiliere/location",
-"page": "location"
-},
-{
-"path": "/expertise-et-strategie",
-"page": "expertise"
-},
-{
-"path": "/changer-de-gestionnaire",
-"page": "changer"
-},
-{
-"path": "/cleo",
-"page": "cleo"
-},
-{
-"path": "/logements-a-louer",
-"page": "logements"
-},
-{
-"path": "/logements-a-louer/4-et-demi-renove-montcalm",
-"page": "fiche"
-},
-{
-"path": "/locataires",
-"page": "locataires"
-},
-{
-"path": "/locataires/demande-de-location",
-"page": "formulaire"
-},
-{
-"path": "/locataires/commentaire-ou-plainte",
-"page": "formulaire"
-},
-{
-"path": "/faq",
-"page": "faq"
-},
-{
-"path": "/blogue",
-"page": "blogue"
-},
-{
-"path": "/blogue/hausse-de-loyer-2026",
-"page": "article"
-},
-{
-"path": "/a-propos",
-"page": "apropos"
-},
-{
-"path": "/nous-joindre",
-"page": "contact"
-},
-{
-"path": "/offre-de-service",
-"page": "offre"
-},
-{
-"path": "/quartiers",
-"page": "quartiers"
-},
-{
-"path": "/quartiers/limoilou",
-"page": "quartier"
-},
-{
-"path": "/quartiers/montcalm",
-"page": "quartier"
-},
-{
-"path": "/quartiers/saint-roch",
-"page": "quartier"
-},
-{
-"path": "/quartiers/saint-sauveur",
-"page": "quartier"
-},
-{
-"path": "/quartiers/sainte-foy",
-"page": "quartier"
-},
-{
-"path": "/quartiers/charlesbourg",
-"page": "quartier"
-},
-{
-"path": "/quartiers/beauport",
-"page": "quartier"
-},
-{
-"path": "/quartiers/lebourgneuf",
-"page": "quartier"
-},
-{
-"path": "/quartiers/vieux-quebec",
-"page": "quartier"
-},
-{
-"path": "/glossaire-bail-residentiel",
-"page": "glossaire"
-},
-{
-"path": "/temoins",
-"page": "legal"
-},
-{
-"path": "/conditions-utilisation",
-"page": "legal"
-},
-{
-"path": "/confidentialite",
-"page": "legal"
-},
-{
-"path": "/gouvernance",
-"page": "legal"
-}
-]
+[{"path":"/","page":"accueil"},
+{"path":"/gestion-immobiliere","page":"gestion"},
+{"path":"/gestion-immobiliere/location","page":"location"},
+{"path":"/gestion-immobiliere/levis","page":"levis"},
+{"path":"/expertise-et-strategie","page":"expertise"},
+{"path":"/changer-de-gestionnaire","page":"changer"},
+{"path":"/cleo","page":"cleo"},
+{"path":"/logements-a-louer","page":"logements"},
+{"path":"/logements-a-louer/4-et-demi-renove-montcalm","page":"fiche"},
+{"path":"/locataires","page":"locataires"},
+{"path":"/locataires/demande-de-location","page":"formulaire"},
+{"path":"/locataires/commentaire-ou-plainte","page":"formulaire"},
+{"path":"/faq","page":"faq"},
+{"path":"/blogue","page":"blogue"},
+{"path":"/blogue/hausse-de-loyer-2026","page":"article"},
+{"path":"/a-propos","page":"apropos"},
+{"path":"/nous-joindre","page":"contact"},
+{"path":"/offre-de-service","page":"offre"},
+{"path":"/quartiers","page":"quartiers"},
+{"path":"/quartiers/limoilou","page":"quartier"},
+{"path":"/quartiers/montcalm","page":"quartier"},
+{"path":"/quartiers/saint-roch","page":"quartier"},
+{"path":"/quartiers/saint-sauveur","page":"quartier"},
+{"path":"/quartiers/sainte-foy","page":"quartier"},
+{"path":"/quartiers/charlesbourg","page":"quartier"},
+{"path":"/quartiers/beauport","page":"quartier"},
+{"path":"/quartiers/lebourgneuf","page":"quartier"},
+{"path":"/quartiers/vieux-quebec","page":"quartier"},
+{"path":"/quartiers/la-haute-saint-charles","page":"quartier"},
+{"path":"/quartiers/l-ancienne-lorette","page":"quartier"},
+{"path":"/quartiers/saint-augustin-de-desmaures","page":"quartier"},
+{"path":"/quartiers/boischatel","page":"quartier"},
+{"path":"/quartiers/lac-beauport","page":"quartier"},
+{"path":"/quartiers/stoneham-et-tewkesbury","page":"quartier"},
+{"path":"/quartiers/sainte-brigitte-de-laval","page":"quartier"},
+{"path":"/quartiers/sainte-catherine-de-la-jacques-cartier","page":"quartier"},
+{"path":"/quartiers/shannon","page":"quartier"},
+{"path":"/quartiers/levis","page":"quartier"},
+{"path":"/quartiers/saint-henri","page":"quartier"},
+{"path":"/quartiers/saint-lambert-de-lauzon","page":"quartier"},
+{"path":"/quartiers/saint-apollinaire","page":"quartier"},
+{"path":"/quartiers/sainte-marie","page":"quartier"},
+{"path":"/quartiers/donnacona","page":"quartier"},
+{"path":"/quartiers/pont-rouge","page":"quartier"},
+{"path":"/quartiers/saint-raymond","page":"quartier"},
+{"path":"/glossaire-bail-residentiel","page":"glossaire"},
+{"path":"/temoins","page":"legal"},
+{"path":"/conditions-utilisation","page":"legal"},
+{"path":"/confidentialite","page":"legal"},
+{"path":"/gouvernance","page":"legal"},
+{"path":"/gestion-immobiliere/grande-region-de-quebec","page":"region"},
+{"path":"/gestion-immobiliere/la-cite-limoilou","page":"locale"},
+{"path":"/gestion-immobiliere/beauport","page":"locale"},
+{"path":"/gestion-immobiliere/charlesbourg","page":"locale"},
+{"path":"/gestion-immobiliere/les-rivieres","page":"locale"},
+{"path":"/gestion-immobiliere/sainte-foy-sillery-cap-rouge","page":"locale"},
+{"path":"/gestion-immobiliere/la-haute-saint-charles","page":"locale"},
+{"path":"/gestion-immobiliere/saint-augustin-de-desmaures","page":"locale"},
+{"path":"/gestion-immobiliere/l-ancienne-lorette","page":"locale"},
+{"path":"/gestion-immobiliere/sainte-marie","page":"locale"},
+{"path":"/gestion-immobiliere/saint-raymond","page":"locale"},
+{"path":"/gestion-immobiliere/pont-rouge","page":"locale"},
+{"path":"/gestion-immobiliere/stoneham-et-tewkesbury","page":"locale"},
+{"path":"/gestion-immobiliere/sainte-brigitte-de-laval","page":"locale"},
+{"path":"/gestion-immobiliere/sainte-catherine-de-la-jacques-cartier","page":"locale"},
+{"path":"/gestion-immobiliere/boischatel","page":"locale"},
+{"path":"/gestion-immobiliere/lac-beauport","page":"locale"},
+{"path":"/gestion-immobiliere/saint-apollinaire","page":"locale"},
+{"path":"/gestion-immobiliere/donnacona","page":"locale"},
+{"path":"/gestion-immobiliere/saint-lambert-de-lauzon","page":"locale"},
+{"path":"/gestion-immobiliere/shannon","page":"locale"},
+{"path":"/gestion-immobiliere/saint-henri","page":"locale"},
+{"path":"/blogue/depot-de-garantie","page":"article"},
+{"path":"/blogue/cession-de-bail-loi-31","page":"article"},
+{"path":"/blogue/reprise-de-logement","page":"article"},
+{"path":"/blogue/loyer-impaye","page":"article"},
+{"path":"/blogue/urgences-locatives","page":"article"},
+{"path":"/blogue/logement-vacant-cout","page":"article"},
+{"path":"/blogue/frais-gestion-immobiliere-quebec","page":"article"},
+{"path":"/blogue/enquete-prelocation","page":"article"}]

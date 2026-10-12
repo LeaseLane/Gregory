@@ -1,0 +1,3606 @@
+[
+ {
+  "nom": "Québec",
+  "type": "ville",
+  "codeGeoSDR": "2423027",
+  "mrc": "Agglomération de Québec (TE 23)",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.81382,
+  "lng": -71.208,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 0.0,
+  "direction": "centre",
+  "distanceKmHotelDeVille": 0.0,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 549459,
+  "logementsPrives2021": 265710,
+  "menagesSelonOccupation2021": 265715,
+  "menagesLocataires2021": 129565,
+  "locatairesPct": 48.8,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 2, rue des Jardins, Québec.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   },
+   {
+    "texte": "Point de référence : hôtel de ville de Québec (2, rue des Jardins).",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052423027&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052423027.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHTWR"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Notre-Dame-des-Anges",
+  "type": "paroisse",
+  "codeGeoSDR": "2423015",
+  "mrc": "Hors MRC (division de recensement 23 Québec)",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.81445,
+  "lng": -71.23286,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 1.9,
+  "direction": "O",
+  "distanceKmHotelDeVille": 1.9,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 241,
+  "logementsPrives2021": 0,
+  "menagesSelonOccupation2021": null,
+  "menagesLocataires2021": null,
+  "locatairesPct": null,
+  "dansRMR": true,
+  "membreCMQ": false,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 260, boulevard Langelier, Québec.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   },
+   {
+    "texte": "Paroisse enclavée dans La Cité-Limoilou, dont le conseil est formé de religieuses (Augustines, Hôpital général de Québec) ; aucun ménage privé en 2021.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052423015&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052423015.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EMCEF"
+  ],
+  "aVerifier": [
+   "locatairesPct (données de mode d’occupation supprimées/non disponibles pour cette SDR)"
+  ]
+ },
+ {
+  "nom": "La Cité-Limoilou",
+  "type": "arrondissement (Ville de Québec)",
+  "codeGeoSDR": "2423027",
+  "mrc": "Agglomération de Québec (TE 23)",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.825,
+  "lng": -71.233333,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan) — point à la minute près",
+  "distanceKm": 2.3,
+  "direction": "NO",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 108415,
+  "logementsPrives2021": 63685,
+  "menagesSelonOccupation2021": null,
+  "menagesLocataires2021": null,
+  "locatairesPct": 73.6,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Bureau d'arrondissement : 399, rue Saint-Joseph Est, Québec.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+   },
+   {
+    "texte": "Comprend le Vieux-Québec, où se trouve l'hôtel de ville (point de référence).",
+    "source": "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/lacitelimoilou.aspx"
+   }
+  ],
+  "sources": [
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/lacitelimoilou.aspx",
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/docs/Portrait_arrondissement_La Cit%C3%A9-Limoilou%202024.pdf",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ESFTL",
+   "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Desjardins",
+  "type": "arrondissement (Ville de Lévis)",
+  "codeGeoSDR": "2425213",
+  "mrc": "Ville de Lévis (territoire équivalent à une MRC)",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.8,
+  "lng": -71.1833333,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan) — point à la minute près",
+  "distanceKm": 2.4,
+  "direction": "SE",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": null,
+  "logementsPrives2021": null,
+  "menagesSelonOccupation2021": null,
+  "menagesLocataires2021": null,
+  "locatairesPct": null,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Bureau d'arrondissement : 996, rue de la Concorde, Lévis.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+   },
+   {
+    "texte": "Campus de Lévis de l'UQAR (1595, boul. Alphonse-Desjardins).",
+    "source": "https://www.uqar.ca/etablissements/campus-de-levis/"
+   }
+  ],
+  "sources": [
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ERCCC",
+   "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+  ],
+  "aVerifier": [
+   "population2021, logementsPrives2021 et locatairesPct par arrondissement (StatCan ne publie pas de profil par arrondissement ; source Ville de Lévis non trouvée)"
+  ]
+ },
+ {
+  "nom": "Beauport",
+  "type": "arrondissement (Ville de Québec)",
+  "codeGeoSDR": "2423027",
+  "mrc": "Agglomération de Québec (TE 23)",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.866667,
+  "lng": -71.183333,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan) — point à la minute près",
+  "distanceKm": 6.2,
+  "direction": "N",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 81425,
+  "logementsPrives2021": 37400,
+  "menagesSelonOccupation2021": null,
+  "menagesLocataires2021": null,
+  "locatairesPct": 38.8,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Bureau d'arrondissement : 10, rue Hugues-Pommier, Québec.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+   }
+  ],
+  "sources": [
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/beauport.aspx",
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/docs/Portrait_arrondissement_Beauport%202024.pdf",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ERGOX",
+   "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Lévis",
+  "type": "ville",
+  "codeGeoSDR": "2425213",
+  "mrc": "Ville de Lévis (territoire équivalent à une MRC)",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.75817,
+  "lng": -71.24037,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 6.7,
+  "direction": "S",
+  "distanceKmHotelDeVille": 6.7,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 149683,
+  "logementsPrives2021": 65750,
+  "menagesSelonOccupation2021": 65750,
+  "menagesLocataires2021": 22430,
+  "locatairesPct": 34.1,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 2175, chemin du Fleuve, Lévis.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   },
+   {
+    "texte": "Campus de Lévis de l'Université du Québec à Rimouski (1595, boul. Alphonse-Desjardins).",
+    "source": "https://www.uqar.ca/etablissements/campus-de-levis/"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052425213&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052425213.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EGZSK",
+   "https://www.uqar.ca/etablissements/campus-de-levis/"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Charlesbourg",
+  "type": "arrondissement (Ville de Québec)",
+  "codeGeoSDR": "2423027",
+  "mrc": "Agglomération de Québec (TE 23)",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.8583333,
+  "lng": -71.2666667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan) — point à la minute près",
+  "distanceKm": 6.7,
+  "direction": "NO",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 82870,
+  "logementsPrives2021": 38545,
+  "menagesSelonOccupation2021": null,
+  "menagesLocataires2021": null,
+  "locatairesPct": 39.4,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Bureau d'arrondissement : 160, 76e Rue Est, Québec.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+   }
+  ],
+  "sources": [
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/charlesbourg.aspx",
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/docs/Portrait_arrondissement_Charlesbourg%202024.pdf",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ERGOW",
+   "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Sainte-Pétronille",
+  "type": "village",
+  "codeGeoSDR": "2420030",
+  "mrc": "MRC L'Île-d'Orléans",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.85,
+  "lng": -71.13333,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 7.0,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 7.0,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1055,
+  "logementsPrives2021": 460,
+  "menagesSelonOccupation2021": 465,
+  "menagesLocataires2021": 50,
+  "locatairesPct": 10.8,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "île d'Orléans",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 3, chemin de l'Église, Sainte-Pétronille.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052420030&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052420030.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EJLJK"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Les Rivières",
+  "type": "arrondissement (Ville de Québec)",
+  "codeGeoSDR": "2423027",
+  "mrc": "Agglomération de Québec (TE 23)",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.8305556,
+  "lng": -71.3055556,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan) — point à la minute près",
+  "distanceKm": 7.7,
+  "direction": "O",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 77000,
+  "logementsPrives2021": 37110,
+  "menagesSelonOccupation2021": null,
+  "menagesLocataires2021": null,
+  "locatairesPct": 51.4,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Bureau d'arrondissement : 330, rue Chabot, Québec.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+   }
+  ],
+  "sources": [
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/lesrivieres.aspx",
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/docs/Portrait_arrondissement_Les%20Rivi%C3%A8res%202024.pdf",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ERGOD",
+   "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Sainte-Foy–Sillery–Cap-Rouge",
+  "type": "arrondissement (Ville de Québec)",
+  "codeGeoSDR": "2423027",
+  "mrc": "Agglomération de Québec (TE 23)",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.766667,
+  "lng": -71.308333,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan) — point à la minute près",
+  "distanceKm": 9.3,
+  "direction": "SO",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 111300,
+  "logementsPrives2021": 52365,
+  "menagesSelonOccupation2021": null,
+  "menagesLocataires2021": null,
+  "locatairesPct": 46.1,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Bureau d'arrondissement : 1130, route de l'Église, Québec.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+   },
+   {
+    "texte": "Campus principal de l'Université Laval (Cité universitaire) situé dans cet arrondissement.",
+    "source": "https://fr.wikipedia.org/wiki/Universit%C3%A9_Laval"
+   }
+  ],
+  "sources": [
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/saintefoysillerycaprouge.aspx",
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/docs/Portrait_arrondissement_Sainte_Foy_Sillery_Cap_Rouge%202024.pdf",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ESFTM",
+   "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Boischatel",
+  "type": "municipalité",
+  "codeGeoSDR": "2421045",
+  "mrc": "MRC La Côte-de-Beaupré",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.89722,
+  "lng": -71.13973,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 10.6,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 10.6,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 8231,
+  "logementsPrives2021": 3050,
+  "menagesSelonOccupation2021": 3050,
+  "menagesLocataires2021": 310,
+  "locatairesPct": 10.2,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 45, rue Bédard, Boischatel.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052421045&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052421045.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EPILV"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "L'Ancienne-Lorette",
+  "type": "ville",
+  "codeGeoSDR": "2423057",
+  "mrc": "Agglomération de Québec (TE 23)",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.79873,
+  "lng": -71.36255,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 11.9,
+  "direction": "O",
+  "distanceKmHotelDeVille": 11.9,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 16970,
+  "logementsPrives2021": 7315,
+  "menagesSelonOccupation2021": 7315,
+  "menagesLocataires2021": 2060,
+  "locatairesPct": 28.2,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 1575, rue Turmel, L'Ancienne-Lorette.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052423057&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052423057.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ERDPN"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Wendake",
+  "type": "réserve indienne",
+  "codeGeoSDR": "2423802",
+  "mrc": "Hors MRC (réserve indienne, division de recensement 23 Québec)",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.85666,
+  "lng": -71.35347,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 12.0,
+  "direction": "NO",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 2200,
+  "logementsPrives2021": 1020,
+  "menagesSelonOccupation2021": 1020,
+  "menagesLocataires2021": 315,
+  "locatairesPct": 30.9,
+  "dansRMR": true,
+  "membreCMQ": false,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Réserve indienne de la Nation huronne-wendat, hors MRC, enclavée dans Québec. Ménages : 620 propriétaires, 315 locataires, le reste en logement fourni par la bande (catégorie distincte).",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052423802&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052423802.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ESKRK"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Pierre-de-l'Île-d'Orléans",
+  "type": "municipalité",
+  "codeGeoSDR": "2420025",
+  "mrc": "MRC L'Île-d'Orléans",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.88333,
+  "lng": -71.06667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 13.2,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 13.4,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1743,
+  "logementsPrives2021": 765,
+  "menagesSelonOccupation2021": 765,
+  "menagesLocataires2021": 205,
+  "locatairesPct": 26.8,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "île d'Orléans",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 515, route des Prêtres, Saint-Pierre-de-l'Île-d'Orléans.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052420025&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052420025.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQLSP"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "L'Ange-Gardien",
+  "type": "municipalité",
+  "codeGeoSDR": "2421040",
+  "mrc": "MRC La Côte-de-Beaupré",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.91602,
+  "lng": -71.09444,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 14.3,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 14.2,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 3842,
+  "logementsPrives2021": 1630,
+  "menagesSelonOccupation2021": 1630,
+  "menagesLocataires2021": 250,
+  "locatairesPct": 15.3,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 6355, avenue Royale, L'Ange-Gardien.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052421040&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052421040.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ESBGQ"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "La Haute-Saint-Charles",
+  "type": "arrondissement (Ville de Québec)",
+  "codeGeoSDR": "2423027",
+  "mrc": "Agglomération de Québec (TE 23)",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.8902778,
+  "lng": -71.3722222,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan) — point à la minute près",
+  "distanceKm": 15.1,
+  "direction": "NO",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 88460,
+  "logementsPrives2021": 36610,
+  "menagesSelonOccupation2021": null,
+  "menagesLocataires2021": null,
+  "locatairesPct": 26.7,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Bureau d'arrondissement : 3490, route de l'Aéroport, Québec.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+   },
+   {
+    "texte": "Secteur Val-Bélair à environ 10 minutes de la Garnison Valcartier (Défense nationale).",
+    "source": "https://www.canada.ca/en/department-national-defence/services/benefits-military/military-housing/locations/valcartier.html"
+   }
+  ],
+  "sources": [
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/lahautesaintcharles.aspx",
+   "https://www.ville.quebec.qc.ca/apropos/portrait/quelques_chiffres/arrondissements/docs/Portrait_arrondissement_La_Haute_Saint_Charles%202024.pdf",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ERGOZ",
+   "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Beaumont",
+  "type": "municipalité",
+  "codeGeoSDR": "2419105",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.83044,
+  "lng": -71.01025,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 15.2,
+  "direction": "E",
+  "distanceKmHotelDeVille": 15.2,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 2968,
+  "logementsPrives2021": 1120,
+  "menagesSelonOccupation2021": 1120,
+  "menagesLocataires2021": 140,
+  "locatairesPct": 12.5,
+  "dansRMR": true,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 48, chemin du Domaine, Beaumont.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419105&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419105.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQOVO"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Laurent-de-l'Île-d'Orléans",
+  "type": "municipalité",
+  "codeGeoSDR": "2420020",
+  "mrc": "MRC L'Île-d'Orléans",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.86667,
+  "lng": -71.01667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 15.7,
+  "direction": "E",
+  "distanceKmHotelDeVille": 16.9,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1607,
+  "logementsPrives2021": 710,
+  "menagesSelonOccupation2021": 715,
+  "menagesLocataires2021": 120,
+  "locatairesPct": 16.8,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "île d'Orléans",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 6822, chemin Royal, Saint-Laurent-de-l'Île-d'Orléans.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052420020&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052420020.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQNRC"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Lac-Beauport",
+  "type": "municipalité",
+  "codeGeoSDR": "2422040",
+  "mrc": "MRC La Jacques-Cartier",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.94599,
+  "lng": -71.28734,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 15.9,
+  "direction": "N",
+  "distanceKmHotelDeVille": 15.9,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 8164,
+  "logementsPrives2021": 3070,
+  "menagesSelonOccupation2021": 3070,
+  "menagesLocataires2021": 290,
+  "locatairesPct": 9.4,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 65, chemin du Tour-du-Lac, Lac-Beauport.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052422040&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052422040.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ENOZZ"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Les Chutes-de-la-Chaudière-Est",
+  "type": "arrondissement (Ville de Lévis)",
+  "codeGeoSDR": "2425213",
+  "mrc": "Ville de Lévis (territoire équivalent à une MRC)",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.6666666,
+  "lng": -71.2333333,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan) — point à la minute près",
+  "distanceKm": 16.5,
+  "direction": "S",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": null,
+  "logementsPrives2021": null,
+  "menagesSelonOccupation2021": null,
+  "menagesLocataires2021": null,
+  "locatairesPct": null,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Bureau d'arrondissement : 959, rue de l'Hôtel-de-Ville, Saint-Jean-Chrysostome.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+   },
+   {
+    "texte": "Hôtel de ville de Lévis (2175, chemin du Fleuve, secteur Saint-Romuald) dans cet arrondissement.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ERCCD",
+   "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+  ],
+  "aVerifier": [
+   "population2021, logementsPrives2021 et locatairesPct par arrondissement (StatCan ne publie pas de profil par arrondissement ; source Ville de Lévis non trouvée)"
+  ]
+ },
+ {
+  "nom": "Saint-Henri",
+  "type": "municipalité",
+  "codeGeoSDR": "2419068",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.7,
+  "lng": -71.06667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 16.6,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 17.3,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 5813,
+  "logementsPrives2021": 2360,
+  "menagesSelonOccupation2021": 2360,
+  "menagesLocataires2021": 620,
+  "locatairesPct": 26.3,
+  "dansRMR": true,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 219, rue Commerciale, Saint-Henri.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419068&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419068.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EITSV"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Les Chutes-de-la-Chaudière-Ouest",
+  "type": "arrondissement (Ville de Lévis)",
+  "codeGeoSDR": "2425213",
+  "mrc": "Ville de Lévis (territoire équivalent à une MRC)",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.65,
+  "lng": -71.3,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan) — point à la minute près",
+  "distanceKm": 19.5,
+  "direction": "S",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": null,
+  "logementsPrives2021": null,
+  "menagesSelonOccupation2021": null,
+  "menagesLocataires2021": null,
+  "locatairesPct": null,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Bureau d'arrondissement : 1, place Chamberland, Saint-Étienne.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+   }
+  ],
+  "sources": [
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ERCCE",
+   "https://donneesouvertes.affmunqc.net/repertoire/ARR.csv"
+  ],
+  "aVerifier": [
+   "population2021, logementsPrives2021 et locatairesPct par arrondissement (StatCan ne publie pas de profil par arrondissement ; source Ville de Lévis non trouvée)"
+  ]
+ },
+ {
+  "nom": "Saint-Charles-de-Bellechasse",
+  "type": "municipalité",
+  "codeGeoSDR": "2419097",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.76667,
+  "lng": -70.95,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 20.3,
+  "direction": "E",
+  "distanceKmHotelDeVille": 20.8,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 2583,
+  "logementsPrives2021": 1065,
+  "menagesSelonOccupation2021": 1065,
+  "menagesLocataires2021": 220,
+  "locatairesPct": 20.7,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 2815, avenue Royale, Saint-Charles-de-Bellechasse.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419097&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419097.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EPUUJ"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Augustin-de-Desmaures",
+  "type": "ville",
+  "codeGeoSDR": "2423072",
+  "mrc": "Agglomération de Québec (TE 23)",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.74687,
+  "lng": -71.45944,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 20.5,
+  "direction": "O",
+  "distanceKmHotelDeVille": 20.6,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 19907,
+  "logementsPrives2021": 8145,
+  "menagesSelonOccupation2021": 8145,
+  "menagesLocataires2021": 1510,
+  "locatairesPct": 18.5,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 200, route de Fossambault, Saint-Augustin-de-Desmaures.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052423072&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052423072.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ERDPU"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Sainte-Brigitte-de-Laval",
+  "type": "ville",
+  "codeGeoSDR": "2422045",
+  "mrc": "MRC La Jacques-Cartier",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 47.00244,
+  "lng": -71.19356,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 21.0,
+  "direction": "N",
+  "distanceKmHotelDeVille": 20.9,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 8468,
+  "logementsPrives2021": 3205,
+  "menagesSelonOccupation2021": 3205,
+  "menagesLocataires2021": 230,
+  "locatairesPct": 7.2,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 414, avenue Sainte-Brigitte, Sainte-Brigitte-de-Laval.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052422045&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052422045.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ESIPN"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Château-Richer",
+  "type": "ville",
+  "codeGeoSDR": "2421035",
+  "mrc": "MRC La Côte-de-Beaupré",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.96955,
+  "lng": -71.01775,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 22.6,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 22.5,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 4425,
+  "logementsPrives2021": 1920,
+  "menagesSelonOccupation2021": 1920,
+  "menagesLocataires2021": 220,
+  "locatairesPct": 11.5,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 8006, avenue Royale, Château-Richer.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052421035&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052421035.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EFWLE"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Michel-de-Bellechasse",
+  "type": "municipalité",
+  "codeGeoSDR": "2419110",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.86667,
+  "lng": -70.91667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 22.9,
+  "direction": "E",
+  "distanceKmHotelDeVille": 23.8,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1871,
+  "logementsPrives2021": 785,
+  "menagesSelonOccupation2021": 785,
+  "menagesLocataires2021": 100,
+  "locatairesPct": 12.7,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 129, route 132 Est, Saint-Michel-de-Bellechasse.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419110&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419110.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EPILZ"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Lac-Delage",
+  "type": "ville",
+  "codeGeoSDR": "2422030",
+  "mrc": "MRC La Jacques-Cartier",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.9709,
+  "lng": -71.40381,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 22.9,
+  "direction": "NO",
+  "distanceKmHotelDeVille": 23.0,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 771,
+  "logementsPrives2021": 310,
+  "menagesSelonOccupation2021": 310,
+  "menagesLocataires2021": 40,
+  "locatairesPct": 12.9,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 24, rue du Pied-des-Pentes, Lac-Delage.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052422030&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052422030.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EGWFC"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Gabriel-de-Valcartier",
+  "type": "municipalité",
+  "codeGeoSDR": "2422025",
+  "mrc": "MRC La Jacques-Cartier",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.93333,
+  "lng": -71.46667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 23.7,
+  "direction": "NO",
+  "distanceKmHotelDeVille": 23.5,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 3223,
+  "logementsPrives2021": 1065,
+  "menagesSelonOccupation2021": 1070,
+  "menagesLocataires2021": 215,
+  "locatairesPct": 20.1,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 2215, boulevard Valcartier, Saint-Gabriel-de-Valcartier.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   },
+   {
+    "texte": "Garnison/BFC Valcartier (Forces armées canadiennes) située sur le territoire de Saint-Gabriel-de-Valcartier.",
+    "source": "https://en.wikipedia.org/wiki/CFB_Valcartier"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052422025&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052422025.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHZVJ",
+   "https://en.wikipedia.org/wiki/CFB_Valcartier"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Stoneham-et-Tewkesbury",
+  "type": "cantons unis",
+  "codeGeoSDR": "2422035",
+  "mrc": "MRC La Jacques-Cartier",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.99967,
+  "lng": -71.36966,
+  "sourceCoordonnees": "Hôtel de ville géocodé (OpenStreetMap/Nominatim) — voir note",
+  "distanceKm": 24.0,
+  "direction": "NO",
+  "distanceKmHotelDeVille": 24.0,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 9682,
+  "logementsPrives2021": 3860,
+  "menagesSelonOccupation2021": 3860,
+  "menagesLocataires2021": 435,
+  "locatairesPct": 11.3,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 325, chemin du Hibou, Stoneham-et-Tewkesbury.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   },
+   {
+    "texte": "Station touristique Stoneham (ski), à environ 20 minutes de Québec.",
+    "source": "https://www.quebec-cite.com/en/businesses/station-touristique-stoneham"
+   },
+   {
+    "texte": "Coordonnées = hôtel de ville (325, ch. du Hibou) : le point de la toponymie (47.1667, -71.4333) est le centre géographique du canton, à ~19 km au nord du noyau habité.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052422035&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052422035.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://nominatim.openstreetmap.org/ (325, chemin du Hibou)",
+   "https://www.quebec-cite.com/en/businesses/station-touristique-stoneham"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Sainte-Famille-de-l'Île-d'Orléans",
+  "type": "municipalité",
+  "codeGeoSDR": "2420010",
+  "mrc": "MRC L'Île-d'Orléans",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.96667,
+  "lng": -70.96667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 25.0,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 25.7,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 850,
+  "logementsPrives2021": 340,
+  "menagesSelonOccupation2021": 335,
+  "menagesLocataires2021": 55,
+  "locatairesPct": 16.4,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "île d'Orléans",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 2478, chemin Royal, Sainte-Famille.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052420010&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052420010.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ESKWA"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Shannon",
+  "type": "ville",
+  "codeGeoSDR": "2422020",
+  "mrc": "MRC La Jacques-Cartier",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.8893,
+  "lng": -71.5185,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 25.1,
+  "direction": "O",
+  "distanceKmHotelDeVille": 25.1,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 6432,
+  "logementsPrives2021": 2330,
+  "menagesSelonOccupation2021": 2330,
+  "menagesLocataires2021": 620,
+  "locatairesPct": 26.6,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 50, rue Saint-Patrick, Shannon.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   },
+   {
+    "texte": "Le Défense nationale indique que la Garnison Valcartier est à environ 10 minutes de Shannon, Saint-Gabriel-de-Valcartier et Val-Bélair (marché locatif lié aux militaires).",
+    "source": "https://www.canada.ca/en/department-national-defence/services/benefits-military/military-housing/locations/valcartier.html"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052422020&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052422020.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ESKJV",
+   "https://www.canada.ca/en/department-national-defence/services/benefits-military/military-housing/locations/valcartier.html"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Lambert-de-Lauzon",
+  "type": "municipalité",
+  "codeGeoSDR": "2426070",
+  "mrc": "MRC La Nouvelle-Beauce",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.58333,
+  "lng": -71.2,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 25.6,
+  "direction": "S",
+  "distanceKmHotelDeVille": 24.8,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 6817,
+  "logementsPrives2021": 2670,
+  "menagesSelonOccupation2021": 2675,
+  "menagesLocataires2021": 310,
+  "locatairesPct": 11.6,
+  "dansRMR": true,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 1200, rue du Pont, Saint-Lambert-de-Lauzon.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052426070&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052426070.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ESJGB"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Jean-de-l'Île-d'Orléans",
+  "type": "municipalité",
+  "codeGeoSDR": "2420015",
+  "mrc": "MRC L'Île-d'Orléans",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.91667,
+  "lng": -70.9,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 26.1,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 26.9,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1026,
+  "logementsPrives2021": 495,
+  "menagesSelonOccupation2021": 495,
+  "menagesLocataires2021": 120,
+  "locatairesPct": 24.2,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "île d'Orléans",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 8, chemin des Côtes, Saint-Jean-de-l'Île-d'Orléans.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052420015&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052420015.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ERGUP"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Isidore",
+  "type": "municipalité",
+  "codeGeoSDR": "2426063",
+  "mrc": "MRC La Nouvelle-Beauce",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.58333,
+  "lng": -71.1,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 26.9,
+  "direction": "S",
+  "distanceKmHotelDeVille": 27.0,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 3286,
+  "logementsPrives2021": 1340,
+  "menagesSelonOccupation2021": 1335,
+  "menagesLocataires2021": 255,
+  "locatairesPct": 19.1,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 128, route Coulombe, Saint-Isidore.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052426063&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052426063.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EPVOR"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "La Durantaye",
+  "type": "paroisse",
+  "codeGeoSDR": "2419090",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.83573,
+  "lng": -70.85536,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 26.9,
+  "direction": "E",
+  "distanceKmHotelDeVille": 26.9,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 782,
+  "logementsPrives2021": 340,
+  "menagesSelonOccupation2021": 335,
+  "menagesLocataires2021": 55,
+  "locatairesPct": 16.4,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 539, rue du Piedmont, La Durantaye.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419090&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419090.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EGWQB"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Gervais",
+  "type": "municipalité",
+  "codeGeoSDR": "2419075",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.71667,
+  "lng": -70.88333,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 27.0,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 26.4,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 2138,
+  "logementsPrives2021": 860,
+  "menagesSelonOccupation2021": 865,
+  "menagesLocataires2021": 225,
+  "locatairesPct": 26.0,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 150, rue Principale, Saint-Gervais.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419075&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419075.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EPIMA"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Anselme",
+  "type": "municipalité",
+  "codeGeoSDR": "2419062",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.63333,
+  "lng": -70.96667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 27.2,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 27.4,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 4047,
+  "logementsPrives2021": 1700,
+  "menagesSelonOccupation2021": 1695,
+  "menagesLocataires2021": 470,
+  "locatairesPct": 27.7,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 134, rue Principale, Saint-Anselme.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419062&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419062.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQMZK"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Sainte-Anne-de-Beaupré",
+  "type": "ville",
+  "codeGeoSDR": "2421030",
+  "mrc": "MRC La Côte-de-Beaupré",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 47.01602,
+  "lng": -70.94789,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 29.9,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 30.0,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 2888,
+  "logementsPrives2021": 1410,
+  "menagesSelonOccupation2021": 1410,
+  "menagesLocataires2021": 645,
+  "locatairesPct": 45.7,
+  "dansRMR": false,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 9336, avenue Royale, Sainte-Anne-de-Beaupré.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052421030&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052421030.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHZFI"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Vallier",
+  "type": "municipalité",
+  "codeGeoSDR": "2419117",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.89314,
+  "lng": -70.8242,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 30.5,
+  "direction": "E",
+  "distanceKmHotelDeVille": 30.6,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1031,
+  "logementsPrives2021": 455,
+  "menagesSelonOccupation2021": 460,
+  "menagesLocataires2021": 85,
+  "locatairesPct": 18.5,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 367, avenue de l'Église, Saint-Vallier.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419117&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419117.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EPSPP"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Honfleur",
+  "type": "municipalité",
+  "codeGeoSDR": "2419070",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.65589,
+  "lng": -70.88069,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 30.5,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 30.4,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 881,
+  "logementsPrives2021": 340,
+  "menagesSelonOccupation2021": 340,
+  "menagesLocataires2021": 90,
+  "locatairesPct": 26.5,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 320, rue Saint-Jean, Honfleur.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419070&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419070.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EGRBC"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Sainte-Catherine-de-la-Jacques-Cartier",
+  "type": "ville",
+  "codeGeoSDR": "2422005",
+  "mrc": "MRC La Jacques-Cartier",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.84486,
+  "lng": -71.61754,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 31.3,
+  "direction": "O",
+  "distanceKmHotelDeVille": 31.3,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 8442,
+  "logementsPrives2021": 3300,
+  "menagesSelonOccupation2021": 3295,
+  "menagesLocataires2021": 495,
+  "locatairesPct": 15.0,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 2, rue Laurier, Sainte-Catherine-de-la-Jacques-Cartier.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052422005&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052422005.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQVUG"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Neuville",
+  "type": "ville",
+  "codeGeoSDR": "2434007",
+  "mrc": "MRC Portneuf",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.69753,
+  "lng": -71.58903,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 31.8,
+  "direction": "SO",
+  "distanceKmHotelDeVille": 31.8,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 4475,
+  "logementsPrives2021": 1890,
+  "menagesSelonOccupation2021": 1890,
+  "menagesLocataires2021": 255,
+  "locatairesPct": 13.5,
+  "dansRMR": true,
+  "membreCMQ": false,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 230, rue du Père-Rhéaume, Neuville.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052434007&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052434007.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQJPR"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Fossambault-sur-le-Lac",
+  "type": "ville",
+  "codeGeoSDR": "2422010",
+  "mrc": "MRC La Jacques-Cartier",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.86826,
+  "lng": -71.62019,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 31.9,
+  "direction": "O",
+  "distanceKmHotelDeVille": 31.9,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 2327,
+  "logementsPrives2021": 995,
+  "menagesSelonOccupation2021": 1010,
+  "menagesLocataires2021": 90,
+  "locatairesPct": 8.9,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 145, rue Gingras, Fossambault-sur-le-Lac.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052422010&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052422010.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EGJYX"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Apollinaire",
+  "type": "municipalité",
+  "codeGeoSDR": "2433090",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.61667,
+  "lng": -71.51667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 32.2,
+  "direction": "SO",
+  "distanceKmHotelDeVille": 31.9,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 7968,
+  "logementsPrives2021": 3310,
+  "menagesSelonOccupation2021": 3305,
+  "menagesLocataires2021": 730,
+  "locatairesPct": 22.1,
+  "dansRMR": true,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 11, rue Industrielle, Saint-Apollinaire.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433090&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433090.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHYUH"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Agapit",
+  "type": "municipalité",
+  "codeGeoSDR": "2433045",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.56391,
+  "lng": -71.43693,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 32.8,
+  "direction": "SO",
+  "distanceKmHotelDeVille": 32.8,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 4526,
+  "logementsPrives2021": 1915,
+  "menagesSelonOccupation2021": 1915,
+  "menagesLocataires2021": 470,
+  "locatairesPct": 24.5,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 1080, avenue Bergeron, Saint-Agapit.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433045&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433045.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EJNFD"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Antoine-de-Tilly",
+  "type": "municipalité",
+  "codeGeoSDR": "2433095",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.66667,
+  "lng": -71.58333,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 33.0,
+  "direction": "SO",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1682,
+  "logementsPrives2021": 735,
+  "menagesSelonOccupation2021": 735,
+  "menagesLocataires2021": 100,
+  "locatairesPct": 13.6,
+  "dansRMR": true,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 3870, chemin de Tilly C.P. 10, Saint-Antoine-de-Tilly.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433095&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433095.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EPXWS"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Sainte-Hénédine",
+  "type": "paroisse",
+  "codeGeoSDR": "2426040",
+  "mrc": "MRC La Nouvelle-Beauce",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.55755,
+  "lng": -70.9856,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 33.2,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 33.2,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1440,
+  "logementsPrives2021": 545,
+  "menagesSelonOccupation2021": 545,
+  "menagesLocataires2021": 85,
+  "locatairesPct": 15.6,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 1299, route Sainte-Thérèse, Sainte-Hénédine.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052426040&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052426040.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHZKR"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Beaupré",
+  "type": "ville",
+  "codeGeoSDR": "2421025",
+  "mrc": "MRC La Côte-de-Beaupré",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 47.0417,
+  "lng": -70.89934,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 34.5,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 34.4,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 4117,
+  "logementsPrives2021": 1860,
+  "menagesSelonOccupation2021": 1860,
+  "menagesLocataires2021": 555,
+  "locatairesPct": 29.8,
+  "dansRMR": false,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 10995, rue des Montagnards, Beaupré.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   },
+   {
+    "texte": "Station Mont-Sainte-Anne (ski alpin et de fond, quatre saisons) située à Saint-Ferréol-les-Neiges.",
+    "source": "https://www.bonjourquebec.com/en-us/listing/to-see-and-do/mont-sainte-anne-centre-de-ski-de-fond/3m2n"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052421025&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052421025.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EFLYD",
+   "https://www.bonjourquebec.com/en-us/listing/to-see-and-do/mont-sainte-anne-centre-de-ski-de-fond/3m2n"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Raphaël",
+  "type": "municipalité",
+  "codeGeoSDR": "2419082",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.8,
+  "lng": -70.75,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 34.9,
+  "direction": "E",
+  "distanceKmHotelDeVille": 34.5,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 2458,
+  "logementsPrives2021": 1085,
+  "menagesSelonOccupation2021": 1080,
+  "menagesLocataires2021": 190,
+  "locatairesPct": 17.6,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 19, avenue Chanoine-Audet, Saint-Raphaël.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419082&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419082.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EPUGX"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Gilles",
+  "type": "municipalité",
+  "codeGeoSDR": "2433035",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.51667,
+  "lng": -71.36667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 35.2,
+  "direction": "S",
+  "distanceKmHotelDeVille": 36.1,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 2910,
+  "logementsPrives2021": 1200,
+  "menagesSelonOccupation2021": 1200,
+  "menagesLocataires2021": 210,
+  "locatairesPct": 17.5,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 165, rue O'Hurley, Saint-Gilles.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433035&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433035.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHZXJ"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Sainte-Claire",
+  "type": "municipalité",
+  "codeGeoSDR": "2419055",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.6,
+  "lng": -70.86667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 35.3,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 35.5,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 3526,
+  "logementsPrives2021": 1585,
+  "menagesSelonOccupation2021": 1585,
+  "menagesLocataires2021": 460,
+  "locatairesPct": 29.0,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 135, rue Principale, Sainte-Claire.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419055&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419055.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EIYJV"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Bernard",
+  "type": "municipalité",
+  "codeGeoSDR": "2426055",
+  "mrc": "MRC La Nouvelle-Beauce",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.5,
+  "lng": -71.13333,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 35.4,
+  "direction": "S",
+  "distanceKmHotelDeVille": 35.3,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 2535,
+  "logementsPrives2021": 975,
+  "menagesSelonOccupation2021": 975,
+  "menagesLocataires2021": 205,
+  "locatairesPct": 21.0,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 1499, rue Saint-Georges, Saint-Bernard.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052426055&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052426055.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EMVQW"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Scott",
+  "type": "municipalité",
+  "codeGeoSDR": "2426048",
+  "mrc": "MRC La Nouvelle-Beauce",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.5056,
+  "lng": -71.07278,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 35.8,
+  "direction": "S",
+  "distanceKmHotelDeVille": 35.8,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 2566,
+  "logementsPrives2021": 1035,
+  "menagesSelonOccupation2021": 1035,
+  "menagesLocataires2021": 200,
+  "locatairesPct": 19.3,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 1070, route du Président-Kennedy, Scott.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052426048&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052426048.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EPZQI"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Lazare-de-Bellechasse",
+  "type": "municipalité",
+  "codeGeoSDR": "2419050",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.65,
+  "lng": -70.8,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 36.0,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 35.8,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1332,
+  "logementsPrives2021": 540,
+  "menagesSelonOccupation2021": 540,
+  "menagesLocataires2021": 140,
+  "locatairesPct": 25.9,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 116, rue de la Fabrique, Saint-Lazare-de-Bellechasse.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419050&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419050.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EPVCP"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-François-de-l'Île-d'Orléans",
+  "type": "municipalité",
+  "codeGeoSDR": "2420005",
+  "mrc": "MRC L'Île-d'Orléans",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 47.0,
+  "lng": -70.81667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 36.2,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 33.8,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 536,
+  "logementsPrives2021": 250,
+  "menagesSelonOccupation2021": 260,
+  "menagesLocataires2021": 10,
+  "locatairesPct": 3.8,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "île d'Orléans",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 3491, chemin Royal, Saint-François-de-l'Île-d'Orléans.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052420005&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052420005.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ESBES"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Lac-Saint-Joseph",
+  "type": "ville",
+  "codeGeoSDR": "2422015",
+  "mrc": "MRC La Jacques-Cartier",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.91417,
+  "lng": -71.6627,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 36.3,
+  "direction": "O",
+  "distanceKmHotelDeVille": 36.3,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 304,
+  "logementsPrives2021": 165,
+  "menagesSelonOccupation2021": 155,
+  "menagesLocataires2021": 0,
+  "locatairesPct": 0.0,
+  "dansRMR": true,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 360 , chemin Thomas-Maher, Lac-Saint-Joseph.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052422015&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052422015.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EGWOM"
+  ],
+  "aVerifier": [
+   "locatairesPct = 0,0 % : petits effectifs arrondis aléatoirement (multiples de 5) par StatCan ; à confirmer sur la page du profil"
+  ]
+ },
+ {
+  "nom": "Saint-Narcisse-de-Beaurivage",
+  "type": "paroisse",
+  "codeGeoSDR": "2433030",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.4828,
+  "lng": -71.23283,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 36.9,
+  "direction": "S",
+  "distanceKmHotelDeVille": 36.9,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1152,
+  "logementsPrives2021": 445,
+  "menagesSelonOccupation2021": 450,
+  "menagesLocataires2021": 100,
+  "locatairesPct": 22.2,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 400, rue Principale, Saint-Narcisse-de-Beaurivage.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433030&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433030.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EIAOM"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Pont-Rouge",
+  "type": "ville",
+  "codeGeoSDR": "2434017",
+  "mrc": "MRC Portneuf",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.75684,
+  "lng": -71.69492,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 37.6,
+  "direction": "O",
+  "distanceKmHotelDeVille": 37.6,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 10121,
+  "logementsPrives2021": 4180,
+  "menagesSelonOccupation2021": 4180,
+  "menagesLocataires2021": 935,
+  "locatairesPct": 22.4,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 189, rue Dupont, Pont-Rouge.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052434017&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052434017.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQFWN"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Berthier-sur-Mer",
+  "type": "municipalité",
+  "codeGeoSDR": "2418065",
+  "mrc": "MRC Montmagny",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.92569,
+  "lng": -70.73268,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 38.2,
+  "direction": "E",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1744,
+  "logementsPrives2021": 790,
+  "menagesSelonOccupation2021": 790,
+  "menagesLocataires2021": 115,
+  "locatairesPct": 14.6,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 66, rue Principale  Est C.P. #3, Berthier-sur-Mer.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052418065&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052418065.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ESBAG"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-François-de-la-Rivière-du-Sud",
+  "type": "municipalité",
+  "codeGeoSDR": "2418060",
+  "mrc": "MRC Montmagny",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.88333,
+  "lng": -70.71667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 38.2,
+  "direction": "E",
+  "distanceKmHotelDeVille": 38.3,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1580,
+  "logementsPrives2021": 660,
+  "menagesSelonOccupation2021": 660,
+  "menagesLocataires2021": 185,
+  "locatairesPct": 28.0,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 534, chemin Saint-François Ouest, Saint-François-de-la-Rivière-du-Sud.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052418060&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052418060.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ELACE"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Joachim",
+  "type": "paroisse",
+  "codeGeoSDR": "2421020",
+  "mrc": "MRC La Côte-de-Beaupré",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 47.05385,
+  "lng": -70.84347,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 38.4,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 38.4,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1427,
+  "logementsPrives2021": 630,
+  "menagesSelonOccupation2021": 630,
+  "menagesLocataires2021": 165,
+  "locatairesPct": 26.2,
+  "dansRMR": false,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 172, rue de l'Église, Saint-Joachim.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   },
+   {
+    "texte": "Basilique Sainte-Anne-de-Beaupré : l'un des principaux lieux de pèlerinage d'Amérique du Nord.",
+    "source": "https://fr.wikipedia.org/wiki/Basilique_Sainte-Anne-de-Beaupr%C3%A9"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052421020&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052421020.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EIAEK",
+   "https://fr.wikipedia.org/wiki/Basilique_Sainte-Anne-de-Beaupr%C3%A9"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Nérée-de-Bellechasse",
+  "type": "municipalité",
+  "codeGeoSDR": "2419045",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.73333,
+  "lng": -70.71667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 38.5,
+  "direction": "E",
+  "distanceKmHotelDeVille": 37.7,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 744,
+  "logementsPrives2021": 355,
+  "menagesSelonOccupation2021": 355,
+  "menagesLocataires2021": 35,
+  "locatairesPct": 9.9,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 1990, route Principale, Saint-Nérée-de-Bellechasse.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419045&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419045.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ESIPM"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Sainte-Marguerite",
+  "type": "paroisse",
+  "codeGeoSDR": "2426035",
+  "mrc": "MRC La Nouvelle-Beauce",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.51146,
+  "lng": -70.9346,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 39.6,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 39.6,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1175,
+  "logementsPrives2021": 490,
+  "menagesSelonOccupation2021": 475,
+  "menagesLocataires2021": 125,
+  "locatairesPct": 26.3,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 268, rue Saint-Jacques, Sainte-Marguerite.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052426035&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052426035.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHZMT"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Lac-Sergent",
+  "type": "ville",
+  "codeGeoSDR": "2434120",
+  "mrc": "MRC Portneuf",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.86831,
+  "lng": -71.72607,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 39.9,
+  "direction": "O",
+  "distanceKmHotelDeVille": 39.8,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 541,
+  "logementsPrives2021": 265,
+  "menagesSelonOccupation2021": 235,
+  "menagesLocataires2021": 10,
+  "locatairesPct": 4.3,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 1525, chemin du Club Nautique, Lac-Sergent.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052434120&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052434120.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EGWOU"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Louis-de-Gonzague-du-Cap-Tourmente",
+  "type": "paroisse",
+  "codeGeoSDR": "2421015",
+  "mrc": "MRC La Côte-de-Beaupré",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 47.0615,
+  "lng": -70.80553,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 41.1,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 0.3,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 0,
+  "logementsPrives2021": null,
+  "menagesSelonOccupation2021": null,
+  "menagesLocataires2021": null,
+  "locatairesPct": null,
+  "dansRMR": false,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 1, rue des Remparts, Québec.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052421015&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052421015.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EKQRJ"
+  ],
+  "aVerifier": [
+   "locatairesPct (données de mode d’occupation supprimées/non disponibles pour cette SDR)",
+   "population 0 en 2021 : pas de marché locatif résidentiel ; garder pour exhaustivité seulement"
+  ]
+ },
+ {
+  "nom": "Notre-Dame-du-Sacré-Coeur-d'Issoudun",
+  "type": "paroisse",
+  "codeGeoSDR": "2433085",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.57877,
+  "lng": -71.62337,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 41.1,
+  "direction": "SO",
+  "distanceKmHotelDeVille": 40.8,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 867,
+  "logementsPrives2021": 355,
+  "menagesSelonOccupation2021": 355,
+  "menagesLocataires2021": 30,
+  "locatairesPct": 8.5,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 314, rue Principale, Issoudun.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433085&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433085.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHLEX"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Ferréol-les-Neiges",
+  "type": "municipalité",
+  "codeGeoSDR": "2421010",
+  "mrc": "MRC La Côte-de-Beaupré",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 47.11667,
+  "lng": -70.85,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 43.3,
+  "direction": "NE",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 3806,
+  "logementsPrives2021": 1805,
+  "menagesSelonOccupation2021": 1805,
+  "menagesLocataires2021": 225,
+  "locatairesPct": 12.5,
+  "dansRMR": false,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Population 2021 = 0 (territoire appartenant au Séminaire de Québec ; adresse administrative au Vieux-Québec selon le Répertoire).",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052421010&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052421010.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EITSR"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Donnacona",
+  "type": "ville",
+  "codeGeoSDR": "2434025",
+  "mrc": "MRC Portneuf",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.67269,
+  "lng": -71.73722,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 43.3,
+  "direction": "O",
+  "distanceKmHotelDeVille": 43.3,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 7436,
+  "logementsPrives2021": 3300,
+  "menagesSelonOccupation2021": 3300,
+  "menagesLocataires2021": 1150,
+  "locatairesPct": 34.8,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 138, avenue Pleau, Donnacona.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052434025&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052434025.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EGEEW"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Sainte-Marie",
+  "type": "ville",
+  "codeGeoSDR": "2426030",
+  "mrc": "MRC La Nouvelle-Beauce",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.43838,
+  "lng": -71.02131,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 44.1,
+  "direction": "S",
+  "distanceKmHotelDeVille": 44.1,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 13134,
+  "logementsPrives2021": 5500,
+  "menagesSelonOccupation2021": 5500,
+  "menagesLocataires2021": 1625,
+  "locatairesPct": 29.5,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 270, avenue Marguerite-Bourgeoys, Sainte-Marie.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052426030&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052426030.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHZNF"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Patrice-de-Beaurivage",
+  "type": "municipalité",
+  "codeGeoSDR": "2433025",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.41667,
+  "lng": -71.23333,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 44.2,
+  "direction": "S",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1109,
+  "logementsPrives2021": 450,
+  "menagesSelonOccupation2021": 450,
+  "menagesLocataires2021": 110,
+  "locatairesPct": 24.4,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 486, rue Principale, Bur. 100, Saint-Patrice-de-Beaurivage.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433025&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433025.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ELACF"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Laurier-Station",
+  "type": "village",
+  "codeGeoSDR": "2433060",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.53921,
+  "lng": -71.63189,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 44.5,
+  "direction": "SO",
+  "distanceKmHotelDeVille": 44.5,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 2570,
+  "logementsPrives2021": 1125,
+  "menagesSelonOccupation2021": 1125,
+  "menagesLocataires2021": 350,
+  "locatairesPct": 31.1,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 355, rue Saint-Joseph, Laurier-Station.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433060&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433060.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EGYGX"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Flavien",
+  "type": "municipalité",
+  "codeGeoSDR": "2433052",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.51667,
+  "lng": -71.6,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 44.6,
+  "direction": "SO",
+  "distanceKmHotelDeVille": 44.6,
+  "inside50": true,
+  "borderline": false,
+  "population2021": 1619,
+  "logementsPrives2021": 660,
+  "menagesSelonOccupation2021": 665,
+  "menagesLocataires2021": 160,
+  "locatairesPct": 24.1,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 177, rue Principale, Saint-Flavien.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433052&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433052.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQTUL"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Dosquet",
+  "type": "municipalité",
+  "codeGeoSDR": "2433040",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.4678,
+  "lng": -71.52955,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 45.6,
+  "direction": "SO",
+  "distanceKmHotelDeVille": 45.7,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 935,
+  "logementsPrives2021": 425,
+  "menagesSelonOccupation2021": 425,
+  "menagesLocataires2021": 80,
+  "locatairesPct": 18.8,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 2, rue Monseigneur Chouinard, Dosquet.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433040&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433040.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQGXD"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Pierre-de-la-Rivière-du-Sud",
+  "type": "paroisse",
+  "codeGeoSDR": "2418055",
+  "mrc": "MRC Montmagny",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.91412,
+  "lng": -70.62643,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 45.6,
+  "direction": "E",
+  "distanceKmHotelDeVille": 45.7,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 840,
+  "logementsPrives2021": 370,
+  "menagesSelonOccupation2021": 370,
+  "menagesLocataires2021": 55,
+  "locatairesPct": 14.9,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 689, rue Principale, Saint-Pierre-de-la-Rivière-du-Sud.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052418055&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052418055.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EIAVN"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Cap-Santé",
+  "type": "ville",
+  "codeGeoSDR": "2434030",
+  "mrc": "MRC Portneuf",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.67007,
+  "lng": -71.77046,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 45.7,
+  "direction": "O",
+  "distanceKmHotelDeVille": 45.8,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 3594,
+  "logementsPrives2021": 1510,
+  "menagesSelonOccupation2021": 1510,
+  "menagesLocataires2021": 170,
+  "locatairesPct": 11.3,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 194, route 138, Cap-Santé.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052434030&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052434030.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQYUD"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Sainte-Croix",
+  "type": "municipalité",
+  "codeGeoSDR": "2433102",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.61667,
+  "lng": -71.73333,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 45.7,
+  "direction": "SO",
+  "distanceKmHotelDeVille": 45.7,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 2529,
+  "logementsPrives2021": 1125,
+  "menagesSelonOccupation2021": 1125,
+  "menagesLocataires2021": 335,
+  "locatairesPct": 29.8,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 6310, rue Principale, Sainte-Croix.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433102&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433102.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ERCFK"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Damien-de-Buckland",
+  "type": "paroisse",
+  "codeGeoSDR": "2419030",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.62967,
+  "lng": -70.66585,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 46.1,
+  "direction": "SE",
+  "distanceKmHotelDeVille": null,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 1893,
+  "logementsPrives2021": 825,
+  "menagesSelonOccupation2021": 830,
+  "menagesLocataires2021": 225,
+  "locatairesPct": 27.1,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 159, rue Commerciale, Bur. 102, Saint-Damien-de-Buckland.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419030&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419030.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHZBF"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Malachie",
+  "type": "paroisse",
+  "codeGeoSDR": "2419025",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.53199,
+  "lng": -70.7654,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 46.1,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 46.1,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 1667,
+  "logementsPrives2021": 695,
+  "menagesSelonOccupation2021": 700,
+  "menagesLocataires2021": 90,
+  "locatairesPct": 12.9,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 610, 7e Rue, Saint-Malachie.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419025&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419025.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EIALE"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Elzéar",
+  "type": "municipalité",
+  "codeGeoSDR": "2426022",
+  "mrc": "MRC La Nouvelle-Beauce",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.4,
+  "lng": -71.06667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 47.3,
+  "direction": "S",
+  "distanceKmHotelDeVille": 46.5,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 2623,
+  "logementsPrives2021": 1000,
+  "menagesSelonOccupation2021": 1000,
+  "menagesLocataires2021": 205,
+  "locatairesPct": 20.5,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 597, rue des Érables, Saint-Elzéar.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052426022&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052426022.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EPYBT"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Basile",
+  "type": "ville",
+  "codeGeoSDR": "2434038",
+  "mrc": "MRC Portneuf",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.75652,
+  "lng": -71.82575,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 47.5,
+  "direction": "O",
+  "distanceKmHotelDeVille": 47.5,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 2709,
+  "logementsPrives2021": 1260,
+  "menagesSelonOccupation2021": 1265,
+  "menagesLocataires2021": 265,
+  "locatairesPct": 20.9,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 20, rue Saint-Georges, Saint-Basile.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052434038&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052434038.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQUNQ"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Armagh",
+  "type": "municipalité",
+  "codeGeoSDR": "2419037",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.74284,
+  "lng": -70.58821,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 47.9,
+  "direction": "E",
+  "distanceKmHotelDeVille": 47.8,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 1439,
+  "logementsPrives2021": 685,
+  "menagesSelonOccupation2021": 690,
+  "menagesLocataires2021": 135,
+  "locatairesPct": 19.6,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 5, rue de la Salle, Armagh.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419037&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419037.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EMQRX"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Raymond",
+  "type": "ville",
+  "codeGeoSDR": "2434128",
+  "mrc": "MRC Portneuf",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.89144,
+  "lng": -71.83255,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 48.3,
+  "direction": "O",
+  "distanceKmHotelDeVille": 48.3,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 11108,
+  "logementsPrives2021": 4970,
+  "menagesSelonOccupation2021": 5000,
+  "menagesLocataires2021": 1020,
+  "locatairesPct": 20.4,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 375, rue Saint-Joseph, Saint-Raymond.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052434128&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052434128.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQAMA"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Tite-des-Caps",
+  "type": "municipalité",
+  "codeGeoSDR": "2421005",
+  "mrc": "MRC La Côte-de-Beaupré",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 47.14168,
+  "lng": -70.77073,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 49.3,
+  "direction": "NE",
+  "distanceKmHotelDeVille": 49.3,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 1504,
+  "logementsPrives2021": 720,
+  "menagesSelonOccupation2021": 720,
+  "menagesLocataires2021": 160,
+  "locatairesPct": 22.2,
+  "dansRMR": false,
+  "membreCMQ": true,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 5, rue Leclerc, Saint-Tite-des-Caps.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052421005&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052421005.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EIBBC"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Frampton",
+  "type": "municipalité",
+  "codeGeoSDR": "2426005",
+  "mrc": "MRC La Nouvelle-Beauce",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.46342,
+  "lng": -70.80741,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 49.5,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 49.5,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 1309,
+  "logementsPrives2021": 595,
+  "menagesSelonOccupation2021": 590,
+  "menagesLocataires2021": 65,
+  "locatairesPct": 11.0,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 107, rue Sainte-Anne, Frampton.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052426005&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052426005.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQMEG"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Sylvestre",
+  "type": "municipalité",
+  "codeGeoSDR": "2433007",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.36499,
+  "lng": -71.22292,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 49.9,
+  "direction": "S",
+  "distanceKmHotelDeVille": 49.9,
+  "inside50": true,
+  "borderline": true,
+  "population2021": 1019,
+  "logementsPrives2021": 435,
+  "menagesSelonOccupation2021": 435,
+  "menagesLocataires2021": 105,
+  "locatairesPct": 24.1,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 423B, rue Principale, Saint-Sylvestre.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433007&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433007.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQJSS"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Sainte-Agathe-de-Lotbinière",
+  "type": "municipalité",
+  "codeGeoSDR": "2433017",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.38333,
+  "lng": -71.41667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 50.5,
+  "direction": "S",
+  "distanceKmHotelDeVille": 50.3,
+  "inside50": false,
+  "borderline": true,
+  "population2021": 1049,
+  "logementsPrives2021": 470,
+  "menagesSelonOccupation2021": 470,
+  "menagesLocataires2021": 55,
+  "locatairesPct": 11.7,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 2540, rue Saint-Pierre, Sainte-Agathe-de-Lotbinière.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433017&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433017.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EQRSA"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saints-Anges",
+  "type": "municipalité",
+  "codeGeoSDR": "2426010",
+  "mrc": "MRC La Nouvelle-Beauce",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.41806,
+  "lng": -70.87672,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 50.8,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 50.8,
+  "inside50": false,
+  "borderline": true,
+  "population2021": 1239,
+  "logementsPrives2021": 485,
+  "menagesSelonOccupation2021": 500,
+  "menagesLocataires2021": 55,
+  "locatairesPct": 11.0,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 494, avenue Principale, Saints-Anges.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052426010&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052426010.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EIAYF"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Janvier-de-Joly",
+  "type": "municipalité",
+  "codeGeoSDR": "2433065",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.48333,
+  "lng": -71.66667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 50.8,
+  "direction": "SO",
+  "distanceKmHotelDeVille": 50.4,
+  "inside50": false,
+  "borderline": true,
+  "population2021": 1079,
+  "logementsPrives2021": 470,
+  "menagesSelonOccupation2021": 470,
+  "menagesLocataires2021": 80,
+  "locatairesPct": 17.0,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 729, rue des Loisirs, Joly.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433065&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433065.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EIABG"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Nazaire-de-Dorchester",
+  "type": "paroisse",
+  "codeGeoSDR": "2419015",
+  "mrc": "MRC Bellechasse",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.55238,
+  "lng": -70.66094,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 50.9,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 51.0,
+  "inside50": false,
+  "borderline": true,
+  "population2021": 338,
+  "logementsPrives2021": 150,
+  "menagesSelonOccupation2021": 145,
+  "menagesLocataires2021": 0,
+  "locatairesPct": 0.0,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 61A, rue Principale, Saint-Nazaire-de-Dorchester.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052419015&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052419015.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EIAOR"
+  ],
+  "aVerifier": [
+   "locatairesPct = 0,0 % : petits effectifs arrondis aléatoirement (multiples de 5) par StatCan ; à confirmer sur la page du profil"
+  ]
+ },
+ {
+  "nom": "Montmagny",
+  "type": "ville",
+  "codeGeoSDR": "2418050",
+  "mrc": "MRC Montmagny",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.98112,
+  "lng": -70.55745,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 52.8,
+  "direction": "E",
+  "distanceKmHotelDeVille": 52.8,
+  "inside50": false,
+  "borderline": true,
+  "population2021": 10999,
+  "logementsPrives2021": 5460,
+  "menagesSelonOccupation2021": 5465,
+  "menagesLocataires2021": 2345,
+  "locatairesPct": 42.9,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 143, rue Saint-Jean-Baptiste Est, Montmagny.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052418050&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052418050.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EKOKZ"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Vallée-Jonction",
+  "type": "municipalité",
+  "codeGeoSDR": "2426015",
+  "mrc": "MRC La Nouvelle-Beauce",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.37512,
+  "lng": -70.92678,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 53.3,
+  "direction": "SE",
+  "distanceKmHotelDeVille": 53.4,
+  "inside50": false,
+  "borderline": true,
+  "population2021": 1864,
+  "logementsPrives2021": 830,
+  "menagesSelonOccupation2021": 830,
+  "menagesLocataires2021": 200,
+  "locatairesPct": 24.1,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 259, rue Jean-Marie-Rousseau, Vallée-Jonction.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052426015&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052426015.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/ENKRK"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Portneuf",
+  "type": "ville",
+  "codeGeoSDR": "2434048",
+  "mrc": "MRC Portneuf",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.69081,
+  "lng": -71.88886,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 53.6,
+  "direction": "O",
+  "distanceKmHotelDeVille": 53.1,
+  "inside50": false,
+  "borderline": true,
+  "population2021": 3329,
+  "logementsPrives2021": 1605,
+  "menagesSelonOccupation2021": 1610,
+  "menagesLocataires2021": 385,
+  "locatairesPct": 23.9,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 655, avenue de l'Église, Portneuf.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052434048&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052434048.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHSQV"
+  ],
+  "aVerifier": []
+ },
+ {
+  "nom": "Saint-Léonard-de-Portneuf",
+  "type": "municipalité",
+  "codeGeoSDR": "2434115",
+  "mrc": "MRC Portneuf",
+  "regionAdministrative": "Capitale-Nationale",
+  "lat": 46.88333,
+  "lng": -71.91667,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 54.4,
+  "direction": "O",
+  "distanceKmHotelDeVille": 53.8,
+  "inside50": false,
+  "borderline": true,
+  "population2021": 1140,
+  "logementsPrives2021": 520,
+  "menagesSelonOccupation2021": 540,
+  "menagesLocataires2021": 105,
+  "locatairesPct": 19.4,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "nord",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 260, rue Pettigrew, Saint-Léonard-de-Portneuf.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052434115&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052434115.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EIAIH"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ },
+ {
+  "nom": "Saint-Édouard-de-Lotbinière",
+  "type": "paroisse",
+  "codeGeoSDR": "2433080",
+  "mrc": "MRC Lotbinière",
+  "regionAdministrative": "Chaudière-Appalaches",
+  "lat": 46.56887,
+  "lng": -71.83719,
+  "sourceCoordonnees": "Toponymie officielle (BDTC/RNCan, d’après la Commission de toponymie du Québec)",
+  "distanceKm": 55.2,
+  "direction": "SO",
+  "distanceKmHotelDeVille": 54.8,
+  "inside50": false,
+  "borderline": true,
+  "population2021": 1240,
+  "logementsPrives2021": 520,
+  "menagesSelonOccupation2021": 520,
+  "menagesLocataires2021": 95,
+  "locatairesPct": 18.3,
+  "dansRMR": false,
+  "membreCMQ": false,
+  "shoreside": "sud",
+  "notes": [
+   {
+    "texte": "Hôtel de ville / bureau municipal : 2485, rue Principale, Saint-Édouard-de-Lotbinière.",
+    "source": "https://donneesouvertes.affmunqc.net/repertoire/MUN.csv"
+   }
+  ],
+  "sources": [
+   "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/page.cfm?Lang=F&DGUIDlist=2021A00052433080&GENDERlist=1&STATISTIClist=1&HEADERlist=0",
+   "https://api.statcan.gc.ca/census-recensement/profile/sdmx/rest/data/STC_CP,DF_CSD/A5.2021A00052433080.1.1+50+1400+1401+1402.1",
+   "https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810000301",
+   "https://www.donneesquebec.ca/recherche/dataset/repertoire-des-municipalites-du-quebec (MUN.csv : https://donneesouvertes.affmunqc.net/repertoire/MUN.csv)",
+   "https://geogratis.gc.ca/services/geoname/fr/geonames/EHZIK"
+  ],
+  "aVerifier": [],
+  "remarqueDonnees": "Petite SDR : comptes de ménages arrondis aléatoirement (multiples de 5) par StatCan ; % approximatif."
+ }
+]

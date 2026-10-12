@@ -5,6 +5,7 @@
 import React from 'react';
 import { Icon, Button } from '@/components/ds';
 import { LV3 } from '@/proto/locataires-v3-commun';
+import { LiensGuides } from '@/proto/accueil-faq-12';
 import { __ssr } from '@/lib/hydratation';
 const MOM = [{
   id: 'louer',
@@ -293,7 +294,7 @@ function Suivi() {
   const [ref, vu] = LV3.useVu(.3),
     POS = 1;
   return <section className="lvb-suivi ll-sombre" data-fn="1" aria-labelledby="lvb-s-t"><div ref={ref} className={'lv-cont lvb-suivi-g' + (vu ? ' vu' : '')}>
-    <div className="lvb-suivi-tx lv-r"><h2 id="lvb-s-t" className="lv-h2">Votre demande, <span>en temps réel</span>.</h2>
+    <div className="lvb-suivi-tx lv-r"><h2 id="lvb-s-t" className="lv-h2">Suivez votre demande <span>en temps réel</span>.</h2>
       <p className="lv-p" style={{
           maxWidth: '46ch'
         }}>Dans votre portail locataire : statut à jour, plage de rendez-vous et avis par courriel ou texto.</p>
@@ -316,8 +317,8 @@ function Suivi() {
 function Questions() {
   const [ref, vu] = LV3.useVu(.08);
   return <section className="lvb-faq" data-fn="1" aria-labelledby="lvb-f-t"><div ref={ref} className={'lv-cont lvb-faq-g' + (vu ? ' vu' : '')}>
-    <div className="lvb-faq-h lv-r"><h2 id="lvb-f-t" className="lv-h2">Vos questions, <span>nos réponses directes</span>.</h2>
-      <p className="lv-p">Ces réponses viennent des questions posées à Cléo. Notre équipe les valide avant leur publication et les date.</p></div>
+    <div className="lvb-faq-h lv-r"><h2 id="lvb-f-t" className="lv-h2">Les questions <span>des locataires</span></h2>
+      <p className="lv-p">Ces réponses partent des questions posées à Cléo. L’équipe les vérifie et les date avant de les publier.</p></div>
     <div className="lvb-faq-c lv-r" style={{
         '--d': '100ms'
       }}><LV3.Faq num /></div>
@@ -325,6 +326,7 @@ function Questions() {
         '--d': '160ms'
       }}><Button variant="secondaire" size="m" onClick={() => LV3.cleo()} iconeAvant={<Icon name="message-square" size={15} />}>Poser la question à Cléo</Button>
       <a className="lv-lien" href="/faq">Toutes les questions{LV3.FL_E(14)}</a></div>
+    {<LiensGuides slugs={['urgences-locatives', 'depot-de-garantie', 'cession-de-bail-loi-31', 'hausse-de-loyer-2026', 'reprise-de-logement']} />}
   </div></section>;
 }
 function LocatairesB({

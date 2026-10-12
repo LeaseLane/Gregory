@@ -12,7 +12,7 @@ import { __ssr } from '@/lib/hydratation';
 import { envoyerDemande } from '@/lib/envoi';
 const S_ = () => LL_SITE,
   FQ = () => LL_FAQ;
-const tel = () => 'tel:' + String(S_().telephone || '').replace(/\D/g, '');
+const tel = () => 'tel:+1' + String(S_().telephone || '').replace(/\D/g, '');
 const cleo = t => {
   try {
     ouvrirCleo(t);
@@ -199,6 +199,21 @@ function Canaux() {
         <span className="njx-caps">{c.sur}</span><strong>{c.val}</strong><span className="njx-aide">{c.aide}</span>
         <span className="njx-act"><span>{c.act}</span><span aria-hidden="true"><Icon name={u ? 'phone' : 'arrow-right'} size={15} color={v ? '#B5D4F7' : u ? 'var(--urgence-600)' : 'var(--bleu-600)'} /></span></span></Tag>;
         })}</div>
+    {/* Adresse (NAP) : la même partout sur le site et dans les annuaires. Bureau sans accueil : rencontres sur rendez-vous. */}
+    <p className="njx-adresse" style={{
+        margin: 0,
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '6px 14px',
+        fontSize: '14px',
+        lineHeight: 1.6,
+        color: 'var(--texte-corps)',
+        textAlign: 'center'
+      }}>{a.rue && <><Icon name="map-pin" size={16} color="var(--bleu-600)" /><span><strong style={{
+              color: 'var(--marine-900)'
+            }}>Lease Lane</strong> · {a.rue}, {a.ville} (Québec) {a.cp}</span><span aria-hidden="true">·</span></>}<span>Rencontres sur rendez-vous seulement · Nous desservons la grande région de Québec, dans un rayon de 50 km</span></p>
   </div></section>;
 }
 const PROFILS = [['proprietaire', 'Propriétaire', 'building-2'], ['locataire', 'Locataire', 'key'], ['autre', 'Autre', 'message-circle']];
@@ -292,14 +307,15 @@ function Formulaire() {
   }) => E(k) ? <span id={'njx-' + k + '-e'} role="alert" className="njx-msg njx-err">{E(k)}</span> : aide ? <span id={'njx-' + k + '-a'} className="njx-msg njx-aid">{aide}</span> : null;
   const prenom = v.nom.trim().split(/\s+/)[0] || '',
     n = v.message.trim().length;
-  return <section style={{
+  return <section id="ecrire" style={{
     background: 'var(--surface-douce)',
     padding: 'var(--web-section) 0',
     borderTop: '1px solid var(--bordure-fine)',
-    borderBottom: '1px solid var(--bordure-fine)'
+    borderBottom: '1px solid var(--bordure-fine)',
+    scrollMarginTop: '72px'
   }}><div className="njx-g2" style={CONT}>
     <div className="njx-gauche">
-      <Tete taille={1.2} n="01" sur="Écrivez-nous" titre="Dites-nous qui vous êtes. {Nous nous occupons du reste.}" />
+      <Tete taille={1.2} n="01" sur="Écrivez-nous" titre="Nous sommes impatients de {discuter avec vous.}" />
       <div className="njx-carte" style={{
           display: 'grid',
           gap: '40px',
@@ -341,7 +357,7 @@ function Formulaire() {
             color: 'var(--marine-900)'
           }}>Merci{prenom ? ', ' + prenom : ''}. Votre demande est bien reçue.</h3>
           <p className="njx-p">Nous vous répondrons par {v.pref === 'telephone' ? 'téléphone, au ' + v.tel : 'courriel, à ' + v.courriel}. Chaque échange est consigné à votre dossier.</p>
-          <dl className="njx-res">{[['Vous êtes', PROFILS.find(p => p[0] === pr)[1]], ['Sujet', v.sujet], ['Réponse', v.pref === 'telephone' ? 'Par téléphone' : 'Par courriel']].map(([a, b]) => <div key={a}><dt>{a}</dt><dd>{b}</dd></div>)}</dl>
+          <dl className="njx-res">{[['Vous êtes', PROFILS.find(p => p[0] === pr)[1]], ['Sujet', v.sujet], ['Réponse', v.pref === 'telephone' ? 'Téléphone' : 'Courriel']].map(([a, b]) => <div key={a}><dt>{a}</dt><dd>{b}</dd></div>)}</dl>
           <div style={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -382,7 +398,7 @@ function Formulaire() {
             <div className="njx-ch"><label htmlFor="njx-nom" className="njx-lab">Nom complet <em aria-hidden="true">*</em></label><input id="njx-nom" className="njx-in" autoComplete="name" required value={v.nom} onChange={maj('nom')} onBlur={sort('nom')} {...aria('nom')} /><Msg k="nom" /></div>
             <div className="njx-ch"><label htmlFor="njx-courriel" className="njx-lab">Courriel <em aria-hidden="true">*</em></label><input id="njx-courriel" className="njx-in" type="email" autoComplete="email" inputMode="email" required value={v.courriel} onChange={maj('courriel')} onBlur={sort('courriel')} {...aria('courriel')} /><Msg k="courriel" /></div>
             <div className="njx-ch" role="radiogroup" aria-labelledby="njx-pref-l"><span id="njx-pref-l" className="njx-lab">Comment préférez-vous être joint?</span>
-              <div className="njx-chips">{[['courriel', 'Par courriel', 'send'], ['telephone', 'Par téléphone', 'phone']].map(([k, l, ic]) => <label key={k} className="njx-chip" style={{
+              <div className="njx-chips">{[['telephone', 'Téléphone', 'phone'], ['courriel', 'Courriel', 'send']].map(([k, l, ic]) => <label key={k} className="njx-chip" style={{
                     flex: '1 1 0',
                     justifyContent: 'center',
                     minHeight: '48px'
@@ -430,7 +446,7 @@ function Cleo() {
       <div style={{
         display: 'grid',
         gap: '24px'
-      }}><Tete n="02" sur="Cléo, 24/7" titre="Votre bail a des questions. {Cléo a les réponses.}" texte="L’agent IA de Lease Lane répond 24/7 aux propriétaires et aux locataires, explique les règles du TAL en termes simples et passe la main à un humain quand ça compte." />
+      }}><Tete n="02" sur="Cléo, 24/7" titre="Des questions? {Cléo se fera un plaisir de vous répondre.}" texte="L’agent IA de Lease Lane répond 24/7 aux propriétaires et aux locataires, explique les règles du TAL en termes simples et passe la main à un humain quand ça compte." />
         <div className="njx-q"><label htmlFor="njx-q" style={{
             position: 'absolute',
             width: '1px',
@@ -461,7 +477,7 @@ function Cleo() {
         }}><span aria-hidden="true" style={{
             display: 'inline-flex',
             flex: 'none'
-          }}><Icon name="shield-check" size={15} color="var(--bleu-600)" /></span>Information juridique générale, pas un avis juridique. Un humain prend le relais dès que votre dossier le demande.</p></div></div></section>;
+          }}><Icon name="shield-check" size={15} color="var(--bleu-600)" /></span>Information juridique générale, pas un avis juridique. Une personne de l’équipe prend le relais dès que votre dossier le demande.</p></div></div></section>;
 }
 function PageContactV2({
   route

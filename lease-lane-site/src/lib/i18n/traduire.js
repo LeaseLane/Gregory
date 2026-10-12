@@ -59,8 +59,11 @@ function motif(s, D) {
 }
 
 /* Fragments bruts (avec leurs espaces) → fragments traduits (même nombre), ou null si rien ne change. */
-const cache = new Map();
+/* Cache par dictionnaire : un dictionnaire rechargé (développement) n'hérite pas des résultats de l'ancien. */
+const caches = new WeakMap();
 export function traduireFragments(bruts, D) {
+  let cache = caches.get(D);
+  if (!cache) { cache = new Map(); caches.set(D, cache); }
   const segs = bruts.map(norm);
   const cle = segs.join(SEP);
   if (cache.has(cle)) return appliquer(bruts, cache.get(cle));

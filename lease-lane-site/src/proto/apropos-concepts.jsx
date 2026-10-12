@@ -4,7 +4,7 @@
 /* Converti depuis ui_kits/site-public/apropos-concepts.jsx (prototype) — ne pas réintroduire de globaux window. */
 import React from 'react';
 import { Icon } from '@/components/ds';
-import { gab, BoutonLien, Fleche, Exemple, BandeauPage, AppelFinal } from '@/proto/blocs';
+import { gab, BoutonLien, Fleche, BandeauPage, AppelFinal } from '@/proto/blocs';
 import { __maintenant, useEtatClient, __ssr } from '@/lib/hydratation';
 const uS = React.useState,
   uE = React.useEffect,
@@ -24,7 +24,7 @@ const SC = () => (__ssr() ? "undefined" : typeof document) !== "undefined" ? doc
 
 /* ——— Contenu (verbatim de la page actuelle) ——— */
 const EQ = [['gregory-picard', 'Grégory Picard', 'Président'], ['steven-paradis', 'Steven Paradis', 'IA & Digital Infrastructure'], ['xavier-tavernier', 'Xavier Tavernier', 'Directeur des ventes'], ['andy-larochelle-larose', 'Andy Larochelle Larose', 'Directeur Marketing'], ['eliot-marcoux', 'Éliot Marcoux', 'Développement des affaires']];
-const TECH = ['Répondre aux prospects et aux locataires, 24/7', 'Réserver les visites et envoyer les rappels', 'Classer les demandes et les documents', 'Produire le rapport mensuel et le tableau de bord'];
+const TECH = ['Répondre aux locataires actuels et potentiels, 24/7', 'Réserver les visites et envoyer les rappels', 'Classer les demandes et les documents', 'Produire le rapport mensuel et le tableau de bord'];
 const HUM = ['Traiter les urgences et les situations délicates', 'Recommander un locataire, négocier avec les fournisseurs', 'Préparer les dossiers au TAL', 'Rendre des comptes au propriétaire'];
 const IC_T = ['message-circle', 'calendar-check', 'files', 'chart-column'],
   IC_H = ['triangle-alert', 'handshake', 'scale', 'receipt'];
@@ -34,12 +34,12 @@ const PLAGES = ['Le jour', 'Le soir', 'La fin de semaine'];
 const LIV = [['receipt', 'Frais publiés'], ['chart-column', 'Dépenses au tableau de bord'], ['circle-check', 'Décisions au propriétaire']];
 const T = {
   pq: 'Parce qu’une demande sans réponse {coûte cher} à tout le monde.',
-  pqP: 'Le plus lourd pour un propriétaire, c’est ce qu’on fera pour lui :',
+  pqP: 'Ce que nous prenons en charge pour le propriétaire :',
   ap: 'La technologie pour répondre, {les humains pour décider}.',
   note: 'Cléo vous dit à qui il transmet, pourquoi et dans quel délai. La personne reçoit tout l’échange : vous n’avez rien à répéter.',
   eq: 'Les personnes qui {prennent le relais}.',
-  terr: 'Nous desservons tout le Québec.',
-  terrP: 'Immeubles locatifs résidentiels, partout au Québec, sauf la copropriété divise et la location de courte durée.',
+  terr: 'Nous desservons la grande région de Québec.',
+  terrP: 'Immeubles locatifs résidentiels dans un rayon de 50 km autour de Québec, sauf la copropriété divise et la location de courte durée.',
   lic: 'Ce qui {nous engage}.'
 };
 
@@ -176,7 +176,7 @@ const CSS_C = `.apc{--e:cubic-bezier(.22,1,.36,1);--e2:cubic-bezier(.65,0,.35,1)
 /* ═══════════════════════ 2 · VITRINE ═══════════════════════ */
 const CSS_2 = `
 .ap2-bento{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;grid-template-areas:"pq pq pq pq pq pq pq live live live live live" "pq pq pq pq pq pq pq eq eq eq eq eq" "tick tick tick tick tick tick tick tick portes portes portes portes" "maux maux maux maux maux maux maux maux occ occ occ occ"}
-html:not([data-exemples="1"]) .ap2-bento{grid-template-areas:"pq pq pq pq pq pq pq live live live live live" "pq pq pq pq pq pq pq eq eq eq eq eq" "tick tick tick tick tick tick tick tick tick tick tick tick" "maux maux maux maux maux maux maux maux maux maux maux maux"}
+
 .ap2-t{position:relative;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:20px;padding:clamp(22px,2.2vw,28px);border-radius:20px;background:#fff;border:1px solid rgba(12,33,71,.08);box-shadow:0 1px 2px rgba(12,33,71,.04);overflow:hidden;transition:transform .5s var(--e),box-shadow .5s var(--e),border-color .4s}
 .ap2-t:hover{transform:translateY(-4px);border-color:rgba(69,129,203,.35);box-shadow:0 28px 56px -34px rgba(12,33,71,.4)}
 .ap2-t.m{min-height:440px;padding:clamp(28px,3.2vw,48px);background:var(--degrade-marine);border-color:transparent;color:#fff}
@@ -217,7 +217,7 @@ html:not([data-exemples="1"]) .ap2-bento{grid-template-areas:"pq pq pq pq pq pq 
 .ap2-maux li>span{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:#fff;box-shadow:0 1px 2px rgba(12,33,71,.08)}
 /* Engagements */
 .ap2-eng-t{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:28px 64px}
-.ap2-eng-d{display:grid;gap:18px;max-width:460px}
+.ap2-eng-d{display:grid;gap:18px;max-width:600px}@media (min-width:961px){.ap2-eng-t{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:end}.ap2-eng-d{justify-items:end;text-align:right}.ap2-eng-d .apc-p{white-space:nowrap;margin:0}.ap2-sauts{flex-wrap:nowrap!important;justify-content:flex-end}.ap2-saut{flex:none;white-space:nowrap}}
 .ap2-sauts{display:flex;flex-wrap:wrap;gap:8px}
 .ap2-saut{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 16px 0 6px;border-radius:12px;border:1px solid rgba(12,33,71,.14);background:#fff;font:600 13px var(--police-corps);color:var(--marine-900);cursor:pointer;transition:background-color .25s,border-color .25s,color .25s}
 .ap2-saut b{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--bleu-025);font-size:12px;font-weight:700;color:var(--bleu-600);font-variant-numeric:tabular-nums;transition:background-color .25s,color .25s;border-radius:8px}
@@ -273,9 +273,9 @@ html:not([data-exemples="1"]) .ap2-bento{grid-template-areas:"pq pq pq pq pq pq 
 .ap2-terr-lieu{position:absolute;right:var(--web-gouttiere);bottom:24px;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--bleu-100)}
 .ap2-pin{transform-box:fill-box;transform-origin:50% 100%;animation:ap2-pin 2.6s ease-in-out infinite;animation-delay:var(--i)}.ap2-ond{transform-box:fill-box;transform-origin:center;animation:ap2-ond 2.6s ease-out infinite;animation-delay:var(--i)}
 @keyframes ap2-pin{0%,100%{transform:none}50%{transform:translateY(-4px)}}@keyframes ap2-ond{0%{opacity:.7;transform:scale(.4)}100%{opacity:0;transform:scale(2.4)}}
-@media (max-width:1100px){.ap2-bento{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"pq pq" "live eq" "tick tick" "portes occ" "maux maux"}html:not([data-exemples="1"]) .ap2-bento{grid-template-areas:"pq pq" "live eq" "tick tick" "maux maux"}.ap2-tk{grid-template-columns:minmax(0,1fr) auto}.ap2-pas{grid-column:1/-1;grid-row:2}.ap2-eq{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1100px){.ap2-bento{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"pq pq" "live eq" "tick tick" "portes occ" "maux maux"}.ap2-tk{grid-template-columns:minmax(0,1fr) auto}.ap2-pas{grid-column:1/-1;grid-row:2}.ap2-eq{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:960px){.ap2-terr::before{background:linear-gradient(180deg,var(--marine-900) 0%,rgba(12,33,71,.9) 45%,rgba(12,33,71,.3) 100%)}.ap2-terr{align-items:flex-start}.ap2-ec,.ap2-ap{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:640px){.ap2-bento{grid-template-columns:minmax(0,1fr);grid-template-areas:"pq" "live" "eq" "tick" "portes" "occ" "maux"}html:not([data-exemples="1"]) .ap2-bento{grid-template-areas:"pq" "live" "eq" "tick" "maux"}.ap2-maux{grid-template-columns:minmax(0,1fr)}.ap2-t.m{min-height:0;padding-bottom:0}.ap2-pq-txt{max-width:none}.ap2-pq-img{position:relative;order:3;right:auto;height:auto;width:86%;max-width:340px;align-self:flex-end;margin:4px -6% 0 0}.ap2-pas li{font-size:12px}.ap2-eq{grid-template-columns:repeat(2,minmax(0,1fr))}.ap2-grille{grid-template-columns:88px repeat(3,minmax(0,1fr))}.ap2-tb-l{grid-template-columns:minmax(0,1fr)}.ap2-li{grid-template-columns:48px minmax(0,1fr);padding:16px}.ap2-li b{display:none}.ap2-ec{padding:24px 20px}.ap2-tb{padding:18px 16px}.ap2-tb-h{grid-template-columns:40px minmax(0,1fr)}.ap2-puce{grid-column:2;justify-self:start}.ap2-li>span:first-child{width:48px;height:48px}}
+@media (max-width:640px){.ap2-bento{grid-template-columns:minmax(0,1fr);grid-template-areas:"pq" "live" "eq" "tick" "portes" "occ" "maux"}.ap2-maux{grid-template-columns:minmax(0,1fr)}.ap2-t.m{min-height:0;padding-bottom:0}.ap2-pq-txt{max-width:none}.ap2-pq-img{position:relative;order:3;right:auto;height:auto;width:86%;max-width:340px;align-self:flex-end;margin:4px -6% 0 0}.ap2-pas li{font-size:12px}.ap2-eq{grid-template-columns:repeat(2,minmax(0,1fr))}.ap2-grille{grid-template-columns:88px repeat(3,minmax(0,1fr))}.ap2-tb-l{grid-template-columns:minmax(0,1fr)}.ap2-li{grid-template-columns:48px minmax(0,1fr);padding:16px}.ap2-li b{display:none}.ap2-ec{padding:24px 20px}.ap2-tb{padding:18px 16px}.ap2-tb-h{grid-template-columns:40px minmax(0,1fr)}.ap2-puce{grid-column:2;justify-self:start}.ap2-li>span:first-child{width:48px;height:48px}}
 @media (prefers-reduced-motion:reduce){.ap2-in,.ap2-eq-in,.ap2-pile span{opacity:1!important;transform:none!important}.ap2-barres i{transform:scaleY(var(--h))!important}.ap2-donut .b{stroke-dashoffset:calc(283 * (1 - .986))!important}.ap2-cel::before,.ap2-col i{transform:none!important}.ap2-bulle{opacity:1!important;transform:none!important}.ap2-cel svg{opacity:1!important;transform:none!important}.ap2-rel-l::after{display:none}}`;
 function Heure() {
   const f = () => {
@@ -393,16 +393,16 @@ function Bento2() {
           gridArea: 'tick',
           '--d': '260ms'
         }}><Suivi /></article>
-      <article className="ap2-t ap2-in" data-ll-exemple="1" style={{
+      <article className="ap2-t ap2-in" style={{
           gridArea: 'portes',
           '--d': '300ms'
         }}>
-        <div className="ap2-k"><span className="ap2-mini">Portes gérées</span>{<Exemple />}</div>
-        <span className="ap2-big"><Compte n={340} vu={vu} /></span>
-        <div className="ap2-barres" aria-hidden="true">{[.35, .5, .45, .62, .7, .84, 1].map((h, i) => <i key={i} style={{
-              '--h': h,
-              '--i': i
-            }}></i>)}</div></article>
+        <div className="ap2-k"><span className="ap2-mini">Territoire</span></div>
+        <span className="ap2-big"><Compte n={50} suf=" km" vu={vu} /></span>
+        <span style={{
+            fontSize: '14px',
+            color: 'var(--gris-600)'
+          }}>autour de Québec</span></article>
       <article className="ap2-t ap2-in ap2-maux-t" style={{
           gridArea: 'maux',
           '--d': '340ms'
@@ -412,11 +412,11 @@ function Bento2() {
               color: 'var(--marine-900)'
             }}>{T.pqP}</p>
         <ul className="ap2-maux">{MAUX.map(([ic, l]) => <li key={l}><span aria-hidden="true"><Icon name={ic} size={18} color="var(--bleu-600)" /></span>{l}</li>)}</ul></div></article>
-      <article className="ap2-t ap2-in" data-ll-exemple="1" style={{
+      <article className="ap2-t ap2-in" style={{
           gridArea: 'occ',
           '--d': '420ms'
         }}>
-        <div className="ap2-k"><span className="ap2-mini">Taux d’occupation</span>{<Exemple />}</div>
+        <div className="ap2-k"><span className="ap2-mini">Cléo</span></div>
         <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -430,10 +430,10 @@ function Bento2() {
                 letterSpacing: '-.04em',
                 color: 'var(--marine-900)',
                 fontVariantNumeric: 'tabular-nums'
-              }}><Compte n={98.6} dec={1} suf=" %" vu={vu} ms={1800} /></b><span style={{
-                fontSize: '12px',
+              }}>24/7</b><span style={{
+                fontSize: '14px',
                 color: 'var(--gris-600)'
-              }}>sur douze mois</span></span></div></article>
+              }}>répond aux locataires actuels et potentiels</span></span></div></article>
     </div></div></section>;
 }
 const MOIS = [['janv.', .55], ['févr.', .72], ['mars', .48], ['avr.', .86], ['mai', .64], ['juin', .78]];
@@ -449,7 +449,7 @@ function Engagements2() {
   <Vu className="ap2-eng-t"><Tete lib="Nos deux engagements" titre="Deux promesses que vous pouvez {vérifier}." />
     <div className="ap2-eng-d apc-r" style={{
           '--d': '200ms'
-        }}><p className="apc-p">Chaque engagement se vérifie au quotidien&nbsp;: dans nos réponses, et dans votre tableau de bord.</p>
+        }}><p className="apc-p">Vous les constatez dans nos réponses et dans votre tableau de bord.</p>
       <nav aria-label="Aller à un engagement" className="ap2-sauts">{ENG.map(([ic, h], k) => <button key={h} type="button" className="ap2-saut" onClick={() => allerA('ap2-e' + k)}><b>{pad(k + 1)}</b>{h}<Icon name="arrow-right" size={15} style={{
                 transform: 'rotate(90deg)'
               }} /></button>)}</nav></div></Vu>
@@ -615,7 +615,7 @@ function Equipe2() {
       display: 'grid',
       gap: 'clamp(40px,5vw,56px)'
     }}>
-  <Tete lib="L’équipe derrière Cléo" titre={'Motivés, dévoués et {impossible de les arrêter}\u00A0!'} />
+  <Tete lib="L’équipe derrière Cléo" titre={'Les personnes qui {gèrent vos immeubles}.'} />
   <div className="ap2-eq">{EQ.map((p, k) => <Tilt key={p[0]} p={p} d={k * 100} />)}</div></Vu></section>;
 }
 const PINS = [[118, 44], [134, 30], [146, 52], [128, 62], [162, 36], [104, 30], [176, 58]];
@@ -648,15 +648,15 @@ function Territoire2() {
     <div className="apc-r" style={{
           '--d': '220ms'
         }}></div></div></Vu>
-  <span className="ap2-terr-lieu" aria-hidden="true">Partout au Québec</span>
+  <span className="ap2-terr-lieu" aria-hidden="true">Grande région de Québec</span>
 </section>;
 }
 function PageVitrine({
   route
 }) {
   return <div className="apc ap2" data-fn="1"><style>{CSS_C + CSS_2}</style>
-  <BandeauPage route={route} surtitre="À propos" titre="Lease Lane, la gestion locative {qui répond} et {qui se voit}." lead="Une jeune entreprise, une équipe de gestion et Cléo : des logements loués plus vite et une gestion que les propriétaires voient, chiffre par chiffre." />
-  <Bento2 /><Engagements2 /><Approche2 /><Equipe2 /><Territoire2 /><AppelFinal /></div>;
+  <BandeauPage route={route} surtitre="À propos" titre="Lease Lane, une gestion locative {qui répond en tout temps} et {montre chaque chiffre}." lead="Lease Lane est une jeune entreprise de gestion locative. Notre équipe travaille avec Cléo pour louer les logements plus vite, et les propriétaires voient chaque chiffre de leur immeuble." />
+  <Bento2 /><Engagements2 /><Approche2 /><Equipe2 /><Territoire2 /><AppelFinal titre="Décrivez votre immeuble {en deux minutes}." texte="Nous revenons avec une offre écrite et un moment pour en parler." /></div>;
 }
 
 /* ═══════════════════════ 3 · NOCTURNE ═══════════════════════ */

@@ -41,6 +41,16 @@ function clicInterne(e) {
   if (/\.(pdf|png|jpe?g|webp|svg|txt|xml|zip)$/i.test(href.split('#')[0])) return;
   if (estEN(href) !== (langue === 'en')) return;
   e.preventDefault();
+  /* Ancre sur la page courante (ex. « Écrire à l'équipe » depuis Nous joindre) : le routeur ne redéfile pas, on le fait ici. */
+  const [chemin, ancre] = href.split('#');
+  if (ancre && chemin === window.location.pathname) {
+    const cible = document.getElementById(ancre);
+    if (cible) {
+      cible.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      window.history.replaceState(window.history.state, '', href);
+      return;
+    }
+  }
   routeur && routeur.push(href);
 }
 

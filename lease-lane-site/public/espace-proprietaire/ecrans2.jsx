@@ -1,4 +1,5 @@
 const { Icon, Button, Badge, Tag, StatusPill, Input, Select, Switch, Checkbox, Dialog } = window.LeaseLaneDesignSystem_b7a479;
+const { Etat, AFaire: ListeAFaire, Chip } = window.BRIQUES;
 
 /* Écrans propriétaire — 2e partie : demandes (boîte 3 volets), messages, finances + relevé, calendrier, aide. */
 
@@ -29,12 +30,12 @@ function Demandes({data,ouvrir,selId,setSel}){
       <div style={{display:'flex',justifyContent:'space-between',gap:'10px',alignItems:'center'}}><span style={{fontSize:'12.5px',color:'var(--texte-discret)'}}>{d.id}</span><span style={{fontSize:'12px',color:'var(--texte-discret)'}}>{d.date}</span></div>
       <div style={{fontSize:'14.5px',fontWeight:600,color:'var(--marine-900)',lineHeight:1.3}}>{d.titre}</div>
       <div style={{fontSize:'12.5px',color:'var(--texte-discret)'}}>{d.logement} · {d.locataire}</div>
-      <div style={{marginTop:'4px'}}><StatusPill etat={d.etat} point={false}/></div></div>}
+      <div style={{marginTop:'4px'}}><Etat etat={d.etat} point={false}/></div></div>}
     rendreLecture={d=>{const a=appro(d);return <div style={{padding:'28px 32px',display:'grid',gap:'24px'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px',flexWrap:'wrap'}}>
         <div><span style={REF}>{d.id} · {d.logement}</span><h2 style={{fontSize:'22px',fontWeight:700,letterSpacing:'-0.02em',marginTop:'6px'}}>{d.titre}</h2>
-          <div style={{fontSize:'13.5px',color:'var(--texte-discret)',marginTop:'4px'}}>Signalée par {d.locataire} le {d.date} · urgence {d.urgence}</div></div>
-        <StatusPill etat={d.etat}/></div>
+          <div style={{fontSize:'13.5px',color:'var(--texte-discret)',marginTop:'4px'}}>Signalée par {d.locataire} le {d.date} · {({normale:'urgence normale',elevee:'urgence élevée',urgence:'urgence immédiate'})[d.urgence]||'urgence '+d.urgence}</div></div>
+        <Etat etat={d.etat}/></div>
       <div style={{padding:'16px 18px',background:'var(--surface-douce)',borderRadius:'var(--rayon-3)',fontSize:'14px',lineHeight:1.6,color:'var(--texte-corps)'}}>
         {d.texte}{d.pieces>0&&<div style={{display:'flex',gap:'8px',marginTop:'12px'}}>{Array.from({length:d.pieces}).map((_,i)=><span key={i} style={{width:'72px',height:'54px',borderRadius:'var(--rayon-2)',background:'var(--gris-200)',display:'grid',placeItems:'center'}}><Icon name="image" size={16} color="var(--gris-400)"/></span>)}</div>}</div>
       {a&&<div style={{padding:'18px 20px',background:'var(--bleu-025)',borderRadius:'var(--rayon-3)',display:'grid',gap:'10px'}}>
@@ -82,7 +83,7 @@ function Finances({data}){
   const [r31,setR31]=React.useState(data.releves31||[]);
   if(releve)return <Facture titre="Relevé mensuel" numero="REL-2026-09-034" date="30 septembre 2026" onFermer={()=>setReleve(false)}
     emetteur={['Solutions locatives Lease Lane','NEQ 1182479981','Québec (Québec)','info@leaselane.ca']} destinataire={[data.utilisateur.nom,'34 portes · 5 immeubles',data.utilisateur.courriel]}
-    lignes={[{d:'Loyers encaissés',p:'Septembre 2026',m:'41 280,00 $'},{d:'Honoraires de gestion 6 %',p:'Logements occupés',m:'−2 476,80 $'},{d:'Entretien — Plomberie Capitale (DEM-2026-0148)',p:'8 sept.',m:'−210,00 $'},{d:'Coordination 10 %',p:'8 sept.',m:'−21,00 $'},{d:'Assurance — 420 Saint-Joseph Est',p:'15 sept.',m:'−742,00 $'}]}
+    lignes={[{d:'Loyers encaissés',p:'Septembre 2026',m:'41 280,00 $'},{d:'Honoraires de gestion 6 %',p:'Logements occupés',m:'−2 476,80 $'},{d:'Entretien — Plomberie Capitale (DEM-2026-0139)',p:'8 sept.',m:'−210,00 $'},{d:'Coordination 10 %',p:'8 sept.',m:'−21,00 $'},{d:'Assurance — 420 Saint-Joseph Est',p:'15 sept.',m:'−742,00 $'}]}
     total="37 830,20 $" note="Net versé le 30 septembre 2026 au compte se terminant par 4417. Les factures des fournisseurs sont jointes telles quelles au dossier ; les frais de coordination de 10 % sont détaillés ci-dessus. Ce relevé tient lieu de rapport mensuel (article 12 du mandat)."/>;
   return <div style={{display:'grid',gap:'24px'}}>
     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:'16px'}}>

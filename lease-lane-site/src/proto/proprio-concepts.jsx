@@ -16,9 +16,7 @@ const pad = n => String(n).padStart(2, '0');
 const cl = x => Math.max(0, Math.min(1, x));
 const RMQ = () => !!(((__ssr() ? "undefined" : typeof window) !== "undefined" ? window.matchMedia : undefined) && ((__ssr() ? "undefined" : typeof window) !== "undefined" ? matchMedia('(prefers-reduced-motion: reduce)').matches : undefined));
 const SC = () => (__ssr() ? "undefined" : typeof document) !== "undefined" ? document.getElementById('ll-scroll') : undefined;
-const IMG = f => "/assets/equipe/" + f + '.webp',
-  AV = "/assets/img/cleo-avatar.png";
-const EQ = ['gregory-picard', 'steven-paradis', 'xavier-tavernier', 'andy-larochelle-larose', 'eliot-marcoux'];
+const AV = "/assets/img/cleo-avatar.png";
 const EX = () => <Exemple />;
 
 /* ——— Utilitaires ——— */
@@ -179,6 +177,21 @@ const CSS = `.pc{--e:cubic-bezier(.22,1,.36,1);--e2:cubic-bezier(.65,0,.35,1);--
 .pc-k{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px}
 .pc-big{font-size:clamp(44px,4.4vw,64px);line-height:.9;font-weight:800;letter-spacing:-.05em;color:var(--marine-900);font-variant-numeric:tabular-nums}.ll-sombre .pc-big,.pc-t.m .pc-big{color:#fff}
 /* Coches */
+.pc-sel{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.pc-sel-l{display:grid;gap:16px;align-content:start;padding:clamp(22px,2.6vw,32px);border-radius:20px;background:#fff;border:1px solid rgba(12,33,71,.10);box-shadow:0 2px 4px rgba(12,33,71,.04),0 30px 60px -28px rgba(12,33,71,.22)}
+.pc-sel-o{list-style:none;margin:6px 0 0;padding:0;display:grid}
+.pc-sel-o li{position:relative;display:grid;grid-template-columns:38px minmax(0,1fr) 28px;align-items:center;gap:14px;min-height:60px}
+.pc-sel-o li+li::before{content:"";position:absolute;left:18px;top:-11px;width:2px;height:22px;background:#C8DAF0}
+.pc-sel-n{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#EEF4FB;color:var(--marine-900);font-size:12px;font-weight:700;transition:background .4s,color .4s}
+.pc-sel-o li[data-ok="1"] .pc-sel-n{background:var(--marine-900);color:#fff}
+.pc-sel-t{font-size:14px;font-weight:600;line-height:1.4;color:var(--marine-900)}
+.pc-sel-c{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#EEF4FB;opacity:0;transform:scale(.6);transition:opacity .35s,transform .35s cubic-bezier(.34,1.56,.64,1)}
+.pc-sel-o li[data-ok="1"] .pc-sel-c{opacity:1;transform:none}
+.pc-sel-r{display:grid;grid-template-rows:minmax(0,1.3fr) minmax(0,1fr);gap:20px}
+.pc-sel-d{display:grid;gap:14px;align-content:center;padding:clamp(24px,2.8vw,36px);border-radius:20px;color:#fff;background:radial-gradient(120% 90% at 100% 0%,rgba(69,129,203,.5),rgba(69,129,203,0) 60%),linear-gradient(135deg,#173A6E,#0C2147);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 30px 60px -28px rgba(12,33,71,.5)}
+.pc-sel-loi{display:flex;gap:16px;align-items:center;padding:clamp(20px,2.4vw,28px);border-radius:20px;background:#F5F8FC;border:1px solid rgba(12,33,71,.08)}
+@media (max-width:960px){.pc-sel{grid-template-columns:minmax(0,1fr)}.pc-sel-r{grid-template-rows:auto}}
+@media (prefers-reduced-motion:reduce){.pc-sel-n,.pc-sel-c{transition:none}}
 .pc-coches{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .pc-coches li{display:grid;grid-template-columns:40px minmax(0,1fr);gap:14px;align-items:center;min-height:56px;padding:8px 14px 8px 8px;border-radius:14px;background:var(--bleu-clair);font-size:14px;font-weight:600;line-height:1.4;color:var(--marine-900)}
 .pc-coches li>span{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:#fff;box-shadow:0 1px 2px rgba(12,33,71,.08)}
@@ -265,6 +278,38 @@ const CSS = `.pc{--e:cubic-bezier(.22,1,.36,1);--e2:cubic-bezier(.65,0,.35,1);--
 .pc-cb input:focus-visible+i{outline:2px solid var(--bleu-500);outline-offset:2px}
 .pc-four{display:grid;gap:4px;padding-top:14px;margin-top:auto;border-top:1px solid var(--bordure-fine);font-size:14px;line-height:1.5;color:var(--texte-corps)}.pc-four strong{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--marine-900)}
 /* Citation */
+.pc-cit2{margin:0;display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);border-radius:24px;overflow:hidden;border:1px solid rgba(12,33,71,.14);box-shadow:0 2px 4px rgba(12,33,71,.05),0 24px 56px -24px rgba(12,33,71,.28);background:#fff}
+.pc-cit2.seule{grid-template-columns:minmax(0,1fr)}
+.pc-cit2-q{position:relative;isolation:isolate;display:grid;gap:28px;align-content:space-between;padding:clamp(28px,4vw,52px);background:var(--degrade-marine);overflow:hidden}
+.pc-cit2-q::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(80% 90% at 0% 0%,rgba(97,148,211,.30),transparent 60%)}
+.pc-cit2-q::after{content:"“";position:absolute;right:-6px;bottom:-110px;z-index:-1;font-size:340px;line-height:1;font-weight:800;color:rgba(255,255,255,.05)}
+.pc-cit2-g{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:28px;font-weight:700;line-height:1;padding-bottom:3px;box-sizing:border-box;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22)}
+.pc-cit2 blockquote{margin:0;font-weight:600;font-size:clamp(21px,2vw,28px);line-height:1.4;letter-spacing:-.015em;color:#fff;max-width:30ch;text-wrap:pretty}
+.pc-cit2 figcaption{display:flex;align-items:center;gap:14px;padding-top:22px;border-top:1px solid rgba(200,218,240,.18)}
+.pc-cit2-av{width:44px;height:44px;flex:none;border-radius:12px;display:grid;place-items:center;background:#fff;color:var(--marine-900);font-size:14px;font-weight:700;letter-spacing:.02em}
+.pc-cit2-f{display:grid;gap:20px;align-content:center;padding:clamp(24px,3vw,40px);background:var(--bleu-025)}
+.pc-cit2-t{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--bleu-700)}
+.pc-cit2-f ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pc-cit2-f li{display:grid;gap:4px;align-content:start;padding:16px;border-radius:14px;background:#fff;border:1px solid rgba(12,33,71,.1)}
+.pc-cit2-ic{width:32px;height:32px;margin-bottom:6px;border-radius:9px;display:grid;place-items:center;background:var(--bleu-025)}
+.pc-cit2-f strong{font-size:clamp(19px,1.6vw,24px);white-space:nowrap;font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--marine-900);font-variant-numeric:tabular-nums}
+.pc-cit2-f li>span:last-child{font-size:13px;line-height:1.45;color:var(--texte-corps)}
+@media (max-width:960px){.pc-cit2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:620px){.pc-cit2-q{text-align:center;justify-items:center}.pc-cit2 figcaption{flex-direction:column;text-align:center}.pc-cit2-f li{justify-items:center;text-align:center}.pc-cit2-f>div:first-child{justify-content:center!important;flex-wrap:wrap}}
+.pc-car{display:grid;gap:20px}
+.pc-car-piste{display:grid;grid-auto-flow:column;grid-auto-columns:100%;gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;padding:4px 2px 36px;margin:-4px -2px -32px}
+.pc-car-piste::-webkit-scrollbar{display:none}
+.pc-car-diapo{scroll-snap-align:start;min-width:0;display:grid}
+.pc-car-diapo>.pc-cit2{height:100%}
+.pc-car-nav{display:flex;align-items:center;justify-content:center;gap:16px}
+.pc-car-b{width:44px;height:44px;border-radius:12px;border:1px solid rgba(12,33,71,.18);background:#fff;display:grid;place-items:center;cursor:pointer;transition:border-color .2s,background-color .2s}
+.pc-car-b:hover{border-color:var(--marine-900);background:var(--bleu-025)}
+.pc-car-b:focus-visible,.pc-car-pts button:focus-visible{outline:2px solid var(--bleu-500);outline-offset:2px}
+.pc-car-pts{display:flex;gap:2px}
+.pc-car-pts button{position:relative;width:28px;height:44px;padding:0;border:0;background:none;cursor:pointer}
+.pc-car-pts button span{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:4px;background:rgba(12,33,71,.22);transition:width .3s cubic-bezier(.22,1,.36,1),margin .3s cubic-bezier(.22,1,.36,1),background-color .3s}
+.pc-car-pts button[aria-current="true"] span{width:22px;margin-left:-11px;background:var(--marine-900)}
+@media (prefers-reduced-motion:reduce){.pc-car-pts button span,.pc-car-b{transition:none}}
 .pc-cit{margin:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:32px 48px;align-items:end;padding:clamp(28px,4vw,56px);border-radius:24px;background:var(--degrade-marine);position:relative;overflow:hidden}
 .pc-cit::before{content:"";position:absolute;inset:0;background:var(--lueur-bleue);opacity:.6}.pc-cit>*{position:relative}
 .pc-cit blockquote{margin:0;font-weight:600;font-size:clamp(22px,2.2vw,30px);line-height:1.38;letter-spacing:-.015em;color:#fff;max-width:34ch}
@@ -443,39 +488,89 @@ function useOnglets(n) {
     })
   };
 }
+/* Témoignage en fiche de cas : la citation (marine) et, à côté, les chiffres clés de la transition (fond clair). Sans chiffres : citation seule. */
 const Citation = ({
   c
 }) => {
-  const [q, n, d] = c;
-  return <figure className="pc-cit ll-sombre"><div><span className="pc-cit-q" aria-hidden="true">«</span><blockquote>{q}</blockquote></div>
-  <figcaption><span style={{
+  const [q, n, d, f] = c;
+  const ini = n.replace(/ et /, ' ').split(/\s+/).filter(x => /^[A-ZÀ-Ý]/.test(x)).slice(0, 2).map(x => x[0]).join('');
+  return <figure className={'pc-cit2' + (f ? '' : ' seule')}>
+    <div className="pc-cit2-q ll-sombre">
+      <span className="pc-cit2-g" aria-hidden="true">«</span>
+      <blockquote>{q}</blockquote>
+      <figcaption><span className="pc-cit2-av" aria-hidden="true">{ini}</span><span style={{
+          display: 'grid',
+          gap: '2px'
+        }}><span style={{
+            fontSize: '15px',
+            fontWeight: 700,
+            color: '#fff'
+          }}>{n}</span><span style={{
+            fontSize: '13px',
+            lineHeight: 1.5,
+            color: 'var(--bleu-100)'
+          }}>{d}</span></span></figcaption></div>
+    {f && <div className="pc-cit2-f">
+      <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '10px'
-      }}><span style={{
-          display: 'flex'
-        }}>{EQ.slice(0, 2).map((f, k) => <span key={f} aria-hidden="true" style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            marginLeft: k ? '-8px' : 0,
-            border: '2px solid #12294A',
-            backgroundColor: '#1B3A60',
-            backgroundImage: 'url(' + IMG(f) + ')',
-            backgroundSize: '240%',
-            backgroundPosition: '50% 27%',
-            opacity: 0
-          }}></span>)}</span></span>
-    <span style={{
-        fontSize: '16px',
-        fontWeight: 700,
-        color: '#fff'
-      }}>{n}</span><span style={{
-        fontSize: '14px',
-        color: 'var(--bleu-100)',
-        maxWidth: '34ch'
-      }}>{d}</span><EX /></figcaption></figure>;
+        justifyContent: 'space-between',
+        gap: '12px'
+      }}><span className="pc-cit2-t">La transition en bref</span></div>
+      <ul>{f.map(([v, t, ic]) => <li key={t}><span className="pc-cit2-ic" aria-hidden="true"><Icon name={ic} size={16} color="var(--marine-900)" /></span><strong>{v}</strong><span>{t}</span></li>)}</ul></div>}
+  </figure>;
 };
+/* Carrousel de fiches de cas : une fiche visible, flèches, points et clavier (flèches gauche-droite). Défilement natif avec aimantation. */
+function CarrouselCitations({
+  items
+}) {
+  const piste = uR(null),
+    [i, setI] = uS(0),
+    n = items.length;
+  const aller = k => {
+    const el = piste.current;
+    if (!el) return;
+    const j = (k + n) % n,
+      c = el.children[j];
+    if (c) el.scrollTo({
+      left: c.offsetLeft - el.offsetLeft,
+      behavior: ((__ssr() ? "undefined" : typeof window) !== "undefined" ? matchMedia('(prefers-reduced-motion: reduce)').matches : undefined) ? 'auto' : 'smooth'
+    });
+    setI(j);
+  };
+  uE(() => {
+    const el = piste.current;
+    if (!el) return;
+    let t = 0;
+    const f = () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        const k = Math.round(el.scrollLeft / Math.max(1, el.clientWidth));
+        setI(Math.max(0, Math.min(n - 1, k)));
+      }, 80);
+    };
+    el.addEventListener('scroll', f, {
+      passive: true
+    });
+    return () => el.removeEventListener('scroll', f);
+  }, [n]);
+  const clavier = e => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      aller(i + 1);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      aller(i - 1);
+    }
+  };
+  return <section className="pc-car" aria-roledescription="carrousel" aria-label="Témoignages de propriétaires" onKeyDown={clavier}>
+    <div ref={piste} className="pc-car-piste">{items.map((c, k) => <div key={c[1]} className="pc-car-diapo" role="group" aria-roledescription="diapositive" aria-label={k + 1 + ' sur ' + n} aria-hidden={k !== i ? 'true' : undefined} inert={k !== i ? true : undefined}><Citation c={c} /></div>)}</div>
+    <div className="pc-car-nav">
+      <button type="button" className="pc-car-b" onClick={() => aller(i - 1)} aria-label="Témoignage précédent"><Icon name="arrow-left" size={18} color="var(--marine-900)" /></button>
+      <div className="pc-car-pts" role="group" aria-label="Choisir un témoignage">{items.map((c, k) => <button key={c[1]} type="button" aria-current={k === i ? 'true' : undefined} aria-label={'Témoignage ' + (k + 1) + ' sur ' + n} onClick={() => aller(k)}><span aria-hidden="true" /></button>)}</div>
+      <button type="button" className="pc-car-b" onClick={() => aller(i + 1)} aria-label="Témoignage suivant"><Icon name="arrow-right" size={18} color="var(--marine-900)" /></button>
+    </div></section>;
+}
 /* Indicateurs (valeurs d'exemple : masqués hors revue) */
 function Indicateurs({
   items,
@@ -580,13 +675,6 @@ const HerosLocation = ({
   return <PBHeros route={route} surtitre="Location et mise en marché" titre={<>Trouver des locataires <span className="llh-l">rapidement, sans perdre</span> <span className="llh-l"><span className="ll-bleu">un mois de loyer</span>.</span></>} lead={c.lead} actions={<PBActions a="Obtenir une offre" />} stats={[['17 jours', 'Délai moyen de location · exemple'], ['24/7', 'Visites réservées par Cléo'], ['72 h', 'Logement en ligne après les clés · exemple']]} />;
 };
 const FinLocation = () => <AppelFinal titre="Votre prochain logement vacant, {loué plus vite}." secondaire="Notre expertise" to2="/expertise-et-strategie" />;
-const NotesSelection = () => <div style={{
-  display: 'grid',
-  gap: '12px',
-  alignContent: 'start'
-}}>
-  <Encart ic="shield-check" t="Loi 25 : seulement ce qui est nécessaire">Chaque renseignement demandé sert à étudier la demande. Il est conservé pour une durée limitée, puis détruit. Le candidat peut consulter et faire corriger son dossier.</Encart>
-  <Encart ic="circle-check" t="Vous gardez la décision">Nous vous présentons les dossiers complets et une recommandation; le choix final vous revient.</Encart></div>;
 /* Mini-interface : deux créneaux et deux rappels, tirés du texte « Visites en ligne » */
 const Creneaux = ({
   sombre
@@ -617,6 +705,118 @@ const Creneaux = ({
     flexWrap: 'wrap'
   }}>{['Rappel 24 h avant', 'Rappel 2 h avant'].map(x => <span key={x} className="pc-chip"><Icon name="bell" size={13} />{x}</span>)}</span></div>;
 /* Aperçus de la mise en marché (illustrations : aucune donnée réelle) */
+/* Diffusion (12 oct. 2026) : la fiche part vers Facebook, Instagram et TikTok (traits animés), avec SEO, GEO et prospection par IA en continu. */
+const CSS_DIF = `
+.dif{display:grid;gap:14px;padding:22px}
+.dif-g{display:grid;grid-template-columns:104px 46px minmax(0,1fr);align-items:center}
+.dif-f{display:grid;gap:7px;padding:8px 8px 10px;border-radius:14px;background:#fff;border:1px solid rgba(12,33,71,.10);box-shadow:0 2px 4px rgba(12,33,71,.05),0 18px 34px -16px rgba(12,33,71,.30);transform:rotate(-3deg)}
+.dif-ph{position:relative;height:58px;border-radius:9px;overflow:hidden;background:linear-gradient(135deg,#4581CB,#173A6E)}
+.dif-ph::after{content:"";position:absolute;inset:auto 0 0 0;height:26px;background:linear-gradient(transparent,rgba(12,33,71,.35))}
+.dif-c{display:grid;gap:8px}
+.dif-r{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:46px;padding:0 10px 0 6px;border-radius:12px;background:#fff;border:1px solid rgba(12,33,71,.10);box-shadow:0 8px 18px -12px rgba(12,33,71,.25)}
+.dif-i{width:34px;height:34px;border-radius:9px;display:grid;place-items:center}
+.dif-ok{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#4581CB}
+.dif-ok i{width:6px;height:6px;border-radius:50%;background:#4581CB}
+.dif-l path{stroke-dasharray:4 6}
+.dif-ia{position:relative;overflow:hidden;display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:52px;padding:0 14px 0 8px;border-radius:14px;color:#fff;background:linear-gradient(120deg,#173A6E,#0C2147);box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 18px 34px -16px rgba(12,33,71,.55)}
+.dif-ia::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-40%;background:linear-gradient(100deg,transparent,rgba(145,181,224,.22),transparent)}
+.dif-pt{position:relative;width:7px;height:7px;border-radius:50%;background:#91B5E0}
+.dif-pt::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1.5px solid rgba(145,181,224,.6)}
+@media (prefers-reduced-motion:no-preference){.dif-l path{animation:dif-flux 1.1s linear infinite}@keyframes dif-flux{to{stroke-dashoffset:-20}}
+ .dif-ia::after{animation:dif-luit 3.2s ease-in-out infinite}@keyframes dif-luit{0%{left:-40%}60%,100%{left:110%}}
+ .dif-pt::after{animation:dif-p 1.8s ease-out infinite}@keyframes dif-p{from{transform:scale(.5);opacity:1}to{transform:scale(1.6);opacity:0}}
+ .dif-r{animation:dif-in .6s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d)}@keyframes dif-in{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}}
+@media (max-width:420px){.dif-g{grid-template-columns:84px 30px minmax(0,1fr)}.dif-ok{display:none}}`;
+const LOGO = {
+  Facebook: [<path key="f" d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.6V21h3.1z" fill="#fff" />, '#1877F2'],
+  Instagram: [<g key="i" fill="none" stroke="#fff" strokeWidth="1.9"><rect x="4.5" y="4.5" width="15" height="15" rx="4.2" /><circle cx="12" cy="12" r="3.5" /><circle cx="16.6" cy="7.4" r=".6" fill="#fff" stroke="none" /></g>, 'linear-gradient(135deg,#F58529,#DD2A7B 50%,#8134AF)'],
+  TikTok: [<path key="t" d="M16.3 4c.3 1.9 1.6 3.3 3.5 3.5v2.8c-1.3 0-2.5-.4-3.5-1.1v5.6a5 5 0 1 1-5-5h.5v2.9a2.2 2.2 0 1 0 1.7 2.1V4h2.8z" fill="#fff" />, '#111827']
+};
+const CANAUX = [['Facebook', 'Page et Marketplace'], ['Instagram', 'Publications et stories'], ['TikTok', 'Vidéo de présentation']];
+function Diffusion() {
+  return <div className="pc-t dif"><style>{CSS_DIF}</style><span className="pc-chip" style={{
+      justifySelf: 'start'
+    }}>Illustration</span>
+    <div className="dif-g">
+      <div className="dif-f"><div className="dif-ph"><svg viewBox="0 0 100 40" preserveAspectRatio="none" style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100%',
+            height: '60%'
+          }}><path d="M0 40V26h10v-8h8v8h9V14l6-6 6 6v12h12v-9h10v9h8V20h9v20z" fill="rgba(255,255,255,.18)" /></svg></div>
+        <span style={{
+          height: '7px',
+          width: '80%',
+          borderRadius: '4px',
+          background: '#C8DAF0'
+        }}></span><span style={{
+          height: '6px',
+          width: '60%',
+          borderRadius: '4px',
+          background: '#E1E8F1'
+        }}></span>
+        <span style={{
+          fontSize: '10.5px',
+          fontWeight: 700,
+          color: 'var(--marine-900)'
+        }}>Fiche du logement</span></div>
+      <svg className="dif-l" viewBox="0 0 46 170" preserveAspectRatio="none" style={{
+        width: '100%',
+        height: '170px'
+      }} aria-hidden="true"><g fill="none" stroke="#91B5E0" strokeWidth="1.6" strokeLinecap="round">
+        <path d="M0 85 C24 85 22 26 46 26" /><path d="M0 85 C24 85 22 85 46 85" /><path d="M0 85 C24 85 22 144 46 144" /></g><circle cx="2" cy="85" r="3.5" fill="#4581CB" /></svg>
+      <div className="dif-c">{CANAUX.map(([n, x], i) => {
+          const [g, bg] = LOGO[n];
+          return <div key={n} className="dif-r" style={{
+            '--d': i * 120 + 'ms'
+          }}>
+        <span className="dif-i" style={{
+              background: bg
+            }}><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">{g}</svg></span>
+        <span style={{
+              display: 'grid',
+              minWidth: 0
+            }}><strong style={{
+                fontSize: '13px',
+                color: 'var(--marine-900)'
+              }}>{n}</strong><span style={{
+                fontSize: '11px',
+                color: 'var(--texte-discret)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>{x}</span></span>
+        <span className="dif-ok"><i></i>Publié</span></div>;
+        })}</div></div>
+    <div className="dif-ia"><span style={{
+        width: '34px',
+        height: '34px',
+        borderRadius: '9px',
+        background: 'rgba(255,255,255,.10)',
+        display: 'grid',
+        placeItems: 'center'
+      }}><Icon name="sparkles" size={16} color="#C8DAF0" /></span>
+      <span style={{
+        display: 'grid'
+      }}><strong style={{
+          fontSize: '13px',
+          color: '#fff'
+        }}>SEO, GEO et prospection par IA</strong><span style={{
+          fontSize: '11px',
+          color: '#B5CDEA'
+        }}>Google, moteurs IA et locataires potentiels</span></span>
+      <span style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        fontSize: '11px',
+        fontWeight: 600,
+        color: '#C8DAF0'
+      }}><span className="dif-pt"></span>En continu</span></div>
+  </div>;
+}
 function ApercuMarche({
   k
 }) {
@@ -636,7 +836,7 @@ function ApercuMarche({
     }}><span className="pc-chip">Illustration</span><strong style={{
         fontSize: '16px',
         color: 'var(--marine-900)'
-      }}>{g('[Type de logement] · [Secteur]')}</strong>
+      }}>4½ rénové · Montcalm</strong>
       <div style={{
         display: 'flex',
         flexWrap: 'wrap',
@@ -655,7 +855,7 @@ function ApercuMarche({
       background: 'var(--surface-enfoncee)',
       fontSize: '13px',
       color: 'var(--marine-900)'
-    }}><Icon name="lock" size={14} color="var(--gris-500)" />leaselane.ca/logements/{g('[adresse]')}</div>
+    }}><Icon name="lock" size={14} color="var(--gris-500)" />leaselane.ca/logements/votre-logement</div>
     {[0, 1, 2].map(i => <div key={i} style={{
       display: 'grid',
       gap: '6px',
@@ -672,37 +872,7 @@ function ApercuMarche({
         borderRadius: '6px',
         background: 'var(--gris-100)'
       }}></span></div>)}</div>;
-  if (k === 2) return <div className="pc-t" style={{
-    gap: '14px'
-  }}><span className="pc-chip">Illustration</span><div style={{
-      display: 'grid',
-      gridTemplateColumns: 'auto 1fr',
-      gap: '12px',
-      alignItems: 'center'
-    }}>
-    <span style={{
-        width: '64px',
-        height: '64px',
-        borderRadius: '16px',
-        background: 'var(--marine-900)',
-        display: 'grid',
-        placeItems: 'center'
-      }}><Icon name="file-text" size={26} color="#fff" /></span>
-    <div style={{
-        display: 'grid',
-        gap: '8px'
-      }}>{[0, 1, 2].map(i => <span key={i} style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          minHeight: '40px',
-          padding: '0 12px',
-          borderRadius: '10px',
-          background: 'var(--bleu-clair)',
-          fontSize: '13px',
-          fontWeight: 600,
-          color: 'var(--marine-900)'
-        }}><Icon name="share-2" size={14} color="var(--bleu-600)" />{g('[canal à confirmer]')}</span>)}</div></div></div>;
+  if (k === 2) return <Diffusion />;
   return <div className="pc-t m ll-sombre" style={{
     gap: '16px'
   }}><span style={{
@@ -761,45 +931,72 @@ function LocationC({
               fontSize: 'clamp(22px,2.2vw,28px)'
             }}>{cur[1]}</h3><p className="pc-p">{g(cur[2])}</p></div>
           <div className="pc-c6" aria-hidden="true"><ApercuMarche k={o.a} /></div></div></Vu></Sec>
-    <Sec label="loc-sel"><div className="pc-g" style={{
-        alignItems: 'start'
-      }}>
-      <div className="pc-c7" style={{
-          display: 'grid',
-          gap: 'clamp(28px,3vw,40px)'
-        }}><Tete id="loc-sel" lib="Sélection des locataires" titre="Des {vérifications complètes}, avec consentement." />
-        <div ref={ref} className="pc-t d" style={{
-            gap: '16px'
-          }}><div className="pc-k"><strong style={{
-                fontSize: '14px',
-                color: 'var(--marine-900)'
-              }} aria-hidden="true">{n} sur {c.selection.length} vérifications</strong><span className="pc-chip">Dossier type</span></div>
+    <Sec label="loc-sel"><Tete id="loc-sel" lib="Sélection des locataires" titre="Des {vérifications complètes}, avec consentement." intro="Cinq vérifications, toujours avec le consentement écrit du candidat. Vous recevez un dossier complet et une recommandation." />
+      <div className="pc-sel">
+        <div ref={ref} className="pc-sel-l"><div className="pc-k"><strong style={{
+              fontSize: '14px',
+              color: 'var(--marine-900)'
+            }} aria-hidden="true">{n} sur {c.selection.length} vérifications</strong><span className="pc-chip">Dossier type</span></div>
           <span aria-hidden="true" style={{
-              height: '6px',
-              borderRadius: '6px',
-              background: 'rgba(12,33,71,.08)',
-              overflow: 'hidden'
-            }}><i style={{
-                display: 'block',
-                height: '100%',
-                background: 'linear-gradient(90deg,var(--bleu-500),var(--marine-900))',
-                transformOrigin: '0 50%',
-                transform: 'scaleX(' + n / c.selection.length + ')',
-                transition: 'transform .4s cubic-bezier(.22,1,.36,1)'
-              }}></i></span>
-          <ul className="pc-coches">{c.selection.map((t, i) => <li key={t} style={{
-                background: i < n ? 'var(--bleu-clair)' : '#fff',
-                transition: 'background-color .4s'
-              }}><span aria-hidden="true" style={{
-                  transform: i < n ? 'none' : 'scale(.85)',
-                  transition: 'transform .35s cubic-bezier(.34,1.56,.64,1)'
-                }}><Icon name={i < n ? 'check' : 'loader-circle'} size={17} color={i < n ? 'var(--bleu-600)' : 'var(--gris-400)'} /></span>{g(t)}</li>)}</ul></div></div>
-      <Vu className="pc-c5 pc-r" style={{
-          '--d': '200ms',
-          alignSelf: 'end'
-        }}><NotesSelection /></Vu></div></Sec>
+            height: '6px',
+            borderRadius: '6px',
+            background: 'rgba(12,33,71,.08)',
+            overflow: 'hidden'
+          }}><i style={{
+              display: 'block',
+              height: '100%',
+              background: 'linear-gradient(90deg,var(--bleu-500),var(--marine-900))',
+              transformOrigin: '0 50%',
+              transform: 'scaleX(' + n / c.selection.length + ')',
+              transition: 'transform .4s cubic-bezier(.22,1,.36,1)'
+            }}></i></span>
+          <ol className="pc-sel-o">{c.selection.map((t, i) => <li key={t} data-ok={i < n ? '1' : '0'}><span className="pc-sel-n" aria-hidden="true">{pad(i + 1)}</span><span className="pc-sel-t">{g(t)}</span><span className="pc-sel-c" aria-hidden="true"><Icon name="check" size={16} color="var(--bleu-600)" /></span></li>)}</ol></div>
+        <div className="pc-sel-r">
+          <Vu className="pc-r pc-sel-d" style={{
+            '--d': '120ms'
+          }}><span aria-hidden="true" style={{
+              width: '46px',
+              height: '46px',
+              borderRadius: '12px',
+              background: 'rgba(255,255,255,.10)',
+              display: 'grid',
+              placeItems: 'center'
+            }}><Icon name="circle-check" size={22} color="#C8DAF0" /></span>
+            <strong style={{
+              fontSize: 'clamp(20px,2vw,24px)',
+              letterSpacing: '-0.02em',
+              color: '#fff'
+            }}>Vous gardez la décision</strong><p style={{
+              margin: 0,
+              fontSize: '14px',
+              lineHeight: 1.65,
+              color: 'var(--bleu-100)'
+            }}>Nous vous présentons les dossiers complets et une recommandation. Le choix final vous revient.</p></Vu>
+          <Vu className="pc-r pc-sel-loi" style={{
+            '--d': '220ms'
+          }}><span aria-hidden="true" style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '11px',
+              background: '#EEF4FB',
+              display: 'grid',
+              placeItems: 'center',
+              flex: 'none'
+            }}><Icon name="shield-check" size={18} color="var(--bleu-600)" /></span>
+            <div style={{
+              display: 'grid',
+              gap: '6px'
+            }}><strong style={{
+                fontSize: '15px',
+                color: 'var(--marine-900)'
+              }}>Loi 25 : seulement ce qui est nécessaire</strong><p style={{
+                margin: 0,
+                fontSize: '13.5px',
+                lineHeight: 1.6,
+                color: 'var(--texte-corps)'
+              }}>Chaque renseignement demandé sert à étudier la demande. Il est conservé pour une durée limitée, puis détruit. Le candidat peut consulter et faire corriger son dossier.</p></div></Vu></div></div></Sec>
     <Sec douce label="loc-arr"><Tete id="loc-arr" lib="Signature et arrivée" titre="Du bail signé aux {clés remises}." /><Etapes items={c.arrivee} /></Sec>
-    {<CleoEnAction surtitre="Le parcours d'un prospect" titre="Question, disponibilité, {visite réservée}, relance." />}
+    {<CleoEnAction surtitre="Le parcours d'un locataire potentiel" titre="Question, disponibilité, {visite réservée}, relance." />}
     <FAQ route={route} douce titre="{Louer vite}, sans raccourci." />
     <FinLocation />
   </>;
@@ -832,7 +1029,7 @@ function ChangerB({
   };
   return <>
     <HerosChanger route={route} />
-    <section className="pc-s"><div className="pc-in"><Parcours chap={[['chb-etapes', 'Les étapes', 'Quatre étapes, {un seul interlocuteur}.', <Frise items={c.etapes} extra={verif} />, 'Chaque étape avec sa liste de vérification et ce que vous fournissez. Les repères de durée sont des exemples.'], ['chb-qui', 'Qui fait quoi', 'Nous {prenons en charge}, vous fournissez l’essentiel.', <Tableau cols={COLS_QF} lignes={c.quiFait} ic={['check', 'user']} />], ['chb-temoignage', 'Témoignage', 'Ils ont {changé de gestionnaire}.', <Citation c={c.citation} />]]} /></div></section>
+    <section className="pc-s"><div className="pc-in"><Parcours chap={[['chb-etapes', 'Les étapes', 'Quatre étapes, {un seul interlocuteur}.', <Frise items={c.etapes} extra={verif} />, 'Chaque étape avec sa liste de vérification et ce que vous fournissez. Les repères de durée sont des exemples.'], ['chb-qui', 'Qui fait quoi', 'Nous {prenons en charge}, vous fournissez l’essentiel.', <Tableau cols={COLS_QF} lignes={c.quiFait} ic={['check', 'user']} />], ['chb-temoignage', 'Témoignage', 'Ils ont {changé de gestionnaire}.', c.temoignages ? <CarrouselCitations items={[c.citation, ...c.temoignages]} /> : <Citation c={c.citation} />]]} /></div></section>
     <FAQ route={route} douce titre="Les questions sur {la transition}." />
     <FinChanger />
   </>;

@@ -5,7 +5,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Icon } from '@/components/ds';
-import { gab } from '@/proto/blocs';
 import { LL_DATA } from '@/proto/data';
 import { CarteFiche } from '@/proto/fiche';
 import { FicheDetails } from '@/proto/fiche-details';
@@ -13,7 +12,6 @@ import { __maintenant, useEtatClient, __ssr } from '@/lib/hydratation';
 const uS = React.useState,
   uE = React.useEffect,
   uR = React.useRef;
-const g = t => gab ? gab(t) : t;
 const IMG = "/assets/img/";
 const reduit = () => ((__ssr() ? "undefined" : typeof window) !== "undefined" ? window.matchMedia : undefined) && ((__ssr() ? "undefined" : typeof window) !== "undefined" ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : undefined);
 /* ——— Données du logement (une seule source pour les trois options) ——— */
@@ -43,7 +41,7 @@ const L = {
 };
 /* Inclus : true = inclus · false = non inclus · 'cond' = sous conditions · null = à confirmer */
 const INCL = [['chauff', 'Chauffé', 'flame', null], ['eclaire', 'Éclairé', 'lightbulb', false], ['meuble', 'Meublé', 'house', false], ['station', 'Stationnement', 'car', true], ['animaux', 'Animaux acceptés', 'key', 'cond'], ['laveuse', 'Entrées laveuse-sécheuse', 'zap', false]];
-const etatIncl = v => v === true ? ['Inclus', 'oui'] : v === false ? ['Non inclus', 'non'] : v === 'cond' ? ['Sous conditions', 'cond'] : [g('[à confirmer]'), 'nc'];
+const etatIncl = v => v === true ? ['Inclus', 'oui'] : v === false ? ['Non inclus', 'non'] : v === 'cond' ? ['Sous conditions', 'cond'] : ['Sur demande', 'nc'];
 const DESC = 'Logement de deux chambres au deuxième étage d’un triplex entretenu, à dix minutes à pied du traversier. Cuisine et salle de bain refaites en 2024, planchers de bois franc d’origine, fenêtres pleine hauteur sur la façade sud.';
 const DESC2 = 'Buanderie commune au sous-sol, un stationnement extérieur inclus.';
 const PHOTOS = [{

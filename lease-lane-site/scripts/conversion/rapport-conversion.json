@@ -10,9 +10,19 @@
    "imports": 2,
    "client": false
   },
+  "articles-blogue.js": {
+   "exports": 1,
+   "imports": 0,
+   "client": false
+  },
+  "localites-routes.js": {
+   "exports": 1,
+   "imports": 0,
+   "client": false
+  },
   "routes.js": {
    "exports": 6,
-   "imports": 0,
+   "imports": 2,
    "client": false
   },
   "faq.js": {
@@ -67,7 +77,7 @@
   },
   "seo.jsx": {
    "exports": 25,
-   "imports": 6,
+   "imports": 9,
    "client": true
   },
   "blocs.jsx": {
@@ -162,7 +172,7 @@
   },
   "locataires-v3-b.jsx": {
    "exports": 1,
-   "imports": 3,
+   "imports": 4,
    "client": true
   },
   "formulaires.jsx": {
@@ -301,7 +311,7 @@
    "client": true
   },
   "accueil-faq-12.jsx": {
-   "exports": 4,
+   "exports": 5,
    "imports": 6,
    "client": true
   },
@@ -357,12 +367,27 @@
   },
   "pages-blogue.jsx": {
    "exports": 3,
-   "imports": 4,
+   "imports": 6,
    "client": true
   },
   "pages-guides.jsx": {
-   "exports": 5,
-   "imports": 6,
+   "exports": 6,
+   "imports": 8,
+   "client": true
+  },
+  "levis-donnees.js": {
+   "exports": 1,
+   "imports": 0,
+   "client": false
+  },
+  "localites-donnees.js": {
+   "exports": 2,
+   "imports": 0,
+   "client": false
+  },
+  "pages-levis.jsx": {
+   "exports": 3,
+   "imports": 7,
    "client": true
   },
   "cleo-panneau.jsx": {
@@ -392,7 +417,7 @@
   },
   "app.jsx": {
    "exports": 21,
-   "imports": 28,
+   "imports": 29,
    "client": true
   }
  },
@@ -429,6 +454,12 @@
    "effets": [
     "Object.assign(W.SV11_H, {\n  TeteS,\n  CtaS,\n  Liste,\n  Nb,\n  Ok\n});",
     "if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {\n  FONTE = true;\n});"
+   ]
+  },
+  {
+   "f": "pages-levis.jsx",
+   "effets": [
+    "if (!document.getElementById('lv-css')) {\n  const st = document.createElement('style');\n  st.id = 'lv-css';\n  st.textContent = '@media (max-width:960px){.lv-g3{"
    ]
   },
   {
@@ -481,7 +512,14 @@
   "accueil-v2.jsx : '#' + GI",
   "accueil-v2.jsx : '#' + to",
   "accueil-v2.jsx : '#' + to",
-  "pied-options.jsx : '#' + to"
+  "pied-options.jsx : '#' + to",
+  "pied-options.jsx : '#' + N[x][0]",
+  "pied-options.jsx : '#' + N[x][0]",
+  "pages-blogue.jsx : '#' + m[4]",
+  "pages-guides.jsx : '#' + to",
+  "pages-levis.jsx : '#' + m[3]",
+  "pages-levis.jsx : '#' + lien",
+  "pages-levis.jsx : '#' + lien"
  ],
  "ordre": [
   "menu-options.jsx : MenuCleo lu au chargement → version de menu-cleo.jsx",
@@ -610,20 +648,20 @@
   "recherche.jsx : 1",
   "fiche.jsx : 2",
   "fiche-concepts.jsx : 3",
-  "seo.jsx : 3",
+  "seo.jsx : 5",
   "blocs.jsx : 2",
   "forms-principal.jsx : 2",
   "demande.jsx : 1",
   "pages-proprio-b.jsx : 4",
-  "gestion-options-b.jsx : 3",
+  "gestion-options-b.jsx : 5",
   "pages-lease.jsx : 4",
   "cleo-concepts.jsx : 13",
-  "apropos-concepts.jsx : 2",
   "proprio-concepts.jsx : 8",
   "pages-locataires.jsx : 2",
   "pages-locataires-v2.jsx : 4",
   "locataires-v3-commun.jsx : 5",
   "locataires-v3-a.jsx : 1",
+  "locataires-v3-b.jsx : 1",
   "formulaires.jsx : 2",
   "accueil-heros.jsx : 5",
   "accueil-heros2.jsx : 3",
@@ -654,16 +692,17 @@
   "accueil-cleo-final.jsx : 1",
   "accueil-chiffres-services.jsx : 3",
   "accueil-v2.jsx : 8",
-  "pied-options.jsx : 4",
+  "pied-options.jsx : 5",
   "pages-contact.jsx : 2",
   "pages-contact-v2.jsx : 3",
-  "pages-blogue.jsx : 1",
+  "pages-blogue.jsx : 4",
   "pages-guides.jsx : 2",
+  "pages-levis.jsx : 3",
   "cleo-formulaires.jsx : 3",
   "cleo-options.jsx : 1",
   "accueil-cleo-mobile.jsx : 1",
   "cleo-temoins.jsx : 1",
-  "app.jsx : 20"
+  "app.jsx : 25"
  ],
  "gardesNavigateur": [
   "../portail-commun/logements-store.js : 1",
@@ -680,12 +719,12 @@
   "pages-proprietaires.jsx : 1",
   "pages-proprio-b.jsx : 4",
   "gestion-options-a.jsx : 8",
-  "gestion-options-b.jsx : 1",
+  "gestion-options-b.jsx : 2",
   "pages-lease.jsx : 1",
   "cleo-concepts.jsx : 10",
   "apropos-visuel.jsx : 7",
   "apropos-concepts.jsx : 17",
-  "proprio-concepts.jsx : 12",
+  "proprio-concepts.jsx : 13",
   "pages-locataires.jsx : 4",
   "pages-locataires-v2.jsx : 3",
   "locataires-v3-commun.jsx : 5",
@@ -711,11 +750,13 @@
   "accueil-cleo-recit.jsx : 22",
   "accueil-chiffres-services.jsx : 1",
   "accueil-v2.jsx : 3",
-  "pied-options.jsx : 1",
+  "pied-options.jsx : 2",
   "pages-contact.jsx : 1",
   "pages-contact-v2.jsx : 1",
-  "pages-blogue.jsx : 6",
-  "cleo-panneau.jsx : 1",
+  "pages-blogue.jsx : 11",
+  "pages-guides.jsx : 7",
+  "pages-levis.jsx : 2",
+  "cleo-panneau.jsx : 3",
   "cleo-options.jsx : 4",
   "accueil-cleo-mobile.jsx : 2",
   "cleo-temoins.jsx : 5",
@@ -863,5 +904,8 @@
   "cleo-options.jsx : 1",
   "accueil-cleo-mobile.jsx : 1",
   "cleo-temoins.jsx : 2"
+ ],
+ "cssNonExtrait": [
+  "pages-levis.jsx"
  ]
 }

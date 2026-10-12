@@ -113,6 +113,17 @@ function CleoTemoins() {
     window.addEventListener('keydown', k);
     return () => (__ssr() ? "undefined" : typeof window) !== "undefined" ? window.removeEventListener('keydown', k) : undefined;
   }, [vue, choix]);
+  /* Annonce si la bulle des témoins est à l'écran : la bulle d'aide de Cléo attend qu'elle soit fermée (une seule bulle à la fois). */
+  React.useEffect(() => {
+    window.__llTemoinsOuvert = !!vue;
+    try {
+      window.dispatchEvent(new CustomEvent('ll-temoins-vue', {
+        detail: {
+          ouvert: !!vue
+        }
+      }));
+    } catch (e) {}
+  }, [vue]);
   const fermer = () => {
     setVue(null);
     try {

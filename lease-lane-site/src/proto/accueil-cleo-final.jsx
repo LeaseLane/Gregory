@@ -7,10 +7,10 @@ import { ACC_H } from '@/proto/accueil-options-1';
 import { ouvrirCleo } from '@/proto/seo';
 const PORT = "/assets/img/cleo/cleo-hd.jpg",
   ALT = 'Portrait de Cléo, l’assistant IA de Lease Lane';
-const TITRES = ['Voici Cléo. Votre gestionnaire IA {qui ne dort jamais.}', 'Votre bail a des questions. {Cléo a les réponses.}', 'Le TAL, les délais, les urgences : {Cléo s’en occupe, jour et nuit.}', 'Propriétaire ou locataire, {une seule adresse pour avoir l’heure juste.}'];
-const SOUS = 'L’assistant IA de Lease Lane répond 24/7 aux propriétaires et aux locataires, explique les règles du TAL en termes simples et passe la main à un humain quand ça compte.';
+const TITRES = ['Cléo, votre gestionnaire IA, {répond jour et nuit.}', 'Des questions? {Cléo se fera un plaisir de vous répondre.}', 'Le TAL, les délais, les urgences : {Cléo s’en occupe, jour et nuit.}', 'Propriétaire ou locataire, {une seule adresse pour avoir l’heure juste.}'];
+const SOUS = 'L’assistant IA de Lease Lane répond 24/7 aux propriétaires et aux locataires, explique les règles du TAL en termes simples et passe la main à une personne de l’équipe quand votre dossier l’exige.';
 const SURT = 'Voici les compétences de Cléo :',
-  MENTION = 'Information juridique générale, pas un avis juridique. Un humain prend le relais dès que votre dossier le demande.';
+  MENTION = 'Information juridique générale, pas un avis juridique. Une personne de l’équipe prend le relais dès que votre dossier le demande.';
 const CAP = [{
   ic: 'scale',
   t: 'Le TAL et le Code civil, expliqués',

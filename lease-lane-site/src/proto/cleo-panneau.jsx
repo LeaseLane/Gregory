@@ -244,8 +244,20 @@ function Creneaux({
 function CleoAccroche({
   onOuvrir
 }) {
-  const [vue, setVue] = React.useState(false);
+  const [vue, setVue] = React.useState(false),
+    [bloque, setBloque] = React.useState(false);
+  /* Une seule bulle à la fois : tant que la bulle des témoins est ouverte, l'accroche attend; elle paraît 3,5 s après sa fermeture. */
   React.useEffect(() => {
+    setBloque(!!((__ssr() ? "undefined" : typeof window) !== "undefined" ? window.__llTemoinsOuvert : undefined));
+    const f = e => setBloque(!!(e.detail && e.detail.ouvert));
+    window.addEventListener('ll-temoins-vue', f);
+    return () => (__ssr() ? "undefined" : typeof window) !== "undefined" ? window.removeEventListener('ll-temoins-vue', f) : undefined;
+  }, []);
+  React.useEffect(() => {
+    if (bloque) {
+      setVue(false);
+      return;
+    }
     let deja = false;
     try {
       deja = ((__ssr() ? "undefined" : typeof localStorage) !== "undefined" ? localStorage.getItem('ll-cleo-accroche') : undefined) === '1';
@@ -253,7 +265,7 @@ function CleoAccroche({
     if (deja) return;
     const t = setTimeout(() => setVue(true), 3500);
     return () => clearTimeout(t);
-  }, []);
+  }, [bloque]);
   const fermer = () => {
     setVue(false);
     try {

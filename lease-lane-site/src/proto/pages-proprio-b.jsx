@@ -753,22 +753,22 @@ function PageGestionB({
     <PBChapitres chapitres={[{
       id: 'qui',
       court: 'Pour qui?',
-      t: 'Une offre qui s\u2019adresse à tous les propriétaires d\u2019immeubles résidentiels dans la {grande région de Québec}.',
+      t: 'Pour tous les immeubles résidentiels de la {grande région de Québec}.',
       contenu: <GestionS01 actuel={<TypesImmeubles />} />
     }, {
       id: 'volets',
       court: 'Services offerts',
-      t: 'Lease Lane vous offre un service {clé en main} pour vos immeubles. Tout est pris en charge.',
+      t: 'Un service {clé en main} pour vos immeubles.',
       contenu: <GestionS02 actuel={<ServicesOfferts />} />
     }, {
       id: 'voir',
       court: 'Ce que vous voyez',
-      t: 'Une {toute nouvelle approche} de la gestion d\u2019immeubles à Québec. Une solution pensée pour optimiser la gestion immobilière dans sa globalité.',
+      t: 'Ce que vous voyez dans votre {espace propriétaire}.',
       contenu: <GestionS03 actuel={<ApercuPortail />} />
     }, {
       id: 'cleo',
       court: 'Ce que Cléo change',
-      t: 'Votre agent IA {qui ne dort pas}, au service de vos locataires, de vous et de votre équipe.',
+      t: 'Cléo, votre agent IA, répond à vos locataires et aux locataires potentiels, {jour et nuit}.',
       contenu: <GestionS04 actuel={<div style={{
         display: 'grid',
         gap: '32px'
@@ -776,7 +776,7 @@ function PageGestionB({
     }, {
       id: 'main',
       court: 'Vos décisions',
-      t: 'Vous gardez la main sur {l’essentiel}. Vous ne travaillez pas mais vous êtes en contrôle total.',
+      t: 'Vous gardez la main sur {les décisions importantes}. Nous faisons le travail.',
       contenu: <GestionS05 actuel={<div className="ll-deux" style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)',
@@ -794,7 +794,7 @@ function PageGestionB({
       t: 'Quatre engagements chiffrés, {vérifiables} dans votre rapport.',
       contenu: <GestionS06 actuel={<PBChiffres items={c.engagements} />} />
     }]} />
-    {<F12C />}
+    {<F12C guides={['frais-gestion-immobiliere-quebec', 'logement-vacant-cout', 'loyer-impaye', 'hausse-de-loyer-2026', 'enquete-prelocation']} />}
     <GestionOffre actuel={<BlocOffre fond="blanc" />} />
   </div>;
 }
