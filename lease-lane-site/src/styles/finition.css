@@ -58,7 +58,7 @@
 .fn-voie{transition:background-color 220ms}.fn-voie:not([style*="degrade"]):hover{background:#F3F7FC!important}.fn-voie .fn-voie-fl{transition:transform 280ms cubic-bezier(.22,1,.36,1)}.fn-voie:hover .fn-voie-fl{transform:translateX(4px)}.fn-voie:focus-visible{outline:2px solid #4581CB;outline-offset:2px}
 @media (max-width:960px){.pl-lim{grid-template-columns:minmax(0,1fr)!important}.pl-lim>li{border-left:0!important;border-top:1px solid var(--bordure-fine)!important}.pl-lim>li:first-child{border-top:0!important}}
 /* Composants : rectangles aux coins adoucis, jamais en pilule (consigne de marque). */
-:is(#ll-page,.ll-cleo-flottant,.ll-entete,header,footer) :is([style*="border-radius: 999px"],[style*="border-radius: 9999px"],[style*="var(--rayon-pilule)"]):not(img){border-radius:8px!important}
+:is(#ll-page,.ll-cleo-flottant,.ll-entete,header,footer) :is(:is([style*="border-radius: 999px"],[style*="border-radius:999px"]),:is([style*="border-radius: 9999px"],[style*="border-radius:9999px"]),[style*="var(--rayon-pilule)"]):not(img){border-radius:8px!important}
 /* Aucun sur-titre en capitales espacées (« / 01 · … ») sur le site public : le titre suffit. */
 :is(#ll-page,footer) [data-overline]{display:none!important}
 :is(#ll-page,footer) [data-overline]+h2,:is(#ll-page,footer) [data-overline]+h1{margin-top:0!important}

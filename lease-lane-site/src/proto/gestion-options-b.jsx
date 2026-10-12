@@ -532,7 +532,7 @@ const TalBureau = ({
   <DeuxCartes /><MentionSombre /></div>;
 
 /* Mobile : trois diapositives (présentation · sujets · mise à jour), la démo est masquée — inchangé. */
-const TalMobile = () => <div className="go-tal-car" data-hauteur-auto="" style={{
+const TalMobile = () => <div className="go-tal-car" style={{
   display: 'grid',
   gap: '24px'
 }}>

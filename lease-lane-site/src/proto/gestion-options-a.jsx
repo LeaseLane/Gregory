@@ -555,22 +555,13 @@ function TitrePanneau({
   }}>
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'auto minmax(0,1fr)',
+      gridTemplateColumns: 'minmax(0,1fr)',
       alignItems: 'center',
       gap: '20px'
     }}>
-      <span aria-hidden="true" style={{
-        fontSize: '72px',
-        fontWeight: 800,
-        lineHeight: .9,
-        letterSpacing: '-0.05em',
-        color: 'var(--bleu-300)'
-      }}>{num}</span>
       <div style={{
         display: 'grid',
-        gap: '4px',
-        paddingLeft: '20px',
-        borderLeft: '1px solid rgba(200,218,240,.22)'
+        gap: '4px'
       }}><h3 style={{
           margin: 0,
           fontSize: '30px',

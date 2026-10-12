@@ -118,7 +118,7 @@ const Meta = ({
   <span style={{
     fontWeight: 700,
     color: clair ? '#fff' : BL6
-  }}>{catNom(a.cat)}</span><time dateTime={a.d}>{dateFr(a.d)}</time><span>{a.min} min de lecture</span></span>;
+  }}>{catNom(a.cat)}</span><time dateTime={a.d}>{dateFr(a.d)}</time></span>;
 /* Couvertures (scripts/couvertures.mjs du site Next.js) : <slug>.webp / <slug>-en.webp (logo, slogan et titre), affichées entières (format 1376 × 768) dans les cartes et en tête d'article. */
 const COUV_ALT = {
   'hausse-de-loyer-2026': {
@@ -566,7 +566,7 @@ function PageArticleHausse({
               lineHeight: 1.3,
               color: 'var(--bleu-100)'
             }}>{g(au.role)}</dd></span></div>
-        {[['Publié le', <time dateTime={a.d} itemProp="datePublished">{dateFr(a.d)}</time>], ['Mis à jour le', <time dateTime={a.m} itemProp="dateModified">{dateFr(a.m)}</time>], ['Lecture', a.min + ' min']].map(([k, v]) => <div key={k} className="bl-meta-i" style={{
+        {[['Publié le', <time dateTime={a.d} itemProp="datePublished">{dateFr(a.d)}</time>], ['Mis à jour le', <time dateTime={a.m} itemProp="dateModified">{dateFr(a.m)}</time>]].map(([k, v]) => <div key={k} className="bl-meta-i" style={{
           display: 'grid',
           gap: '3px',
           alignContent: 'center',
@@ -1058,7 +1058,7 @@ function PageArticleDonnees({
               lineHeight: 1.3,
               color: 'var(--bleu-100)'
             }}>{g(au.role)}</dd></span></div>
-        {[['Publié le', <time dateTime={a.d} itemProp="datePublished">{dateFr(a.d)}</time>], ['Mis à jour le', <time dateTime={a.m} itemProp="dateModified">{dateFr(a.m)}</time>], ['Lecture', a.min + ' min']].map(([k, v]) => <div key={k} className="bl-meta-i" style={{
+        {[['Publié le', <time dateTime={a.d} itemProp="datePublished">{dateFr(a.d)}</time>], ['Mis à jour le', <time dateTime={a.m} itemProp="dateModified">{dateFr(a.m)}</time>]].map(([k, v]) => <div key={k} className="bl-meta-i" style={{
           display: 'grid',
           gap: '3px',
           alignContent: 'center',

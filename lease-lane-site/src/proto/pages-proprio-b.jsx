@@ -424,23 +424,7 @@ function PBSommaire({
       display: 'grid',
       gap: '8px'
     }}>
-        <span style={{
-        display: 'flex',
-        alignItems: 'baseline',
-        gap: '8px'
-      }}><span style={{
-          fontSize: '72px',
-          fontWeight: 800,
-          lineHeight: .9,
-          letterSpacing: '-0.05em',
-          color: 'var(--marine-900)',
-          fontVariantNumeric: 'tabular-nums'
-        }}>{pad2(ai + 1)}</span><span style={{
-          fontSize: '16px',
-          fontWeight: 700,
-          color: 'var(--texte-discret)',
-          fontVariantNumeric: 'tabular-nums'
-        }}>/ {pad2(n)}</span></span>
+        
         <span style={{
         fontSize: '18px',
         fontWeight: 700,

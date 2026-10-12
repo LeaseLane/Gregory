@@ -3,9 +3,9 @@ import { useEffect } from 'react';
    Elles observent le DOM (MutationObserver) et suivent donc aussi les changements de page. */
 /* Le marquage des sections attend que la page soit hydratée (sinon le HTML du serveur et le rendu client diffèrent) :
    chaque vue l'annonce avec usePagePrete(). */
-let pagePrete = false, relancer = null;
+let pagePrete = false, relancer = null; const relanceurs = [];
 export function usePagePrete() {
-  useEffect(() => { pagePrete = true; if (relancer) relancer(); }, []);
+  useEffect(() => { pagePrete = true; if (relancer) relancer(); relanceurs.forEach(f => setTimeout(f, 150)); }, []);
 }
 export function demarrerFinitions() {
   if (typeof window === 'undefined' || window.__llFinitions) return;
@@ -57,9 +57,9 @@ export function demarrerFinitions() {
     c.addEventListener('scroll',function(){clearTimeout(c.__t);c.__t=setTimeout(maj,60)},{passive:true});maj();
     if(c.hasAttribute('data-hauteur-auto')){window.addEventListener('resize',function(){clearTimeout(c.__r);c.__r=setTimeout(maj,150)});if(document.fonts)document.fonts.ready.then(maj)}
   }
-  function balayer(){if(!mq.matches)return;SEL.forEach(function(s){var n;try{n=document.querySelectorAll(s)}catch(e){return}[].forEach.call(n,function(c){if(c.scrollWidth>c.clientWidth+4)monter(c)})})}
+  function balayer(){if(!pagePrete||!mq.matches)return;SEL.forEach(function(s){var n;try{n=document.querySelectorAll(s)}catch(e){return}[].forEach.call(n,function(c){if(c.scrollWidth>c.clientWidth+4)monter(c)})})}
   var t=0;new MutationObserver(function(){clearTimeout(t);t=setTimeout(balayer,250)}).observe(document.documentElement,{childList:true,subtree:true});
-  mq.addEventListener('change',balayer);window.addEventListener('load',function(){setTimeout(balayer,600)});
+  mq.addEventListener('change',balayer);window.addEventListener('load',function(){setTimeout(balayer,600)});relanceurs.push(balayer);
 })();
 
 /* Centrage mobile (≤ 620 px) : les blocs de texte de carte sont centrés par responsive.css.
@@ -70,7 +70,7 @@ export function demarrerFinitions() {
   if(window.__llCentre)return;window.__llCentre=1;
   var mq=window.matchMedia('(max-width:620px)');
   function balayer(){
-    var page=document.getElementById('ll-page');if(!page)return;
+    var page=document.getElementById('ll-page');if(!page||!pagePrete)return;
     [].forEach.call(page.querySelectorAll('.ll-a-cote'),function(e){if(!mq.matches)e.classList.remove('ll-a-cote')});
     [].forEach.call(page.querySelectorAll('.ll-sans-puce'),function(e){if(!mq.matches)e.classList.remove('ll-sans-puce')});
     if(!mq.matches)return;
@@ -92,7 +92,14 @@ export function demarrerFinitions() {
     });
   }
   var t=0;new MutationObserver(function(){clearTimeout(t);t=setTimeout(balayer,300)}).observe(document.documentElement,{childList:true,subtree:true});
-  mq.addEventListener('change',balayer);window.addEventListener('load',function(){setTimeout(balayer,600)});
+  mq.addEventListener('change',balayer);window.addEventListener('load',function(){setTimeout(balayer,600)});relanceurs.push(balayer);
+})();
+
+/* Tableaux de 3 colonnes et plus : sur mobile, une carte par ligne. Chaque cellule reçoit le libellé de sa colonne (data-l), déjà traduit dans la page. */
+(function(){
+  function cartes(){if(!pagePrete)return;document.querySelectorAll('#ll-page table').forEach(function(t){var th=t.querySelectorAll('thead th');if(th.length<3||t.classList.contains('pc-tab'))return;var l=[].map.call(th,function(x){return x.textContent.trim()});
+    t.querySelectorAll('tbody tr').forEach(function(r){[].forEach.call(r.children,function(td,i){if(l[i]&&td.getAttribute('data-l')!==l[i])td.setAttribute('data-l',l[i])})});t.classList.add('ll-t-cartes')})}
+  var t=0;new MutationObserver(function(){clearTimeout(t);t=setTimeout(cartes,300)}).observe(document.documentElement,{childList:true,subtree:true});relanceurs.push(cartes);
 })();
 
 }

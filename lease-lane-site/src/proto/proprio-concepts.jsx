@@ -194,7 +194,7 @@ const CSS = `.pc{--e:cubic-bezier(.22,1,.36,1);--e2:cubic-bezier(.65,0,.35,1);--
 @media (prefers-reduced-motion:reduce){.pc-sel-n,.pc-sel-c{transition:none}}
 .pc-coches{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .pc-coches li{display:grid;grid-template-columns:40px minmax(0,1fr);gap:14px;align-items:center;min-height:56px;padding:8px 14px 8px 8px;border-radius:14px;background:var(--bleu-clair);font-size:14px;font-weight:600;line-height:1.4;color:var(--marine-900)}
-.pc-coches li>span{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:#fff;box-shadow:0 1px 2px rgba(12,33,71,.08)}
+.pc-coches li>span{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#1E3A70,#0C2147);box-shadow:0 6px 14px -6px rgba(12,33,71,.45)}
 .pc-coches.anim li{opacity:0;transform:translateX(-12px);transition:opacity .5s var(--e),transform .5s var(--e);transition-delay:calc(200ms + var(--i) * 90ms)}.vu .pc-coches.anim li,.pc-coches.anim.vu li{opacity:1;transform:none}
 .ll-sombre .pc-coches li{background:rgba(255,255,255,.08);color:#fff}.ll-sombre .pc-coches li>span{background:rgba(255,255,255,.12);box-shadow:none}
 /* Encart */
@@ -210,7 +210,7 @@ const CSS = `.pc{--e:cubic-bezier(.22,1,.36,1);--e2:cubic-bezier(.65,0,.35,1);--
 .vu .pc-et-n,.pc-et.vu .pc-et-n{background:var(--marine-900);border-color:var(--marine-900);color:#fff;box-shadow:0 0 0 5px rgba(69,129,203,.16)}
 .pc-et .pc-t{height:100%}
 /* Frise verticale */
-.pc-frise{position:relative;list-style:none;margin:0;padding:0;display:grid;gap:16px}
+.pc-frise{position:relative;list-style:none;margin:0;padding:0;display:grid;gap:16px}.pc-frise-b{all:unset;display:block;cursor:default}.pc-frise-ic,.pc-frise-chv{display:none}.pc-frise-c{display:grid;gap:16px}@media (max-width:640px){.pc-idx{display:none!important}.pc-frise::before,.pc-frise::after{display:none!important}.pc-frise{gap:12px}.pc-frise>li{grid-template-columns:minmax(0,1fr)!important;gap:0!important}.pc-frise-m{display:none!important}.pc-frise .pc-t{padding:16px!important;gap:12px!important;text-align:left!important;align-items:stretch!important;border-radius:16px}.pc-frise .pc-k{justify-content:space-between!important}.pc-frise .pc-h3{margin:0;text-align:left!important}.pc-frise-b{display:grid!important;grid-template-columns:40px minmax(0,1fr) 32px;align-items:center;gap:12px;width:100%;min-height:44px;cursor:pointer!important;font:700 17px/1.3 var(--police-titre,inherit);color:var(--marine-900)}.pc-frise-ic{display:grid!important;place-items:center;width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#1E3A70,#0C2147)}.pc-frise-chv{display:grid!important;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--bleu-clair);color:var(--marine-900);transition:transform .3s cubic-bezier(.22,1,.36,1)}.pc-frise>li[data-ouvert] .pc-frise-chv{transform:rotate(180deg)}.pc-frise>li:not([data-ouvert]) .pc-frise-c{display:none}.pc-frise .pc-coches{gap:8px}.pc-frise .pc-coches li{min-height:48px;padding:6px 12px 6px 6px;gap:12px;font-size:14px}.pc-frise .pc-coches li>span{width:36px;height:36px}.pc-chap>.pc-p{text-align:center!important}}
 .pc-frise::before,.pc-frise::after{content:"";position:absolute;left:23px;top:24px;bottom:24px;width:2px;border-radius:2px;background:rgba(12,33,71,.1)}
 .pc-frise::after{background:linear-gradient(180deg,var(--bleu-500),var(--marine-900));transform-origin:50% 0;transform:scaleY(var(--p,0))}
 .pc-frise>li{display:grid;grid-template-columns:48px minmax(0,1fr);gap:20px;align-items:start}
@@ -225,9 +225,9 @@ const CSS = `.pc{--e:cubic-bezier(.22,1,.36,1);--e2:cubic-bezier(.65,0,.35,1);--
 .pc-idx button b{font-weight:700;font-variant-numeric:tabular-nums}.pc-idx button:hover{color:var(--marine-900)}
 .pc-idx button[aria-current="true"]{border-left-color:var(--bleu-500);color:var(--marine-900);font-weight:700}.pc-idx button[aria-current="true"] b{color:var(--bleu-600)}
 .pc-idx-p{height:4px;border-radius:4px;background:rgba(12,33,71,.08);overflow:hidden;margin-top:16px}.pc-idx-p i{display:block;height:100%;background:linear-gradient(90deg,var(--bleu-500),var(--marine-900));transform-origin:0 50%;transform:scaleX(var(--p,0))}
-.pc-chaps{display:grid;gap:clamp(88px,9vw,128px);min-width:0}
+.pc-chaps{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(88px,9vw,128px);min-width:0}.pc-chap{min-width:0;grid-template-columns:minmax(0,1fr)}.pc-car{grid-template-columns:minmax(0,1fr)}
 .pc-chap{scroll-margin-top:24px;display:grid;gap:clamp(28px,3vw,40px)}
-.pc-chap-t{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 20px;align-items:end}
+.pc-chap-t{display:grid;grid-template-columns:minmax(0,1fr);gap:8px 20px;align-items:end}
 .pc-chap-n{grid-row:span 2;font-size:clamp(56px,6vw,88px);line-height:.8;font-weight:800;letter-spacing:-.06em;color:var(--bleu-200);font-variant-numeric:tabular-nums}
 /* Lignes (domaines, services) */
 .pc-lignes{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -366,12 +366,33 @@ const Sec = ({
 }) => <section id={id} className={'pc-s' + (douce ? ' d' : '')} aria-labelledby={label} style={{
   scrollMarginTop: '24px'
 }}><div className="pc-in">{children}</div></section>;
+/* Icône propre à chaque ligne de vérification (tuile marine, icône blanche). */
+const PC_IC = {
+  'Durée du contrat repérée': 'calendar',
+  'Préavis et clauses de fin repérés': 'file-text',
+  'Avis de fin préparé pour votre gestionnaire actuel': 'send',
+  'Baux': 'files',
+  'Dossiers des locataires': 'users',
+  'Clés et accès : inventaire et garde sécurisée': 'key-round',
+  'Contrats de service : déneigement, entretien': 'snowflake',
+  'Historiques des travaux et des paiements': 'receipt',
+  'Avis à chaque locataire : nouveaux contacts, paiement du loyer, demandes': 'mail',
+  'Cléo actif dès le premier jour': 'sparkles',
+  'Loyers et arriérés': 'wallet',
+  'Demandes ouvertes': 'wrench',
+  'Calendrier des échéances': 'calendar-check',
+  'Identité vérifiée, sans conserver de copie de pièce': 'shield-check',
+  'Emploi et revenus': 'banknote',
+  'Références des propriétaires précédents': 'handshake',
+  'Enquête de crédit, avec consentement écrit': 'credit-card',
+  'Aucun dépôt ni chèque postdaté exigé (art. 1904 C.c.Q.)': 'scale'
+};
 const Coches = ({
   items,
   anim = true
 }) => <ul className={'pc-coches' + (anim ? ' anim' : '')}>{items.map((t, i) => <li key={t} style={{
     '--i': i
-  }}><span aria-hidden="true"><Icon name="check" size={17} color="var(--bleu-600)" /></span>{g(t)}</li>)}</ul>;
+  }}><span aria-hidden="true"><Icon name={PC_IC[t] || 'check'} size={18} color="#fff" /></span>{g(t)}</li>)}</ul>;
 const Encart = ({
   ic = 'info',
   t,
@@ -402,7 +423,8 @@ function Frise({
   items,
   extra
 }) {
-  const ref = uR(null);
+  const ref = uR(null),
+    [o, setO] = uS(0);
   useDefile(ref, (b, h) => {
     const el = ref.current;
     if (!el) return;
@@ -414,11 +436,13 @@ function Frise({
     el.style.setProperty('--p', cl((h * .62 - b.top - 24) / (b.height - 48)).toFixed(3));
     el.querySelectorAll(':scope>li').forEach(li => li.classList.toggle('on', li.getBoundingClientRect().top < h * .62));
   });
-  return <ol ref={ref} className="pc-frise">{items.map(([ic, t, d, m], i) => <li key={t}><span className="pc-frise-m" aria-hidden="true"><Icon name={ic} size={20} color="var(--bleu-600)" /></span>
+  /* Sur mobile, chaque étape est un panneau dépliant (titre = bouton); sur ordinateur, tout reste affiché. */
+  return <ol ref={ref} className="pc-frise">{items.map(([ic, t, d, m], i) => <li key={t} data-ouvert={o === i ? '1' : undefined}><span className="pc-frise-m" aria-hidden="true"><Icon name={ic} size={20} color="var(--bleu-600)" /></span>
     <div className="pc-t"><div className="pc-k"><span className="pc-num">Étape {pad(i + 1)}</span>{m && <span className="pc-chip"><Icon name="clock" size={13} />{m}</span>}</div>
       <h3 className="pc-h3" style={{
           fontSize: '18px'
-        }}>{t}</h3><p className="pc-p">{g(d)}</p>{extra && extra(i)}</div></li>)}</ol>;
+        }}><button type="button" className="pc-frise-b" aria-expanded={o === i} aria-controls={'pc-fr-' + i} onClick={() => setO(o === i ? -1 : i)}><span className="pc-frise-ic" aria-hidden="true"><Icon name={ic} size={18} color="#fff" /></span><span>{t}</span><span className="pc-frise-chv" aria-hidden="true"><Icon name="chevron-down" size={18} /></span></button></h3>
+      <div className="pc-frise-c" id={'pc-fr-' + i}><p className="pc-p">{g(d)}</p>{extra && extra(i)}</div></div></li>)}</ol>;
 }
 /* Tableau comparatif : colonnes [Poste, A, B]; la dernière colonne est celle de Lease Lane */
 function Tableau({
@@ -615,7 +639,7 @@ function Parcours({
       {chap.map(([id, court], i) => <button key={id} type="button" aria-current={a === i ? 'true' : undefined} onClick={() => allerA(id)}><b>{pad(i + 1)}</b>{court}</button>)}
       <span className="pc-idx-p" aria-hidden="true"><i></i></span></nav>
     <div className="pc-chaps">{chap.map(([id, court, titre, contenu, intro], i) => <Vu as="section" key={id} id={id} className="pc-chap" aria-labelledby={id + '-t'}>
-      <div className="pc-chap-t"><span className="pc-chap-n pc-r" aria-hidden="true">{pad(i + 1)}</span><span className="pc-lib pc-r" style={{
+      <div className="pc-chap-t"><span className="pc-lib pc-r" style={{
             '--d': '60ms'
           }}>{court}</span>
         <h2 id={id + '-t'} className="pc-h2 pc-r" style={{

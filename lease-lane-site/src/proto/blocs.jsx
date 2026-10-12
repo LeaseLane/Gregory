@@ -667,7 +667,7 @@ function CleoEnAction({
           marginTop: 'var(--esp-8)'
         }}>
           <Button variant="primaire" size="l" onClick={() => ouvrirCleo()} iconeAvant={<Icon name="message-square" size={17} />}>Écrire à Cléo</Button>
-          <Fleche to="/cleo">Qui est Cléo</Fleche><Exemple /></div>
+          <Fleche to="/cleo">Qui est Cléo</Fleche></div>
       </div>
       <figure className="ll-cleo-carte" style={{
         position: 'relative',
