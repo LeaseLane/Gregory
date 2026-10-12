@@ -583,6 +583,43 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ---- Étape 5 : rapprochement mensuel (comptable) ----
+    // Le calcul est toujours refait côté serveur; l'enregistrement fige les chiffres du jour.
+    if (action === "fiducie_rapprochement_calcul" || action === "fiducie_rapprochement_enregistrer") {
+      const solde = Number(body.solde_releve);
+      if (!dateValide(body.date) || !Number.isFinite(solde) || Math.round(solde * 100) !== solde * 100 || Math.abs(solde) > 1e9) {
+        return new Response(JSON.stringify({ error: "Date ou solde du relevé invalide (2 décimales max.)" }), { status: 400, headers: corsHeaders });
+      }
+      try {
+        const r = await rpcFiducie("fiducie_calculer_rapprochement", { p_date: body.date, p_solde_releve: solde });
+        if (action === "fiducie_rapprochement_calcul") return new Response(JSON.stringify({ ok: true, ...r }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        const ins = await fetch(`${supabaseUrl}/rest/v1/fiducie_rapprochements`, {
+          method: "POST", headers: { ...adminHeaders, Prefer: "return=representation" },
+          body: JSON.stringify({ date_fin: body.date, solde_releve: solde, total_registre: r.total_registre, depots_non_attribues: r.depots_non_attribues, sorties_en_transit: r.sorties_en_transit, sorties_hors_registre: r.sorties_hors_registre, ecart: r.ecart, detail: r, note: String(body.note || "").trim().slice(0, 1000) || null, cree_par: userId }),
+        });
+        if (!ins.ok) throw new Error("Non enregistré");
+        const [ligne] = await ins.json();
+        await logAudit("fiducie.rapprochement", "fiducie_rapprochements", ligne.id, { date: body.date, ecart: r.ecart });
+        return new Response(JSON.stringify({ ok: true, rapprochement: ligne }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders });
+      }
+    }
+
+    if (action === "fiducie_rapprochements") {
+      const res = await fetch(`${supabaseUrl}/rest/v1/fiducie_rapprochements?select=*,users(email)&order=date_fin.desc,created_at.desc&limit=36`, { headers: adminHeaders });
+      return new Response(JSON.stringify({ rapprochements: await res.json().catch(() => []) }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "fiducie_rapprochement_verifie") {
+      const nom = String(body.nom || "").trim().slice(0, 120);
+      if (!idValide(body.id) || !nom) return new Response(JSON.stringify({ error: "Nom du comptable requis" }), { status: 400, headers: corsHeaders });
+      const r = await fetch(`${supabaseUrl}/rest/v1/fiducie_rapprochements?id=eq.${body.id}&verifie_le=is.null`, { method: "PATCH", headers: { ...adminHeaders, Prefer: "return=representation" }, body: JSON.stringify({ verifie_par: nom, verifie_le: new Date().toISOString() }) });
+      if (!r.ok || !(await r.json()).length) return new Response(JSON.stringify({ error: "Déjà vérifié ou introuvable" }), { status: 409, headers: corsHeaders });
+      await logAudit("fiducie.rapprochement_verifie", "fiducie_rapprochements", body.id, { par: nom });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // Coordonnées bancaires de versement d'un propriétaire.
     if (action === "fiducie_coordonnees") {
       const { owner_id } = body;

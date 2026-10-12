@@ -516,6 +516,18 @@
     </div>
     <div id="fiducie-lot-apercu"></div>
     <div id="fiducie-lots"></div>
+
+    <div class="tr-entete" style="margin-top:28px"><div>
+      <h2>Rapprochement mensuel</h2>
+      <p class="subtitle">Pour le comptable : le solde du relevé bancaire du compte en fidéicommis doit égaler le total dû aux propriétaires. Entrez le solde du relevé à la fin du mois; tout écart est expliqué ligne par ligne.</p>
+    </div></div>
+    <div class="fo-carte" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:12px;">
+      <div><label class="ch-label" for="fid-rap-date">Fin de période</label><input type="date" id="fid-rap-date"></div>
+      <div><label class="ch-label" for="fid-rap-solde">Solde du relevé bancaire ($)</label><input type="number" step="0.01" id="fid-rap-solde" placeholder="0.00"></div>
+      <button class="ll-bouton ll-bouton--secondaire" onclick="fidRapCalculer()">Calculer</button>
+    </div>
+    <div id="fiducie-rap-resultat"></div>
+    <div id="fiducie-raps"></div>
       </section>
 
       <section id="bank-recon" class="section">
@@ -4850,6 +4862,80 @@ async function loadFiducie(){
   if(fidProprio) await fidOuvrir(fidProprio, true);
   await fidChargerDepots();
   await fidChargerLots();
+  await fidChargerRaps();
+}
+
+/* ---- Rapprochement mensuel (étape 5) ---- */
+function fidFinMoisPrecedent(){ const d = new Date(); d.setDate(0); return d.toLocaleDateString('en-CA'); }
+
+function fidRapTableau(r){
+  const eq = Number(r.ecart) === 0;
+  const ligne = (lib, v, aide) => `<tr><td>${lib}${aide ? `<small>${aide}</small>` : ''}</td><td class="num">${v}</td></tr>`;
+  return `<table class="tr-table"><tbody>
+    ${ligne('<b>Solde du relevé bancaire</b>', `<b>${fidArgent(r.solde_releve)}</b>`, `au ${esc(r.date_fin)}`)}
+    ${ligne('− Total dû aux propriétaires (registre)', fidArgent(r.total_registre))}
+    ${ligne('− Dépôts reçus pas encore attribués', fidArgent(r.depots_non_attribues), 'À rapprocher dans « Dépôts du compte ».')}
+    ${ligne('− Sorties inscrites pas encore débitées par la banque', fidArgent(r.sorties_en_transit), 'Versements ou paiements en transit.')}
+    ${ligne('+ Sorties bancaires absentes du registre', fidArgent(r.sorties_hors_registre), 'Ex. frais bancaires : à régulariser, ce n\'est pas l\'argent des propriétaires.')}
+    <tr><td><b>Écart non expliqué</b></td><td class="num"><span class="tr-pastille tr-pastille--${eq ? 'ok' : 'ko'}">${eq ? 'Équilibré' : fidArgent(r.ecart)}</span></td></tr>
+  </tbody></table>
+  ${Number(r.solde_calcule_transactions) !== Number(r.solde_releve) ? `<p class="subtitle">Les transactions importées totalisent ${fidArgent(r.solde_calcule_transactions)} : un relevé n'est peut-être pas importé au complet.</p>` : ''}
+  ${Number(r.soldes_negatifs) ? `<p class="subtitle"><b>${r.soldes_negatifs} propriétaire(s) en solde négatif.</b></p>` : ''}
+  ${(r.par_proprietaire || []).length ? `<h3 class="sous-titre">Annexe : solde par propriétaire</h3><table class="tr-table"><tbody>${r.par_proprietaire.map(x => `<tr><td>${esc(x.proprietaire)}</td><td class="num">${fidArgent(x.solde)}</td></tr>`).join('')}</tbody></table>` : ''}
+  ${(r.depots_a_attribuer || []).length ? `<h3 class="sous-titre">Annexe : dépôts à attribuer</h3><table class="tr-table"><tbody>${r.depots_a_attribuer.map(x => `<tr><td>${esc(x.date)}<small>${esc(x.description || '')}</small></td><td class="num">${fidArgent(x.montant)}</td></tr>`).join('')}</tbody></table>` : ''}`;
+}
+
+let fidRapDernier = null;
+async function fidRapCalculer(){
+  const date = document.getElementById('fid-rap-date').value, solde = document.getElementById('fid-rap-solde').value;
+  if(!date || solde === ''){ llToast('Entrez la fin de période et le solde du relevé.', 'erreur'); return; }
+  const r = await callOpsApi({ action: 'fiducie_rapprochement_calcul', date, solde_releve: Number(solde) });
+  const boite = document.getElementById('fiducie-rap-resultat');
+  if(!r?.ok){ boite.innerHTML = ''; return; }
+  fidRapDernier = r;
+  boite.innerHTML = fidRapTableau(r) + `<div class="fo-carte" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-top:10px">
+    <div style="flex:1;min-width:220px"><label class="ch-label" for="fid-rap-note">Note (facultatif)</label><input type="text" id="fid-rap-note" maxlength="1000" placeholder="Ex. frais bancaires d'octobre à régulariser"></div>
+    <button class="ll-bouton ll-bouton--primaire" onclick="fidRapEnregistrer()">Enregistrer le rapprochement</button>
+    <button class="ll-bouton ll-bouton--secondaire" onclick="fidRapImprimer()">Imprimer</button></div>`;
+}
+
+async function fidRapEnregistrer(){
+  const r0 = fidRapDernier; if(!r0) return;
+  const r = await callOpsApi({ action: 'fiducie_rapprochement_enregistrer', date: r0.date_fin, solde_releve: Number(r0.solde_releve), note: document.getElementById('fid-rap-note')?.value || '' });
+  if(r?.ok){ llToast(Number(r.rapprochement.ecart) === 0 ? 'Rapprochement enregistré : équilibré.' : `Rapprochement enregistré avec un écart de ${fidArgent(r.rapprochement.ecart)}.`, 'succes'); document.getElementById('fiducie-rap-resultat').innerHTML = ''; await fidChargerRaps(); }
+}
+
+function fidRapImprimer(r = fidRapDernier, extra = ''){
+  if(!r) return;
+  const w = window.open('', '_blank');
+  if(!w){ llToast('Autorisez les fenêtres pour imprimer.', 'erreur'); return; }
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>Rapprochement — ${esc(r.date_fin)}</title><style>body{font:13px system-ui,sans-serif;color:#0A2038;margin:32px}h1{font-size:18px;margin:0 0 4px}h3{font-size:14px;margin:18px 0 0}table{width:100%;border-collapse:collapse;margin-top:12px}td{padding:6px;border-bottom:1px solid #dce3ec}td:last-child{text-align:right}small{display:block;color:#5a6b80}</style>
+    <h1>Rapprochement du compte en fidéicommis — au ${esc(r.date_fin)}</h1><p>Lease Lane · imprimé le ${new Date().toLocaleDateString('fr-CA', { dateStyle: 'long' })}${extra}</p>${fidRapTableau(r)}<p style="margin-top:40px">Vérifié par : ______________________ &nbsp; Date : __________</p>`);
+  w.document.close(); w.focus(); w.print();
+}
+
+let fidRaps = [];
+async function fidChargerRaps(){
+  const champ = document.getElementById('fid-rap-date');
+  if(champ && !champ.value) champ.value = fidFinMoisPrecedent();
+  const r = await callOpsApi({ action: 'fiducie_rapprochements' });
+  fidRaps = r?.rapprochements || [];
+  const boite = document.getElementById('fiducie-raps');
+  if(!fidRaps.length){ boite.innerHTML = ''; return; }
+  boite.innerHTML = `<h3 class="sous-titre">Rapprochements enregistrés</h3><table class="tr-table"><thead><tr><th>Fin de période</th><th class="num">Relevé</th><th class="num">Registre</th><th>Résultat</th><th>Comptable</th><th></th></tr></thead><tbody>
+    ${fidRaps.map((x, i) => `<tr><td>${esc(x.date_fin)}<small>${esc(x.users?.email || '')} · ${new Date(x.created_at).toLocaleDateString('fr-CA')}${x.note ? ' · ' + esc(x.note) : ''}</small></td>
+      <td class="num">${fidArgent(x.solde_releve)}</td><td class="num">${fidArgent(x.total_registre)}</td>
+      <td><span class="tr-pastille tr-pastille--${Number(x.ecart) === 0 ? 'ok' : 'ko'}">${Number(x.ecart) === 0 ? 'Équilibré' : 'Écart ' + fidArgent(x.ecart)}</span></td>
+      <td>${x.verifie_le ? `${esc(x.verifie_par)}<small>${new Date(x.verifie_le).toLocaleDateString('fr-CA')}</small>` : `<button class="vo-action" onclick="fidRapVerifie('${x.id}')">Marquer vérifié</button>`}</td>
+      <td><button class="vo-action" onclick="fidRapImprimer(fidRaps[${i}].detail, fidRaps[${i}].verifie_le ? ' · vérifié par ' + esc(fidRaps[${i}].verifie_par) : '')">Imprimer</button></td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+async function fidRapVerifie(id){
+  const nom = ((await llDemander('Nom du comptable qui a vérifié ce rapprochement :')) || '').trim();
+  if(!nom) return;
+  const r = await callOpsApi({ action: 'fiducie_rapprochement_verifie', id, nom });
+  if(r?.ok){ llToast('Rapprochement marqué vérifié.', 'succes'); await fidChargerRaps(); }
 }
 
 /* ---- Versements aux propriétaires (étape 4) ---- */
