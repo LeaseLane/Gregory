@@ -25,7 +25,6 @@ const g = t => gab ? gab(t) : t;
 const CATS = [['tous', 'Tous les articles'], ['proprietaires', 'Propriétaires'], ['locataires', 'Locataires'], ['droit', 'Droit du logement'], ['nouvelles', 'Nouvelles Lease Lane']];
 /* Auteurs : l'équipe signe tant que les rédacteurs ne sont pas nommés (aucun nom réel sans consentement). Réviseur : à nommer. */
 const AUTEURS = {
-  /* Aucun nom de personne publié (décision du 9 oct. 2026) : articles signés par l'équipe. */
   jt: {
     nom: 'Équipe Lease Lane',
     role: 'Droit du logement et baux',

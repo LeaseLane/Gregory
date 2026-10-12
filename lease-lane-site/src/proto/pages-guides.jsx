@@ -2,6 +2,7 @@
 'use client';
 
 /* Converti depuis ui_kits/site-public/pages-guides.jsx (prototype) — ne pas réintroduire de globaux window. */
+import { naviguer } from '@/lib/routeur';
 import React from 'react';
 import { Icon, Button } from '@/components/ds';
 import { Section } from '@/proto/accueil';
@@ -2208,7 +2209,7 @@ function Selecteur() {
   const act = sel && L.find(q => q.s === sel) || L[0],
     pro = act && pageProprio(act.s);
   const aller = s => {
-    window.location.hash = "/quartiers/" + s;
+    naviguer("/quartiers/" + s);
   };
   /* Survol : l'aperçu change seulement quand le pointeur s'arrête sur un secteur (pas à chaque passage); le clavier, lui, change tout de suite. */
   const minuterie = React.useRef(0),
@@ -3263,7 +3264,7 @@ const GLOSSAIRE = [['Régie du logement', 'Tribunal administratif du logement (T
 }, ['/locataires#urgence', 'Urgence 24/7']], ['3 ½, 4 ½, appartement', 'Logement', {
   t: 'Au Québec, un logement se désigne souvent par son nombre de pièces, la salle de bain comptant pour une demie : un 4 ½ compte quatre pièces et une salle de bain.',
   nouveau: 1
-}, ['/quartiers', 'Quartiers de Québec']], ['Soumission, prix, tarif', 'Offre de service', {
+}, ['/logements-a-louer', 'Logements à louer']], ['Soumission, prix, tarif', 'Offre de service', {
   f: 'p1'
 }, ['/offre-de-service', 'Offre de service']]];
 function PageGlossaire({

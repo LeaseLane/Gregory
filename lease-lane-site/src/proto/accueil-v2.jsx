@@ -427,11 +427,11 @@ function Preuve({
           color: '#fff',
           maxWidth: '17ch',
           textWrap: 'balance'
-        }}>Nos <span style={{
+        }}>Chiffres <span style={{
             color: '#6194D3'
-          }}>engagements</span>, écrits <span style={{
+          }}>impressionnants</span>... ça fait <span style={{
             color: '#6194D3'
-          }}>noir sur blanc</span>.</h2> : <C7.Titre id="v2-p" max="17ch" />}<C7.CtaLien on={vu} ms={400} clair={clair} /></div>
+          }}>réfléchir</span> au changement.</h2> : <C7.Titre id="v2-p" max="17ch" />}<C7.CtaLien on={vu} ms={400} clair={clair} /></div>
     <dl className="v2-g3" style={{
         margin: 0,
         display: 'grid',
@@ -1013,7 +1013,7 @@ function Final({
 }
 
 /* ——— Pied de page ——— */
-const COLS = [['Propriétaires', [['/gestion-immobiliere', 'Gestion d’immeubles'], ['/gestion-immobiliere/location', 'Location et mise en marché'], ['/expertise-et-strategie', 'Expertise et stratégie'], ['/changer-de-gestionnaire', 'Changer de gestionnaire']]], ['Locataires', [['/locataires', 'Service aux locataires'], ['/locataires/commentaire-ou-plainte', 'Administration et plaintes']]], ['Lease Lane', [['/cleo', 'Agent IA - Cléo'], ['/a-propos', 'À propos'], ['/faq', 'Foire aux questions']]]];
+const COLS = [['Propriétaires', [['/gestion-immobiliere', 'Gestion d’immeubles'], ['/gestion-immobiliere/location', 'Location et mise en marché'], ['/expertise-et-strategie', 'Expertise et stratégie'], ['/changer-de-gestionnaire', 'Changer de gestionnaire']]], ['Locataires', [['/locataires', 'Service aux locataires'], ['/logements-a-louer', 'Logements à louer'], ['/locataires/demande-de-location', 'Demande de location'], ['/locataires/commentaire-ou-plainte', 'Administration et plaintes']]], ['Lease Lane', [['/cleo', 'Agent IA - Cléo'], ['/a-propos', 'À propos'], ['/faq', 'Foire aux questions']]]];
 const LEG = [['/temoins', 'Témoins de navigation'], ['/conditions-utilisation', 'Conditions d’utilisation'], ['/confidentialite', 'Politique de confidentialité']];
 const TAG = 'Une gestion d\'immeubles à la fine pointe de la technologie. Nos automatisations prennent le maximum d\'opérations en charge; notre équipe s\'occupe du reste.';
 const AUTH = "/connexion";

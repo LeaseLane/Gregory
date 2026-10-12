@@ -211,7 +211,7 @@ function Creneaux({
       display: 'inline-flex',
       alignItems: 'center',
       gap: '7px'
-    }}><Icon name="calendar-check" size={13} color="#4581CB" />Moments possibles</span>
+    }}><Icon name="calendar-check" size={13} color="#4581CB" />Créneaux libres</span>
     <div style={{
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',

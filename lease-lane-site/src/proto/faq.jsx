@@ -112,7 +112,7 @@ let LL_FAQ = {
   l6: {
     public: 'locataires',
     q: 'Comment payer mon loyer?',
-    r: 'Selon le mode de paiement prévu à votre bail; votre portail locataire indique ce qui est dû et ce qui a été reçu. Pour toute question sur un paiement, écrivez-nous depuis votre portail.'
+    r: 'Dans votre portail locataire ou par virement. Vous recevez un reçu automatique dès que le paiement arrive.'
   },
   l7: {
     public: 'locataires',

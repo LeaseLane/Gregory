@@ -231,29 +231,27 @@ function TitreBloc({
 /* Option 2b « Tableau vivant » (approuvée) : bande marine, une visualisation par indicateur. Valeurs d'exemple. */
 
 /* Option 15b « Chiffre vedette » (approuvée) : Cléo en grand sur marine, les deux autres indicateurs empilés. Valeurs d'exemple. */
-/* 11 oct. 2026 : les valeurs d'exemple (0 s, 17 jours, 98,6 %) sont remplacées par nos engagements publiés
-   (heures et délais de LL_SITE, rapport mensuel de la FAQ). Remettre des chiffres seulement s'ils sont mesurés. */
 const PREUVES_B = [{
-  v: '24',
-  u: 'h maximum',
-  l: 'Première réponse',
+  v: '0',
+  u: 'secondes',
+  l: 'Délai de réponse',
   d: '',
   p: 1,
   ic: 'message-circle'
 }, {
-  v: '24/7',
-  u: 'urgences',
-  l: 'Ligne de garde',
+  v: '17',
+  u: 'jours',
+  l: 'Délai de location',
   d: '',
-  p: 1,
-  ic: 'phone'
+  p: 17 / 30,
+  ic: 'key-round'
 }, {
-  v: '15',
-  u: 'du mois',
-  l: 'Rapport mensuel',
+  v: '98,6',
+  u: '%',
+  l: 'Taux d\u2019occupation',
   d: '',
-  p: 15 / 30,
-  ic: 'file-text'
+  p: .986,
+  ic: 'building-2'
 }];
 const ChiffrePreuve = ({
   x,

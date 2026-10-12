@@ -10,7 +10,7 @@ const F = (lbl, path, extra) => Object.assign({
   index: false,
   schemas: ['WebPage', 'BreadcrumbList'],
   page: 'formulaire',
-  liens: ['/locataires', '/faq']
+  liens: ['/locataires', '/logements-a-louer', '/faq']
 }, extra);
 /* FAQ propre à chaque guide de quartier (affichée sur la page et déclarée en FAQPage). */
 const QF = {
@@ -301,7 +301,7 @@ let LL_ROUTES = [{
   fil: [A],
   schemas: ['WebSite', 'RealEstateAgent', 'FAQPage', 'BreadcrumbList'],
   faq: ['p1', 'p4', 'p5', 'p13', 't1'],
-  liens: ['/gestion-immobiliere', '/changer-de-gestionnaire', '/offre-de-service', '/cleo', '/faq']
+  liens: ['/gestion-immobiliere', '/logements-a-louer', '/changer-de-gestionnaire', '/offre-de-service', '/cleo', '/faq']
 }, {
   path: '/gestion-immobiliere',
   page: 'gestion',
@@ -364,7 +364,6 @@ let LL_ROUTES = [{
   liens: ['/gestion-immobiliere/location', '/locataires', '/confidentialite', '/offre-de-service']
 }, {
   path: '/logements-a-louer',
-  index: false,
   page: 'logements',
   requete: 'appartement à louer Québec',
   titre: 'Appartements à louer à Québec : bientôt disponibles | Lease Lane',
@@ -372,20 +371,17 @@ let LL_ROUTES = [{
   fil: [A, ['Logements à louer', '/logements-a-louer']],
   schemas: ['WebPage', 'BreadcrumbList'],
   faq: ['l1', 'l2'],
-  liens: ['/locataires', '/cleo', '/quartiers']
+  liens: ['/locataires/demande-de-location', '/locataires', '/cleo', '/quartiers']
 }, {
   path: '/logements-a-louer/4-et-demi-renove-montcalm',
-  index: false,
-  image: 'https://leaselane.ca/images/logements/montcalm-cartier.jpg',
-  imageAlt: '4 ½ rénové à louer sur l\u2019avenue Cartier, Montcalm',
   page: 'fiche',
   index: false,
   requete: '4 ½ à louer Montcalm',
   titre: 'Logements à louer : bientôt disponibles | Lease Lane',
   description: 'Les logements à louer gérés par Lease Lane seront bientôt affichés sur le site. Cléo peut vous avertir dès leur mise en ligne.',
   fil: [A, ['Logements à louer', '/logements-a-louer'], ['4 ½ rénové, Montcalm', '/logements-a-louer/4-et-demi-renove-montcalm']],
-  schemas: ['RealEstateListing', 'BreadcrumbList'],
-  liens: ['/quartiers/montcalm', '/cleo']
+  schemas: ['WebPage', 'BreadcrumbList'],
+  liens: ['/logements-a-louer', '/locataires/demande-de-location', '/quartiers/montcalm', '/cleo']
 }, {
   path: '/locataires',
   page: 'locataires',
@@ -395,7 +391,7 @@ let LL_ROUTES = [{
   fil: [A, LOC],
   schemas: ['WebPage', 'FAQPage', 'BreadcrumbList'],
   faq: ['l5', 'l4', 'l6', 'l7', 'l8', 'l9', 'l10', 'l1'],
-  liens: ['/locataires/commentaire-ou-plainte', '/faq']
+  liens: ['/locataires/demande-de-location', '/locataires/commentaire-ou-plainte', '/logements-a-louer', '/faq']
 }, F('Demande de location', '/locataires/demande-de-location', {
   form: 'location',
   titre: 'Demande de location : bientôt disponible | Lease Lane',
@@ -424,7 +420,7 @@ let LL_ROUTES = [{
   description: 'Droit du logement, gestion d’immeubles et nouvelles de Lease Lane : des articles rédigés par notre équipe, datés et appuyés sur leurs sources.',
   fil: [A, ['Blogue & nouvelles', '/blogue']],
   schemas: ['Blog', 'BreadcrumbList'],
-  liens: ['/faq', '/cleo', '/gestion-immobiliere', '/offre-de-service']
+  liens: ['/faq', '/cleo', '/gestion-immobiliere', '/offre-de-service', '/logements-a-louer']
 }, {
   path: '/blogue/hausse-de-loyer-2026',
   page: 'article',
@@ -433,7 +429,7 @@ let LL_ROUTES = [{
   description: 'Les délais d’avis, le calcul du TAL et les options du locataire et du propriétaire, avec les articles du Code civil cités et les sources officielles.',
   fil: [A, ['Blogue & nouvelles', '/blogue'], ['Hausse de loyer 2026', '/blogue/hausse-de-loyer-2026']],
   schemas: ['Article', 'BreadcrumbList', 'FAQPage'],
-  liens: ['/blogue', '/cleo', '/faq', '/offre-de-service'],
+  liens: ['/blogue', '/cleo', '/faq', '/offre-de-service', '/logements-a-louer'],
   faqTexte: [['Le propriétaire peut-il augmenter le loyer en cours de bail?', 'Non, sauf si le bail le prévoit expressément pour un bail de plus de 12 mois. La modification prend effet au renouvellement.'], ['Que se passe-t-il si le locataire ne répond pas à l’avis?', 'Son silence vaut acceptation de la hausse : le bail est reconduit aux nouvelles conditions.'], ['Le taux du TAL est-il obligatoire?', 'Non. Il sert de référence au calcul; les parties peuvent s’entendre sur un autre montant. En cas de désaccord, le TAL fixe le loyer.']],
   image: 'https://leaselane.ca/assets/img/blogue/hausse-de-loyer-2026-og.jpg',
   imageAlt: 'Bail, stylo et calculatrice sur une table, devant des maisons en rangée de Québec en hiver',
@@ -476,7 +472,7 @@ let LL_ROUTES = [{
   description: 'Québec, Lévis, rive nord, rive sud et île d’Orléans : ' + Q.length + ' secteurs desservis par Lease Lane, chacun avec son guide. Gestion immobilière et logements.',
   fil: [A, ['Grande région de Québec', '/quartiers']],
   schemas: ['WebPage', 'ItemList', 'BreadcrumbList', 'FAQPage'],
-  liens: ['/gestion-immobiliere', '/offre-de-service', '/cleo'],
+  liens: ['/gestion-immobiliere', '/offre-de-service', '/logements-a-louer', '/cleo'],
   faqTexte: [['Quels secteurs Lease Lane dessert-il?', 'Toute la région dans un rayon de 50 km autour de Québec : les arrondissements de Québec, Lévis, La Jacques-Cartier, Portneuf, la Côte-de-Beaupré, l’île d’Orléans et la rive sud, de Lotbinière à Bellechasse et Montmagny. Chacun des ' + Q.length + ' secteurs a son guide.'], ['Que contient chaque guide de secteur?', 'La vie locale, les types de logements, les repères, l’histoire et les dates clés, la part des ménages locataires au recensement de 2021 et les questions fréquentes du secteur.'], ['Quand les logements à louer seront-ils affichés?', 'Bientôt. Les logements gérés par Lease Lane et la demande de location en ligne arrivent sur le site. D’ici là, Cléo peut vous avertir dès qu’un logement est publié.'], ['Comment obtenir une offre de gestion pour mon immeuble?', 'Décrivez votre immeuble en deux minutes : type, nombre de logements et secteur. Nous répondons avec une offre et un rendez-vous proposé.']]
 }, ...Q.map(([s, n, dans]) => ({
   path: '/quartiers/' + s,
@@ -489,7 +485,7 @@ let LL_ROUTES = [{
   wiki: QW[s],
   lieu: QR[s],
   faqTexte: QF[s].concat([['Comment trouver un appartement à louer ' + dans + '?', 'Les logements à louer gérés par Lease Lane ' + dans + ' seront bientôt affichés sur le site, tout comme la demande de location en ligne. D’ici là, Cléo peut vous avertir dès qu’un logement est publié.']]),
-  liens: ['/quartiers', '/cleo']
+  liens: ['/logements-a-louer', '/locataires/demande-de-location', '/quartiers', '/cleo']
 })), {
   path: '/glossaire-bail-residentiel',
   page: 'glossaire',

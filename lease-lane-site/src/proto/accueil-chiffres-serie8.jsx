@@ -8,7 +8,7 @@ import { ACC_PREUVES } from '@/proto/blocs';
 const PV = () => ACC_PREUVES;
 const MAR = 'var(--marine-900)',
   EZ = 'cubic-bezier(.22,1,.36,1)',
-  VERS = '/offre-de-service';
+  VERS = '/changer-de-gestionnaire';
 const ap = (on, ms = 0, dy = 12) => ({
   opacity: on ? 1 : 0,
   transform: on ? 'none' : 'translateY(' + dy + 'px)',
@@ -32,7 +32,7 @@ const Titre = ({
   maxWidth: max,
   textAlign: a,
   textWrap: 'balance'
-}}>{ACC_H.surl('Nos {engagements}, écrits {noir sur blanc}.', clair ? 'var(--bleu-300)' : ACC_H.BL)}</h2>;
+}}>{ACC_H.surl('Ce que notre gestion change, {en chiffres}.', clair ? 'var(--bleu-300)' : ACC_H.BL)}</h2>;
 const Appels = ({
   clair,
   a = 'center'

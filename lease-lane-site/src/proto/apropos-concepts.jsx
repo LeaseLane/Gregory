@@ -647,7 +647,7 @@ function Territoire2() {
         }}>{T.terrP}</p>
     <div className="apc-r" style={{
           '--d': '220ms'
-        }}></div></div></Vu>
+        }}><Fleche clair to="/logements-a-louer">Nos logements à louer</Fleche></div></div></Vu>
   <span className="ap2-terr-lieu" aria-hidden="true">Grande région de Québec</span>
 </section>;
 }

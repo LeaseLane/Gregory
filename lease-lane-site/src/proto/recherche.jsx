@@ -62,7 +62,7 @@ const grille = () => (__ssr() ? "undefined" : typeof window) !== "undefined" ? w
     return c;
   }
 }) : undefined;
-const qHTML = n => '<a class="lr-q" href="#/quartiers/' + n.s + '" aria-label="Guide du quartier ' + n.n + '"><span class="lr-q-pt"></span><span class="lr-q-t">' + n.n + '</span></a>';
+const qHTML = n => '<a class="lr-q" href="/quartiers/' + n.s + '" aria-label="Guide du quartier ' + n.n + '"><span class="lr-q-pt"></span><span class="lr-q-t">' + n.n + '</span></a>';
 const CENTRE = [46.818, -71.240];
 const PHOTO_DEF = "/assets/img/logements/montcalm-cartier.jpg";
 const prixN = p => parseInt(String(p).replace(/\D/g, '')) || 0;

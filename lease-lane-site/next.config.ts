@@ -25,12 +25,6 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       ...ANCIENNES_ADRESSES_PORTAIL.map(source => ({ source, destination: PORTAIL, permanent: true })),
-      /* Aucun logement sous gestion pour l'instant (11 oct. 2026) : location et demande de location fermées.
-         Temporaires (302) pour pouvoir rouvrir sans laisser de redirection en cache. */
-      { source: '/logements-a-louer/:slug*', destination: '/locataires', permanent: false },
-      { source: '/locataires/demande-de-location', destination: '/locataires', permanent: false },
-      { source: '/en/apartments-for-rent/:slug*', destination: '/en/tenants', permanent: false },
-      { source: '/en/tenants/rental-application', destination: '/en/tenants', permanent: false },
       /* « Espace locataire / propriétaire » (/connexion?profil=…) : ouvre directement le bon portail. */
       { source: '/connexion', has: [{ type: 'query', key: 'profil', value: '(?<profil>locataire|proprietaire)' }], destination: APP + '/?p=:profil', permanent: false },
       { source: '/connexion', destination: PORTAIL, permanent: false },
