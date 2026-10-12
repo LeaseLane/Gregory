@@ -484,6 +484,12 @@
       <h1>Fidéicommis</h1>
       <p class="subtitle">Un seul compte en fidéicommis pour tous les propriétaires; ce registre dit combien appartient à chacun. Lease Lane n'avance jamais d'argent : aucun débit ne peut rendre un solde négatif, et la réserve de chaque immeuble reste au compte lors des versements.</p>
     </div></div>
+    <div class="fo-carte" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:16px;">
+      <div style="flex:1;min-width:260px"><label class="ch-label" for="fid-courriel">Courriel Interac du compte en fidéicommis</label>
+        <input type="email" id="fid-courriel" placeholder="Ex. loyers@leaselane.ca" style="width:100%"></div>
+      <button class="ll-bouton ll-bouton--primaire" onclick="fidCourriel()">Enregistrer</button>
+      <p id="fid-courriel-etat" class="subtitle" style="flex-basis:100%;margin:0"></p>
+    </div>
     <div id="fiducie-body"><p class="tr-vide">Chargement...</p></div>
     <div id="fiducie-releve" class="tr-carte" hidden style="margin-top:20px;"></div>
       </section>
@@ -4304,7 +4310,7 @@ function renderFicheLocataire(){
     corps = baux.length ? baux.map(b => `
       <div class="fi-note">
         <div class="fi-sous">${b.status === 'active' ? 'Bail actif' : 'Bail ' + esc(b.status)}</div>
-        <b>${esc(b.units?.buildings?.address || '')}, unité ${esc(b.units?.unit_number || '')}</b><br>
+        <b>${esc(b.units?.buildings?.address || '')}, unité ${esc(b.units?.unit_number || '')}</b>${b.units?.reference_paiement ? ` <span class="tr-spec">Réf. paiement ${esc(b.units.reference_paiement)}</span>` : ''}<br>
         ${argent(b.monthly_rent)} / mois · du ${esc(b.start_date || '?')} au ${esc(b.end_date || 'indéterminé')}${b.units?.buildings?.owners?.full_name ? `<br><small>Propriétaire : ${esc(b.units.buildings.owners.full_name)}</small>` : ''}
       </div>`).join('') + (bail ? `<p><button class="vo-lien" onclick="fermerFicheTravailleur();showTab('renewals')">Préparer le renouvellement →</button></p>` : '') : '<p class="tr-vide">Aucun bail enregistré.</p>';
   } else if(ficheLo.onglet === 'notes'){
@@ -4352,7 +4358,7 @@ function renderFicheLocataire(){
       <span class="tr-avatar" aria-hidden="true">${esc(loInitiales(t.full_name))}</span>
       <div class="tr-ident">
         <h2>${esc(t.full_name || '')}</h2>
-        <div class="tr-specs">${bail ? `<span class="tr-spec">${esc(bail.units?.buildings?.address || '')} — ${esc(bail.units?.unit_number || '')}</span>` : '<span class="tr-spec">Sans bail actif</span>'}</div>
+        <div class="tr-specs">${bail ? `<span class="tr-spec">${esc(bail.units?.buildings?.address || '')} — ${esc(bail.units?.unit_number || '')}</span>${bail.units?.reference_paiement ? `<span class="tr-spec">Réf. ${esc(bail.units.reference_paiement)}</span>` : ''}` : '<span class="tr-spec">Sans bail actif</span>'}</div>
       </div>
       <button class="fi-fermer" onclick="fermerFicheTravailleur()" aria-label="Fermer"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#x"/></svg></button>
     </header>
@@ -4802,6 +4808,11 @@ async function loadFiducie(){
   const res = await callOpsApi({ action: 'fiducie_soldes' });
   if(!res) return;
   fidDonnees = res;
+  const champ = document.getElementById('fid-courriel');
+  if(document.activeElement !== champ) champ.value = res.courriel_interac || '';
+  document.getElementById('fid-courriel-etat').textContent = res.courriel_interac
+    ? `Actif : chaque locataire voit dans son portail « Payez par virement Interac à ${res.courriel_interac}, avec la référence de son logement ».`
+    : 'Vide : les locataires ne voient aucune consigne de paiement. À remplir seulement une fois le compte en fidéicommis ouvert.';
   const corps = document.getElementById('fiducie-body');
   const liste = (res.soldes || []).filter(x => !x.archive || Number(x.solde));
   if(!liste.length){ corps.innerHTML = '<p class="tr-vide">Aucun propriétaire.</p>'; return; }
@@ -4849,9 +4860,19 @@ async function fidOuvrir(ownerId, silencieux){
       <button class="ll-bouton ll-bouton--primaire" onclick="fidAjouter()">Inscrire</button>
     </div>
     <p class="subtitle" style="margin-top:6px">Le registre ne se modifie pas : une erreur se corrige par un ajustement.</p>
+    ${imm.length ? `<h3 class="sous-titre">Références de paiement</h3>
+      <p class="subtitle" style="margin:0 0 8px">À inscrire par le locataire dans le message de son virement : c'est ainsi qu'un dépôt est attribué au bon logement.</p>
+      <table class="tr-table"><tbody>${imm.map(b => `<tr><td>${esc(b.address)}</td><td>${(b.logements || []).map(u => `<span class="tr-spec" style="margin:2px 4px 2px 0;display:inline-block">Log. ${esc(u.unit_number)} · <b>${esc(u.reference_paiement)}</b></span>`).join('') || '—'}</td></tr>`).join('')}</tbody></table>` : ''}
     ${imm.length ? `<h3 class="sous-titre">Réserves par immeuble</h3><table class="tr-table"><tbody>${imm.map(b => `<tr><td>${esc(b.address)}</td>
       <td class="num"><input type="number" id="fid-res-${b.id}" value="${Number(b.reserve)}" min="0" step="50" style="width:110px"> $</td>
       <td><button class="vo-action" onclick="fidReserve('${b.id}')">Enregistrer</button></td></tr>`).join('')}</tbody></table>` : ''}`;
+}
+
+async function fidCourriel(){
+  const courriel = document.getElementById('fid-courriel').value.trim();
+  if(courriel && !(await llConfirmer(`Activer les consignes de paiement ? Chaque locataire verra « Payez par virement Interac à ${courriel} » avec la référence de son logement. À faire seulement une fois le compte en fidéicommis ouvert.`))) return;
+  const res = await callOpsApi({ action: 'fiducie_courriel', courriel });
+  if(res?.ok){ llToast(courriel ? 'Consignes de paiement activées.' : 'Consignes de paiement retirées.', 'succes'); await loadFiducie(); }
 }
 
 async function fidAjouter(){

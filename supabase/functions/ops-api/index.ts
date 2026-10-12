@@ -301,7 +301,7 @@ Deno.serve(async (req) => {
       const lire = (chemin: string) => fetch(`${supabaseUrl}/rest/v1/${chemin}`, { headers: adminHeaders }).then((r) => r.ok ? r.json() : []);
       const [[tenant], baux, demandes, messages, audit, notes] = await Promise.all([
         lire(`tenants?id=eq.${tenant_id}&select=id,full_name,email,phone,user_id,created_at,archived_at`),
-        lire(`leases?tenant_id=eq.${tenant_id}&select=id,status,start_date,end_date,monthly_rent,units(unit_number,buildings(address,owners(full_name))),payments(id,amount,due_date,paid_date,status,reminder_paused)&order=start_date.desc`),
+        lire(`leases?tenant_id=eq.${tenant_id}&select=id,status,start_date,end_date,monthly_rent,units(unit_number,reference_paiement,buildings(address,owners(full_name))),payments(id,amount,due_date,paid_date,status,reminder_paused)&order=start_date.desc`),
         lire(`service_requests?tenant_id=eq.${tenant_id}&select=id,description,status,ai_category,ai_urgency,created_at&order=created_at.desc&limit=100`),
         lire(`messages?tenant_id=eq.${tenant_id}&select=id,sender,body,created_at&order=created_at.asc&limit=300`),
         lire(`audit_log?entity_id=eq.${tenant_id}&select=action,actor_type,details,created_at&order=created_at.desc&limit=100`),
@@ -373,13 +373,18 @@ Deno.serve(async (req) => {
     if (action === "fiducie_soldes") {
       const [soldes, immeubles] = await Promise.all([
         fetch(`${supabaseUrl}/rest/v1/fiducie_soldes?select=*&order=full_name.asc`, { headers: adminHeaders }).then((r) => r.json()),
-        fetch(`${supabaseUrl}/rest/v1/buildings?select=id,owner_id,address,fiducie_reserves(montant)&order=address.asc`, { headers: adminHeaders }).then((r) => r.json()),
+        fetch(`${supabaseUrl}/rest/v1/buildings?select=id,owner_id,address,fiducie_reserves(montant),units(unit_number,reference_paiement)&order=address.asc`, { headers: adminHeaders }).then((r) => r.json()),
       ]);
+      const [reglages] = await fetch(`${supabaseUrl}/rest/v1/company_settings?id=eq.true&select=fiducie_interac_courriel`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
       const archives = await fetch(`${supabaseUrl}/rest/v1/owners?archived_at=not.is.null&select=id`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
       const arch = new Set((Array.isArray(archives) ? archives : []).map((o: { id: string }) => o.id));
       return new Response(JSON.stringify({
         soldes: (Array.isArray(soldes) ? soldes : []).map((x: Record<string, unknown>) => ({ ...x, archive: arch.has(x.owner_id as string) })),
-        immeubles: (Array.isArray(immeubles) ? immeubles : []).map((b: any) => ({ id: b.id, owner_id: b.owner_id, address: b.address, reserve: b.fiducie_reserves?.montant ?? 1000 })),
+        immeubles: (Array.isArray(immeubles) ? immeubles : []).map((b: any) => ({
+          id: b.id, owner_id: b.owner_id, address: b.address, reserve: b.fiducie_reserves?.montant ?? 1000,
+          logements: (b.units || []).sort((x: any, y: any) => String(x.unit_number).localeCompare(String(y.unit_number), "fr", { numeric: true })),
+        })),
+        courriel_interac: reglages?.fiducie_interac_courriel ?? null,
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -421,6 +426,19 @@ Deno.serve(async (req) => {
       const [m] = await r.json();
       await logAudit("fiducie.mouvement", "fiducie_mouvements", m?.id ?? null, { owner_id, type, montant: signe });
       return new Response(JSON.stringify({ ok: true, mouvement: m }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Adresse Interac du compte en fidéicommis. Vide = aucune consigne de paiement
+    // montrée aux locataires (le compte n'est pas encore ouvert).
+    if (action === "fiducie_courriel") {
+      const courriel = String(body.courriel || "").trim().toLowerCase();
+      if (courriel && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(courriel)) return new Response(JSON.stringify({ error: "Courriel invalide" }), { status: 400, headers: corsHeaders });
+      const r = await fetch(`${supabaseUrl}/rest/v1/company_settings?id=eq.true`, {
+        method: "PATCH", headers: adminHeaders, body: JSON.stringify({ fiducie_interac_courriel: courriel || null, updated_at: new Date().toISOString() }),
+      });
+      if (!r.ok) return new Response(JSON.stringify({ error: "Non enregistré" }), { status: 502, headers: corsHeaders });
+      await logAudit("fiducie.courriel_interac", "company_settings", null, { actif: !!courriel });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "fiducie_reserve") {

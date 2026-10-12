@@ -174,6 +174,7 @@
       <section id="payments" class="section">
         <div class="toolbar"><h2>Mes paiements</h2></div>
         <p class="subtitle">Tes loyers, du plus récent au plus ancien.</p>
+        <div id="consigne-paiement" class="tr-carte" hidden style="margin-bottom:16px;"></div>
         <div id="payments-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
@@ -325,6 +326,7 @@ async function loadTenantDashboard(userId){
 
   renderOverview(currentLease);
   renderPayments(currentLease);
+  chargerConsigne();
   await loadRequests();
   await loadAutomatedDecisions();
   await loadPersonalDataRequests();
@@ -366,6 +368,25 @@ function renderOverview(lease){
     <div><span>Fin du bail</span><b>${lease.end_date ? jourDe(lease.end_date) : 'Indéterminée'}</b></div>
     <div><span>Statut</span><b><span class="tag ${leaseStatusClass[lease.status] || 'neutral'}">${leaseStatusLabel[lease.status] || esc(lease.status)}</span></b></div>
   `;
+}
+
+/* Comment payer : virement Interac au compte en fidéicommis, avec la référence du
+   logement. Rien ne s'affiche tant que Lease Lane n'a pas activé le compte. */
+async function chargerConsigne(){
+  const boite = document.getElementById('consigne-paiement');
+  const { data } = await supabaseClient.rpc('consigne_paiement_locataire');
+  const c = Array.isArray(data) ? data[0] : null;
+  if(!c){ boite.hidden = true; return; }
+  boite.hidden = false;
+  boite.innerHTML = `
+    <h3 style="margin:0 0 8px">Comment payer ton loyer</h3>
+    <p style="margin:0 0 10px">Par virement Interac à <b>${esc(c.courriel_interac)}</b>, au plus tard le 1<sup>er</sup> du mois (${Number(c.monthly_rent).toLocaleString('fr-CA')} $).</p>
+    <p style="margin:0 0 6px">Écris cette référence dans le message du virement :</p>
+    <p style="margin:0 0 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <b style="font-size:22px;letter-spacing:.04em">${esc(c.reference_paiement)}</b>
+      <button class="vo-action" onclick="navigator.clipboard.writeText('${esc(c.reference_paiement)}').then(() => llToast('Référence copiée.', 'succes'))">Copier</button>
+    </p>
+    <p class="subtitle" style="margin:0">C'est elle qui relie ton paiement à ton logement (${esc(c.address)}, unité ${esc(c.unit_number)}). Sans elle, ton paiement peut prendre plus de temps à être confirmé.</p>`;
 }
 
 function renderPayments(lease){
