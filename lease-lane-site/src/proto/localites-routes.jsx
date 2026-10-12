@@ -1,14 +1,6 @@
 /* Converti depuis ui_kits/site-public/localites-routes.js (prototype) — ne pas réintroduire de globaux window. */
 
 let LL_LOCALITES_ROUTES = [{
-  "slug": "grande-region-de-quebec",
-  "path": "/gestion-immobiliere/grande-region-de-quebec",
-  "page": "region",
-  "requete": "gestion immobilière grande région de Québec",
-  "titre": "Gestion immobilière, grande région de Québec | Lease Lane",
-  "description": "Gestion d’immeubles locatifs dans un rayon de 50 km autour de Québec : 83 secteurs desservis, rive nord, rive sud et île d’Orléans. Demandez une offre.",
-  "fil": "Grande région de Québec"
-}, {
   "slug": "la-cite-limoilou",
   "path": "/gestion-immobiliere/la-cite-limoilou",
   "page": "locale",

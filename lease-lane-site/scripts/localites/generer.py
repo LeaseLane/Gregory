@@ -1,7 +1,7 @@
-"""Pages locales « Gestion immobilière à <municipalité> » et page centrale « Grande région de Québec » (SEO local, par paliers).
+"""Pages locales « Gestion immobilière à <municipalité> » (SEO local, par paliers).
    Source : scripts/localites/municipalites-50km.json (données vérifiées : Statistique Canada 2021, Ville de Québec, MAMH, RNCan).
    Palier 1 (page complète) : les 6 arrondissements de Québec et les municipalités de 5 000 habitants et plus à 50 km ou moins (Lévis a sa page à part).
-   Les autres municipalités sont listées sur la page centrale.
+   Les autres municipalités ont leur guide de secteur, réunis sur /quartiers (« La grande région de Québec »).
    Écrit dans le prototype : localites-donnees.js, localites-routes.js et le bloc LOCALITES de langue.js.
    Usage : python3 scripts/localites/generer.py  (puis npm run convertir)"""
 import json, math, os, re, unicodedata
@@ -192,50 +192,13 @@ for x in PALIER1:
     LOC[x['slug']] = d; ROUTES.append(r); EN.append(e)
 
 # Page centrale
-ZONES = [('quebec', 'Ville de Québec', 'Québec City', lambda x: x['type'] == 'arrondissement (Ville de Québec)'),
-         ('levis', 'Ville de Lévis', 'City of Lévis', lambda x: x['type'] == 'arrondissement (Ville de Lévis)'),
-         ('agglo', 'Agglomération de Québec et Wendake', 'Québec agglomeration and Wendake', lambda x: x['nom'] in ('L\'Ancienne-Lorette', 'Saint-Augustin-de-Desmaures', 'Wendake'))]
-for m, en_m in [('MRC La Jacques-Cartier', 'La Jacques-Cartier RCM'), ('MRC Portneuf', 'Portneuf RCM'), ('MRC La Côte-de-Beaupré', 'La Côte-de-Beaupré RCM'), ("MRC L'Île-d'Orléans", "L'Île-d'Orléans RCM"),
-                ('MRC Lotbinière', 'Lotbinière RCM'), ('MRC La Nouvelle-Beauce', 'La Nouvelle-Beauce RCM'), ('MRC Bellechasse', 'Bellechasse RCM'), ('MRC Montmagny', 'Montmagny RCM')]:
-    ZONES.append((slugify(m), m.replace('MRC ', 'MRC de '), en_m, (lambda mm: lambda x: x.get('mrc') == mm and x['type'] not in ('arrondissement (Ville de Québec)',))(m)))
-def zones(lang):
-    out = []
-    for zid, nfr_, nen_, f in ZONES:
-        L = sorted([x for x in D if f(x) and x['nom'] not in ('Québec', 'Notre-Dame-des-Anges', 'Saint-Louis-de-Gonzague-du-Cap-Tourmente')], key=lambda x: x['distanceKm'])
-        if zid == 'levis':
-            items = [['Lévis', LIEN['Lévis'], None]] + [[x['nom'], None, None] for x in L]
-        else:
-            items = [[x['nom'], LIEN.get(x['nom']), None if LIEN.get(x['nom']) else (round(x['distanceKm']) if True else None)] for x in L]
-        if items: out.append({'id': zid, 'n': nfr_ if lang == 'fr' else nen_, 'l': items})
-    return out
-nb = sum(len(z['l']) for z in zones('fr'))
-REGION = {'fr': {'titre': 'Gestion immobilière dans la {grande région de Québec}',
-                 'lead': f'Lease Lane gère des immeubles locatifs dans un rayon de 50 km autour de Québec : {nb} villes, arrondissements et municipalités, sur la rive nord, la rive sud et l’île d’Orléans.',
-                 'zonesT': 'Les secteurs que nous desservons', 'zonesD': 'Les secteurs en bleu foncé ont leur page, avec les chiffres du marché locatif. Les autres sont desservis aussi; la distance indiquée est celle du centre de Québec.',
-                 'zones': zones('fr'), 'note': 'Sources : Statistique Canada, Recensement de 2021; Répertoire des municipalités du Québec (MAMH); toponymie officielle (RNCan). Distances à vol d’oiseau depuis l’hôtel de ville de Québec.',
-                 'faqT': 'Questions fréquentes',
-                 'faq': [['Quels secteurs desservez-vous?', 'Toute la région dans un rayon de 50 km autour de Québec : la ville de Québec, Lévis, et les municipalités de La Jacques-Cartier, de Portneuf, de La Côte-de-Beaupré, de l’île d’Orléans, de Lotbinière, de La Nouvelle-Beauce, de Bellechasse et de Montmagny.'],
-                         ['Ma municipalité n’a pas de page. La desservez-vous?', 'Oui, si elle est à 50 km ou moins de Québec. Décrivez votre immeuble dans une demande d’offre et nous vous répondons.'],
-                         ['Comment obtenir une offre de gestion?', 'Décrivez votre immeuble en deux minutes : type, nombre de logements et secteur. Nous répondons avec une offre et un rendez-vous proposé.']],
-                 'cta': {'surtitre': 'Un immeuble dans la région?', 'titre': 'Parlons de {votre immeuble}.', 'texte': 'Décrivez-le en deux minutes : nous répondons avec une offre et un rendez-vous proposé.', 'bouton': 'Obtenir une offre'}},
-          'en': {'titre': 'Property management in the {Greater Québec City area}',
-                 'lead': f'Lease Lane manages rental buildings within 50 km of Québec City: {nb} cities, boroughs and municipalities, on the north shore, the south shore and Île d’Orléans.',
-                 'zonesT': 'The areas we serve', 'zonesD': 'Areas in dark blue have their own page, with rental market figures. The others are served too; the distance shown is from downtown Québec City.',
-                 'zones': zones('en'), 'note': 'Sources: Statistics Canada, 2021 Census; Répertoire des municipalités du Québec (MAMH); official place names (NRCan). Straight-line distances from Québec City Hall.',
-                 'faqT': 'Frequently asked questions',
-                 'faq': [['Which areas do you serve?', 'The whole region within 50 km of Québec City: Québec City, Lévis, and the municipalities of La Jacques-Cartier, Portneuf, La Côte-de-Beaupré, Île d’Orléans, Lotbinière, La Nouvelle-Beauce, Bellechasse and Montmagny.'],
-                         ['My municipality has no page. Do you serve it?', 'Yes, if it is within 50 km of Québec City. Describe your building in an offer request and we will reply.'],
-                         ['How do I get a management offer?', 'Describe your building in two minutes: type, number of units and area. We reply with an offer and a proposed meeting.']],
-                 'cta': {'surtitre': 'A building in the region?', 'titre': 'Let’s talk about {your building}.', 'texte': 'Describe it in two minutes: we reply with an offer and a proposed meeting.', 'bouton': 'Get an offer'}}}
-ROUTES.insert(0, {'slug': 'grande-region-de-quebec', 'path': '/gestion-immobiliere/grande-region-de-quebec', 'page': 'region', 'requete': 'gestion immobilière grande région de Québec',
-                  'titre': 'Gestion immobilière, grande région de Québec | Lease Lane', 'description': f'Gestion d’immeubles locatifs dans un rayon de 50 km autour de Québec : {nb} secteurs desservis, rive nord, rive sud et île d’Orléans. Demandez une offre.', 'fil': 'Grande région de Québec'})
-EN.insert(0, ['/gestion-immobiliere/grande-region-de-quebec', '/en/property-management/greater-quebec-city', 'Property Management, Greater Québec City | Lease Lane',
-              f'Rental property management within 50 km of Québec City: {nb} areas served on the north shore, the south shore and Île d’Orléans. Request an offer.', 'property management Greater Quebec City', 'Greater Québec City area'])
+# La page centrale « Grande région de Québec » a été fusionnée le 12 oct. 2026 avec /quartiers (carte et guides des 90 secteurs, pages-guides.jsx);
+# l'ancienne adresse redirige vers /quartiers (next.config.ts).
 
 ENTETE = '/* Généré par scripts/localites/generer.py (site Next.js) à partir de données vérifiées — ne pas modifier à la main. */\n'
 def ecrire(p, t):
     if not os.path.exists(p) or open(p, encoding='utf-8').read() != t: open(p, 'w', encoding='utf-8').write(t)
-ecrire(os.path.join(PROTO, 'localites-donnees.js'), ENTETE + 'window.LL_LOCALITES=' + json.dumps(LOC, ensure_ascii=False) + ';\nwindow.LL_REGION=' + json.dumps(REGION, ensure_ascii=False) + ';\n')
+ecrire(os.path.join(PROTO, 'localites-donnees.js'), ENTETE + 'window.LL_LOCALITES=' + json.dumps(LOC, ensure_ascii=False) + ';\n')
 ecrire(os.path.join(PROTO, 'localites-routes.js'), ENTETE + 'window.LL_LOCALITES_ROUTES=' + json.dumps(ROUTES, ensure_ascii=False, indent=0) + ';\n')
 # langue.js : bloc LOCALITES (jumelles anglaises)
 p = os.path.join(PROTO, 'langue.js'); s = open(p, encoding='utf-8').read()
@@ -246,5 +209,5 @@ else:
     k = "    ['/a-propos','/en/about',"
     assert s.count(k) == 1; s = s.replace(k, bloc + k)
 ecrire(p, s)
-print(f'{len(PALIER1)} pages locales + page centrale ({nb} secteurs listés)')
+print(f'{len(PALIER1)} pages locales')
 for r in ROUTES: print(f"  {r['path']:58} {len(r['titre']):3} car. · {r['titre']}")

@@ -13,8 +13,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const alternates = { languages: { 'fr-CA': fr, 'en-CA': en, 'x-default': fr } };
     const p = PRIORITE[r.page] ?? 0.6;
     return [
-      { url: fr, lastModified: '2026-10-09', priority: p, alternates },
-      { url: en, lastModified: '2026-10-09', priority: Math.round(p * 0.9 * 10) / 10, alternates },
+      { url: fr, lastModified: '2026-10-12', priority: p, alternates },
+      { url: en, lastModified: '2026-10-12', priority: Math.round(p * 0.9 * 10) / 10, alternates },
     ];
   });
 }

@@ -167,7 +167,7 @@ const SecteursRepli = ({
                 minHeight: '32px'
               }}><span aria-hidden="true" className="pe-zp"></span>{N[x][1]}</a></li>)}</ul></div>;
       })}</div>
-    <a href="/gestion-immobiliere/grande-region-de-quebec" className="ao-lien pe-l" style={{
+    <a href="/quartiers" className="ao-lien pe-l" style={{
       ...PE_L,
       color: '#fff',
       fontWeight: 600,

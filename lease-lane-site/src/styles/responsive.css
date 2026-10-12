@@ -766,3 +766,10 @@ footer .pr-bas>span{justify-content:center;opacity:.85}
 }
 /* Photos d’équipe (À propos) : recadrées, jamais étirées, quelle que soit la largeur de la carte (12 oct. 2026). */
 .ap1-eq-img img,.ap2-tilt img,.ap3-eq-in img{object-fit:cover;object-position:50% 20%}
+
+/* Chiffres du bandeau (PBHeros stats) sur mobile : empilés et centrés comme le reste du bandeau, séparés par un filet. */
+@media (max-width:620px){
+  .pb-stats>div{padding:18px 0!important;border-left:0!important;justify-items:center;text-align:center}
+  .pb-stats>div+div{border-top:1px solid rgba(200,218,240,.16)}
+  .pb-stats dd{font-size:32px!important}
+}

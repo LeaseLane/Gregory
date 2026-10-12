@@ -20,8 +20,8 @@ const bureau = () => !!(((__ssr() ? "undefined" : typeof window) !== "undefined"
 const EXTRA = {
   quartiers: {
     id: 'quartiers',
-    t: 'Quartiers de Québec',
-    d: 'Montcalm, Limoilou, Saint-Roch…',
+    t: 'La grande région de Québec',
+    d: 'Carte et guide de chaque secteur',
     ic: 'map-pin',
     to: '/quartiers',
     type: 'page'
@@ -36,7 +36,7 @@ const PROFILS = [{
   court: 'Propriétaires',
   d: 'Je possède un immeuble',
   ic: 'building-2',
-  ids: ['gestion', 'location', 'expertise', 'changer', 'offre', 'pprop', 'tal']
+  ids: ['gestion', 'location', 'expertise', 'changer', 'offre', 'quartiers', 'pprop', 'tal']
 }, {
   k: 'locataire',
   t: 'Locataire',

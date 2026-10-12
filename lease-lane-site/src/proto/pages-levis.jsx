@@ -5,8 +5,9 @@
 import React from 'react';
 import { useLangue } from '@/lib/i18n/contexte';
 import { Icon } from '@/components/ds';
+import { LL_ROUTES } from '@/proto/routes';
 import { LL_LEVIS } from '@/proto/levis-donnees';
-import { LL_LOCALITES, LL_REGION } from '@/proto/localites-donnees';
+import { LL_LOCALITES } from '@/proto/localites-donnees';
 import { PBHeros } from '@/proto/pages-proprio-b';
 import { AppelFinal } from '@/proto/blocs';
 import { __ssr } from '@/lib/hydratation';
@@ -63,6 +64,11 @@ const P = ({
   maxWidth: '68ch'
 }}>{riche(children)}</p>;
 const slugDe = route => String(route && route.path || '').split('/').filter(Boolean).pop();
+/* Guide du secteur (/quartiers/<slug>), s'il existe. */
+const guideLocal = slug => {
+  const p = '/quartiers/' + (slug === 'sainte-foy-sillery-cap-rouge' ? 'sainte-foysillerycap-rouge' : slug);
+  return LL_ROUTES.some(r => r.path === p) ? p : null;
+};
 function PageLocale({
   route
 }) {
@@ -176,7 +182,7 @@ function PageLocale({
           gap: '8px 24px',
           fontSize: '14px',
           fontWeight: 600
-        }}><a href="/gestion-immobiliere/grande-region-de-quebec">{EN ? 'All areas we serve' : 'Tous les secteurs desservis'}</a><a href="/quartiers">{EN ? 'Québec City neighbourhood guides' : 'Guides des quartiers de Québec'}</a></p>
+        }}><a href="/quartiers">{EN ? 'All areas we serve' : 'Tous les secteurs desservis'}</a>{guideLocal(slug) && <a href={guideLocal(slug)}>{EN ? 'Area guide' : 'Guide du secteur'}</a>}</p>
     </div></section>
     <section aria-labelledby="lv-marche" style={{
       background: '#F7FAFD',
@@ -294,105 +300,5 @@ if ((__ssr() ? "undefined" : typeof window) !== "undefined") {
     st.textContent = '@media (max-width:960px){.lv-g3{grid-template-columns:minmax(0,1fr)!important}.lv-g2{grid-template-columns:minmax(0,1fr)!important}.lv-g4{grid-template-columns:repeat(2,minmax(0,1fr))!important}}@media (max-width:560px){.lv-g4{grid-template-columns:minmax(0,1fr)!important}}';
     document.head.appendChild(st);
   }
-
-  /* Page centrale : tous les secteurs desservis dans un rayon de 50 km, regroupés par zone; lien vers chaque page locale complète. */
 }
-function PageRegion({
-  route
-}) {
-  const EN = useEN(),
-    R = LL_REGION,
-    c = R && R[EN ? 'en' : 'fr'];
-  if (!c) return null;
-  const H = typeof PBHeros !== 'undefined' ? PBHeros : null;
-  return <div className="lv-page">
-    {H && <H route={route} titre={c.titre} lead={c.lead} />}
-    <section aria-labelledby="rg-zones" style={{
-      background: '#fff'
-    }}><div style={{
-        ...BOITE,
-        display: 'grid',
-        gap: '36px'
-      }}>
-      <div style={{
-          display: 'grid',
-          gap: '12px'
-        }}><H2 id="rg-zones">{c.zonesT}</H2><P>{c.zonesD}</P></div>
-      <div className="lv-g2" style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2,minmax(0,1fr))',
-          gap: '16px'
-        }}>{c.zones.map(z => <section key={z.n} aria-labelledby={'rg-' + z.id} style={{
-            display: 'grid',
-            gap: '14px',
-            alignContent: 'start',
-            padding: '22px 24px',
-            borderRadius: '18px',
-            border: BD
-          }}>
-        <h3 id={'rg-' + z.id} style={{
-              margin: 0,
-              fontSize: '18px',
-              fontWeight: 700,
-              letterSpacing: '-0.015em',
-              color: MAR
-            }}>{z.n}</h3>
-        <ul style={{
-              listStyle: 'none',
-              margin: 0,
-              padding: 0,
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '8px'
-            }}>{z.l.map(([n, lien, km]) => <li key={n}>{lien ? <a href={lien} style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  minHeight: '36px',
-                  padding: '0 12px',
-                  borderRadius: '10px',
-                  background: MAR,
-                  color: '#fff',
-                  fontSize: '13.5px',
-                  fontWeight: 600,
-                  textDecoration: 'none'
-                }}>{n}<Icon name="arrow-right" size={14} color="#fff" /></a> : <span style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  minHeight: '36px',
-                  padding: '0 12px',
-                  borderRadius: '10px',
-                  background: 'var(--bleu-025)',
-                  color: MAR,
-                  fontSize: '13.5px',
-                  fontWeight: 500
-                }}>{n}{km != null && <span style={{
-                    marginLeft: '6px',
-                    color: 'var(--texte-discret)',
-                    fontSize: '12.5px'
-                  }}>{km} km</span>}</span>}</li>)}</ul></section>)}</div>
-      {c.note && <p style={{
-          margin: 0,
-          fontSize: '12.5px',
-          lineHeight: 1.6,
-          color: 'var(--texte-discret)'
-        }}>{c.note}</p>}
-    </div></section>
-    <section aria-labelledby="rg-faq" style={{
-      background: '#F7FAFD',
-      borderTop: FIN
-    }}><div style={{
-        ...BOITE,
-        display: 'grid',
-        gap: '28px',
-        maxWidth: 'calc(var(--web-conteneur) * .8)'
-      }}>
-      <H2 id="rg-faq">{c.faqT}</H2>
-      <div style={{
-          borderTop: FIN
-        }}>{c.faq.map(([q, r], i) => <details key={q} className="ll-faq-item" open={i === 0}><summary><span>{q}</span><span className="ll-plus" aria-hidden="true"><Icon name="plus" size={18} color={BL6} /></span></summary><p>{r}</p></details>)}</div>
-    </div></section>
-    {<AppelFinal surtitre={c.cta.surtitre} titre={c.cta.titre} texte={c.cta.texte} bouton={c.cta.bouton} to="/offre-de-service" />}
-  </div>;
-}
-export { PageLocale, PageLocale as PageLevis, PageRegion };
+export { PageLocale, PageLocale as PageLevis };

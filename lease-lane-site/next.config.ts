@@ -39,6 +39,9 @@ const nextConfig: NextConfig = {
       { source: '/pro', destination: APP + '/pro', permanent: false },
       { source: '/:page([^/]+\\.html)', destination: APP + '/:page', permanent: false },
       { source: '/assets/courriel/:fichier*', destination: APP + '/assets/courriel/:fichier*', permanent: false },
+      /* Page « Grande région de Québec » fusionnée avec /quartiers (carte et guides des secteurs, 12 oct. 2026). */
+      { source: '/gestion-immobiliere/grande-region-de-quebec', destination: '/quartiers', permanent: true },
+      { source: '/en/property-management/greater-quebec-city', destination: '/en/neighbourhoods', permanent: true },
     ];
   },
   /* En-têtes de base. La politique CSP complète (liste blanche : domaine Lease Lane + projet Supabase, B14/SB1)

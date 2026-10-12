@@ -29,7 +29,6 @@ VUES = {
  'glossaire': ('PageGlossaire', 'pages-guides', None, []),
  'levis': ('PageLevis', 'pages-levis', None, []),
  'locale': ('PageLocale', 'pages-levis', None, []),
- 'region': ('PageRegion', 'pages-levis', None, []),
 }
 
 def ecrire(p, texte):

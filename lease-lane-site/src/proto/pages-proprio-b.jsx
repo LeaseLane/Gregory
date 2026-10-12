@@ -218,7 +218,7 @@ function PBHeros({
         {texte}
         <div aria-hidden="true" className="llh-deco"></div>
       </div> : texte}
-      {stats && <dl style={{
+      {stats && <dl className="pb-stats" style={{
         margin: 0,
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))',

@@ -20,14 +20,18 @@ node scripts/couvertures.mjs           # régénère les images de couverture et
 
 ## Ce qui est en place
 
-- **80 adresses** de `routes.js` (160 avec l'anglais, dont 152 indexables), une URL par page sans `#` (`/gestion-immobiliere`,
+- **143 adresses** de `routes.js` (286 avec l'anglais, dont 278 indexables), une URL par page sans `#` (`/gestion-immobiliere`,
   `/quartiers/limoilou`…), pré-rendues en HTML complet : `<title>`, description, canonique, Open Graph, `lang="fr-CA"` et JSON-LD
   (`@graph`) rendus côté serveur, lisibles sans JavaScript. Titres de 60 caractères et descriptions de 160 caractères au plus.
-- **26 guides de quartier et de ville** (`/quartiers/…`, gabarit « Mosaïque » de `pages-guides.jsx`) : 9 quartiers et arrondissements
-  de Québec et 17 villes de la Rive-Nord, de la Rive-Sud et de Portneuf. Page `/quartiers` : sélecteur avec recherche, filtres par zone
-  et carte régionale tirée d'OpenStreetMap (© contributeurs OpenStreetMap, ODbL), intégrée au code : aucune requête externe.
+- **90 guides de secteur** (`/quartiers/…`, gabarit « Mosaïque » de `pages-guides.jsx`) : les 9 quartiers et les arrondissements de Québec,
+  Lévis et ses arrondissements, et toutes les municipalités desservies à 50 km ou moins (rive nord, Portneuf, Côte-de-Beaupré,
+  île d'Orléans, rive sud). Chaque guide : portrait, part de ménages locataires (recensement), vie locale, histoire, dates clés et FAQ.
+- **Page `/quartiers` « La grande région de Québec »** (onglet du menu) : sélecteur avec recherche, filtres par zone, aperçu du secteur
+  (guide et page « gestion immobilière » du secteur), FAQ de la région et carte régionale tirée d'OpenStreetMap
+  (© contributeurs OpenStreetMap, ODbL), intégrée au code : aucune requête externe.
 - **21 pages locales** « gestion immobilière » (`/gestion-immobiliere/<secteur>`), générées par `scripts/localites/generer.py`,
-  plus la page Lévis et la page centrale `/gestion-immobiliere/grande-region-de-quebec`.
+  plus la page Lévis. L'ancienne page centrale `/gestion-immobiliere/grande-region-de-quebec` (et sa jumelle anglaise) redirige
+  vers `/quartiers` (redirection permanente, `next.config.ts`).
 - **Bientôt disponible** : `/logements-a-louer`, l'ancienne fiche d'exemple et `/locataires/demande-de-location` affichent la page
   `PageBientot` (non indexée pour la fiche et la demande); les liens du menu et du pied de page portent la mention « Bientôt ».
 - **Blogue** : 9 articles FR et leurs jumeaux EN, chacun avec son image de couverture et de partage (`public/assets/img/blogue`).
@@ -38,12 +42,14 @@ node scripts/couvertures.mjs           # régénère les images de couverture et
 - Polices servies depuis le domaine (`public/assets/fonts`), `robots.txt` (moteurs de réponse IA autorisés), `sitemap.xml`
   (généré depuis `routes.js`, avec `hreflang`), `llms.txt` (**généré** par `scripts/generer-llms.mjs` à chaque `npm run convertir`,
   sans adresse civique), image de partage, icône Apple (`src/app/apple-icon.png`) et logo des données structurées. Domaine : `https://leaselane.ca`.
-- **Version anglaise** : 32 adresses jumelles `/en/…` (table de `langue.js`), traduites **pendant le rendu serveur** (HTML anglais
+- **Version anglaise** : 143 adresses jumelles `/en/…` (table de `langue.js`), traduites **pendant le rendu serveur** (HTML anglais
   sans JavaScript), `lang="en-CA"`, titres et descriptions anglais, `hreflang` fr-CA / en-CA / x-default, JSON-LD anglais.
   Le dictionnaire n'est téléchargé que sur les pages anglaises. Cléo comprend et répond en anglais. Bouton FR / EN dans l'en-tête.
 - Adresses inconnues (quartiers, articles, logements) : vrai 404 (`src/proxy.ts`), page introuvable bilingue (`app/global-not-found.tsx`).
 - Aperçu de l'espace propriétaire (iframe des pages Gestion) : copie du prototype du portail dans `public/` (non indexée, `X-Robots-Tag`).
-- Anciennes adresses des services du portail locataire redirigées (301) vers la connexion du portail (`next.config.ts`, `LL_PORTAIL_URL`).
+- Anciennes adresses des services du portail locataire redirigées (redirection permanente) vers la connexion du portail (`next.config.ts`, `LL_PORTAIL_URL`).
+
+Référencement (SEO, SEO local et GEO) : voir **`SEO-GEO.md`** (état vérifié, données structurées, fichiers d'exploration, reste à faire).
 
 ## Organisation
 

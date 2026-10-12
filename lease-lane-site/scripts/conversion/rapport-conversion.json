@@ -372,7 +372,7 @@
   },
   "pages-guides.jsx": {
    "exports": 6,
-   "imports": 8,
+   "imports": 9,
    "client": true
   },
   "levis-donnees.js": {
@@ -381,13 +381,13 @@
    "client": false
   },
   "localites-donnees.js": {
-   "exports": 2,
+   "exports": 1,
    "imports": 0,
    "client": false
   },
   "pages-levis.jsx": {
-   "exports": 3,
-   "imports": 7,
+   "exports": 2,
+   "imports": 8,
    "client": true
   },
   "cleo-panneau.jsx": {
@@ -516,10 +516,11 @@
   "pied-options.jsx : '#' + N[x][0]",
   "pied-options.jsx : '#' + N[x][0]",
   "pages-blogue.jsx : '#' + m[4]",
+  "pages-guides.jsx : '#' + pro[0]",
   "pages-guides.jsx : '#' + to",
   "pages-levis.jsx : '#' + m[3]",
   "pages-levis.jsx : '#' + lien",
-  "pages-levis.jsx : '#' + lien"
+  "pages-levis.jsx : '#' + guideLocal(slug)"
  ],
  "ordre": [
   "menu-options.jsx : MenuCleo lu au chargement → version de menu-cleo.jsx",
@@ -696,13 +697,13 @@
   "pages-contact.jsx : 2",
   "pages-contact-v2.jsx : 3",
   "pages-blogue.jsx : 4",
-  "pages-guides.jsx : 2",
+  "pages-guides.jsx : 3",
   "pages-levis.jsx : 3",
   "cleo-formulaires.jsx : 3",
   "cleo-options.jsx : 1",
   "accueil-cleo-mobile.jsx : 1",
   "cleo-temoins.jsx : 1",
-  "app.jsx : 25"
+  "app.jsx : 24"
  ],
  "gardesNavigateur": [
   "../portail-commun/logements-store.js : 1",

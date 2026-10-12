@@ -5,7 +5,7 @@ import { LL_ROUTES, LL_SITE } from '@/proto/routes';
 import { LL_FAQ } from '@/proto/faq';
 import { LL_ARTICLES } from '@/proto/articles-blogue';
 import { LL_LEVIS } from '@/proto/levis-donnees';
-import { LL_LOCALITES, LL_REGION } from '@/proto/localites-donnees';
+import { LL_LOCALITES } from '@/proto/localites-donnees';
 import { LL_DATA } from '@/proto/data';
 import { routeDe, routesDe, existe } from '@/lib/routes-site';
 import { ROUTES_EN, versEN } from '@/lib/i18n/adresses';
@@ -51,8 +51,14 @@ export function metadataDe(path, lang = 'fr') {
 const ORG_ID = S.domaine + '/#organisation';
 const VILLE_QC = { '@type': 'City', name: 'Québec', sameAs: 'https://www.wikidata.org/wiki/Q2145' };
 const VILLE_LV = { '@type': 'City', name: 'Lévis', sameAs: 'https://www.wikidata.org/wiki/Q141874' };
-const quartiers = en => LL_ROUTES.filter(r => /^\/quartiers\/[^/]+$/.test(r.path)).map(r => ({ '@type': 'Place', name: enTete(r, en).fil[r.fil.length - 1][0], url: urlDe(r.path, en), containedInPlace: VILLE_QC }));
-const ZONE = en => [VILLE_QC, VILLE_LV, { '@type': 'AdministrativeArea', name: en ? 'Québec Metropolitan Community' : 'Communauté métropolitaine de Québec' }, ...quartiers(en)];
+/* Guides de secteur (/quartiers/<slug>) et lieu qui les englobe (route.lieu : Québec, Lévis, MRC, agglomération ou région). */
+const GUIDES = LL_ROUTES.filter(r => /^\/quartiers\/[^/]+$/.test(r.path));
+const LIEU_EN = { 'Agglomération de Québec': 'Québec City urban agglomeration', 'MRC de L’Île-d’Orléans': 'L’Île-d’Orléans RCM' };
+const lieuDe = (lieu, en) => lieu === 'Lévis' ? VILLE_LV : !lieu || lieu === 'Québec' ? VILLE_QC
+  : { '@type': 'AdministrativeArea', name: en ? (LIEU_EN[lieu] || (lieu.startsWith('MRC de ') ? lieu.slice(7) + ' RCM' : lieu)) : lieu };
+/* Zone desservie : Québec, Lévis, la CMQ et les MRC et régions des guides (une entrée par lieu, pas une par secteur). */
+const ZONE = en => [VILLE_QC, VILLE_LV, { '@type': 'AdministrativeArea', name: en ? 'Québec Metropolitan Community' : 'Communauté métropolitaine de Québec' },
+  ...[...new Set(GUIDES.map(r => r.lieu))].filter(l => l && l !== 'Québec' && l !== 'Lévis').map(l => lieuDe(l, en))];
 /* E-E-A-T : l'équipe nommée (page À propos). */
 const EQUIPE = [['Grégory Picard', 'Président'], ['Steven Paradis', 'IA et infrastructure numérique'], ['Xavier Tavernier', 'Directeur des ventes'], ['Andy Larochelle Larose', 'Directeur marketing'], ['Éliot Marcoux', 'Développement des affaires']];
 function organisation(en) {
@@ -83,11 +89,14 @@ export function jsonLd(path, lang = 'fr') {
     provider: { '@id': ORG_ID }, areaServed: [VILLE_QC, VILLE_LV], url });
   if (r0.schemas.includes('Article')) g.push({ '@type': 'BlogPosting', '@id': url + '#article', headline: r.titre.replace(/\s*\|\s*Lease Lane$/, ''), description: r.description, inLanguage: en ? 'en-CA' : 'fr-CA', mainEntityOfPage: url,
     image: imageDe(r0, en), ...(r0.date ? { datePublished: r0.date, dateModified: r0.maj || r0.date } : {}), author: { '@id': ORG_ID }, publisher: { '@id': ORG_ID } });
-  if (/^\/quartiers\/[^/]+$/.test(r0.path)) g.push({ '@type': 'Place', '@id': url + '#lieu', name: r.fil[r.fil.length - 1][0], containedInPlace: VILLE_QC, ...(r0.wiki ? { sameAs: [r0.wiki] } : {}) });
+  if (/^\/quartiers\/[^/]+$/.test(r0.path)) g.push({ '@type': 'Place', '@id': url + '#lieu', name: r.fil[r.fil.length - 1][0], containedInPlace: lieuDe(r0.lieu, en), ...(r0.wiki ? { sameAs: [r0.wiki] } : {}) });
   if (r0.schemas.includes('HowTo')) g.push({ '@type': 'HowTo', name: en ? 'Switch property managers' : 'Changer de gestionnaire immobilier',
     step: (en ? ['Review of the current contract and notice period', 'Transfer of leases, files, keys, contracts and history', 'Notice to tenants and activation of Cléo', 'First report']
       : ['Lecture du contrat actuel et du préavis', 'Transfert des baux, dossiers, clés, contrats et historiques', 'Avis aux locataires et activation de Cléo', 'Premier rapport']).map((n, i) => ({ '@type': 'HowToStep', position: i + 1, name: n })) });
-  if (r0.schemas.includes('ItemList')) g.push({ '@type': 'ItemList', itemListElement: LL_DATA.logements.map((l, i) => ({ '@type': 'ListItem', position: i + 1, name: t1(l.titre, en), url: urlDe('/logements-a-louer/' + l.id.toLowerCase(), en) })) });
+  /* Liste : les guides de secteur sur /quartiers, sinon les logements. */
+  if (r0.schemas.includes('ItemList')) g.push({ '@type': 'ItemList', itemListElement: r0.page === 'quartiers'
+    ? GUIDES.map((x, i) => ({ '@type': 'ListItem', position: i + 1, name: enTete(x, en).fil[x.fil.length - 1][0], url: urlDe(x.path, en) }))
+    : LL_DATA.logements.map((l, i) => ({ '@type': 'ListItem', position: i + 1, name: t1(l.titre, en), url: urlDe('/logements-a-louer/' + l.id.toLowerCase(), en) })) });
   if (r0.schemas.includes('RealEstateListing')) {
     const l = LL_DATA.logements[0];
     g.push({ '@type': 'RealEstateListing', url, name: t1(l.titre, en), datePosted: '2026-09-15', offers: { '@type': 'Offer', price: l.prix.replace(/\D/g, ''), priceCurrency: 'CAD', availability: 'https://schema.org/InStock' },
@@ -95,7 +104,7 @@ export function jsonLd(path, lang = 'fr') {
   }
   /* Articles du blogue : FAQ tirée des données de l'article (français ou anglais). */
   /* Page locale de Lévis : FAQ de levis-donnees.js. */
-  const loc = r0.faqLocale === 'levis' ? LL_LEVIS : r0.faqLocale === 'grande-region-de-quebec' ? LL_REGION : (r0.faqLocale && LL_LOCALITES[r0.faqLocale]);
+  const loc = r0.faqLocale === 'levis' ? LL_LEVIS : (r0.faqLocale && LL_LOCALITES[r0.faqLocale]);
   if (loc) { const c = loc[en ? 'en' : 'fr']; g.push({ '@type': 'FAQPage', mainEntity: c.faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }); }
   const art = r0.article && LL_ARTICLES.find(x => x.slug === r0.article);
   if (art) { const c = en && art.en ? art.en : art.fr; g.push({ '@type': 'FAQPage', mainEntity: c.faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }); }
