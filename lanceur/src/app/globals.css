@@ -1,0 +1,74 @@
+/* Jetons de design Lanceur (ARCHITECTURE.md § 10, palette A « Bleus seulement »). */
+:root {
+  --ll-m900: #0C2147; --ll-m800: #0D233B;
+  --ll-b700: #2E5788; --ll-b500: #4581CB; --ll-b300: #6A9AD5; --ll-b200: #91B5E0; --ll-b050: #C8DAF0; --ll-b025: #ECF2F9;
+  --ll-g700: #3E4A59; --ll-g600: #58697F; --ll-g400: #A6B1BE; --ll-g300: #C8CDD4; --ll-g200: #D1D6DB; --ll-g100: #E1E6EC; --ll-g050: #EEF1F5;
+  --ll-rouge: #9B2E28; --ll-rouge-fond: #F8E4E2; --ll-ok: #12694F;
+  --ll-espace: 24px;
+  --ll-r-carte: 16px; --ll-r-bouton: 12px; --ll-r-segment: 8px; --ll-r-puce: 6px;
+  --ll-fond: #F4F7FB;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: var(--ll-police), system-ui, sans-serif; color: var(--ll-m900); background: var(--ll-fond); font-size: 14px; line-height: 1.5; }
+a { color: var(--ll-b700); }
+:focus-visible { outline: 2px solid var(--ll-b500); outline-offset: 2px; }
+
+/* Champs et boutons communs */
+.champ { display: grid; gap: 8px; }
+.champ label { font-size: 13px; font-weight: 600; }
+.champ-ligne { display: flex; justify-content: space-between; align-items: baseline; }
+.saisie { position: relative; }
+.saisie input { width: 100%; height: 48px; border: 1px solid var(--ll-g300); border-radius: var(--ll-r-bouton); padding: 0 44px 0 14px; font: inherit; font-size: 14px; color: var(--ll-m900); background: #fff; }
+.saisie input:focus { outline: none; border-color: var(--ll-b500); box-shadow: 0 0 0 3px rgba(69,129,203,.18); }
+.saisie .icone { position: absolute; right: 12px; top: 12px; width: 24px; height: 24px; display: grid; place-items: center; color: var(--ll-m900); background: none; border: 0; padding: 0; cursor: pointer; }
+.bouton { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 44px; padding: 0 20px; border-radius: var(--ll-r-bouton); font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; border: 1px solid transparent; text-decoration: none; }
+.bouton-principal { background: var(--ll-m900); color: #fff; width: 100%; }
+.bouton-principal:hover { background: #142e5c; }
+.bouton-principal:disabled { opacity: .6; cursor: progress; }
+.bouton-contour { background: #fff; color: var(--ll-m900); border-color: var(--ll-g300); }
+.erreur { margin: 0; color: var(--ll-rouge); background: var(--ll-rouge-fond); border-radius: var(--ll-r-segment); padding: 10px 12px; font-size: 13px; }
+
+/* Connexion (maquette « connexion-admin ») */
+.auth { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 672fr) minmax(0, 720fr); gap: 24px; padding: 24px; background: linear-gradient(180deg, #fff 0%, #EEF3F9 100%); }
+.auth-panneau { position: relative; border-radius: 24px; overflow: hidden; background: radial-gradient(120% 80% at 50% 0%, #1B3766 0%, #0C2147 55%, #081733 100%); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 64px 30px 46px; isolation: isolate; }
+.auth-panneau::before { content: ""; position: absolute; inset: 26px; border: 1px solid rgba(200,218,240,.28); border-radius: 4px; pointer-events: none; }
+.auth-panneau img.couverture { position: absolute; left: 0; right: 0; bottom: 70px; width: 100%; height: 62%; object-fit: cover; object-position: center bottom; z-index: -1; mix-blend-mode: screen; opacity: .9; }
+.auth-logo { height: 44px; width: auto; }
+.auth-titre { margin: 28px 0 0; font-size: clamp(32px, 3vw, 44px); font-weight: 700; letter-spacing: -0.02em; }
+.auth-titre span { color: var(--ll-b500); }
+.auth-slogan { margin: 26px 0 0; display: flex; align-items: center; gap: 16px; font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.auth-slogan::before, .auth-slogan::after { content: ""; width: 56px; height: 1px; background: rgba(255,255,255,.45); }
+.auth-slogan b { color: var(--ll-b300); font-weight: 600; }
+.auth-pied { margin: auto 0 0; display: flex; flex-wrap: nowrap; justify-content: center; gap: 0; font-size: clamp(10px, 0.82vw, 12.5px); white-space: nowrap; position: relative; z-index: 1; }
+.auth-pied a { color: #fff; text-decoration: none; padding: 0 clamp(4px, .45vw, 9px); border-left: 1px solid rgba(255,255,255,.35); }
+.auth-pied a:first-child { border-left: 0; }
+.auth-pied a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.auth-droite { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background-image: linear-gradient(rgba(12,33,71,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(12,33,71,.05) 1px, transparent 1px); background-size: 72px 72px; background-position: center bottom; }
+.auth-carte { width: 100%; max-width: 440px; background: #fff; border-radius: var(--ll-r-carte); box-shadow: 0 1px 2px rgba(12,33,71,.06), 0 18px 48px rgba(12,33,71,.10); padding: 40px; display: grid; gap: 20px; }
+.auth-carte h2 { margin: 0 0 6px; text-align: center; font-size: 20px; line-height: 1.35; font-weight: 700; }
+.auth-carte h2 span { color: var(--ll-b700); }
+.auth-carte p.aide { margin: -8px 0 0; text-align: center; color: var(--ll-g600); font-size: 13px; }
+.case { display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; }
+.case input { width: 16px; height: 16px; margin: 0; accent-color: var(--ll-m900); }
+.auth-gouvernance { max-width: 440px; margin-top: 28px; text-align: center; color: var(--ll-g600); font-size: 12.5px; }
+.auth-gouvernance strong { display: inline-flex; align-items: center; gap: 8px; color: var(--ll-g700); font-size: 13px; margin-bottom: 8px; }
+.qr { display: grid; place-items: center; padding: 12px; border: 1px solid var(--ll-g100); border-radius: var(--ll-r-segment); }
+.qr img { width: 180px; height: 180px; }
+.secret { font-family: ui-monospace, monospace; font-size: 12px; word-break: break-all; background: var(--ll-g050); padding: 8px 10px; border-radius: var(--ll-r-puce); }
+@media (max-width: 900px) { .auth { grid-template-columns: minmax(0, 1fr); padding: 0; } .auth-panneau { display: none; } .auth-droite { padding: 24px 16px; } .auth-carte { padding: 28px 20px; } .auth-carte h2 br { display: none; } }
+
+/* Coquille Lanceur */
+.barre { height: 64px; display: flex; align-items: center; gap: 16px; padding: 0 24px; background: #fff; border-bottom: 1px solid var(--ll-g100); }
+.barre img { height: 28px; }
+.barre .espace { flex: 1; }
+.barre .qui { color: var(--ll-g600); font-size: 13px; }
+.page { max-width: 1240px; margin: 0 auto; padding: 32px 24px 48px; }
+.page h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+.sous-titre { margin: 6px 0 24px; color: var(--ll-g600); }
+.tuiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; }
+.tuile { background: #fff; border: 1px solid var(--ll-g100); border-radius: var(--ll-r-carte); padding: 24px; display: grid; gap: 8px; color: inherit; text-decoration: none; min-height: 132px; }
+.tuile strong { font-size: 16px; }
+.tuile span { color: var(--ll-g600); font-size: 13px; }
+.tuile em { font-style: normal; font-size: 12px; color: var(--ll-g600); background: var(--ll-g050); border-radius: var(--ll-r-puce); padding: 2px 8px; justify-self: start; }
+.carte-vide { background: #fff; border: 1px solid var(--ll-g100); border-radius: var(--ll-r-carte); padding: 40px; max-width: 560px; display: grid; gap: 12px; }
