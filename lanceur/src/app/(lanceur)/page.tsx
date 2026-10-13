@@ -1,5 +1,5 @@
-import { supabaseServeur } from '@/lib/supabase/serveur';
 import { lireAccueil, type Tuile } from '@/lib/accueil';
+import { lireMoi } from '@/lib/moi';
 import { Icone } from '@/composants/Icones';
 
 /* Accueil · 10 espaces (maquette l00 : 5 × 2, état en direct, « reprendre où vous étiez », astuce ⌘K). */
@@ -10,10 +10,10 @@ function Micro({ viz }: { viz: Tuile['viz'] }) {
 }
 
 export default async function Accueil() {
-  const supabase = await supabaseServeur();
-  const { data } = await supabase.auth.getUser();
-  const prenom = String(data.user?.user_metadata?.full_name ?? '').trim().split(/\s+/)[0];
-  const a = await lireAccueil();
+  const moi = (await lireMoi())!;
+  const nom = moi.nom && !moi.nom.includes('@') ? moi.nom : '';
+  const prenom = nom.split(/\s+/)[0];
+  const a = await lireAccueil(moi);
   const jour = new Intl.DateTimeFormat('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Toronto' }).format(new Date());
 
   return (

@@ -2,9 +2,11 @@ import { redirect } from 'next/navigation';
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { destination } from '@/lib/acces';
 import { BarreHaut } from '@/composants/BarreHaut';
+import { AccesReserve } from '@/composants/AccesReserve';
+import { lireMoi } from '@/lib/moi';
 
-/* Coquille Lanceur. Revérifie côté serveur ce que le proxy a déjà filtré (session, 2FA), puis le rôle.
-   Rôle admin = users.is_admin tant que crm.team_members n'existe pas (suite du T0). */
+/* Coquille Lanceur. Revérifie côté serveur ce que le proxy a déjà filtré (session, 2FA), puis l'appartenance
+   à l'équipe (crm.team_members; users.is_admin compte comme admin). Hors équipe : « Accès réservé » (e65). */
 export default async function LanceurLayout({ children }: { children: React.ReactNode }) {
   const supabase = await supabaseServeur();
   const { data } = await supabase.auth.getUser();
@@ -13,22 +15,21 @@ export default async function LanceurLayout({ children }: { children: React.Reac
   if (cible) redirect(cible);
 
   const u = data.user!;
-  const nom = String(u.user_metadata?.full_name ?? '').trim();
-  const initiales = (nom ? nom.split(/\s+/).map((m) => m[0]).join('') : (u.email ?? '?')).slice(0, 2).toUpperCase();
-  const { data: estAdmin } = await supabase.rpc('auth_is_admin');
+  const moi = await lireMoi();
+  const initiales = moi?.initiales ?? (u.email ?? '?').slice(0, 2).toUpperCase();
 
   return (
     <div className="coquille">
       <BarreHaut initiales={initiales} courriel={u.email ?? ''} alerte={false} />
-      {estAdmin ? (
+      {moi ? (
         children
       ) : (
-        <main className="page">
-          <div className="carte-vide" role="alert">
-            <h1 style={{ fontSize: 20 }}>Accès réservé</h1>
-            <p style={{ margin: 0 }}>Ce compte n’a pas accès à l’espace admin. Si vous faites partie de l’équipe, demandez à Steven de vous ajouter.</p>
-          </div>
-        </main>
+        <AccesReserve
+          titre="L’espace admin est réservé à l’équipe Lease Lane"
+          texte="Il donne accès aux dossiers des propriétaires et des locataires, aux paiements et aux décisions de Cléo. Ces renseignements sont protégés (Loi 25) : seuls les membres de l’équipe, chacun selon son rôle, y ont accès."
+          raisons={[['shield', 'Renseignements protégés', 'Accès limité aux personnes qui en ont besoin.'], ['users', 'Un rôle par personne', 'Chacun voit seulement ses espaces.'], ['file', 'Tout est journalisé', 'Chaque connexion et chaque action.']]}
+          courriel="info@leaselane.ca"
+        />
       )}
     </div>
   );
