@@ -108,3 +108,26 @@ a { color: var(--ll-b700); }
 .tuile span { color: var(--ll-g600); font-size: 13px; }
 .tuile em { font-style: normal; font-size: 12px; color: var(--ll-g600); background: var(--ll-g050); border-radius: var(--ll-r-puce); padding: 2px 8px; justify-self: start; }
 .carte-vide { background: #fff; border: 1px solid var(--ll-g100); border-radius: var(--ll-r-carte); padding: 40px; max-width: 560px; display: grid; gap: 12px; }
+
+/* Étape 2 · code (maquette e66, valeurs de blk.js) : colonne de 400 px. */
+.auth-carte.etape { max-width: 480px; gap: 0; }
+.pastille { width: 56px; height: 56px; border-radius: 16px; background: #ECF2F9; display: grid; place-items: center; margin-bottom: 24px; }
+.surtitre { font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #2E5788; line-height: 17px; margin: 0 0 8px; }
+.etape h2.e66 { margin: 0 0 12px; text-align: left; font-size: 24px; line-height: 34px; font-weight: 700; letter-spacing: -0.3px; }
+.etape .consigne { margin: 0 0 24px; font-size: 14px; line-height: 1.5; color: #3E4A59; }
+.etape .consigne b { display: block; font-weight: 600; color: #0C2147; }
+.code6 { display: flex; justify-content: space-between; gap: 8px; }
+.code6-case { width: 56px; height: 64px; border-radius: 12px; border: 1px solid #D1D6DB; background: #fff; text-align: center; font: inherit; font-size: 24px; font-weight: 600; color: #0C2147; caret-color: #4581CB; padding: 0; }
+.code6-case.rempli { border-color: #A6B1BE; }
+.code6-case.actif, .code6-case:focus { outline: none; border: 2px solid #4581CB; box-shadow: 0 0 0 3px #fff, 0 0 0 5px #4581CB; }
+.code6-case:disabled { background: #F7F9FB; }
+.etape .note { margin: 12px 0 24px; font-size: 12px; color: #58697F; }
+.etape .bouton-principal { height: 48px; font-size: 14px; }
+.etape .liens { margin-top: 24px; display: grid; gap: 12px; }
+.etape .liens button, .etape .liens a { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; font: inherit; font-size: 13px; font-weight: 600; color: #2E5788; cursor: pointer; text-decoration: none; justify-self: start; }
+.etape .liens .gris { color: #58697F; cursor: default; }
+.etape .rappel { margin: 32px 0 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; color: #58697F; }
+.etape .erreur { margin: 12px 0 0; }
+.etape .qr { margin: 0 0 20px; padding: 8px; }
+.etape .qr img { width: 132px; height: 132px; }
+.etape .consigne.courte { margin-bottom: 16px; }

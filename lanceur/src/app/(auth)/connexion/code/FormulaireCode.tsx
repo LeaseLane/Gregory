@@ -1,15 +1,29 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabaseNavigateur } from '@/lib/supabase/client';
+import { CodeSixChiffres } from '@/composants/CodeSixChiffres';
+import { Icone } from '@/composants/Icones';
 
-/* Défi TOTP : passe la session de aal1 à aal2. */
+/* Étape 2 sur 2 (maquette e66). Le facteur est une application d'authentification (TOTP) :
+   le code n'est pas « envoyé », il change toutes les 30 secondes. 5 essais, puis 30 secondes d'attente. */
+const ESSAIS = 5;
+const ATTENTE = 30;
+
 export function FormulaireCode() {
   const [code, setCode] = useState('');
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState('');
+  const [rates, setRates] = useState(0);
+  const [attente, setAttente] = useState(0);
 
-  async function verifier(e: React.FormEvent) {
-    e.preventDefault();
+  useEffect(() => {
+    if (!attente) return;
+    const t = setTimeout(() => setAttente(attente - 1), 1000);
+    return () => clearTimeout(t);
+  }, [attente]);
+
+  async function verifier(valeur = code) {
+    if (valeur.length !== 6 || envoi || attente) return;
     setEnvoi(true);
     setErreur('');
     const supabase = supabaseNavigateur();
@@ -19,10 +33,17 @@ export function FormulaireCode() {
       window.location.assign('/connexion/inscription-2fa' + window.location.search);
       return;
     }
-    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: totp.id, code: code.trim() });
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: totp.id, code: valeur });
     if (error) {
-      setErreur('Code refusé. Entrez le code à 6 chiffres affiché maintenant dans votre application d’authentification.');
+      const n = rates + 1;
+      setRates(n);
+      setCode('');
       setEnvoi(false);
+      if (n >= ESSAIS) {
+        setRates(0);
+        setAttente(ATTENTE);
+        setErreur(`Trop d’essais. Réessayez dans ${ATTENTE} secondes.`);
+      } else setErreur('Ce code ne correspond pas. Il change toutes les 30 secondes.');
       return;
     }
     const suite = new URLSearchParams(window.location.search).get('suite');
@@ -35,20 +56,24 @@ export function FormulaireCode() {
   }
 
   return (
-    <form className="auth-carte" onSubmit={verifier}>
-      <h2>Entrez votre <span>code</span> de vérification.</h2>
-      <p className="aide">Ouvrez votre application d’authentification et entrez le code à 6 chiffres de Lease Lane.</p>
-      <div className="champ">
-        <label htmlFor="code">Code à 6 chiffres</label>
-        <div className="saisie">
-          <input id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} autoFocus required />
-        </div>
-      </div>
-      {erreur && <p className="erreur" role="alert">{erreur}</p>}
-      <button className="bouton bouton-principal" type="submit" disabled={envoi || code.length !== 6}>
-        {envoi ? 'Vérification…' : 'Vérifier'} <span aria-hidden="true">→</span>
+    <form className="auth-carte etape" onSubmit={(e) => { e.preventDefault(); verifier(); }}>
+      <span className="pastille"><Icone nom="shield" taille={28} couleur="#0C2147" /></span>
+      <p className="surtitre">Étape 2 sur 2</p>
+      <h2 className="e66">Connexion à l’admin</h2>
+      <p className="consigne">
+        Entrez le code à 6 chiffres affiché dans
+        <b>votre application d’authentification.</b>
+      </p>
+      <CodeSixChiffres valeur={code} onChange={setCode} onComplet={verifier} desactive={envoi || attente > 0} />
+      {erreur ? <p className="erreur" role="alert">{attente ? `Trop d’essais. Réessayez dans ${attente} s.` : erreur}</p> : <p className="note">Le code change toutes les 30 secondes.</p>}
+      {erreur && <div style={{ height: 24 }} />}
+      <button className="bouton bouton-principal" type="submit" disabled={envoi || attente > 0 || code.length !== 6}>
+        {envoi ? 'Vérification…' : 'Valider le code'}
       </button>
-      <button type="button" className="bouton bouton-contour" onClick={changerDeCompte}>Changer de compte</button>
+      <div className="liens">
+        <button type="button" onClick={changerDeCompte}><Icone nom="key" taille={16} couleur="#2E5788" />Changer de compte</button>
+      </div>
+      <p className="rappel"><Icone nom="lock" taille={14} couleur="#58697F" />Accès réservé à l’équipe Lease Lane. Chaque connexion est inscrite au journal.</p>
     </form>
   );
 }
