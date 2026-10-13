@@ -21,7 +21,7 @@ export function AccesReserve({ titre, texte, raisons, courriel }: { titre: strin
         {[
           ['Votre demande part chez l’administrateur', 'avec le motif que vous écrivez'],
           ['Il vous ajoute à l’équipe avec un rôle, ou refuse', 'chaque rôle voit seulement ses espaces'],
-          ['La décision est inscrite au journal', 'visible dans Rapports et réglages'],
+          ['Vous recevez la réponse par courriel', 'à l’adresse de votre demande'],
         ].map(([t, s], i) => (
           <div className="reserve-etape" key={t}>
             <span>{i + 1}</span>

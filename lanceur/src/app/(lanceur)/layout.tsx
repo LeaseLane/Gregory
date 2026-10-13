@@ -27,7 +27,7 @@ export default async function LanceurLayout({ children }: { children: React.Reac
         <AccesReserve
           titre="L’espace admin est réservé à l’équipe Lease Lane"
           texte="Il donne accès aux dossiers des propriétaires et des locataires, aux paiements et aux décisions de Cléo. Ces renseignements sont protégés (Loi 25) : seuls les membres de l’équipe, chacun selon son rôle, y ont accès."
-          raisons={[['shield', 'Renseignements protégés', 'Accès limité aux personnes qui en ont besoin.'], ['users', 'Un rôle par personne', 'Chacun voit seulement ses espaces.'], ['file', 'Tout est journalisé', 'Chaque connexion et chaque action.']]}
+          raisons={[['shield', 'Renseignements protégés', 'Accès limité aux personnes qui en ont besoin.'], ['users', 'Un rôle par personne', 'Chacun voit seulement ses espaces.'], ['lock', 'Double authentification', 'Obligatoire pour chaque membre.']]}
           courriel="info@leaselane.ca"
         />
       )}
