@@ -229,6 +229,35 @@ async function testStorageBucketsNotListableByAnon() {
   }
 }
 
+// ---- 9. T0 (2026-10-13) : portes fermées ----
+// Uniquement des appels qui DOIVENT être refusés; si l'un passait, il ne
+// déclenche rien de coûteux (corps vides, action inconnue, lecture seule).
+async function testT0PortesFermees() {
+  const pk = SUPABASE_ANON_KEY;
+  // Fonctions coûteuses : la clé publique seule ne suffit plus.
+  for (const fn of ["send-sms", "find-prospects-ai"]) {
+    const res = await callFn(fn, pk, { action: "test-etancheite" });
+    if (res.status === 401 || res.status === 403) record(`${fn} refusé avec la clé publique seule`, "PASS");
+    else record(`${fn} refusé avec la clé publique seule`, "FAIL", `Statut ${res.status} — n'importe qui pourrait envoyer des SMS ou faire tourner l'IA à nos frais`);
+  }
+  // Fonction réservée au cron : sans la clé d'appel interne → 403.
+  {
+    const res = await callFn("dispatch-work-order", pk, { action: "test-etancheite" });
+    if (res.status === 403) record("dispatch-work-order refusé sans clé d'appel interne", "PASS");
+    else record("dispatch-work-order refusé sans clé d'appel interne", "FAIL", `Statut ${res.status} au lieu de 403 — INTERNAL_CALL_SECRET absent ou contrôle retiré`);
+  }
+  // Fonction SQL à privilèges : un visiteur ne peut plus l'exécuter.
+  {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/gl_trial_balance`, {
+      method: "POST",
+      headers: { apikey: pk, Authorization: `Bearer ${pk}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_owner_id: "00000000-0000-0000-0000-000000000000" }),
+    });
+    if (res.status === 401 || res.status === 403) record("rpc gl_trial_balance refusée aux visiteurs", "PASS");
+    else record("rpc gl_trial_balance refusée aux visiteurs", "FAIL", `Statut ${res.status} — les fonctions SECURITY DEFINER sont de nouveau exécutables par anon`);
+  }
+}
+
 async function main() {
   await testForgedJwtRejected();
   await testNoAuthRejected();
@@ -238,6 +267,7 @@ async function main() {
   await testBlogPostsScopedCorrectly();
   await testStorageBucketsNotListableByAnon();
   await testHealthCheckReachable();
+  await testT0PortesFermees();
 
   const failed = results.filter((r) => r.status === "FAIL");
   console.log(`\n${results.length} test(s) — ${results.length - failed.length} réussi(s), ${failed.length} échoué(s).`);
