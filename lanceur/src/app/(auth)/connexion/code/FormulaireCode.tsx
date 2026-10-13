@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { CodeSixChiffres } from '@/composants/CodeSixChiffres';
 import { Icone } from '@/composants/Icones';
+import { executer } from '@/lib/ops';
 
 /* Étape 2 sur 2 (maquette e66). Le facteur est une application d'authentification (TOTP) :
    le code n'est pas « envoyé », il change toutes les 30 secondes. 5 essais, puis 30 secondes d'attente. */
@@ -46,6 +47,8 @@ export function FormulaireCode() {
       } else setErreur('Ce code ne correspond pas. Il change toutes les 30 secondes.');
       return;
     }
+    // Chaque connexion validée est inscrite au journal (record-sign-in). Un échec ici ne bloque pas l'accès.
+    await executer(supabase, 'record-sign-in').catch(() => null);
     const suite = new URLSearchParams(window.location.search).get('suite');
     window.location.assign(suite === '/mot-de-passe' ? suite : '/');
   }

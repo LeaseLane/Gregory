@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import path from 'node:path';
 
 /* Garde-fou d'environnement (ARCHITECTURE.md § 9) : hors production, Lanceur refuse
    de démarrer s'il pointe la base de production. Aucune donnée réelle hors production. */
@@ -10,8 +11,12 @@ if (env !== 'production' && url.includes(REF_PRODUCTION)) {
   throw new Error(`LL_ENV=${env} pointe la base de production : refusé. Utiliser la préproduction ou le local.`);
 }
 
+const RACINE = path.resolve(__dirname, '..'); // le registre d'opérations vit dans supabase/functions/_shared/operations
+
 const nextConfig: NextConfig = {
   output: 'standalone',
+  turbopack: { root: RACINE },
+  outputFileTracingRoot: RACINE,
   poweredByHeader: false,
 };
 

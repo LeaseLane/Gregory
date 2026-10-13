@@ -23,19 +23,25 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@ops/*": [
+        "../supabase/functions/_shared/operations/*"
       ]
     },
     "allowJs": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    "../supabase/functions/_shared/operations/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "../supabase/functions/_shared/operations/*_test.ts"
   ]
 }

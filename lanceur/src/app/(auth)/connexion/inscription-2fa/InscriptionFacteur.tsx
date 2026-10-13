@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { CodeSixChiffres } from '@/composants/CodeSixChiffres';
 import { Icone } from '@/composants/Icones';
+import { executer } from '@/lib/ops';
 
 /* Inscription obligatoire du facteur (aucune exemption, ARCHITECTURE.md § 4).
    Aucune maquette dédiée : mêmes briques que l'étape 2 (e66). */
@@ -35,6 +36,7 @@ export function InscriptionFacteur() {
       setEnvoi(false);
       return;
     }
+    await executer(supabaseNavigateur(), 'record-sign-in').catch(() => null);
     const suite = new URLSearchParams(window.location.search).get('suite');
     window.location.assign(suite === '/mot-de-passe' ? suite : '/');
   }
