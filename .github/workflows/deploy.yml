@@ -58,6 +58,34 @@ jobs:
         with:
           version: latest
 
+      - name: Régler l'URL de Supabase Auth (préproduction)
+        # Même piège qu'en production (2026-09-26), constaté en préproduction le
+        # 2026-10-13 : le « Site URL » était resté sur l'ancien domaine
+        # portailgestion, et le courriel de confirmation y envoyait. Aucune
+        # interface n'est hébergée en préproduction : les liens vont à Lanceur
+        # en local (http://localhost:3020). Idempotent, à chaque déploiement.
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          STAGING_REF: ${{ secrets.SUPABASE_STAGING_REF }}
+        run: |
+          set -euo pipefail
+          [ -n "${STAGING_REF:-}" ] || { echo "Pas de préproduction."; exit 0; }
+          cfg=$(curl -sf "https://api.supabase.com/v1/projects/${STAGING_REF}/config/auth" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}")
+          site=$(printf '%s' "$cfg" | python3 -c "import json,sys;print(json.load(sys.stdin).get('site_url') or '')")
+          liste=$(printf '%s' "$cfg" | python3 -c "import json,sys;print(json.load(sys.stdin).get('uri_allow_list') or '')")
+          echo "site_url : $site"
+          echo "redirections : $liste"
+          attendu="http://localhost:3020"
+          # Retire toute ancienne adresse portailgestion des redirections permises.
+          liste=$(printf '%s' "$liste" | tr ',' '\n' | grep -v portailgestion | paste -sd, - || true)
+          case ",$liste," in *",$attendu/**,"*) ;; *) liste="${liste:+$liste,}$attendu/**"; changer=1;; esac
+          [ "$site" = "$attendu" ] || changer=1
+          if [ "${changer:-}" = 1 ]; then
+            corps=$(python3 -c "import json,sys;print(json.dumps({'site_url':sys.argv[1],'uri_allow_list':sys.argv[2]}))" "$attendu" "$liste")
+            curl -sf -X PATCH "https://api.supabase.com/v1/projects/${STAGING_REF}/config/auth" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" -d "$corps" >/dev/null
+            echo "Supabase Auth (préproduction) réglé : site_url=$attendu, redirections=$liste"
+          fi
+
       - name: Déployer en préproduction
         id: deploiement
         env:
@@ -138,6 +166,10 @@ jobs:
           # 2026-10-09 : les portails sont sur app.leaselane.ca (leaselane.ca = site public).
           # Réglé ici plutôt qu'à la main : idempotent, seulement si la valeur diffère.
           attendu="https://app.leaselane.ca"
+          # Retire toute ancienne adresse portailgestion des redirections permises.
+          avant="$liste"
+          liste=$(printf '%s' "$liste" | tr ',' '\n' | grep -v portailgestion | paste -sd, - || true)
+          [ "$liste" = "$avant" ] || changer=1
           case ",$liste," in *",$attendu/**,"*) ;; *) liste="${liste:+$liste,}$attendu/**"; changer=1;; esac
           [ "$site" = "$attendu" ] || changer=1
           if [ "${changer:-}" = 1 ]; then
