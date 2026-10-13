@@ -32,7 +32,8 @@ export function InscriptionFacteur() {
       setEnvoi(false);
       return;
     }
-    window.location.assign('/');
+    const suite = new URLSearchParams(window.location.search).get('suite');
+    window.location.assign(suite === '/mot-de-passe' ? suite : '/');
   }
 
   return (

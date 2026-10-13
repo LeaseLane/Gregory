@@ -1,9 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { supabaseNavigateur } from '@/lib/supabase/client';
+import { supabaseNavigateur, choisirMemoire } from '@/lib/supabase/client';
 
-const IconeCourriel = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+const IconeCourriel = ({ taille = 18 }: { taille?: number }) => (
+  <svg width={taille} height={taille} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
 );
 const IconeOeil = ({ barre }: { barre: boolean }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{barre && <path d="M3 3l18 18" />}</svg>
@@ -13,14 +13,25 @@ export function FormulaireConnexion() {
   const [courriel, setCourriel] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
   const [voir, setVoir] = useState(false);
+  const [rester, setRester] = useState(false);
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState('');
   const [info, setInfo] = useState('');
 
+  const courrielOk = () => {
+    if (courriel.trim()) return true;
+    setErreur('Inscrivez d’abord votre courriel.');
+    return false;
+  };
+
   async function connecter(e: React.FormEvent) {
     e.preventDefault();
-    setEnvoi(true);
     setErreur('');
+    setInfo('');
+    if (!courrielOk()) return;
+    if (!motDePasse) return setErreur('Inscrivez votre mot de passe, ou recevez un lien par courriel.');
+    setEnvoi(true);
+    choisirMemoire(rester);
     const { error } = await supabaseNavigateur().auth.signInWithPassword({ email: courriel.trim(), password: motDePasse });
     if (error) {
       setErreur('Courriel ou mot de passe incorrect. Vérifiez-les, ou utilisez « Mot de passe oublié ? ».');
@@ -31,45 +42,64 @@ export function FormulaireConnexion() {
     window.location.assign('/connexion/code');
   }
 
+  async function lien() {
+    setErreur('');
+    setInfo('');
+    if (!courrielOk()) return;
+    choisirMemoire(rester);
+    // Aucun compte créé par ce bouton; la 2FA reste exigée après le lien.
+    await supabaseNavigateur().auth.signInWithOtp({
+      email: courriel.trim(),
+      options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/auth/retour` },
+    });
+    setInfo('Si un compte existe pour cette adresse, un lien de connexion vient d’être envoyé.');
+  }
+
   async function oublie() {
     setErreur('');
-    if (!courriel.trim()) {
-      setErreur('Inscrivez d’abord votre courriel, puis cliquez sur « Mot de passe oublié ? ».');
-      return;
-    }
-    await supabaseNavigateur().auth.resetPasswordForEmail(courriel.trim(), { redirectTo: `${window.location.origin}/connexion` });
-    setInfo('Si ce courriel a un compte, un lien pour choisir un nouveau mot de passe vient de partir.');
+    setInfo('');
+    if (!courrielOk()) return;
+    await supabaseNavigateur().auth.resetPasswordForEmail(courriel.trim(), { redirectTo: `${window.location.origin}/auth/retour?suite=/mot-de-passe` });
+    setInfo('Si un compte existe pour cette adresse, un lien pour choisir un nouveau mot de passe vient d’être envoyé.');
   }
 
   return (
     <form className="auth-carte" onSubmit={connecter} noValidate>
-      <h2>
-        Connectez-vous en insérant{' '}
-        <br />
-        vos <span>informations</span> ci-dessous.
-      </h2>
+      <h2>Connectez-vous en insérant vos <span>informations</span> ci-dessous.</h2>
       <div className="champ">
         <label htmlFor="courriel">Courriel</label>
         <div className="saisie">
-          <input id="courriel" type="email" autoComplete="username" placeholder="vous@courriel.ca" value={courriel} onChange={(e) => setCourriel(e.target.value)} required />
+          <input id="courriel" type="email" autoComplete="username" placeholder="vous@courriel.ca" value={courriel} onChange={(e) => setCourriel(e.target.value)} />
           <span className="icone"><IconeCourriel /></span>
         </div>
       </div>
       <div className="champ">
         <div className="champ-ligne">
           <label htmlFor="mdp">Mot de passe</label>
-          <a href="#" onClick={(e) => { e.preventDefault(); oublie(); }} style={{ fontSize: 13, fontWeight: 600 }}>Mot de passe oublié ?</a>
+          <button type="button" className="lien" onClick={oublie}>Mot de passe oublié ?</button>
         </div>
         <div className="saisie">
-          <input id="mdp" type={voir ? 'text' : 'password'} autoComplete="current-password" value={motDePasse} onChange={(e) => setMotDePasse(e.target.value)} required />
+          <input id="mdp" type={voir ? 'text' : 'password'} autoComplete="current-password" placeholder="••••••••••" value={motDePasse} onChange={(e) => setMotDePasse(e.target.value)} />
           <button type="button" className="icone" onClick={() => setVoir(!voir)} aria-label={voir ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}><IconeOeil barre={voir} /></button>
         </div>
       </div>
+      <label className="case">
+        <input type="checkbox" checked={rester} onChange={(e) => setRester(e.target.checked)} />
+        Rester connecté sur cet appareil
+      </label>
       {erreur && <p className="erreur" role="alert">{erreur}</p>}
       {info && <p className="aide" role="status" style={{ margin: 0 }}>{info}</p>}
-      <button className="bouton bouton-principal" type="submit" disabled={envoi || !courriel || !motDePasse}>
-        {envoi ? 'Connexion…' : 'Me connecter'} <span aria-hidden="true">→</span>
+      <button className="bouton bouton-principal" type="submit" disabled={envoi}>
+        {envoi ? 'Connexion…' : 'Me connecter'}
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
       </button>
+      <div style={{ display: 'grid', gap: 16 }}>
+        <div className="ou">ou</div>
+        {/* Maquette : « courriel ou texto ». Le texto attend le branchement Twilio (T2). */}
+        <button type="button" className="bouton bouton-secondaire" onClick={lien}>
+          <IconeCourriel taille={16} /> Recevoir un lien par courriel
+        </button>
+      </div>
     </form>
   );
 }

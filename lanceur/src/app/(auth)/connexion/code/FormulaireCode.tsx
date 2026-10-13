@@ -16,7 +16,7 @@ export function FormulaireCode() {
     const { data: facteurs } = await supabase.auth.mfa.listFactors();
     const totp = facteurs?.totp.find((f) => f.status === 'verified');
     if (!totp) {
-      window.location.assign('/connexion/inscription-2fa');
+      window.location.assign('/connexion/inscription-2fa' + window.location.search);
       return;
     }
     const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: totp.id, code: code.trim() });
@@ -25,7 +25,8 @@ export function FormulaireCode() {
       setEnvoi(false);
       return;
     }
-    window.location.assign('/');
+    const suite = new URLSearchParams(window.location.search).get('suite');
+    window.location.assign(suite === '/mot-de-passe' ? suite : '/');
   }
 
   async function changerDeCompte() {
