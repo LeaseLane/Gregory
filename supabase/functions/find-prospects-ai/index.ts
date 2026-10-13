@@ -1,4 +1,5 @@
-import { corsHeadersFor } from "../_shared/auth.ts";
+import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
+import { estAppelInterneVerifie } from "../_shared/appel-interne.ts";
 import { IA_MESSAGES_URL, IA_CLE, avecContexte } from "../_shared/ia.ts";
 // find-prospects-ai : recherche web réelle (jamais inventée) de
 // propriétaires-gestionnaires (immeubles à logements qu'ils gèrent
@@ -14,11 +15,11 @@ import { IA_MESSAGES_URL, IA_CLE, avecContexte } from "../_shared/ia.ts";
 // elle n'est pas rattachée à une source vérifiable, pour respecter la
 // règle du projet : aucune donnée fictive sur le site en production.
 //
-// Appelée par pg_cron (voir trigger_find_prospects_ai dans schema.sql)
-// ET par le bouton admin "Chercher des prospects maintenant" — même
-// convention que flinks-api "sync_all" : aucune vérification JWT/is_admin
-// ici, cette action ne fait qu'insérer des prospects (aucune donnée
-// sensible exposée en retour).
+// Appelée par pg_cron (trigger_find_prospects_ai, avec la clé d'appel
+// interne) ET par le bouton admin "Chercher des prospects maintenant".
+// T0 : elle était ouverte à tous (n'importe qui faisait tourner l'IA à nos
+// frais). Elle exige maintenant soit un appel interne vérifié, soit un
+// admin connecté (deuxième facteur compris).
 //
 // Auto-assignation : chaque prospect trouvé est assigné directement au
 // prospecteur téléphonique actif le moins chargé (aucune approbation admin requise
@@ -46,6 +47,16 @@ Deno.serve(async (req) => {
       Authorization: `Bearer ${serviceRoleKey}`,
       "Content-Type": "application/json",
     };
+
+    if (!estAppelInterneVerifie(req)) {
+      const auth = await requireUserWithMfa(req, corsHeaders);
+      if ("response" in auth) return auth.response;
+      const adminRes = await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${auth.userId}&select=is_admin`, { headers: adminHeaders });
+      const adminRows = await adminRes.json().catch(() => []);
+      if (!adminRows?.[0]?.is_admin) {
+        return new Response(JSON.stringify({ error: "Accès refusé — compte non admin" }), { status: 403, headers: corsHeaders });
+      }
+    }
 
     const body = await req.json().catch(() => ({}));
     const action = body.action || "run";

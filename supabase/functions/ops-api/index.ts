@@ -2,7 +2,7 @@ import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { courrielTravailleur } from "../_shared/journal-travailleur.ts";
 import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.ts";
-import { corsHeadersFor } from "../_shared/auth.ts";
+import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 import { montantSigne } from "../_shared/fiducie.ts";
 import { classer, type Bail } from "../_shared/rapprochement-fiducie.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
@@ -11,35 +11,6 @@ import { classer, type Bail } from "../_shared/rapprochement-fiducie.ts";
 // serveur (cron, webhooks, autre fonction edge) n'envoient pas
 // d'en-tête Origin et ne sont donc pas affectés par ce contrôle.
 
-// Vérifie la signature du JWT (HS256, secret du projet Supabase) au lieu
-// de se fier uniquement au réglage "Verify JWT" de la plateforme —
-// défense en profondeur : cette fonction reste sûre même si ce réglage
-// est mal configuré pour une fonction en particulier.
-// Vérifie le JWT en le faisant valider par le service Auth de Supabase
-// lui-même (GET /auth/v1/user) plutôt qu'en réimplémentant la
-// cryptographie de vérification. La passerelle Edge Functions a un bug
-// connu qui rejette à tort les JWT signés en ES256 quand verify_jwt=true
-// est réglé au niveau plateforme (github.com/supabase/supabase/issues/42244)
-// — d'où verify_jwt=false dans supabase/config.toml pour cette fonction :
-// ce code est maintenant la seule vérification, et s'appuie sur l'API
-// Auth de Supabase, qui elle gère ES256 correctement.
-async function verifySupabaseJwt(jwt: string, supabaseUrl: string): Promise<{ sub: string; [key: string]: unknown } | null> {
-  if (!jwt) return null;
-  try {
-    const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-        apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      },
-    });
-    if (!res.ok) return null;
-    const user = await res.json().catch(() => null);
-    if (!user?.id) return null;
-    return { sub: user.id, ...user };
-  } catch {
-    return null;
-  }
-}
 
 Deno.serve(async (req) => {
   const corsHeaders = corsHeadersFor(req.headers.get("origin"));
@@ -47,16 +18,12 @@ Deno.serve(async (req) => {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
   try {
-    const authHeader = req.headers.get("Authorization") || "";
-    const jwt = authHeader.replace("Bearer ", "");
-    if (!jwt) {
-      return new Response(JSON.stringify({ error: "Non authentifié" }), { status: 401, headers: corsHeaders });
-    }
-    const claims = await verifySupabaseJwt(jwt, Deno.env.get("SUPABASE_URL") ?? "");
-    if (!claims) {
-      return new Response(JSON.stringify({ error: "Jeton invalide ou expiré" }), { status: 401, headers: corsHeaders });
-    }
-    const userId = claims.sub as string;
+    // Deuxième facteur exigé côté serveur (T0, faille #4) : même garde que
+    // crm-api et privacy-api, avec la protection anti-verrouillage des
+    // comptes qui n'ont pas encore inscrit de facteur.
+    const auth = await requireUserWithMfa(req, corsHeaders);
+    if ("response" in auth) return auth.response;
+    const userId = auth.userId;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");

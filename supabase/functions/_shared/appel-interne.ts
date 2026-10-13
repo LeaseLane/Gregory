@@ -73,6 +73,18 @@ export function refuserSiAppelExterne(
 }
 
 /**
+ * Version stricte : vrai seulement si INTERNAL_CALL_SECRET est défini ET
+ * que l'en-tête le présente. Pour les fonctions coûteuses (IA, SMS) où
+ * laisser passer par défaut n'est pas acceptable : sans secret, l'appel
+ * interne est simplement refusé (le cron s'arrête, rien d'autre ne casse).
+ */
+export function estAppelInterneVerifie(req: Request): boolean {
+  const secret = Deno.env.get("INTERNAL_CALL_SECRET");
+  if (!secret) return false;
+  return egalTempsConstant(req.headers.get("x-internal-call-key") || "", secret);
+}
+
+/**
  * En-têtes à utiliser quand UNE fonction edge en appelle une autre
  * (ops-api → dispatch-work-order, admin-api → send-onboarding-reminder,
  * handle-tenant-confirmation → analyze-satisfaction-signal).

@@ -7,6 +7,13 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
+  // Appel serveur seulement (T0) : l'unique appelant, handle-payment-reminder,
+  // envoie la clé service_role. Sans ce contrôle, n'importe qui pouvait
+  // envoyer un SMS au nom de Lease Lane, à nos frais.
+  const cleServeur = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!cleServeur || (req.headers.get("Authorization") || "") !== `Bearer ${cleServeur}`) {
+    return new Response(JSON.stringify({ error: "Non autorisé" }), { status: 401, headers: corsHeaders });
+  }
   try {
     const { to_phone, message, entity_type, entity_id, fallback_email, fallback_subject } = await req.json();
     if (!message || typeof message !== "string" || !message.trim()) {
