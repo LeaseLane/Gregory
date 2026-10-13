@@ -2,6 +2,7 @@ import { EXPEDITEUR } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
+import { refuserSiNonInterne } from "../_shared/appel-interne.ts";
 // L'IA classe le sentiment d'un texte déjà écrit par un humain — elle
 // n'invente jamais un motif d'insatisfaction et ne décide jamais seule
 // d'escalader. La décision d'escalade est un seuil fixe et
@@ -26,6 +27,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
+  // T0 : appel interne seulement (cron, déclencheur ou autre fonction edge).
+  const refus = refuserSiNonInterne(req, corsHeaders);
+  if (refus) return refus;
   try {
     const { source, subject_type, subject_id, related_entity_type, related_entity_id, content } = await req.json();
     if (!source || !subject_type || !subject_id || !content) {

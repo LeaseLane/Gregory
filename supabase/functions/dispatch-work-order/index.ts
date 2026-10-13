@@ -2,6 +2,7 @@ import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { courrielTravailleur } from "../_shared/journal-travailleur.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
+import { refuserSiNonInterne } from "../_shared/appel-interne.ts";
 // Moteur de dispatch Lease Lane Pro — trouve automatiquement les travailleurs
 // admissibles à un work_order et leur diffuse le mandat par paliers de
 // score (au lieu qu'un admin cherche manuellement au téléphone).
@@ -49,6 +50,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
+  // T0 : appel interne seulement (cron, déclencheur ou autre fonction edge).
+  const refus = refuserSiNonInterne(req, corsHeaders);
+  if (refus) return refus;
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");

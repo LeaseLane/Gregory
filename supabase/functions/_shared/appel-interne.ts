@@ -73,6 +73,21 @@ export function refuserSiAppelExterne(
 }
 
 /**
+ * Pour les fonctions appelées seulement par le cron, les déclencheurs ou
+ * une autre fonction edge (T0) : accepte la clé service_role (appels edge
+ * qui l'utilisent déjà) ou la clé d'appel interne. Inactive tant que
+ * INTERNAL_CALL_SECRET n'est pas défini, comme refuserSiAppelExterne.
+ */
+export function refuserSiNonInterne(
+  req: Request,
+  corsHeaders: Record<string, string>,
+): Response | null {
+  const cleServeur = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (cleServeur && (req.headers.get("Authorization") || "") === `Bearer ${cleServeur}`) return null;
+  return refuserSiAppelExterne(req, corsHeaders);
+}
+
+/**
  * Version stricte : vrai seulement si INTERNAL_CALL_SECRET est défini ET
  * que l'en-tête le présente. Pour les fonctions coûteuses (IA, SMS) où
  * laisser passer par défaut n'est pas acceptable : sans secret, l'appel

@@ -1,6 +1,7 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml } from "../_shared/courriel.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
+import { refuserSiNonInterne } from "../_shared/appel-interne.ts";
 // Marketplace (Facebook) n'a pas d'API publique de publication — cette
 // fonction ne publie donc rien elle-même. Dès qu'une annonce est
 // rédigée pour le site, elle prépare AUSSI le texte prêt à copier sur
@@ -9,6 +10,9 @@ import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared
 // IA) et avise l'équipe par courriel qu'il ne reste qu'à publier.
 
 Deno.serve(async (req) => {
+  // T0 : appel interne seulement (cron, déclencheur ou autre fonction edge).
+  const refus = refuserSiNonInterne(req, {});
+  if (refus) return refus;
   try {
     const { unit_id } = await req.json();
 

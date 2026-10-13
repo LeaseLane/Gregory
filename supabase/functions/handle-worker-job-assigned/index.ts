@@ -1,11 +1,15 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { courrielTravailleur } from "../_shared/journal-travailleur.ts";
+import { refuserSiNonInterne } from "../_shared/appel-interne.ts";
 // Page publique où le travailleur répond (accepter/refuser/proposer
 // une heure/demander des infos) — voir edge-function-handle-worker-response.ts
 
 
 Deno.serve(async (req) => {
+  // T0 : appel interne seulement (cron, déclencheur ou autre fonction edge).
+  const refus = refuserSiNonInterne(req, {});
+  if (refus) return refus;
   try {
     const { work_order_id, notification_type } = await req.json();
     const type = notification_type || "assigned";

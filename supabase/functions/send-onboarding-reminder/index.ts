@@ -2,6 +2,7 @@ import { EXPEDITEUR } from "../_shared/branding.ts";
 import { avecHtml } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
 import { appelerIA, MODELE_RAPIDE } from "../_shared/ia.ts";
+import { refuserSiNonInterne } from "../_shared/appel-interne.ts";
 // Déclenchée par le cron flag_incomplete_onboarding() (ou manuellement
 // par l'admin) — jamais par un utilisateur final, donc pas de JWT à
 // vérifier ici (même convention que handle-payment-reminder). La liste
@@ -31,6 +32,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
+  // T0 : appel interne seulement (cron, déclencheur ou autre fonction edge).
+  const refus = refuserSiNonInterne(req, corsHeaders);
+  if (refus) return refus;
   try {
     const { owner_id } = await req.json().catch(() => ({}));
     if (!owner_id) {

@@ -2,6 +2,7 @@ import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { courrielDemande } from "../_shared/fil-demande.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
+import { enTetesAppelInterne } from "../_shared/appel-interne.ts";
 // Ferme la dernière étape manquante du cycle de réparation : le
 // locataire confirme que le travail est bien réglé avant que le
 // dossier ne se ferme pour de bon. "get"/"confirm"/"reopen" sont
@@ -162,7 +163,7 @@ Deno.serve(async (req) => {
       if (message && tenantId) {
         fetch(`${supabaseUrl}/functions/v1/analyze-satisfaction-signal`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", apikey: "sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR" },
+          headers: enTetesAppelInterne("sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR"),
           body: JSON.stringify({
             source: "repair_reopened", subject_type: "tenant", subject_id: tenantId,
             related_entity_type: "work_orders", related_entity_id: work_order_id, content: message,

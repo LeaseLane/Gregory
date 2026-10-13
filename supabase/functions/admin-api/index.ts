@@ -1,4 +1,5 @@
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
+import { enTetesAppelInterne } from "../_shared/appel-interne.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
 // navigateur d'un usager (CSRF via fetch). Les appels serveur à
@@ -56,11 +57,7 @@ Deno.serve(async (req) => {
       }
       const res = await fetch(`${supabaseUrl}/functions/v1/send-onboarding-reminder`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR",
-          apikey: "sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR",
-        },
+        headers: enTetesAppelInterne("sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR"),
         body: JSON.stringify({ owner_id }),
       });
       const result = await res.json().catch(() => ({}));

@@ -3,6 +3,7 @@ import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.t
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { dimensionsImage } from "../_shared/image.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, MODELE_VIDEO, decrireVideo, decrireMedias, versBase64, type PartieGemini, avecContexte } from "../_shared/ia.ts";
+import { refuserSiNonInterne } from "../_shared/appel-interne.ts";
 // Règles de sécurité déterministes : ne dépendent JAMAIS de l'IA.
 // Si l'une de ces situations est détectée dans la description du
 // locataire, l'urgence est forcée à "urgence" même si Claude évalue
@@ -35,6 +36,9 @@ const MAX_PX_PHOTO = 8000;
 const MAX_OCTETS_PHOTO = 5 * 1024 * 1024;
 
 Deno.serve(async (req) => {
+  // T0 : appel interne seulement (cron, déclencheur ou autre fonction edge).
+  const refus = refuserSiNonInterne(req, {});
+  if (refus) return refus;
   try {
     const payload = await req.json();
     const record = payload.record;

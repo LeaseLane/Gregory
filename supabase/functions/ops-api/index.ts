@@ -5,6 +5,7 @@ import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.t
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 import { montantSigne } from "../_shared/fiducie.ts";
 import { classer, type Bail } from "../_shared/rapprochement-fiducie.ts";
+import { enTetesAppelInterne } from "../_shared/appel-interne.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
 // navigateur d'un usager (CSRF via fetch). Les appels serveur à
@@ -1024,7 +1025,7 @@ Deno.serve(async (req) => {
 
       const dispatchRes = await fetch(`${supabaseUrl}/functions/v1/dispatch-work-order`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+        headers: enTetesAppelInterne(anonKey),
         body: JSON.stringify({ action: "dispatch", work_order_id: newWorkOrder.id }),
       });
       const dispatchData = await dispatchRes.json().catch(() => ({}));

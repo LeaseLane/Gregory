@@ -1,5 +1,9 @@
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
+import { refuserSiNonInterne } from "../_shared/appel-interne.ts";
 Deno.serve(async (req) => {
+  // T0 : appel interne seulement (cron, déclencheur ou autre fonction edge).
+  const refus = refuserSiNonInterne(req, {});
+  if (refus) return refus;
   try {
     const { owner_id, period_start, period_end } = await req.json();
 
