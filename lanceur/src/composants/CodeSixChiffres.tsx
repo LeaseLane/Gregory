@@ -11,6 +11,7 @@ export function CodeSixChiffres({ valeur, onChange, onComplet, desactive }: { va
   function mettre(v: string) {
     const propre = v.replace(/\D/g, '').slice(0, 6);
     onChange(propre);
+    // Case suivante (ou la dernière une fois les 6 chiffres saisis).
     cases.current[Math.min(propre.length, 5)]?.focus();
     if (propre.length === 6) onComplet?.(propre);
   }
@@ -29,7 +30,8 @@ export function CodeSixChiffres({ valeur, onChange, onComplet, desactive }: { va
           value={c}
           disabled={desactive}
           autoFocus={i === 0}
-          onFocus={(e) => { if (i > valeur.length) cases.current[valeur.length]?.focus(); else e.target.select(); }}
+          onFocus={(e) => e.target.select()}
+          onMouseDown={(e) => { if (i > valeur.length) { e.preventDefault(); cases.current[valeur.length]?.focus(); } }}
           onChange={(e) => {
             const saisi = e.target.value.replace(/\D/g, '');
             if (!saisi) return;
