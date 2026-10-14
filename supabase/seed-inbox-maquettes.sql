@@ -5,7 +5,7 @@ delete from crm.conversations where email like '%@exemple-inbox.test' or phone_e
 do $$
 declare c uuid; camille uuid := (select id from auth.users where email = 'equipe-location@leaselane.test');
   julie uuid := (select id from auth.users where email = 'equipe-gestionnaire@leaselane.test');
-  t timestamptz := date_trunc('day', now() at time zone 'America/Toronto') at time zone 'America/Toronto';
+  t timestamptz := now() - interval '12 hours 10 minutes';  -- l'heure « 12 h 01 » de la maquette = il y a 9 minutes
 begin
   -- Émilie Gagnon : SMS, Cléo répond et passe la main à Camille
   c := crm.recevoir_message('sms', '+14185550164', 'Bonjour, le 4½ du 640 est-il encore libre?', 'demo-eg-1');

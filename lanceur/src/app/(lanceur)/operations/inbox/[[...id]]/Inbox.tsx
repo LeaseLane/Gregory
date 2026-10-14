@@ -63,6 +63,8 @@ export function Inbox({ fils, detail, moi, erreurLecture }: { fils: Fil[]; detai
 
   useEffect(() => { setCanal(detail?.channel ?? 'sms'); setTexte(''); setBandeau(null); fin.current?.scrollIntoView({ block: 'end' }); }, [detail?.id, detail?.channel]);
   useEffect(() => { fin.current?.scrollIntoView({ block: 'end' }); }, [detail?.messages.length]);
+  // Le fil choisi est toujours dans l'adresse : un rafraîchissement (envoi, temps réel) ne fait jamais changer de fil.
+  useEffect(() => { if (detail && !location.pathname.endsWith(detail.id)) router.replace(`${BASE}/${detail.id}`, { scroll: false }); }, [detail, router]);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   // Temps réel : un message reçu ou envoyé ailleurs rafraîchit la page.
   useEffect(() => {
