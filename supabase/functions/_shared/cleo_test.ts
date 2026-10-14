@@ -16,3 +16,6 @@ Deno.test("cleo : l'opération et le lien d'une proposition viennent des faits",
   const a = valider({ constat: "x", action: { type: "proposition", titre: "t", proposition_id: "p1", lien: "/inventé", operation: "autre" } }, faits).action!;
   assertEquals([a.operation, a.lien], ["approve-formal-notice", "/operations/a-approuver"]);
 });
+Deno.test("cleo : action sans titre → titre tiré de la source", () => {
+  assertEquals(valider({ constat: "x", action: { type: "lien", titre: "", lien: "/juridique?d=1" } }, faits).action?.titre, "Ouvrir : Dossier JUR-1");
+});

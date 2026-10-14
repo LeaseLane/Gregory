@@ -14,6 +14,7 @@ export function valider(brut: Partial<Reponse>, faits: Fait[]): Reponse {
   const cartes = (brut.cartes ?? []).slice(0, 5).map((c) => ({ ...c, lien: c.lien && liens.has(c.lien) ? c.lien : undefined }));
   let action: Action | null = brut.action ?? null;
   if (action && !(action.type === "proposition" && action.proposition_id && props.has(action.proposition_id)) && !(action.type === "lien" && action.lien && liens.has(action.lien))) action = null;
+  if (action && !String(action.titre ?? "").trim()) action = { ...action, titre: action.lien && liens.has(action.lien) ? `Ouvrir : ${liens.get(action.lien)}` : "Ouvrir la proposition" };
   if (action?.type === "proposition") {        // l'opération et le lien viennent de la base, pas du modèle
     const f = faits.find((x) => String(x.proposition_id) === action!.proposition_id)!;
     action = { ...action, operation: String(f.operation ?? ""), lien: f.source?.lien };

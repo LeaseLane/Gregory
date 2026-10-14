@@ -919,3 +919,29 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .cleo-reco { display: flex; gap: 12px; padding: 16px; border-radius: 12px; background: #EEF4FB; } .cleo-reco .surtitre { margin: 0 0 6px; } .cleo-reco .texte-13 { line-height: 1.5; }
 .ligne-ic.rouge { color: #9B2E28; font-weight: 600; }
 .tableau tr.ecartee td { opacity: .55; }
+/* e02 · palette ⌘K, e03 · Cléo */
+.palette { width: min(720px, calc(100vw - 32px)); } .palette-champ input { font-weight: 500; } .palette-champ .fermer { margin-left: auto; }
+.palette-res { max-height: min(560px, 60vh); overflow-y: auto; padding: 16px 12px 8px; } .palette-res .surtitre { margin: 8px 12px 8px; }
+.palette-ligne { width: 100%; display: flex; align-items: center; gap: 16px; height: 52px; padding: 0 12px; border: 0; border-radius: 12px; background: none; font: inherit; text-align: left; cursor: pointer; position: relative; }
+.palette-ligne.sel { background: #EEF4FB; } .palette-ligne.sel::before { content: ""; position: absolute; left: -12px; top: 12px; bottom: 12px; width: 3px; border-radius: 0 3px 3px 0; background: #4581CB; }
+.palette-ic { width: 32px; height: 32px; border-radius: 8px; background: #F5F7FA; display: grid; place-items: center; flex: none; } .palette-ligne.sel .palette-ic { background: #fff; }
+.palette-titre { flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; color: #0C2147; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .palette-titre b { font-weight: 700; }
+.palette-droite { font-size: 13px; color: #58697F; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; }
+.palette-pied { display: flex; align-items: center; gap: 6px; padding: 12px 24px; border-top: 1px solid #E1E6EC; background: #FAFBFC; font-size: 12px; color: #58697F; } .palette-pied span { margin-right: 14px; }
+.cleo-panneau { width: min(560px, calc(100vw - 48px)); } .cleo-panneau .tiroir-tete { height: 72px; gap: 12px; }
+.cleo-fil { flex: 1; overflow-y: auto; padding: 20px 24px; display: grid; align-content: start; gap: 16px; }
+.cleo-date { margin: 0; text-align: center; font-size: 12px; color: #58697F; }
+.cleo-q { justify-self: end; max-width: 85%; margin: 0; padding: 12px 16px; border-radius: 16px 16px 4px 16px; background: #0C2147; color: #fff; font-size: 14px; }
+.cleo-r { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; } .cleo-r > div > p { margin: 2px 0 12px; font-size: 14px; color: #0C2147; line-height: 1.5; } .cleo-r .rouge { color: #9B2E28; }
+.cleo-carte { display: flex; gap: 12px; align-items: flex-start; padding: 16px; margin-bottom: 8px; border: 1px solid #EEF1F5; border-radius: 12px; background: #fff; color: inherit; text-decoration: none; }
+.cleo-carte > div { flex: 1; display: grid; gap: 4px; justify-items: start; } .cleo-carte strong { font-size: 14px; font-weight: 600; } .cleo-carte .gris { font-size: 13px; } .cleo-carte b { font-size: 14px; font-weight: 600; color: #0C2147; }
+.cleo-carte .puce { margin-top: 6px; } a.cleo-carte:hover { border-color: #C8DAF0; }
+.cleo-sources { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 16px !important; font-size: 12px; } .cleo-sources b { color: #58697F; font-weight: 600; margin-right: 4px; }
+.cleo-sources a { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 6px; background: #F5F7FA; font-weight: 600; color: #3E4A59; text-decoration: none; }
+.cleo-action { padding: 16px; border-radius: 12px; background: #fff; box-shadow: 0 8px 24px rgba(12,33,71,.09), 0 2px 6px rgba(12,33,71,.05); display: grid; gap: 10px; } .cleo-action .surtitre { margin: 0; }
+.cleo-apercu { margin: 0; padding: 12px; border-radius: 8px; background: #F5F7FA; font-size: 13px; color: #3E4A59; line-height: 1.45; }
+.cleo-saisie { padding: 16px 24px; border-top: 1px solid #EEF1F5; display: grid; gap: 12px; }
+.cleo-suggestions { display: flex; flex-wrap: wrap; gap: 8px; } .cleo-suggestions button { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border: 1px solid #D1D6DB; border-radius: 8px; background: #fff; font: inherit; font-size: 13px; font-weight: 600; color: #0C2147; cursor: pointer; }
+.cleo-champ { display: flex; gap: 8px; align-items: center; height: 52px; padding: 0 8px 0 16px; border: 1px solid #D1D6DB; border-radius: 12px; } .cleo-champ input { flex: 1; border: 0; outline: none; font: inherit; font-size: 14px; }
+.cleo-champ button { width: 36px; height: 36px; border: 0; border-radius: 8px; background: #0C2147; display: grid; place-items: center; cursor: pointer; } .cleo-champ button:disabled { opacity: .5; }
+.cleo-regle { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; font-size: 12px; color: #58697F; }

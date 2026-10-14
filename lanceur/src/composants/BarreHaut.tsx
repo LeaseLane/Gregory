@@ -3,10 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 import { Notifications } from '@/composants/Notifications';
+import { Palette } from '@/composants/Palette';
+import { Cleo } from '@/composants/Cleo';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 
 /* Barre du haut (maquette l00) : logo · Accueil · « Demandez à Cléo ou cherchez… » ⌘K · cloche · profil.
-   ⌘K ouvre la palette (vide au T0 : recherche et Cléo arrivent avec leurs tranches). */
+   ⌘K ouvre la palette (e02 : actions, fiches, pages); « Demander à Cléo » ouvre la conversation (e03). */
 const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/ventes', 'Ventes'], ['/maintenance', 'Maintenance'], ['/clients', 'Clients'], ['/juridique', 'Juridique'], ['/studio', 'Studio'], ['/cleo-ia', 'Cléo et IA']];
 
 export function BarreHaut({ initiales, courriel, nonLues: initial, moi }: { initiales: string; courriel: string; nonLues: number; moi: string }) {
@@ -28,18 +30,17 @@ export function BarreHaut({ initiales, courriel, nonLues: initial, moi }: { init
   const chemin = usePathname();
   const espace = ESPACES_FIL.find(([d]) => chemin.startsWith(d))?.[1];
   const [palette, setPalette] = useState(false);
+  const [cleo, setCleo] = useState<string | null>(null);
   const [menu, setMenu] = useState(false);
-  const champ = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const touche = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette(true); }
-      if (e.key === 'Escape') { setPalette(false); setMenu(false); }
+      if (e.key === 'Escape') { setPalette(false); setMenu(false); setCleo(null); }
     };
     window.addEventListener('keydown', touche);
     return () => window.removeEventListener('keydown', touche);
   }, []);
-  useEffect(() => { if (palette) champ.current?.focus(); }, [palette]);
 
   return (
     <>
@@ -84,18 +85,8 @@ export function BarreHaut({ initiales, courriel, nonLues: initial, moi }: { init
         </a>
       )}
       {tiroir && <Notifications fermer={() => setTiroir(false)} surLecture={setNonLues} />}
-      {palette && (
-        <div className="palette-fond" onClick={() => setPalette(false)}>
-          <div className="palette" role="dialog" aria-label="Demandez à Cléo ou cherchez" onClick={(e) => e.stopPropagation()}>
-            <div className="palette-champ">
-              <img src="/img/cleo.png" alt="" className="avatar-cleo" />
-              <input ref={champ} placeholder="Demandez à Cléo ou cherchez…" />
-              <kbd className="touche">Échap</kbd>
-            </div>
-            <p className="palette-vide">La recherche et Cléo s’ajoutent ici avec les prochaines tranches (pages, dossiers, actions).</p>
-          </div>
-        </div>
-      )}
+      {palette && <Palette fermer={() => setPalette(false)} demanderCleo={(q) => { setPalette(false); setCleo(q); }} />}
+      {cleo !== null && <Cleo question={cleo} fermer={() => setCleo(null)} />}
     </>
   );
 }
