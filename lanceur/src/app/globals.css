@@ -1021,3 +1021,42 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .lo-raccourci { display: flex; align-items: center; gap: 16px; padding: 20px 24px; cursor: default; } .lo-raccourci > div { flex: 1; display: grid; gap: 2px; } .lo-raccourci strong { font-size: 14px; }
 .lo-ponct { display: flex; gap: 4px; } .lo-ponct i { width: 20px; height: 20px; border-radius: 5px; display: grid; place-items: center; background: #E6F2EC; } .lo-ponct i.retard { background: #9B2E28; }
 .lo-escalier { width: 100%; height: 190px; } .lo-esc-txt { font-size: 13px; fill: #3E4A59; } .lo-esc-txt.fort { font-weight: 700; fill: #0C2147; }
+/* Propriétaire · immeubles, locataires */
+.po-entete { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; } .po-bouton { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: auto; height: 48px; padding: 0 22px; font-size: 14px; text-decoration: none; }
+.po-bouton.pleine { width: 100%; } .po-kpis.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.po-filtres { display: flex; gap: 16px; align-items: center; } .po-recherche { display: flex; align-items: center; gap: 10px; width: 420px; height: 44px; padding: 0 14px; border: 1px solid #C8D2DE; border-radius: 10px; background: #fff; }
+.po-recherche input { flex: 1; border: 0; outline: none; font: inherit; font-size: 14px; } .po-select { width: 220px; height: 44px; }
+.po-cartes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.po-carte-imm { position: relative; display: grid; border-radius: 16px; background: #fff; overflow: hidden; color: inherit; text-decoration: none; box-shadow: 0 2px 6px rgba(12,33,71,.07), 0 1px 2px rgba(12,33,71,.05); border: 1px solid #E1E6EC; }
+.po-carte-imm:hover { box-shadow: 0 8px 24px rgba(12,33,71,.09); } .po-carte-imm.attente { opacity: .8; }
+.po-photo { display: grid; place-items: center; background: #E1E8F1; overflow: hidden; } .po-photo img { width: 100%; height: 100%; object-fit: cover; }
+.po-badge { position: absolute; top: 16px; left: 16px; } .po-carte-corps { display: grid; gap: 4px; padding: 20px 24px; } .po-carte-corps strong { font-size: 16px; font-weight: 600; }
+.po-carte-pied { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 12px 0 0; padding-top: 16px; border-top: 1px solid #EEF1F5; } .po-carte-pied b { font-size: 15px; }
+.po-carte-pied dt { font-size: 12px; color: #58697F; } .po-carte-pied dd { margin: 4px 0 0; font-weight: 700; }
+.po-arriere { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #9B2E28; }
+.po-retour { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 13px; text-decoration: none; } .po-retour svg { transform: rotate(180deg); }
+.po-fiche { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 24px; align-items: start; }
+.po-fiche-imm { position: relative; padding: 0; overflow: hidden; } .po-fiche-imm .po-badge { top: 24px; left: 24px; }
+.po-fiche-corps { display: flex; justify-content: space-between; gap: 16px; padding: 24px 24px 12px; } .po-fiche-corps > div { display: grid; gap: 6px; } .po-fiche-corps strong { font-size: 20px; } .po-fiche-corps b { font-size: 20px; }
+.po-puces { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 24px 24px; } .po-puces span { padding: 8px 16px; border-radius: 10px; background: #F2F5F9; font-size: 13px; }
+.po-onglets { display: flex; gap: 32px; padding: 0 24px; border-bottom: 1px solid #EEF1F5; } .po-onglets button { height: 56px; border: 0; background: none; font: inherit; font-size: 14px; color: #3E4A59; cursor: pointer; border-bottom: 3px solid transparent; }
+.po-onglets button.actif { color: #0C2147; font-weight: 600; border-bottom-color: #0C2147; } .studio-liste .tableau { margin-top: 16px; }
+.po-liste-simple { padding: 16px 24px 24px; } .po-liste-simple .lien { flex: none; }
+.po-depot { display: grid; justify-items: center; gap: 6px; padding: 32px; border: 1.5px dashed #8A99AB; border-radius: 12px; background: #F8FAFC; cursor: pointer; text-align: center; }
+.po-depot strong { font-size: 14px; } .po-depot span { font-size: 12px; color: #58697F; }
+.po-depot.ligne { display: flex; justify-items: start; text-align: left; gap: 16px; margin: 24px 24px 0; padding: 16px 20px; background: #EEF4FB; border-color: #91B5E0; } .po-depot.ligne > div { flex: 1; display: grid; gap: 2px; }
+.po-depot.ligne select { width: 200px; height: 40px; } .po-depot.occupe { opacity: .6; pointer-events: none; }
+.po-vignettes { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; } .po-vignettes figure { position: relative; margin: 0; width: 120px; height: 90px; border-radius: 8px; overflow: hidden; }
+.po-vignettes img { width: 100%; height: 100%; object-fit: cover; } .po-vignettes figcaption { position: absolute; left: 6px; bottom: 6px; padding: 2px 6px; border-radius: 4px; background: #0C2147; color: #fff; font-size: 11px; }
+.po-vignettes button { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border: 0; border-radius: 50%; background: rgba(12,33,71,.75); display: grid; place-items: center; cursor: pointer; }
+.po-form { display: grid; gap: 16px; } .po-form .deux { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; } .po-form .e70-raison { width: 100%; }
+.po-regles { list-style: none; margin: 0; padding: 0; } .po-regles li { display: flex; gap: 16px; align-items: flex-start; padding: 16px 0; border-top: 1px solid #EEF1F5; } .po-regles li:first-child { border-top: 0; padding-top: 0; }
+.po-regles li > div { display: grid; gap: 4px; } .po-regles strong { font-size: 14px; }
+.interrupteur { flex: none; width: 44px; height: 24px; border: 0; border-radius: 12px; background: #C8D2DE; position: relative; cursor: pointer; } .interrupteur.actif { background: #0C2147; }
+.interrupteur i { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .15s; } .interrupteur.actif i { left: 23px; }
+.po-apercu { display: grid; gap: 8px; align-self: start; position: sticky; top: 24px; } .po-apercu .surtitre { margin: 0 0 8px; } .po-apercu-titre { margin-top: 12px; font-size: 15px; } .po-apercu .po-bouton { margin: 12px 0 4px; }
+.po-carte-loc { display: grid; gap: 16px; color: inherit; text-decoration: none; } .po-carte-loc:hover { box-shadow: 0 8px 24px rgba(12,33,71,.09); } .po-carte-loc .po-carte-pied { margin-top: 0; }
+.po-fiche-loc { display: grid; gap: 12px; } .po-fiche-loc .ligne-ic { margin: 0; font-size: 14px; }
+.po-note { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; padding: 14px 16px; border-radius: 10px; background: #F2F5F9; font-size: 12px; color: #3E4A59; line-height: 1.45; }
+.po-actions { display: inline-flex; gap: 8px; } .po-actions button { width: 32px; height: 32px; border: 0; border-radius: 8px; background: none; display: grid; place-items: center; cursor: pointer; } .po-actions button:hover { background: #EEF4FB; }
+.po-docs .tableau { margin: 16px 24px 24px; width: calc(100% - 48px); } .po-docs .tableau td:first-child { white-space: normal; }

@@ -1,0 +1,12 @@
+import puppeteer from 'puppeteer-core';
+import { connecterPortail } from './connexion-portail.mjs';
+const S = '/private/tmp/claude-501/-Users-octa-Desktop-TWIM-PROJECTS-Gregory-main/342b025c-618f-49eb-8e60-b10fea3f97ac/scratchpad', att = (ms) => new Promise((r) => setTimeout(r, ms)), B = 'http://localhost:3020';
+const b = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new', defaultViewport: { width: 1440, height: 1024 } });
+const p = await b.newPage(); const err = []; p.on('console', (m) => { if (m.type() === 'error') err.push(m.text().slice(0, 160)); });
+const msg = async () => [await p.$eval('.toast', (e) => e.textContent).catch(() => ''), await p.$eval('.bandeau.erreur', (e) => e.textContent).catch(() => '')].join(' | ');
+await connecterPortail(p, 'proprietaire');
+await p.goto(B + '/proprietaire/locataires', { waitUntil: 'networkidle0' }); await att(800); await p.screenshot({ path: S + '/po-05.png', fullPage: true });
+const loc = await p.$eval('.po-carte-loc', (a) => a.getAttribute('href')); await p.goto(B + loc, { waitUntil: 'networkidle0' }); await att(600); console.log(loc, await p.$eval('main', (m) => m.innerText.slice(0, 300)));
+await (await p.$('.po-depot input[type=file]')).uploadFile(S + '/bail-test.pdf'); await att(4000); console.log('06', await msg());
+await p.screenshot({ path: S + '/po-06.png', fullPage: true });
+console.log('erreurs', err.slice(0, 4)); await b.close();
