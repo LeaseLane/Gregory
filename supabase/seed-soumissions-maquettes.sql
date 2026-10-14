@@ -14,7 +14,7 @@ begin
     ('00000000-0000-4000-d000-0000000009c4', 'Thermo-Pro', 'Thermo-Pro', 'plomberie', true, '5590-4410-01', current_date + 400, current_date + 17, 4.9, 'verified')
   on conflict (id) do update set insurance_expiry = excluded.insurance_expiry;
   -- worker_notified = vrai : la démo ne déclenche aucun avis au fournisseur.
-  insert into public.work_orders (id, unit_id, description, estimated_cost, status, worker_notified) values (v_wo, v_unit, 'Remplacement du chauffe-eau', 1400, 'open', true);
+  insert into public.work_orders (id, unit_id, description, estimated_cost, quote_budget, status, worker_notified) values (v_wo, v_unit, 'Remplacement du chauffe-eau', 1400, 1400, 'open', true);
   insert into maint.quotes (work_order_id, worker_id, amount, available_on, scope) values
     (v_wo, '00000000-0000-4000-d000-0000000009c2', 1375, current_date + 1, 'Remplacement du chauffe-eau'),
     (v_wo, '00000000-0000-4000-d000-0000000009c3', 1290, current_date + 4, 'Remplacement du chauffe-eau'),
