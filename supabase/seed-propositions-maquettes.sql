@@ -19,7 +19,10 @@ begin
   if v_lp is null then raise exception 'Lancer d''abord seed-univers-maquettes.sql.'; end if;
   -- Rejouable : on remet la démonstration à son état de départ (propositions et prospects fictifs seulement;
   -- le journal, immuable, garde la trace des décisions précédentes).
-  delete from crm.proposals where idempotency_key like 'maquette:%';
+  delete from crm.proposals where idempotency_key like 'maquette:%'
+     or (target_table = 'public.prospects'::regclass and target_id in (select id from public.prospects where email in (
+       'paul.roy@investissements-roy.test', 'mathieu.roy@courriel.test', 'denise@immeubles-lachance.test',
+       'karim.beaulieu@courriel.test', 'helene@gestion-caouette.test')));
   delete from public.prospects where email in ('paul.roy@investissements-roy.test', 'mathieu.roy@courriel.test',
     'denise@immeubles-lachance.test', 'karim.beaulieu@courriel.test', 'helene@gestion-caouette.test');
 
