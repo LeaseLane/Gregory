@@ -1,0 +1,40 @@
+name: SQL en préproduction
+
+# Exécute un fichier SQL du dépôt contre la PRÉPRODUCTION (jamais la production) :
+# jeux de données fictifs (supabase/seed-*.sql) et tests SQL (supabase/tests/*.sql).
+# Passe par le pooler Supabase (IPv4) : l'adresse directe db.<ref>.supabase.co n'a que de l'IPv6,
+# injoignable depuis GitHub (échec du test de restauration du 2026-09-15).
+on:
+  workflow_dispatch:
+    inputs:
+      fichier:
+        description: "Fichier SQL (supabase/seed-*.sql ou supabase/tests/*.sql)"
+        required: true
+
+jobs:
+  sql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exécuter en préproduction
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
+          STAGING_REF: ${{ secrets.SUPABASE_STAGING_REF }}
+          PROD_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          MDP_ROLES: ${{ secrets.STAGING_ROLES_PASSWORD }}
+          FICHIER: ${{ inputs.fichier }}
+        run: |
+          set -euo pipefail
+          case "$FICHIER" in supabase/seed-*.sql|supabase/tests/*.sql) ;; *) echo "::error::Fichier non permis : $FICHIER"; exit 1;; esac
+          [ -f "$FICHIER" ] || { echo "::error::Introuvable : $FICHIER"; exit 1; }
+          [ -n "${DATABASE_URL:-}" ] && [ -n "${STAGING_REF:-}" ] || { echo "::error::Secrets de préproduction manquants."; exit 1; }
+          if [ -n "${PROD_REF:-}" ] && printf '%s' "$DATABASE_URL" | grep -q "$PROD_REF"; then echo "::error::URL de PRODUCTION : refusé."; exit 1; fi
+          # postgresql://postgres:<mdp>@db.<ref>.supabase.co:5432/postgres → pooler (mode session), utilisateur postgres.<ref>
+          mdp=$(python3 -c "import sys,urllib.parse as u;print(u.urlparse(sys.argv[1]).password or '')" "$DATABASE_URL")
+          for hote in aws-0-ca-central-1.pooler.supabase.com aws-1-ca-central-1.pooler.supabase.com; do
+            url="postgresql://postgres.${STAGING_REF}:$(python3 -c "import sys,urllib.parse as u;print(u.quote(sys.argv[1],safe=''))" "$mdp")@${hote}:5432/postgres?sslmode=require"
+            if psql "$url" -tAc "select 1" >/dev/null 2>&1; then echo "Pooler : $hote"; break; fi
+            url=""
+          done
+          [ -n "$url" ] || { echo "::error::Pooler de préproduction injoignable."; exit 1; }
+          psql "$url" -v ON_ERROR_STOP=1 -v mdp_roles="${MDP_ROLES:-}" -f "$FICHIER"
