@@ -16,7 +16,8 @@ RÈGLES :
 - « constat » : une ou deux phrases qui répondent directement (le chiffre clé d'abord).
 - « cartes » : un élément par personne ou dossier concerné (titre = nom, sous = logement et retard ou étape, montant, puce = ce qui est prêt ou à faire; ton « action » si une personne doit décider). 5 au plus.
 - « sources » : les objets « source » (libelle, lien) des faits que tu as utilisés, recopiés tels quels.
-- « action » : au plus une. Soit {type: "proposition", proposition_id} d'une « Proposition en attente » des faits (la personne l'approuvera), soit {type: "lien", lien} vers une source où la personne agit. Jamais autre chose : tu ne modifies rien.
+- « action » : au plus une. Soit {type: "proposition", proposition_id} d'une « Proposition en attente » des faits (la personne l'approuvera), soit {type: "depense", autorisation_id} d'une « Autorisation de dépense en attente » des faits (le propriétaire l'approuvera lui-même), soit {type: "lien", lien} vers une source où la personne agit. Jamais autre chose : tu ne modifies rien.
+- Avec un propriétaire : les loyers sont payés directement chez lui; Lease Lane facture ses honoraires le 5. Ne parle jamais de « versement » ni de « net ».
 - « suggestions » : deux relances courtes (moins de 40 caractères) que la personne pourrait taper ensuite.
 Termine en appelant l'outil « repondre ». Vouvoiement, français québécois simple.`;
 
@@ -24,7 +25,7 @@ const OUTIL = { name: "repondre", description: "Réponse structurée de Cléo.",
   constat: { type: "string" },
   cartes: { type: "array", items: { type: "object", required: ["titre"], properties: { titre: { type: "string" }, sous: { type: "string" }, montant: { type: "string" }, puce: { type: "string" }, ton: { type: "string", enum: ["action", "neutral"] }, lien: { type: "string" } } } },
   sources: { type: "array", items: { type: "object", required: ["libelle", "lien"], properties: { libelle: { type: "string" }, lien: { type: "string" } } } },
-  action: { type: ["object", "null"], properties: { type: { type: "string", enum: ["proposition", "lien"] }, titre: { type: "string" }, apercu: { type: "string" }, note: { type: "string" }, proposition_id: { type: "string" }, lien: { type: "string" } } },
+  action: { type: ["object", "null"], properties: { type: { type: "string", enum: ["proposition", "lien", "depense"] }, titre: { type: "string" }, apercu: { type: "string" }, note: { type: "string" }, proposition_id: { type: "string" }, autorisation_id: { type: "string" }, lien: { type: "string" } } },
   suggestions: { type: "array", items: { type: "string" } } } } };
 
 Deno.serve(async (req) => {
@@ -35,7 +36,10 @@ Deno.serve(async (req) => {
   const { question, historique } = await req.json().catch(() => ({}));
   if (typeof question !== "string" || question.trim().length < 2 || question.length > 1000) return json({ error: "Posez une question (1 000 caractères au plus)." }, 422);
 
-  const c = await fetch(`${url}/rest/v1/rpc/lanceur_cleo_contexte`, { method: "POST", headers: { apikey: anon, Authorization: `Bearer ${jeton}`, "Content-Type": "application/json" }, body: JSON.stringify({ q: question.slice(0, 80) }) });
+  // Équipe (Lanceur) d'abord, sinon propriétaire (portail) : chacun ne voit que ce que son rôle voit.
+  const lire = (nom: string) => fetch(`${url}/rest/v1/rpc/${nom}`, { method: "POST", headers: { apikey: anon, Authorization: `Bearer ${jeton}`, "Content-Type": "application/json" }, body: JSON.stringify({ q: question.slice(0, 80) }) });
+  let c = await lire("lanceur_cleo_contexte");
+  if (c.status === 403 || c.status === 400) c = await lire("portail_cleo_contexte");
   const ctx = await c.json().catch(() => null);
   if (!c.ok) return json({ error: ctx?.message ?? "Accès refusé." }, c.status === 400 ? 403 : c.status);
   const faits = (ctx.faits ?? []) as Fait[];

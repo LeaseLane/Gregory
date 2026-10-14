@@ -19,3 +19,8 @@ Deno.test("cleo : l'opération et le lien d'une proposition viennent des faits",
 Deno.test("cleo : action sans titre → titre tiré de la source", () => {
   assertEquals(valider({ constat: "x", action: { type: "lien", titre: "", lien: "/juridique?d=1" } }, faits).action?.titre, "Ouvrir : Dossier JUR-1");
 });
+Deno.test("cleo : autorisation de dépense seulement si elle est dans les faits; montant de la base", () => {
+  const f = [{ fait: "Autorisation de dépense en attente", autorisation_id: "a1", montant: 1250, source: { libelle: "Demande", lien: "/proprietaire/demandes?d=1" } }];
+  assertEquals(valider({ constat: "x", action: { type: "depense", titre: "Approuver", autorisation_id: "a1", montant: 1 } }, f).action?.montant, 1250);
+  assertEquals(valider({ constat: "x", action: { type: "depense", titre: "Approuver", autorisation_id: "inventee" } }, f).action, null);
+});
