@@ -34,7 +34,7 @@ export function Prospection({ donnees, erreurLecture }: { donnees: DonneesProspe
     const r = await res.json().catch(() => ({}));
     setCherche(false);
     if (!res.ok) { setBandeau(r.error ?? `Erreur ${res.status}`); return; }
-    setToast(`${r.trouves} propriétaire${r.trouves > 1 ? 's' : ''} trouvé${r.trouves > 1 ? 's' : ''}, ${r.suggestions} à réviser (les autres étaient déjà connus)${r.cout_cents != null ? ` · coût ≈ ${(r.cout_cents / 100).toFixed(2).replace('.', ',')} $ US` : ''}.`);
+    setToast(`${r.trouves} propriétaire${r.trouves > 1 ? 's' : ''} trouvé${r.trouves > 1 ? 's' : ''}, ${r.suggestions} à réviser${r.trouves > r.suggestions ? ` (${r.trouves - r.suggestions} déjà connu${r.trouves - r.suggestions > 1 ? 's' : ''})` : ''}${r.cout_cents != null ? ` · coût ≈ ${(r.cout_cents / 100).toFixed(2).replace('.', ',')} $ US` : ''}.`);
     router.refresh();
   }
 
