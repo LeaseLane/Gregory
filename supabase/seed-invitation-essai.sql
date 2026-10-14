@@ -11,8 +11,8 @@ begin
   if v_t is null then raise notice 'Univers des maquettes absent : essai ignoré.'; return; end if;
   select id into v_u from auth.users where email = 'julie.levesque@leaselane.test';
   update public.tenants set user_id = null, email = 'julie.levesque@leaselane.test' where id = v_t;
-  if v_u is not null then delete from auth.users where id = v_u; end if;
   delete from public.portal_invitations where code = 'LL-ESSA-IJUL' or tenant_id = v_t;
+  if v_u is not null then delete from auth.users where id = v_u; end if;
   insert into public.portal_invitations (code, kind, email, full_name, tenant_id) values ('LL-ESSA-IJUL', 'locataire', 'julie.levesque@leaselane.test', 'Julie Lévesque', v_t);
   select id into v_o from public.owners where full_name = 'Marie-Josée Bérubé';
   select id into v_c from auth.users where email = 'claire.essai@leaselane.test';
