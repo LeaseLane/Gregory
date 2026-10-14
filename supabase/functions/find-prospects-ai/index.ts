@@ -1,6 +1,6 @@
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 import { estAppelInterneVerifie } from "../_shared/appel-interne.ts";
-import { IA_MESSAGES_URL, IA_CLE, avecContexte } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
 // find-prospects-ai : l'agent de prospection (T3b). Recherche web RÉELLE (jamais inventée) de propriétaires qui gèrent
 // eux-mêmes des immeubles à logements au Québec, via Claude + l'outil serveur web_search.
 //
@@ -79,12 +79,18 @@ Une fois ta recherche terminée, appelle l'outil "soumettre" avec ce que tu as t
           pertinence: { type: "number" },
         } } } } } },
     ];
-    const aiRes = await fetch(IA_MESSAGES_URL, {
+    const appeler = (model: string) => fetch(IA_MESSAGES_URL, {
       method: "POST",
       headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify(avecContexte({ model: "claude-sonnet-5", max_tokens: 4096, tools, messages: [{ role: "user", content: prompt }] })),
+      body: JSON.stringify(avecContexte({ model, max_tokens: 4096, tools, messages: [{ role: "user", content: prompt }] })),
     });
-    const ai = await aiRes.json().catch(() => ({}));
+    let aiRes = await appeler(Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5");
+    let ai = await aiRes.json().catch(() => ({}));
+    // Passerelle sans prix pour ce modèle (Tonia : managed_model_price_missing) : on reprend avec le modèle rapide.
+    if (!aiRes.ok && /entitlement|model/i.test(JSON.stringify(ai?.error ?? ""))) {
+      aiRes = await appeler(MODELE_RAPIDE);
+      ai = await aiRes.json().catch(() => ({}));
+    }
     const u = ai?.usage ?? {}, recherches = Number(u?.server_tool_use?.web_search_requests ?? 0);
     const cout = coutCents(Number(u.input_tokens ?? 0), Number(u.output_tokens ?? 0), recherches);
     if (!aiRes.ok) {
