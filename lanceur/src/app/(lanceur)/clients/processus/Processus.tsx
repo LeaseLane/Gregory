@@ -4,9 +4,9 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 
-type Proc = { id: string; code: string; nom: string; etapes: string[]; step: number; data: { loyer_actuel?: number; nouveau_loyer?: number; type?: string; fin_bail?: string; fenetre?: string[]; autres_conditions?: string };
+type Proc = { id: string; code: string; nom: string; etapes: string[]; step: number; data: { debut_bail?: string; loyer_actuel?: number; nouveau_loyer?: number; type?: string; fin_bail?: string; fenetre?: string[]; autres_conditions?: string };
   due_at: string | null; logement: string | null; locataire: string | null; courriel: string | null; team_approved: boolean; team_par: string | null; owner_approved: boolean; owner_note: string | null;
-  propose_par: string | null; notice_sent_at: string | null; response: string | null; envoi: string | null; version: number };
+  propose_par: string | null; notice_sent_at: string | null; response: string | null; envoi: string | null; version: number; tache: { titre: string; role: string | null; due_at: string | null } | null };
 export type DonneesProcessus = {
   fins_par_mois: { mois: string; n: number }[]; a_envoyer: number; processus: Proc[];
   parametres: { id: string; code: string; label: string; value: Record<string, number>; source: string; valide: boolean; par: string | null; le: string | null }[];
@@ -16,6 +16,7 @@ export type DonneesProcessus = {
 const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 const d = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
 const argent = (n?: number) => n == null ? '—' : `${Math.round(n).toLocaleString('fr-CA').replace(/ |,/g, ' ')} $`;
+const ROLES: Record<string, string> = { location: 'Location', gestionnaire: 'Gestion', comptabilite: 'Comptabilité', admin: 'Admin', prospection: 'Prospection' };
 const REPONSES: [string, string][] = [['accepte', 'Accepte'], ['refuse', 'Refuse la modification (reste, TAL)'], ['quitte', 'Quitte le logement'], ['reputee_acceptee', 'Sans réponse : réputée acceptée']];
 const delaiTexte = (p: DonneesProcessus['parametres'][number]) => p.code.startsWith('renewal_notice') ? `${p.value.min_mois} à ${p.value.max_mois} mois avant la fin` : `${p.value.mois} mois`;
 
@@ -109,6 +110,7 @@ function Fiche({ p, erreur, peut, envoi, fermer, agir }: { p: Proc; erreur: stri
         <header className="tiroir-tete"><h2 id="pr-t">{p.nom} · {p.logement}</h2><button className="haut-ibtn" onClick={fermer} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
         <div className="tiroir-liste formulaire">
           {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
+          {p.code === 'emmenagement' ? <Emmenagement p={p} peut={peut} envoi={envoi} agir={agir} /> : <>
           <p className="gris" style={{ marginTop: 0 }}>{p.locataire} · fin du bail le {p.data.fin_bail ? d(p.data.fin_bail) : '—'} · loyer actuel {argent(p.data.loyer_actuel)}{p.data.fenetre ? ` · avis entre le ${d(p.data.fenetre[0])} et le ${d(p.data.fenetre[1])}` : ''} · modèle v{p.version}</p>
           <ol className="etapes-proc">{p.etapes.map((e, i) => <li key={e} className={i < p.step ? 'fait' : i === p.step ? 'actuel' : ''}><i>{i < p.step && <Icone nom="check" taille={12} couleur="#fff" trait={2.6} />}</i>{e}</li>)}</ol>
 
@@ -143,8 +145,26 @@ function Fiche({ p, erreur, peut, envoi, fermer, agir }: { p: Proc; erreur: stri
               <input className="e70-raison" value={noteRep} onChange={(e) => setNoteRep(e.target.value)} placeholder="Précision (facultatif)" aria-label="Précision" />
               <button className="bouton bouton-contour" disabled={envoi} onClick={() => agir(() => sb().rpc('lanceur_reponse_renouvellement', { p: { process_id: p.id, reponse, note: noteRep } }), 'Réponse enregistrée.')}>Enregistrer la réponse</button></>}
           </section>}
+          </>}
         </div>
       </aside>
     </div>
+  );
+}
+
+// Emménagement : une tâche par étape; « Étape faite » ferme la tâche et crée la suivante.
+function Emmenagement({ p, peut, envoi, agir }: { p: Proc; peut: boolean; envoi: boolean; agir: (f: () => PromiseLike<{ error: { message: string } | null }>, ok: string) => Promise<boolean> }) {
+  const [note, setNote] = useState('');
+  return (
+    <>
+      <p className="gris" style={{ marginTop: 0 }}>{p.locataire} · début du bail le {p.data.debut_bail ? d(p.data.debut_bail) : '—'} · loyer {argent(p.data.loyer_actuel)} · modèle v{p.version}</p>
+      <ol className="etapes-proc">{p.etapes.map((e, i) => <li key={e} className={i < p.step ? 'fait' : i === p.step ? 'actuel' : ''}><i>{i < p.step && <Icone nom="check" taille={12} couleur="#fff" trait={2.6} />}</i>{e}</li>)}</ol>
+      <section className="bloc-proc"><p className="surtitre gris">Étape en cours · {p.etapes[p.step]}</p>
+        {p.tache && <p>{p.tache.titre}<span className="gris">{p.tache.role ? ` · ${ROLES[p.tache.role] ?? p.tache.role}` : ''}{p.tache.due_at ? ` · avant le ${d(p.tache.due_at)}` : ''}</span></p>}
+        {peut && <><input className="e70-raison" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Précision (facultatif)" aria-label="Précision" />
+          <button className="bouton bouton-principal" style={{ width: 'auto' }} disabled={envoi} onClick={async () => { if (await agir(() => supabaseNavigateur().rpc('lanceur_etape_emmenagement', { p: { process_id: p.id, note } }), p.step + 1 >= p.etapes.length ? 'Emménagement terminé.' : 'Étape faite : la tâche suivante est créée.')) setNote(''); }}>Étape faite</button></>}
+        <p className="gris" style={{ fontSize: 13 }}>Terminer la tâche dans Opérations › Tâches fait aussi avancer l’emménagement.</p>
+      </section>
+    </>
   );
 }
