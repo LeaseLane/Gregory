@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(25);
+select plan(26);
 
 create function pg_temp.comme(p_id uuid, p_aal text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', p_id, 'aal', p_aal, 'role', 'authenticated')::text, true);
@@ -60,6 +60,9 @@ select ok((public.portail_locataire_creer_demande(jsonb_build_object('type', 'ce
 select ok((select source = 'portail' and deadline_at::date = current_date + crm.cession_jours() from crm.assignments where lease_id = '00000000-0000-4000-a000-00000073e001'), '3 · source « portail », délai légal');
 select throws_ok(format('select public.portail_locataire_creer_demande(%L)', jsonb_build_object('type', 'sous_location', 'nom', 'Autre Personne', 'date_debut', current_date + 30, 'date_fin', current_date + 90)),
   'PT409', null, '3 · une seule cession ou sous-location ouverte');
+
+select lives_ok(format('select public.portail_locataire_creer_demande(%L)', jsonb_build_object('type', 'travaux', 'titre', 'Robinet (essai tl3)', 'description', 'Le robinet goutte depuis hier.')),
+  '3 · demande de travaux : le déclencheur historique (IA) passe depuis le portail');
 
 -- 4. Reçu : numéroté, seulement payé
 select ok((public.portail_locataire_recu('00000000-0000-4000-a000-00000073f001') ->> 'numero') ~ '^RL-\d{4}-\d{4}$', '4 · reçu numéroté RL-AAAA-NNNN');
