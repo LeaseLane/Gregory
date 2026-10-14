@@ -106,3 +106,9 @@ verify_jwt = false
 [functions.mcp]
 # Agents (MCP) : authentifiés par leur secret (MCP_CLES) dans la fonction, pas par un jeton d'usager.
 verify_jwt = false
+[functions.envoyer-courriels]
+# T2 : appelée par le cron (clé d'appel interne vérifiée dans la fonction).
+verify_jwt = false
+[functions.envois-retour]
+# T2 : désabonnement (lien public signé) et SMS entrants Twilio (signature vérifiée dans la fonction).
+verify_jwt = false

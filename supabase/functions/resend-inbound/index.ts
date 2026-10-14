@@ -55,8 +55,22 @@ if (import.meta.main) Deno.serve(async (req) => {
   if (!ok) return new Response(JSON.stringify({ error: "signature invalide" }), { status: 401 });
 
   const evt = JSON.parse(corps);
+  // T2 : rebond définitif ou plainte → suppression permanente (comms.suppressions), relances arrêtées.
+  if (evt?.type === "email.bounced" || evt?.type === "email.complained") {
+    const definitif = evt.type === "email.complained" || String(evt.data?.bounce?.type ?? "").toLowerCase() !== "transient";
+    if (definitif) {
+      for (const a of evt.data?.to ?? []) {
+        await fetch(`${supabaseUrl}/rest/v1/rpc/envois_supprimer`, { method: "POST", headers: adminHeaders,
+          body: JSON.stringify({ p_channel: "email", p_address: a, p_reason: evt.type === "email.complained" ? "complaint" : "bounce" }) });
+      }
+    }
+    return new Response(JSON.stringify({ ok: true, suppression: definitif }), { status: 200 });
+  }
   if (evt?.type !== "email.received") return new Response(JSON.stringify({ ok: true, ignore: evt?.type }), { status: 200 });
   const d = evt.data ?? {};
+  // T2 : toute réponse arrête les relances en cours vers cet expéditeur (stop_on_reply).
+  const repondant = String(d.from ?? "").match(/<([^>]+)>/)?.[1] ?? String(d.from ?? "");
+  if (repondant) await fetch(`${supabaseUrl}/rest/v1/rpc/envois_reponse`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ p_channel: "email", p_address: repondant }) });
 
   const destinataires: string[] = [...(d.to ?? []), ...(d.received_for ?? [])];
 
