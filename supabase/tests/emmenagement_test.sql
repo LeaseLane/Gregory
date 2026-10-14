@@ -11,7 +11,7 @@ $$;
 select pg_temp.comme('equipe-gestionnaire@leaselane.test', 'aal2');
 
 insert into buildings (id, address) values ('00000000-0000-4000-a000-00000000bb01', '640, 3e Av. (test)');
-insert into units (id, building_id, unit_number, status) values ('00000000-0000-4000-a000-00000000bb02', '00000000-0000-4000-a000-00000000bb01', '4', 'vacant');
+insert into units (id, building_id, unit_number, status) values ('00000000-0000-4000-a000-00000000bb02', '00000000-0000-4000-a000-00000000bb01', '4', 'available');
 insert into tenants (id, full_name, email) values ('00000000-0000-4000-a000-00000000bb03', 'Émilie Essai', 'emilie@exemple-t4.test');
 insert into leases (id, unit_id, tenant_id, start_date, end_date, monthly_rent, status)
 values ('00000000-0000-4000-a000-00000000bb04', '00000000-0000-4000-a000-00000000bb02', '00000000-0000-4000-a000-00000000bb03', current_date + 40, current_date + 405, 1350, 'active');
