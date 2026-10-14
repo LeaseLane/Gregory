@@ -93,6 +93,7 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           STAGING_REF: ${{ secrets.SUPABASE_STAGING_REF }}
           MCP_CLES: ${{ secrets.STAGING_MCP_CLES }}
+          CLE_INTERNE: ${{ secrets.STAGING_INTERNAL_CALL_SECRET }}
         run: |
           set -euo pipefail
           if [ -z "${STAGING_REF:-}" ]; then
@@ -117,6 +118,9 @@ jobs:
           # Secrets des agents MCP de préproduction (un par agent, spec T1 § 10.5). La production n'en a pas :
           # le serveur MCP y refuse tout tant que Lanceur n'y est pas en ligne.
           if [ -n "${MCP_CLES:-}" ]; then supabase secrets set --project-ref "$STAGING_REF" MCP_CLES="$MCP_CLES" >/dev/null; fi
+          # Clé d'appel interne de la préproduction (T2 : le cron appelle envoyer-courriels). La même valeur va dans
+          # Vault par supabase/seed-envois-preproduction.sql (workflow « SQL en préproduction »).
+          if [ -n "${CLE_INTERNE:-}" ]; then supabase secrets set --project-ref "$STAGING_REF" INTERNAL_CALL_SECRET="$CLE_INTERNE" >/dev/null; fi
           echo "deploye=true" >> "$GITHUB_OUTPUT"
 
       - name: Vérifier que la préproduction répond

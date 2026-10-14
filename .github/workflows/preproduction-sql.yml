@@ -22,6 +22,7 @@ jobs:
           STAGING_REF: ${{ secrets.SUPABASE_STAGING_REF }}
           PROD_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           MDP_ROLES: ${{ secrets.STAGING_ROLES_PASSWORD }}
+          CLE_INTERNE: ${{ secrets.STAGING_INTERNAL_CALL_SECRET }}
           FICHIER: ${{ inputs.fichier }}
         run: |
           set -euo pipefail
@@ -37,6 +38,6 @@ jobs:
             url=""
           done
           [ -n "$url" ] || { echo "::error::Pooler de préproduction injoignable."; exit 1; }
-          psql "$url" -v ON_ERROR_STOP=1 -v mdp_roles="${MDP_ROLES:-}" -f "$FICHIER" | tee sortie.txt
+          psql "$url" -v ON_ERROR_STOP=1 -v mdp_roles="${MDP_ROLES:-}" -v cle_interne="${CLE_INTERNE:-}" -f "$FICHIER" | tee sortie.txt
           # Tests pgTAP : un « not ok » ou un plan non tenu fait échouer l'exécution.
           if grep -qE '^\s*not ok|# Looks like' sortie.txt; then echo "::error::Des tests ont échoué."; exit 1; fi
