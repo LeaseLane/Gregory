@@ -1,8 +1,10 @@
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import { remplir, rendreCourriel, rendreSms, type Contenu } from "./gabarits.ts";
 
-// Les 58 gabarits tels que la migration les insère.
-const sql = await Deno.readTextFile(new URL("../../migrations/20261015140000_t2_gabarits.sql", import.meta.url));
+// Les 58 gabarits tels que la plus récente migration générée les écrit (scripts/gabarits-maquettes.py).
+const dossier = new URL("../../migrations/", import.meta.url);
+const derniere = [...Deno.readDirSync(dossier)].map((f) => f.name).filter((n) => /_t2_gabarits/.test(n)).sort().at(-1)!;
+const sql = await Deno.readTextFile(new URL(derniere, dossier));
 const gabarits = [...sql.matchAll(/values \('([A-Z]{3}-\d{2})'.*?, '(\{.*?\})'::jsonb/g)]
   .map((m) => ({ code: m[1], c: JSON.parse(m[2].replaceAll("''", "'")) as Contenu }));
 

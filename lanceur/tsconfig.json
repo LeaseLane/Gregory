@@ -26,6 +26,9 @@
       ],
       "@ops/*": [
         "../supabase/functions/_shared/operations/*"
+      ],
+      "@partage/*": [
+        "../supabase/functions/_shared/*"
       ]
     },
     "allowJs": true,

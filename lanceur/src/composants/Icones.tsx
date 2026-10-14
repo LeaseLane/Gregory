@@ -2,6 +2,11 @@
 const P: Record<string, React.ReactNode> = {
   chevron: <path d="m9 6 6 6-6 6" />,
   chevD: <path d="m6 9 6 6 6-6" />,
+  search: <><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></>,
+  send: <><path d="M4 12 20 4l-6 16-3-7z" /><path d="m11 13 9-9" /></>,
+  info: <><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5.5M12 7.8v.1" /></>,
+  history: <><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5" /><path d="M4 4v4.5h4.5" /><path d="M12 8v4l3 2" /></>,
+  pause: <path d="M9 6.5v11M15 6.5v11" />,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   pencil: <><path d="M4 20h4L19 9l-4-4L4 16z" /><path d="m14 6 4 4" /></>,
   mail: <><rect x="3.5" y="5.5" width="17" height="13" rx="2" /><path d="m4 7 8 6 8-6" /></>,

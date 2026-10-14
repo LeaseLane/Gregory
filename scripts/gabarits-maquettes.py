@@ -3,7 +3,8 @@
 # Les maquettes contiennent des EXEMPLES (Gabriel Paquet, 1 195 $…). Un gabarit n'est activé qu'une fois
 # ses exemples remplacés par des {variables} : voir VARIABLES ci-dessous. Les autres sont importés inactifs
 # (visibles dans e54, impossibles à mettre en file).
-# Usage : python3 -I scripts/gabarits-maquettes.py "<dossier gen>" > supabase/migrations/<horodatage>_t2_gabarits.sql
+# Usage : python3 -I scripts/gabarits-maquettes.py "<dossier gen>" > supabase/migrations/<horodatage>_t2_gabarits_<objet>.sql
+# Chaque régénération = une NOUVELLE migration (les insertions sont des mises à jour par code); les tests lisent la plus récente.
 import importlib.util, json, os, re, sys
 
 GEN = sys.argv[1]
@@ -40,6 +41,18 @@ VARIABLES = {
     cta={'l': 'Voir les automatisations', 'href': '{lien}'}),
 }
 
+# Valeurs d'exemple (celles de la maquette) : aperçu dans Studio › Gabarits et « Envoyer un test ».
+EXEMPLES = {
+  'LOC-04': {'probleme': 'Fuite sous l’évier', 'numero_demande': 'DEM-2026-0161', 'fournisseur': 'Plomberie Capitale', 'date_intervention': 'jeudi 15 octobre à 9 h 40',
+             'travaux': 'Remplacement du siphon', 'duree': '35 minutes', 'cout_locataire': 'Aucun', 'lien_confirmation': 'https://app.leaselane.ca/?p=locataire', 'lien_probleme': 'https://app.leaselane.ca/?p=locataire'},
+  'LOC-05': {'prenom': 'Gabriel', 'montant': '1 195 $', 'mois': 'octobre', 'de_mois': 'd’octobre', 'echeance': '1er octobre 2026', 'adresse_logement': '640, 3e Avenue — 7',
+             'lien_paiement': 'https://app.leaselane.ca/?p=locataire', 'gestionnaire': 'Julie N.', 'initiales_gestionnaire': 'JN'},
+  'LOC-06': {'prenom': 'Gabriel', 'montant': '1 195 $', 'de_mois': 'd’octobre', 'jours_retard': '7', 'ratio_retard': '0.333', 'echeance': '1er octobre 2026',
+             'adresse_logement': '640, 3e Avenue — 7', 'lien_paiement': 'https://app.leaselane.ca/?p=locataire', 'lien_entente': 'mailto:info@leaselane.ca?subject=Entente%20de%20paiement',
+             'gestionnaire': 'Julie N.', 'initiales_gestionnaire': 'JN'},
+  'EQP-11': {'par': 'Steven Paradis', 'heure': '12 h 10', 'raison': 'Erreur de montant dans LOC-05', 'envois_retenus': '23', 'lien': 'https://app.leaselane.ca/'},
+}
+
 def lcap(s):
     if 'Commercial' in s: return 'commercial'
     if s.startswith('Interne'): return 'internal'
@@ -59,6 +72,9 @@ for t in sorted(ALL, key=lambda t: t['code']):
     sms = v.get('sms', sp.get('sms'))
     c['spec'] = {k: sp[k] for k in ('trigger', 'send', 'when', 'lcap', 'note', 'files') if sp.get(k)}
     vars_ = sorted(set(re.findall(r'\{([a-z_]+)\}', json.dumps(c, ensure_ascii=False) + (sms or '')))) if v else [x.strip('{}') for x in sp.get('vars', [])]
+    if t['code'] in EXEMPLES:
+        c['exemple'] = EXEMPLES[t['code']]
+        assert set(vars_) <= set(EXEMPLES[t['code']]), (t['code'], set(vars_) - set(EXEMPLES[t['code']]))
     cat = lcap(sp.get('lcap', ''))
     print(f"insert into comms.email_templates (code, audience, name, sms_text, contenu, subject, preheader, variables, trigger_event, send_mode, essential, lcap_category, unsubscribe_required, active) values ("
           f"{q(t['code'])}, {q(t['aud'])}, {q(t['name'].split(' · ', 2)[-1])}, {q(sms)}, {q(json.dumps(c, ensure_ascii=False))}::jsonb, {q(c['subject'])}, {q(c.get('pre'))}, "
