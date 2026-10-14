@@ -69,7 +69,7 @@ RÈGLES STRICTES :
 
 Une fois ta recherche terminée, appelle l'outil "soumettre" avec ce que tu as trouvé.`;
     const tools = [
-      { type: "web_search_20260209", name: "web_search" },
+      { type: "web_search_20260209", name: "web_search", allowed_callers: ["direct"] },
       { name: "soumettre", description: "Soumet les propriétaires réels trouvés, avec leur source.", input_schema: { type: "object", required: ["proprietaires"], properties: { proprietaires: { type: "array", items: {
         type: "object", required: ["nom", "source_url", "extrait", "raison", "pertinence"],
         properties: {
