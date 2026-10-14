@@ -71,6 +71,11 @@ begin
   update public.service_requests set title = 'Fuite sous l’évier de la cuisine', room = 'Cuisine', tenant_urgency = 'normale', created_at = now() - interval '6 days'
    where tenant_id = v_t and description like 'Fuite lente sous l''évier%';
   delete from public.service_requests where tenant_id = v_t and title like '%(essai)%';   -- demandes laissées par scripts/.essai-locataire.mjs
+  -- Restes des essais de bout en bout (scripts/.essai-complet.mjs) : cession, demande Loi 25, fichiers et dossier d'essai, préférences.
+  delete from crm.assignments where tenant_id = v_t and person_name like '%(essai)%';
+  delete from public.personal_data_requests where subject_type = 'tenant' and subject_id = v_t;
+  delete from public.documents where tenant_id = v_t and title like 'complet-%';
+  delete from public.portal_preferences where user_id = (select user_id from public.tenants where id = v_t);
   delete from public.service_request_messages where service_request_id = v_sr; delete from crm.conversations where service_request_id = v_sr;
   delete from public.work_orders where id = v_wo; delete from public.service_requests where id = v_sr;
   v_rdv := (date_trunc('day', now() at time zone 'America/Toronto') + interval '2 days 9 hours') at time zone 'America/Toronto';
