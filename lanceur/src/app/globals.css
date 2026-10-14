@@ -918,3 +918,4 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .decision-soum { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
 .cleo-reco { display: flex; gap: 12px; padding: 16px; border-radius: 12px; background: #EEF4FB; } .cleo-reco .surtitre { margin: 0 0 6px; } .cleo-reco .texte-13 { line-height: 1.5; }
 .ligne-ic.rouge { color: #9B2E28; font-weight: 600; }
+.tableau tr.ecartee td { opacity: .55; }

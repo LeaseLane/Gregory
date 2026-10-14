@@ -24,10 +24,10 @@ export function Soumissions({ bt, donnees, erreurLecture }: { bt?: string; donne
   const B = donnees?.bons ?? [];
   const bon = B.find((x) => x.id === bt) ?? B.find((x) => x.soumissions?.length && !x.choisie) ?? B[0] ?? null;
   const S = bon?.soumissions ?? [];
-  const [sel, setSel] = useState<string | null>(bon?.recommandee ?? S[0]?.id ?? null);
+  const [sel, setSel] = useState<string | null>(bon?.choisie ?? bon?.recommandee ?? S[0]?.id ?? null);
   const [envoi, setEnvoi] = useState(false), [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null);
   const [accord, setAccord] = useState({ montant: '', moyen: '' }), [urg, setUrg] = useState(''), [ajout, setAjout] = useState(false), [nv, setNv] = useState({ worker_id: '', montant: '', disponible: '' });
-  useEffect(() => { setSel(bon?.recommandee ?? bon?.soumissions?.[0]?.id ?? null); }, [bon?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setSel(bon?.choisie ?? bon?.recommandee ?? bon?.soumissions?.[0]?.id ?? null); }, [bon?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   if (erreurLecture || !donnees) return <div className="bandeau erreur" role="alert">{erreurLecture}</div>;
   const D = donnees, q = S.find((x) => x.id === sel) ?? null, rec = S.find((x) => x.id === bon?.recommandee) ?? null;
@@ -39,6 +39,8 @@ export function Soumissions({ bt, donnees, erreurLecture }: { bt?: string; donne
     if (error) { setBandeau(error.message); return false; } setToast(ok); router.refresh(); return true;
   }
   function recommandation() {
+    const ch = S.find((x) => x.statut === 'selected');
+    if (ch) return `${ch.fournisseur} est choisi à ${argent(ch.montant)}${bon?.urgence_note ? ', en urgence documentée' : ''}. Les autres soumissions sont écartées.`;
     if (!rec || !bon) return S.length ? 'Aucune soumission conforme sous le budget : demandez-en une autre ou revoyez la portée.' : 'Aucune soumission reçue.';
     const autres = S.filter((x) => x.id !== rec.id);
     const rapide = autres.find((x) => x.conformite && x.disponible && rec.disponible && x.disponible <= rec.disponible);
@@ -67,12 +69,12 @@ export function Soumissions({ bt, donnees, erreurLecture }: { bt?: string; donne
               <colgroup><col style={{ width: '28%' }} /><col style={{ width: '30%' }} /><col style={{ width: '13%' }} /><col style={{ width: '9%' }} /><col /></colgroup>
               <thead><tr><th>Fournisseur</th><th>Prix{bon.budget ? <span className="th-note"> · trait = budget</span> : null}</th><th>Délai</th><th>Note</th><th>Conformité</th></tr></thead>
               <tbody>{S.map((x) => (
-                <tr key={x.id} className={x.id === sel ? 'sel' : ''} onClick={() => setSel(x.id)}>
+                <tr key={x.id} className={(x.id === sel ? 'sel ' : '') + (x.statut === 'declined' ? 'ecartee' : '')} onClick={() => setSel(x.id)}>
                   <td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 12 }}>{initiales(x.fournisseur)}</span><span><strong className="fort">{x.fournisseur}</strong><span className="sous gris">{x.rbq ? `RBQ ${x.rbq}` : 'sans licence RBQ'}</span></span></span></td>
                   <td><span className="prix-barre"><span className="piste">{bon.budget && <b style={{ left: `${(100 * bon.budget) / maxPrix}%` }} />}<i className={x.id === bon.recommandee || x.statut === 'selected' ? 'rec' : ''} style={{ width: `${(100 * x.montant) / maxPrix}%` }} /></span><strong>{argent(x.montant)}</strong></span></td>
                   <td>{delai(x.disponible)}</td>
                   <td><span className="ligne-ic"><Icone nom="star" taille={16} couleur="#0C2147" />{x.note != null ? String(x.note).replace('.', ',') : '—'}</span></td>
-                  <td style={{ whiteSpace: 'normal' }}>{x.statut === 'selected' ? <span className="puce action">Choisie</span> : !x.meme_portee ? <span className="ligne-ic rouge"><Icone nom="alert" taille={18} couleur="#9B2E28" />Portée différente</span>
+                  <td style={{ whiteSpace: 'normal' }}>{x.statut === 'selected' ? <span className="puce action">Choisie</span> : x.statut === 'declined' ? <span className="gris">Écartée</span> : !x.meme_portee ? <span className="ligne-ic rouge"><Icone nom="alert" taille={18} couleur="#9B2E28" />Portée différente</span>
                     : x.conformite ? <span className="ligne-ic rouge"><Icone nom="alert" taille={18} couleur="#9B2E28" />{x.conformite}</span> : <span className="ligne-ic"><span className="okdot" style={{ marginTop: 0 }}><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>Conforme</span>}</td></tr>))}
                 {!S.length && <tr><td colSpan={5} className="gris">Aucune soumission reçue pour ce bon de travail.</td></tr>}</tbody>
             </table>
