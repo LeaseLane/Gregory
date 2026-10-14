@@ -879,3 +879,4 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .fiche-dl dt { font-size: 13px; color: #58697F; } .fiche-dl dd { margin: 0; font-size: 14px; font-weight: 600; color: #0C2147; overflow-wrap: anywhere; }
 .pieces { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; } .pieces span { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 8px; background: #F5F7FA; font-size: 13px; font-weight: 500; }
 .personne-ligne { display: flex; gap: 12px; align-items: center; } .personne-ligne > div { display: grid; gap: 2px; } .personne-ligne strong { font-size: 14px; font-weight: 600; } .personne-ligne .gris { font-size: 13px; }
+.liste-demandes li.gris { padding: 12px; font-size: 13px; }
