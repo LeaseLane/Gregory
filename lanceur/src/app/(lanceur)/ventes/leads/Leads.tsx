@@ -44,7 +44,8 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
           <section className="studio-liste" aria-label="Leads à traiter">
             <header className="carte-tete studio-tete">
               <div><h2>Leads à traiter</h2><p>{auj ? `${auj} reçu${auj > 1 ? 's' : ''} aujourd’hui` : 'Aucun lead entrant aujourd’hui.'} · routés dès leur arrivée</p></div>
-              <button className="bouton bouton-principal" style={{ width: 'auto', height: 44, fontSize: 14 }} onClick={() => setTiroir(true)}><Icone nom="plus" taille={20} couleur="#fff" />Nouveau lead</button>
+              <div className="taches-actions"><Link className="bouton bouton-contour" style={{ height: 44, fontSize: 14 }} href="/ventes/leads/import"><Icone nom="file" taille={20} />Importer un CSV</Link>
+              <button className="bouton bouton-principal" style={{ width: 'auto', height: 44, fontSize: 14 }} onClick={() => setTiroir(true)}><Icone nom="plus" taille={20} couleur="#fff" />Nouveau lead</button></div>
             </header>
             <table className="tableau">
               <colgroup><col style={{ width: '32%' }} /><col style={{ width: '20%' }} /><col style={{ width: '15%' }} /><col style={{ width: '20%' }} /><col style={{ width: '13%' }} /></colgroup>

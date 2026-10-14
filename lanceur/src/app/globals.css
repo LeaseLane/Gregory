@@ -736,3 +736,37 @@ span.interrupteur { flex: none; opacity: .6; }
 .consentement { margin-bottom: 20px; }
 .routage-auto { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding: 12px 16px; border-radius: 12px; background: #EEF1F5; font-size: 13px; color: #3E4A59; }
 @media (max-width: 1100px) { .regles-routage { grid-template-columns: minmax(0, 1fr); } }
+
+/* Ventes · Contacts (e13) et Import CSV (e17). */
+.puces { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.deux-lignes { display: inline-grid; } .deux-lignes .gris { font-size: 13px; }
+.consent-ligne { display: inline-flex; gap: 16px; flex-wrap: wrap; }
+.pastille-c { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #3E4A59; }
+.pastille-c > i { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #A6B1BE; display: inline-block; }
+.pied-contacts { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 0 24px 24px; } .pied-contacts .consent-ligne { font-size: 12px; }
+.paires { list-style: none; margin: 0 -12px 20px; padding: 0; display: grid; gap: 4px; }
+.paires button { position: relative; width: 100%; display: flex; align-items: center; gap: 16px; padding: 10px 12px; border: 0; border-radius: 12px; background: none; font: inherit; text-align: left; cursor: pointer; }
+.paires li.sel button { background: #ECF2F9; } .paires li.sel button::before { content: ""; position: absolute; left: -12px; top: 16px; bottom: 16px; width: 3px; border-radius: 0 3px 3px 0; background: #4581CB; }
+.paires button > span:nth-child(2) { flex: 1; display: grid; min-width: 0; } .paires strong { font-size: 14px; } .paires span span { font-size: 13px; color: #58697F; }
+.paires .conf { display: grid; text-align: right; } .paires .conf b { font-size: 14px; } .paires .conf span { font-size: 12px; color: #58697F; }
+.paires li.sel .appel-ic { background: #fff; }
+.import { display: flex; flex-direction: column; }
+.stepper.petit { flex: 0 0 480px; } .stepper.petit button { cursor: default; }
+.import-corps { padding: 0 24px 24px; }
+.depot { position: relative; display: grid; justify-items: center; gap: 6px; padding: 40px 24px; margin-bottom: 24px; border: 2px dashed #C8DAF0; border-radius: 16px; background: #F7F9FB; cursor: pointer; text-align: center; }
+.depot strong { font-size: 15px; } .depot span { font-size: 13px; color: #58697F; } .depot input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.depot:hover { border-color: #4581CB; }
+.tableau.sans-marge { width: 100%; margin: 0; }
+.champ-map { width: 100%; height: 40px; padding: 0 10px; border: 1px solid #D1D6DB; border-radius: 8px; font: inherit; font-size: 14px; color: #0C2147; background: #fff; }
+.champ-map.verif { border: 2px solid #4581CB; }
+.conf-map { display: inline-flex; align-items: center; gap: 10px; } .conf-map .jauge { width: 96px; flex: none; }
+.apercu-lignes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.apercu-lignes > div { display: grid; gap: 2px; padding: 14px 16px; border-radius: 12px; background: #EEF1F5; font-size: 13px; } .apercu-lignes strong { font-size: 14px; }
+.import-resume { align-self: start; position: sticky; top: 24px; }
+.gros-chiffre { margin: 0 0 16px; font-size: 14px; color: #58697F; } .gros-chiffre b { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: #0C2147; margin-right: 8px; }
+.resume-lignes { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 16px; }
+.resume-lignes li { display: flex; gap: 16px; } .resume-lignes b { width: 44px; height: 44px; flex: none; border-radius: 12px; background: #ECF2F9; display: grid; place-items: center; font-size: 16px; }
+.resume-lignes li > div { display: grid; } .resume-lignes strong { font-size: 14px; } .resume-lignes span { font-size: 13px; color: #58697F; }
+.encadre-lcap { display: flex; gap: 12px; padding: 16px; margin-bottom: 24px; border-radius: 12px; background: #ECF2F9; } .encadre-lcap > div { display: grid; gap: 4px; } .encadre-lcap strong { font-size: 14px; } .encadre-lcap span { font-size: 13px; color: #3E4A59; }
+.import-boutons { display: grid; gap: 12px; margin-top: 24px; } .import-boutons .bouton { height: 44px; font-size: 14px; width: 100%; }
+a.bouton-contour { color: #0C2147; }
