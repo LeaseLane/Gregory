@@ -130,20 +130,19 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // T1 : même opération que les propositions approuvées (crm.move_prospect_stage) : règles (« perdu »
+    // exige une raison, étape connue), journal avant/après. Canal hérité : crm-api a vérifié la personne.
     if (action === "update_stage") {
       const { prospect_id, stage, loss_reason } = body;
-      const patchBody: Record<string, unknown> = { stage };
-      if (stage === "lost") patchBody.loss_reason = loss_reason || null;
-      await fetch(`${supabaseUrl}/rest/v1/prospects?id=eq.${prospect_id}`, {
-        method: "PATCH",
-        headers: adminHeaders,
-        body: JSON.stringify(patchBody),
-      });
-      await fetch(`${supabaseUrl}/rest/v1/audit_log`, {
+      const r = await fetch(`${supabaseUrl}/rest/v1/rpc/lanceur_herite_deplacer_prospect`, {
         method: "POST",
         headers: adminHeaders,
-        body: JSON.stringify({ actor_type: "admin", actor_id: userId, action: "prospect.stage_change", entity_type: "prospects", entity_id: prospect_id, details: { new_stage: stage, loss_reason: stage === "lost" ? (loss_reason || null) : undefined } }),
+        body: JSON.stringify({ p: { id: prospect_id, stage, loss_reason: loss_reason || null }, p_user: userId }),
       });
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        return new Response(JSON.stringify({ error: e.message || "Étape non modifiée." }), { status: r.status === 401 ? 403 : r.status, headers: corsHeaders });
+      }
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
     }
 
@@ -230,16 +229,41 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         corrected: false,
       });
 
+      // T1 : l'historique d'appel s'écrit directement (trace de l'appel); l'intérêt, le prochain suivi et la
+      // prochaine action deviennent une PROPOSITION de l'analyse d'appel, à approuver dans Lanceur.
+      // Activé partout sauf en production tant que Lanceur n'y est pas en ligne (PROPOSITIONS_ACTIVES=true l'active).
+      const propositions = Deno.env.get("PROPOSITIONS_ACTIVES") === "true" || !(supabaseUrl ?? "").includes("kdmwfbcziokygfcmjxeq");
       await fetch(`${supabaseUrl}/rest/v1/prospects?id=eq.${prospect_id}`, {
         method: "PATCH",
         headers: adminHeaders,
-        body: JSON.stringify({
+        body: JSON.stringify(propositions ? { call_history: callHistory } : {
           call_history: callHistory,
           interest_level: interestLevel ?? prospect.interest_level,
           next_followup_date: followupDate,
         }),
       });
-      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
+      if (propositions) {
+        const apres: Record<string, unknown> = {};
+        if (interestLevel && interestLevel !== prospect.interest_level) apres.interest_level = interestLevel;
+        if (followupDate && followupDate !== prospect.next_followup_date) apres.next_followup_date = followupDate;
+        if (typeof parsed.next_step === "string" && parsed.next_step.trim()) apres.next_action = parsed.next_step.trim().slice(0, 200);
+        if (Object.keys(apres).length) {
+          const citation = Array.isArray(parsed.key_quotes) && parsed.key_quotes[0] ? String(parsed.key_quotes[0]) : String(transcript).slice(0, 300);
+          const pr = await fetch(`${supabaseUrl}/rest/v1/rpc/lanceur_proposer`, {
+            method: "POST",
+            headers: adminHeaders,
+            body: JSON.stringify({ p: {
+              agent: "analyse_appel", operation: "update-prospect-followup", target_id: prospect_id, after: apres,
+              reason: String(parsed.summary || "Analyse de l'appel : intérêt et suivi mis à jour.").slice(0, 1000).padEnd(10, "."),
+              source_type: "appel", source_ref: "Appel du " + new Date().toLocaleDateString("fr-CA", { timeZone: "America/Toronto" }),
+              source_excerpt: citation.slice(0, 2000), confidence: typeof parsed.confidence === "number" ? Math.max(0, Math.min(100, parsed.confidence)) : null,
+              idempotency_key: `appel:${prospect_id}:${callHistory.length - 1}`, channel: "api",
+            } }),
+          });
+          if (!pr.ok) console.error("Proposition d'analyse d'appel refusée", pr.status, await pr.text().catch(() => ""));
+        }
+      }
+      return new Response(JSON.stringify({ ok: true, proposition: propositions }), { status: 200, headers: corsHeaders });
     }
 
     // Un vendeur peut corriger une analyse d'appel que l'IA a mal

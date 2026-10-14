@@ -5354,7 +5354,9 @@ async function createProspect(){
 async function updateProspectStage(prospect_id, stage){
   let loss_reason = null;
   if(stage === 'lost'){
-    loss_reason = await llDemander('Raison de la perte de ce prospect (optionnel) :') || null;
+    // T1 : « Perdu » exige une raison (règle de la base, crm.move_prospect_stage).
+    loss_reason = (await llDemander('Raison de la perte de ce prospect (obligatoire) :') || '').trim();
+    if(!loss_reason){ await loadProspects(); return; }
   }
   await callCrmApi({ action: 'update_stage', prospect_id, stage, loss_reason });
   await loadProspects();
