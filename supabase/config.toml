@@ -122,3 +122,7 @@ verify_jwt = false
 [functions.enquetes-credit]
 # T5 : Lanceur seulement; droit, 2FA et consentement vérifiés en base avec le jeton de la personne.
 verify_jwt = true
+
+[functions.signatures]
+# T6a : Lanceur seulement; droit et 2FA vérifiés en base avec le jeton de la personne.
+verify_jwt = true

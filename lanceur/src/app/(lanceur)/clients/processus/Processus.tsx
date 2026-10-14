@@ -164,6 +164,7 @@ function Emmenagement({ p, peut, envoi, agir }: { p: Proc; peut: boolean; envoi:
         {peut && <><input className="e70-raison" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Précision (facultatif)" aria-label="Précision" />
           <button className="bouton bouton-principal" style={{ width: 'auto' }} disabled={envoi} onClick={async () => { if (await agir(() => supabaseNavigateur().rpc('lanceur_etape_emmenagement', { p: { process_id: p.id, note } }), p.step + 1 >= p.etapes.length ? 'Emménagement terminé.' : 'Étape faite : la tâche suivante est créée.')) setNote(''); }}>Étape faite</button></>}
         {peut && p.step === 1 && <button className="lien" disabled={envoi} onClick={() => agir(() => supabaseNavigateur().rpc('lanceur_demander_enquete', { p: { process_id: p.id, motif: 'candidature' } }), 'Consentement demandé (LOC-14) : suivez l’enquête dans Solvabilité.')}>Demander le consentement à l’enquête de crédit (LOC-14)</button>}
+        {peut && p.step === 2 && <button className="lien" disabled={envoi} onClick={() => agir(() => supabaseNavigateur().rpc('lanceur_creer_signature', { p: { kind: 'bail', process_id: p.id } }), 'Bail préparé : envoyez-le depuis Documents et signatures.')}>Préparer le bail à signer (eZsign)</button>}
         <p className="gris" style={{ fontSize: 13 }}>Terminer la tâche dans Opérations › Tâches fait aussi avancer l’emménagement.</p>
       </section>
     </>

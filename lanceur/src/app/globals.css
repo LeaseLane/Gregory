@@ -848,3 +848,14 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .mois12 { list-style: none; margin: 0 0 8px; padding: 0; display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; }
 .mois12 li { height: 24px; border-radius: 4px; background: #EEF1F5; display: grid; place-items: center; } .mois12 li.retard { background: #9B2E28; }
 .texte-13 { margin: 0; font-size: 13px; color: #3E4A59; }
+/* l12 · Clients › Documents et signatures */
+.tete-action { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; } .tete-action .ligne-champ { width: 340px; } .tete-action select { height: 40px; }
+.signataires { display: inline-flex; gap: 6px; }
+.ini-etat { position: relative; display: inline-flex; } .ini-etat > i, .ini-etat > .okdot { position: absolute; right: -3px; bottom: -3px; width: 13px; height: 13px; margin: 0; }
+.ini-etat > i { border-radius: 50%; background: #fff; border: 2px solid #8A99AB; } .ini-etat > i.actuel { border: 3px solid #4581CB; }
+.ini-etat.grand > i, .ini-etat.grand > .okdot { width: 16px; height: 16px; right: -4px; bottom: -4px; }
+.signataires-suivi { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.signataires-suivi li { display: flex; align-items: center; gap: 16px; } .signataires-suivi li > div { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.signataires-suivi strong { font-size: 14px; font-weight: 600; color: #0C2147; } .signataires-suivi span { font-size: 13px; color: #0C2147; } .signataires-suivi span.gris { color: #58697F; }
+.bouton.pleine { width: 100%; height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
+.carte-l18 .barres li { grid-template-columns: 168px minmax(0, 1fr) 40px; }
