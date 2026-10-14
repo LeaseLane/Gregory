@@ -15,7 +15,7 @@ const TYPES: Record<string, string> = { mandat: 'Mandat de gestion', bail: 'Bail
 const CLASSES: Record<string, string> = { assurance: 'Assurances', bail: 'Baux', facture: 'Dépenses', releve: 'Solvabilité', identite: 'Identité' };
 const auj = new Date().toDateString();
 const quand = (iso: string) => { const x = new Date(iso); return x.toDateString() === auj ? `auj. ${x.getHours()} h${x.getMinutes() ? String(x.getMinutes()).padStart(2, '0') : ''}` : x.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' }); };
-const jours = (n: number) => `${String(n).replace('.', ',')} j`;
+const jours = (n: number) => n < 1 ? '< 1 j' : `${String(n).replace('.', ',')} j`;
 const signes = (e: Enveloppe) => e.signataires.filter((s) => s.statut === 'signed').length;
 function statut(e: Enveloppe) {
   return { draft: 'Brouillon', sent: `${signes(e)} sur ${e.signataires.length}`, signed: 'Signée', declined: 'Refusée', cancelled: 'Annulée' }[e.statut] ?? e.statut;
@@ -64,7 +64,7 @@ export function Documents({ donnees, erreurLecture }: { donnees: DonneesDocs | n
               <thead><tr><th>Document</th><th>Signataires</th><th>Statut</th><th>Envoyée</th><th className="droite">Relance</th></tr></thead>
               <tbody>{E.map((x) => (
                 <tr key={x.id} className={x.id === sel ? 'sel' : ''} onClick={() => setSel(x.id)}>
-                  <td><strong className="fort">{TYPES[x.kind] ?? x.titre}</strong><span className="sous gris">{x.sous}</span></td>
+                  <td><span className="cellule-doc"><strong className="fort">{TYPES[x.kind] ?? x.titre}</strong><span className="gris">{x.sous}</span></span></td>
                   <td><span className="signataires">{x.signataires.map((s) => <span key={s.ord} className="ini-etat" title={`${s.nom} · ${s.statut === 'signed' ? 'signé' : 'pas encore signé'}`}>
                     <span className="ini" style={{ width: 28, height: 28, fontSize: 11 }}>{initiales(s.nom)}</span>{s.statut === 'signed' ? <span className="okdot"><Icone nom="check" taille={9} couleur="#fff" trait={2.6} /></span> : <i />}</span>)}</span></td>
                   <td className={x.statut === 'draft' || x.statut === 'cancelled' ? 'gris' : 'fort'}>{statut(x)}</td>
@@ -102,7 +102,7 @@ export function Documents({ donnees, erreurLecture }: { donnees: DonneesDocs | n
           </section>
           <section className="carte-l18" aria-label="Délai de signature">
             <header className="carte-tete sans-marge"><h2>{D.delais.length ? `Les ${(TYPES[D.delais[0].kind] ?? D.delais[0].kind).toLowerCase().replace(/^mandat de gestion$/, 'mandats').replace(/^bail$/, 'baux')} prennent ${jours(D.delais[0].jours)}` : 'Délai de signature'}</h2><p>Délai médian de signature · 90 derniers jours</p></header>
-            {D.delais.length ? <ul className="barres">{D.delais.map((x, i) => <li key={x.kind}><span>{TYPES[x.kind] ?? x.kind}</span><i style={{ width: `${(100 * x.jours) / maxJ}%`, background: i ? '#C8D2DE' : undefined }} /><b>{jours(x.jours)}</b></li>)}</ul>
+            {D.delais.length ? <ul className="barres">{D.delais.map((x, i) => <li key={x.kind}><span>{TYPES[x.kind] ?? x.kind}</span><i style={{ width: `${Math.max(2, (100 * x.jours) / maxJ)}%`, background: i ? '#C8D2DE' : undefined }} /><b>{jours(x.jours)}</b></li>)}</ul>
               : <p className="gris" style={{ margin: 0, fontSize: 13 }}>Aucune enveloppe signée depuis 90 jours.</p>}
           </section>
         </div>
