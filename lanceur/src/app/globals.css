@@ -424,3 +424,89 @@ li.sel .av-agent { background: #fff; }
 .bouton-danger:disabled { opacity: .55; cursor: not-allowed; }
 .fenetre-actions .bouton { height: 44px; font-size: 14px; }
 .lien-espace { color: inherit; text-decoration: none; cursor: pointer; }
+
+/* Opérations · Inbox (maquette l04) : liste 400 px (e1), fil (e2), contact 344 px (e1); hauteur de l'écran. */
+.inbox { display: grid; grid-template-columns: 400px minmax(0, 1fr) 344px; gap: 24px; height: calc(100vh - 340px); min-height: 640px; }
+.inbox-liste, .inbox-fil, .inbox-contact { background: #fff; border: 1px solid #E1E6EC; border-radius: 16px; box-shadow: 0 2px 6px rgba(12,33,71,.07), 0 1px 2px rgba(12,33,71,.05); min-height: 0; }
+.inbox-fil { border-color: #C8DAF0; box-shadow: 0 8px 24px rgba(12,33,71,.09), 0 2px 6px rgba(12,33,71,.05); display: flex; flex-direction: column; padding: 24px; }
+.inbox-liste { display: flex; flex-direction: column; overflow: hidden; }
+.inbox-filtres { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 24px 24px 12px; }
+.inbox-filtres .segment button { padding: 0 14px; }
+.plus-filtres { position: relative; }
+.plus-filtres .haut-ibtn { margin: 0; } .plus-filtres .haut-ibtn.actif { border-color: #4581CB; background: #ECF2F9; }
+.filtres-menu { display: grid; gap: 12px; padding: 16px; min-width: 240px; }
+.filtres-menu label:not(.case) { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: #3E4A59; }
+.filtres-menu select { height: 40px; border: 1px solid #D1D6DB; border-radius: 8px; padding: 0 10px; font: inherit; font-size: 14px; color: #0C2147; }
+.inbox-liste ul { list-style: none; margin: 0; padding: 0 0 12px; overflow-y: auto; flex: 1; }
+.inbox-liste li { position: relative; }
+.inbox-liste li a { display: flex; gap: 12px; min-height: 94px; padding: 12px 24px; color: inherit; text-decoration: none; }
+.inbox-liste li + li::before { content: ""; position: absolute; left: 24px; right: 24px; top: 0; height: 1px; background: #E1E6EC; }
+.inbox-liste li.sel a { margin: 0 12px; padding: 12px; border-radius: 12px; background: #ECF2F9; }
+.inbox-liste li.sel::before, .inbox-liste li.sel + li::before { display: none; }
+.inbox-liste li.sel::after { content: ""; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px; border-radius: 0 3px 3px 0; background: #4581CB; }
+.ini { display: inline-grid; place-items: center; flex: none; border-radius: 50%; background: linear-gradient(135deg, #1C3053, #4581CB); color: #fff; font-weight: 600; }
+.ini.vide { width: 28px; height: 28px; background: #EEF1F5; }
+.inbox-av { position: relative; flex: none; height: 40px; }
+.inbox-av i { position: absolute; left: 32px; top: -2px; width: 10px; height: 10px; border-radius: 50%; background: #4581CB; box-shadow: 0 0 0 2px #fff; }
+li.sel .inbox-av i { box-shadow: 0 0 0 2px #ECF2F9; }
+.inbox-ligne { flex: 1; min-width: 0; display: grid; gap: 4px; justify-items: start; }
+.inbox-l1 { width: 100%; display: flex; justify-content: space-between; gap: 8px; }
+.inbox-l1 strong { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+li.non-lu .inbox-l1 strong { font-weight: 700; }
+.inbox-l1 span { font-size: 12px; color: #58697F; white-space: nowrap; }
+.inbox-l2 { width: 100%; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #58697F; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.inbox-l2 svg { flex: none; }
+li.non-lu .inbox-l2 { color: #3E4A59; }
+.puce.final { background: #12694F; color: #fff; }
+.fil-tete { display: flex; align-items: center; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid #E1E6EC; }
+.fil-tete > div { flex: 1; min-width: 0; }
+.fil-tete h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.fil-tete p { margin: 2px 0 0; font-size: 13px; color: #58697F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fil-statut, .fil-resp { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 44px; border: 1px solid #E1E6EC; border-radius: 12px; background: #fff; }
+.fil-statut select, .fil-resp select { appearance: none; height: 42px; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 600; color: #0C2147; cursor: pointer; }
+.fil-statut select { padding: 0 40px 0 14px; field-sizing: content; }
+.fil-resp { width: 196px; padding-left: 10px; }
+.fil-resp select { flex: 1; min-width: 0; padding-right: 36px; }
+.fil-statut svg, .fil-resp > svg { position: absolute; right: 12px; pointer-events: none; }
+.fil-messages { flex: 1; overflow-y: auto; padding: 20px 0 12px; display: flex; flex-direction: column; gap: 12px; }
+.msg { display: flex; gap: 12px; max-width: 70%; }
+.msg.sortant { align-self: flex-end; justify-content: flex-end; text-align: right; }
+.msg > div { display: grid; gap: 6px; }
+.bulle-msg { margin: 0; padding: 14px 20px; border-radius: 16px; background: #EEF1F5; font-size: 14px; line-height: 1.45; color: #0C2147; white-space: pre-line; text-align: left; }
+.msg.sortant .bulle-msg { background: #0C2147; color: #fff; justify-self: end; }
+.msg-heure { font-size: 12px; color: #58697F; }
+.passage { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 12px; background: #ECF2F9; }
+.passage strong { font-size: 13px; font-weight: 600; } .passage p { margin: 2px 0 0; font-size: 13px; color: #3E4A59; }
+.rapides { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0 16px; }
+.rapides button { height: 40px; padding: 0 16px; border: 1px solid #E1E6EC; border-radius: 12px; background: #fff; font: inherit; font-size: 13px; font-weight: 500; color: #0C2147; cursor: pointer; }
+.rapides button:hover { border-color: #91B5E0; }
+.inbox-fil .bandeau { margin-bottom: 12px; }
+.composer { border: 1px solid #E1E6EC; border-radius: 16px; padding: 12px 16px 16px; }
+.composer:focus-within { border-color: #91B5E0; }
+.composer-haut { display: flex; align-items: center; gap: 16px; }
+.segment.petit { height: 40px; } .segment.petit button { height: 32px; padding: 0 14px; } .segment button:disabled { opacity: .45; cursor: not-allowed; }
+.gabarit-menu { position: relative; } .gabarit-menu .menu { left: 0; right: auto; top: 32px; }
+.composer-lcap { margin-left: auto; font-size: 12px; color: #58697F; } .composer-lcap.rouge { color: #9B2E28; font-weight: 600; }
+.composer-bas { display: flex; align-items: flex-end; gap: 12px; margin-top: 12px; }
+.composer textarea { flex: 1; min-height: 44px; max-height: 160px; border: 0; resize: vertical; font: inherit; font-size: 14px; line-height: 1.45; color: #0C2147; outline: none; padding: 10px 0; }
+.composer textarea::placeholder { color: #58697F; }
+.envoyer { width: 44px; height: 44px; flex: none; border: 0; border-radius: 12px; background: #0C2147; display: grid; place-items: center; cursor: pointer; }
+.envoyer:disabled { opacity: .45; cursor: not-allowed; }
+.inbox-contact { padding: 24px; display: flex; flex-direction: column; overflow-y: auto; }
+.inbox-contact .surtitre { margin: 0 0 8px; }
+.inbox-contact h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.inbox-contact > p.gris { margin: 6px 0 0; font-size: 13px; }
+.inbox-contact hr { width: 100%; border: 0; border-top: 1px solid #E1E6EC; margin: 20px 0; }
+.petit-texte { margin: 0 0 24px; font-size: 13px; }
+.consent { list-style: none; margin: 0 0 24px; padding: 0; display: grid; gap: 14px; }
+.consent li { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.consent strong { font-weight: 600; } .consent li > span:last-child { margin-left: auto; color: #58697F; }
+.consent i.vide { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #78838F; flex: none; }
+.activite { list-style: none; margin: 0 0 24px; padding: 0; display: grid; gap: 18px; }
+.activite li { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.activite i { width: 8px; height: 8px; border-radius: 50%; background: #C8CDD4; flex: none; margin-left: 4px; } .activite i.recent { background: #4581CB; }
+.activite li > span:last-child { margin-left: auto; font-size: 12px; color: #58697F; white-space: nowrap; }
+.bouton.plein { width: 100%; margin-top: auto; height: 44px; font-size: 14px; gap: 10px; }
+.bouton:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 1300px) { .inbox { grid-template-columns: 340px minmax(0, 1fr); } .inbox-contact { display: none; } }
+@media (max-width: 900px) { .inbox { grid-template-columns: minmax(0, 1fr); height: auto; } .inbox-liste ul { max-height: 360px; } .inbox-fil { min-height: 600px; } }
