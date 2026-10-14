@@ -1,14 +1,24 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
+import { Notifications } from '@/composants/Notifications';
+import { supabaseNavigateur } from '@/lib/supabase/client';
 
 /* Barre du haut (maquette l00) : logo · Accueil · « Demandez à Cléo ou cherchez… » ⌘K · cloche · profil.
    ⌘K ouvre la palette (vide au T0 : recherche et Cléo arrivent avec leurs tranches). */
-const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations']];
+const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/studio', 'Studio'], ['/cleo-ia', 'Cléo et IA']];
 
-export function BarreHaut({ initiales, courriel, aApprouver }: { initiales: string; courriel: string; aApprouver: number }) {
+export function BarreHaut({ initiales, courriel, nonLues: initial, moi }: { initiales: string; courriel: string; nonLues: number; moi: string }) {
+  const [nonLues, setNonLues] = useState(initial);
+  const [tiroir, setTiroir] = useState(false);
+  useEffect(() => setNonLues(initial), [initial]);
+  // Temps réel : une nouvelle notification allume la cloche sans recharger.
+  useEffect(() => {
+    const sb = supabaseNavigateur();
+    const c = sb.channel('cloche').on('postgres_changes', { event: 'INSERT', schema: 'crm', table: 'notifications', filter: `user_id=eq.${moi}` }, () => setNonLues((n) => n + 1)).subscribe();
+    return () => { sb.removeChannel(c); };
+  }, [moi]);
   const chemin = usePathname();
   const espace = ESPACES_FIL.find(([d]) => chemin.startsWith(d))?.[1];
   const [palette, setPalette] = useState(false);
@@ -45,10 +55,11 @@ export function BarreHaut({ initiales, courriel, aApprouver }: { initiales: stri
           <kbd className="touche"><Icone nom="command" taille={12} couleur="#3E4A59" trait={2} />K</kbd>
         </button>
         <span className="haut-espace" />
-        <Link href="/operations/a-approuver" className="haut-ibtn" aria-label={aApprouver ? `${aApprouver} proposition${aApprouver > 1 ? 's' : ''} à approuver` : 'À approuver : rien en attente'} title={aApprouver ? `${aApprouver} à approuver` : 'Rien à approuver'}>
+        <button type="button" className={'haut-ibtn' + (tiroir ? ' ouvert' : '')} onClick={() => setTiroir(true)} aria-expanded={tiroir}
+          aria-label={nonLues ? `Notifications : ${nonLues} non lue${nonLues > 1 ? 's' : ''}` : 'Notifications'} title="Notifications">
           <Icone nom="bell" taille={20} couleur="#0C2147" />
-          {aApprouver > 0 && <i className="pastille-rouge" aria-hidden="true" />}
-        </Link>
+          {nonLues > 0 && <i className="pastille-rouge" aria-hidden="true" />}
+        </button>
         <div className="haut-profil">
           <button type="button" className="haut-moi" onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Mon compte">{initiales}</button>
           {menu && (
@@ -59,6 +70,7 @@ export function BarreHaut({ initiales, courriel, aApprouver }: { initiales: stri
           )}
         </div>
       </header>
+      {tiroir && <Notifications fermer={() => setTiroir(false)} surLecture={setNonLues} />}
       {palette && (
         <div className="palette-fond" onClick={() => setPalette(false)}>
           <div className="palette" role="dialog" aria-label="Demandez à Cléo ou cherchez" onClick={(e) => e.stopPropagation()}>
