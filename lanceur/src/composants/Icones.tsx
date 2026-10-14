@@ -1,5 +1,16 @@
 /* Icônes de la maquette (blk.js), trait 1,75. */
 const P: Record<string, React.ReactNode> = {
+  chevron: <path d="m9 6 6 6-6 6" />,
+  chevD: <path d="m6 9 6 6 6-6" />,
+  check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
+  pencil: <><path d="M4 20h4L19 9l-4-4L4 16z" /><path d="m14 6 4 4" /></>,
+  mail: <><rect x="3.5" y="5.5" width="17" height="13" rx="2" /><path d="m4 7 8 6 8-6" /></>,
+  shieldc: <><path d="M12 3 4.5 6v6c0 4.5 3.2 7.7 7.5 9 4.3-1.3 7.5-4.5 7.5-9V6z" /><path d="m9 12 2 2 4-4" /></>,
+  rocket: <><path d="M12 15c3-2 6-6 6-11-5 0-9 3-11 6l-3 1 2 2-1 3 3-1 2 2z" /><circle cx="14" cy="9" r="1.5" /></>,
+  close: <path d="M6 6l12 12M18 6 6 18" />,
+  phone: <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1.5 1.5 0 0 1-1.5 1.5A16 16 0 0 1 3.5 5.5 1.5 1.5 0 0 1 5 4z" />,
+  message: <path d="M4 5h16v11H9l-5 4z" />,
+  alert: <><path d="M12 4 2.8 19.5h18.4z" /><path d="M12 10v4.5M12 17.2v.1" /></>,
   home: <><path d="M3 11 12 3.5 21 11" /><path d="M5.5 9.5V20.5h13V9.5" /><path d="M10 20.5v-6h4v6" /></>,
   bell: <><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" /><path d="M10 20.5a2 2 0 0 0 4 0" /></>,
   inbox: <><path d="M3.5 13.5 6 5h12l2.5 8.5v5h-17z" /><path d="M3.5 13.5h5l1.5 2.5h4l1.5-2.5h5" /></>,

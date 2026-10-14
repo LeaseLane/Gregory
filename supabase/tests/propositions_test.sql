@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(20);
+select plan(22);
 
 create temp table t_ctx on commit drop as
 select (select id from auth.users where email = 'equipe-prospection@leaselane.test') as lp,
@@ -79,6 +79,11 @@ select ok((select bool_and(proposal_id is not null and actor_kind = 'person' and
            where action in ('proposal.approved', 'proposal.rejected') and proposal_id in (select id from crm.proposals where idempotency_key like 't%')),
           '11 · décisions journalisées (proposal_id, acteur, après)');
 select throws_ok($$update audit_log set action = 'x' where action = 'proposal.approved'$$, null, null, '11 · audit_log refuse update');
+
+-- 12. « Prochaine action » approuvée reste écrite (déclencheur on_prospect_change)
+select pg_temp.proposer('t12', '00000000-0000-4000-a000-000000000002', '{"next_action":"Appeler lundi avec l''estimation"}', 'update-prospect-followup');
+select is(crm.approve_proposal((select id from crm.proposals where idempotency_key = 't12')) ->> 'ok', 'true', '12 · suivi approuvé');
+select is((select next_action from prospects where id = '00000000-0000-4000-a000-000000000002'), 'Appeler lundi avec l''estimation', '12 · prochaine action gardée');
 
 select * from finish();
 rollback;

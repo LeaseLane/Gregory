@@ -3,7 +3,7 @@
 -- ============================================================
 -- 5 propositions : Investissements Roy → « Qualifié » (courriel de 9 h 12), suivi après l'appel de
 -- Mathieu Roy, une déjà appliquée, une rejetée « trop_tot », une expirée « version ». Tout est fictif.
--- Prérequis : seed-univers-maquettes.sql (comptes de rôle). Idempotent (clés d'idempotence fixes).
+-- Prérequis : seed-univers-maquettes.sql (comptes de rôle). Rejouable : chaque passage remet la démo à zéro.
 -- Usage : workflow « SQL en préproduction », fichier supabase/seed-propositions-maquettes.sql
 -- ============================================================
 
@@ -17,10 +17,11 @@ begin
     raise exception 'Base avec de vrais propriétaires : refusé (préproduction ou démo seulement).';
   end if;
   if v_lp is null then raise exception 'Lancer d''abord seed-univers-maquettes.sql.'; end if;
-  if exists (select 1 from crm.proposals where idempotency_key like 'maquette:%') then
-    raise notice 'Propositions des maquettes déjà présentes — rien à faire.';
-    return;
-  end if;
+  -- Rejouable : on remet la démonstration à son état de départ (propositions et prospects fictifs seulement;
+  -- le journal, immuable, garde la trace des décisions précédentes).
+  delete from crm.proposals where idempotency_key like 'maquette:%';
+  delete from public.prospects where email in ('paul.roy@investissements-roy.test', 'mathieu.roy@courriel.test',
+    'denise@immeubles-lachance.test', 'karim.beaulieu@courriel.test', 'helene@gestion-caouette.test');
 
   insert into public.prospects (full_name, company_name, email, phone, num_doors, avg_rent, stage, interest_level, lead_source, next_action)
   values ('Paul Roy', 'Investissements Roy', 'paul.roy@investissements-roy.test', '418 555-0710', 6, 1250, 'contacted', 'tiede', 'site_web', 'Envoyer l''offre de gestion')

@@ -17,10 +17,11 @@ export default async function LanceurLayout({ children }: { children: React.Reac
   const u = data.user!;
   const moi = await lireMoi();
   const initiales = moi?.initiales ?? (u.email ?? '?').slice(0, 2).toUpperCase();
+  const { data: aApprouver } = moi ? await supabase.rpc('lanceur_nb_a_approuver') : { data: 0 };
 
   return (
     <div className="coquille">
-      <BarreHaut initiales={initiales} courriel={u.email ?? ''} alerte={false} />
+      <BarreHaut initiales={initiales} courriel={u.email ?? ''} aApprouver={Number(aApprouver ?? 0)} />
       {moi ? (
         children
       ) : (
