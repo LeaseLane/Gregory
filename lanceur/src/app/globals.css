@@ -666,3 +666,52 @@ li.non-lu .inbox-l2 { color: #3E4A59; }
 .raisons label.choisi { background: #ECF2F9; border-radius: 8px; margin: 0 -8px; padding: 0 8px; }
 .relance { display: flex; align-items: center; gap: 16px; margin: 0 0 24px; } .relance > div { flex: 1; display: grid; } .relance strong { font-size: 14px; } .relance span { font-size: 13px; color: #58697F; }
 button.interrupteur { border: 0; padding: 0; cursor: pointer; flex: none; }
+
+/* Ventes · Fiche deal (maquette l06), Convertir (e15). */
+.carte-deal { padding: 24px; background: #fff; border: 1px solid #C8DAF0; border-radius: 16px; box-shadow: 0 8px 24px rgba(12,33,71,.09), 0 2px 6px rgba(12,33,71,.05); }
+.deal-tete { display: flex; justify-content: space-between; gap: 24px; }
+.deal-tete h1 { margin: 2px 0 8px; font-size: 24px; font-weight: 700; letter-spacing: -0.3px; } .deal-tete .surtitre { margin: 0; } .deal-tete p.gris { margin: 0; font-size: 14px; }
+.deal-valeur { display: grid; text-align: right; } .deal-valeur b { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; } .deal-valeur span { font-size: 13px; color: #58697F; }
+.deal-etapes { display: flex; align-items: center; gap: 24px; margin: 24px 0; }
+.stepper { flex: 1; list-style: none; margin: 0; padding: 0; display: flex; }
+.stepper li { flex: 1; position: relative; }
+.stepper li + li::before { content: ""; position: absolute; left: -50%; right: 50%; top: 13px; height: 2px; background: #D1D6DB; }
+.stepper li.fait + li::before, .stepper li.fait::before { background: #0C2147; }
+.stepper button { position: relative; width: 100%; display: grid; justify-items: center; gap: 2px; border: 0; background: none; font: inherit; cursor: pointer; padding: 0 4px; }
+.stepper button:disabled { cursor: default; }
+.stepper i { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #D1D6DB; background: #fff; display: grid; place-items: center; margin-bottom: 6px; z-index: 1; }
+.stepper li.fait i { background: #0C2147; border-color: #0C2147; }
+.stepper li.actuel i { border: 3px solid #4581CB; }
+.stepper li.perdu i { border-color: #9B2E28; background: #F8E4E2; }
+.stepper strong { font-size: 13px; font-weight: 600; } .stepper li:not(.actuel):not(.fait) strong { color: #58697F; }
+.stepper span { font-size: 12px; color: #58697F; text-align: center; min-height: 18px; }
+.stepper button:not(:disabled):hover i { border-color: #4581CB; }
+.deal-actions { display: flex; gap: 12px; } .deal-actions .bouton { width: auto; height: 44px; font-size: 14px; }
+.cadrage { display: flex; align-items: center; gap: 16px; padding-top: 16px; border-top: 1px solid #E1E6EC; }
+.cadrage > div { flex: 1; display: grid; } .cadrage strong { font-size: 14px; } .cadrage span { font-size: 13px; color: #58697F; }
+.cadrage .bouton { height: 44px; font-size: 14px; gap: 8px; }
+.fil-onglets { display: flex; align-items: center; gap: 8px; padding: 20px 24px 16px; border-bottom: 1px solid #E1E6EC; }
+.fil-onglets > button { height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: none; font: inherit; font-size: 14px; font-weight: 600; color: #3E4A59; cursor: pointer; }
+.fil-onglets > button.actif { background: #ECF2F9; color: #0C2147; }
+.note-deal { flex: 1; display: flex; align-items: center; gap: 8px; height: 40px; margin-left: 8px; padding: 0 12px 0 16px; border: 1px solid #E1E6EC; border-radius: 12px; }
+.note-deal input { flex: 1; border: 0; font: inherit; font-size: 14px; outline: none; color: #0C2147; }
+.chrono { list-style: none; margin: 0; padding: 24px; display: grid; gap: 24px; }
+.chrono li { position: relative; display: flex; gap: 16px; }
+.chrono li + li .chrono-ic::before { content: ""; position: absolute; left: 19px; top: -24px; height: 24px; width: 2px; background: #E1E6EC; }
+.chrono-ic { width: 40px; height: 40px; flex: none; border-radius: 12px; background: #EEF1F5; display: grid; place-items: center; }
+.chrono-ic.recent { background: #ECF2F9; }
+.chrono li > div { flex: 1; min-width: 0; } .chrono strong { font-size: 14px; } .chrono p { margin: 4px 0 0; font-size: 13px; color: #58697F; }
+.chrono-h { font-size: 12px; color: #58697F; white-space: nowrap; }
+.details-deal { margin: 0; padding: 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.details-deal dt { font-size: 12px; color: #58697F; } .details-deal dd { margin: 4px 0 0; font-size: 14px; font-weight: 600; }
+.contacts-deal { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.contacts-deal li { display: flex; gap: 12px; } .contacts-deal li > div { display: grid; min-width: 0; } .contacts-deal strong { font-size: 14px; } .contacts-deal span { font-size: 13px; color: #58697F; overflow-wrap: anywhere; }
+.carte-l18 > .lien { display: inline-block; margin-top: 16px; }
+.conversion { list-style: none; margin: 0 0 16px; padding: 0; }
+.conversion li { display: flex; align-items: center; gap: 16px; min-height: 64px; } .conversion li + li { border-top: 1px solid #E1E6EC; }
+.conversion li > div { flex: 1; display: grid; } .conversion strong { font-size: 14px; } .conversion span:not(.appel-ic) { font-size: 13px; color: #58697F; }
+.conversion .appel-ic { width: 40px; height: 40px; }
+span.interrupteur { flex: none; opacity: .6; }
+.resume-mandat { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; padding: 14px 16px; border-radius: 12px; background: #EEF1F5; }
+.resume-mandat span { display: block; font-size: 12px; color: #58697F; } .resume-mandat b { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 16px; }
+.studio > .colonne-l18:first-child { gap: 24px; }

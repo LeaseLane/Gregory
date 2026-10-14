@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(13);
+select plan(16);
 
 create function pg_temp.comme(p_courriel text, p_aal text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = p_courriel), 'aal', p_aal, 'role', 'authenticated')::text, true);
@@ -44,6 +44,14 @@ select set_config('request.jwt.claims', '', true);
 update public.prospects set stage = 'interested' where id = '00000000-0000-4000-a000-0000000003a1';
 select is((select stage_id from crm.deals where id = (select id from t_d)), pg_temp.etape('qualifie'), '5 · le deal suit le prospect');
 select is((select count(*)::int from crm.deal_stage_history where deal_id = (select id from t_d)), 3, '5 · trois étapes dans l''historique, une seule ouverte');
+
+-- 6. Convertir : client créé, deal « Converti », prospect « signed », 3 tâches; deux fois → 409
+select pg_temp.comme('equipe-prospection@leaselane.test', 'aal2');
+select public.lanceur_convertir_deal(jsonb_build_object('deal_id', (select id from t_d)));
+select ok((select d.converted_owner_id is not null and d.stage_id = pg_temp.etape('converti') and pr.stage = 'signed' and pr.converted_owner_id = d.converted_owner_id
+           from crm.deals d join public.prospects pr on pr.id = d.prospect_id where d.id = (select id from t_d)), '6 · client créé, deal converti, prospect signé');
+select is((select count(*)::int from crm.tasks where deal_id = (select id from t_d) and status = 'open'), 3, '6 · trois tâches pour la suite (accueil, mandat, portail)');
+select throws_ok(format('select public.lanceur_convertir_deal(%L)', jsonb_build_object('deal_id', (select id from t_d))), 'PT409', null, '6 · déjà converti → 409');
 
 select * from finish();
 rollback;

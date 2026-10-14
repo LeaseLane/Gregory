@@ -7,7 +7,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 
 /* Barre du haut (maquette l00) : logo · Accueil · « Demandez à Cléo ou cherchez… » ⌘K · cloche · profil.
    ⌘K ouvre la palette (vide au T0 : recherche et Cléo arrivent avec leurs tranches). */
-const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/studio', 'Studio'], ['/cleo-ia', 'Cléo et IA']];
+const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/ventes', 'Ventes'], ['/studio', 'Studio'], ['/cleo-ia', 'Cléo et IA']];
 
 export function BarreHaut({ initiales, courriel, nonLues: initial, moi }: { initiales: string; courriel: string; nonLues: number; moi: string }) {
   const [nonLues, setNonLues] = useState(initial);
