@@ -40,7 +40,7 @@ export function Processus({ donnees, erreurLecture }: { donnees: DonneesProcessu
 
   return (
     <>
-      {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
+      {bandeau && !ouvert && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       {nonValides > 0 && <div className="bandeau info" role="status">{nonValides} délai{nonValides > 1 ? 's' : ''} légal{nonValides > 1 ? 'aux' : ''} à faire valider par le juridique : tant qu’ils ne le sont pas, aucun renouvellement ne démarre.</div>}
       <div className="studio">
         <div className="colonne-l18">
@@ -74,13 +74,13 @@ export function Processus({ donnees, erreurLecture }: { donnees: DonneesProcessu
           </section>
           <section className="carte-l18" aria-label="Délais légaux suivis">
             <header className="carte-tete sans-marge"><h2>Délais légaux suivis</h2><p>Code civil du Québec · validés par le juridique</p></header>
-            <ul className="garde-fous" style={{ marginTop: 24 }}>{D.parametres.map((p) => <li key={p.id}>{p.valide ? <span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span> : <i className="vide-c" />}
-              <span><strong>{p.label}</strong> : {delaiTexte(p)}<span className="gris" style={{ display: 'block', fontSize: 12 }}>{p.valide ? `Validé par ${p.par} · ${p.source}` : `À valider · ${p.source}`}</span>
+            <ul className="garde-fous" style={{ marginTop: 24 }}>{D.parametres.map((p) => <li key={p.id} title={p.source}>{p.valide ? <span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span> : <i className="vide-c" />}
+              <span><strong>{p.label}</strong> : {delaiTexte(p)}<span className="gris" style={{ display: 'block', fontSize: 12 }}>{p.valide ? `Validé le ${d(p.le!)}` : 'À valider par le juridique'}</span>
                 {!p.valide && D.est_admin && <button className="lien" onClick={() => { setValider(p.id); setSource(''); }}>Valider</button>}</span></li>)}</ul>
           </section>
         </div>
       </div>
-      {ouvert && <Fiche p={ouvert} peut={D.peut_ecrire} envoi={envoi} fermer={() => setOuvert(null)} agir={agir} />}
+      {ouvert && <Fiche p={ouvert} erreur={bandeau} peut={D.peut_ecrire} envoi={envoi} fermer={() => { setOuvert(null); setBandeau(null); }} agir={agir} />}
       {valider && (
         <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setValider(null)}>
           <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="val-t" style={{ marginTop: 160, width: 'min(520px, 100%)' }}>
@@ -99,7 +99,7 @@ export function Processus({ donnees, erreurLecture }: { donnees: DonneesProcessu
 }
 
 // Fiche d'un renouvellement : chaque étape et l'action qui la fait avancer.
-function Fiche({ p, peut, envoi, fermer, agir }: { p: Proc; peut: boolean; envoi: boolean; fermer: () => void; agir: (f: () => PromiseLike<{ error: { message: string } | null }>, ok: string) => Promise<boolean> }) {
+function Fiche({ p, erreur, peut, envoi, fermer, agir }: { p: Proc; erreur: string | null; peut: boolean; envoi: boolean; fermer: () => void; agir: (f: () => PromiseLike<{ error: { message: string } | null }>, ok: string) => Promise<boolean> }) {
   const [type, setType] = useState(p.data.type ?? 'augmentation'), [loyer, setLoyer] = useState(String(p.data.nouveau_loyer ?? '')), [autres, setAutres] = useState(p.data.autres_conditions ?? 'Inchangées');
   const [noteProp, setNoteProp] = useState(''), [reponse, setReponse] = useState('accepte'), [noteRep, setNoteRep] = useState('');
   const sb = () => supabaseNavigateur();
@@ -108,6 +108,7 @@ function Fiche({ p, peut, envoi, fermer, agir }: { p: Proc; peut: boolean; envoi
       <aside className="tiroir" role="dialog" aria-modal="true" aria-labelledby="pr-t" style={{ width: 'min(600px, calc(100vw - 48px))' }}>
         <header className="tiroir-tete"><h2 id="pr-t">{p.nom} · {p.logement}</h2><button className="haut-ibtn" onClick={fermer} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
         <div className="tiroir-liste formulaire">
+          {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
           <p className="gris" style={{ marginTop: 0 }}>{p.locataire} · fin du bail le {p.data.fin_bail ? d(p.data.fin_bail) : '—'} · loyer actuel {argent(p.data.loyer_actuel)}{p.data.fenetre ? ` · avis entre le ${d(p.data.fenetre[0])} et le ${d(p.data.fenetre[1])}` : ''} · modèle v{p.version}</p>
           <ol className="etapes-proc">{p.etapes.map((e, i) => <li key={e} className={i < p.step ? 'fait' : i === p.step ? 'actuel' : ''}><i>{i < p.step && <Icone nom="check" taille={12} couleur="#fff" trait={2.6} />}</i>{e}</li>)}</ol>
 
