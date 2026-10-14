@@ -1,5 +1,6 @@
--- État du juridique en préproduction (lecture seule) : paiements de la démo et retards calculés.
-select due_date, paid_date, status, paid_date - due_date as jours from public.payments where lease_id = '00000000-0000-4000-d000-0000000009b4' order by due_date;
-select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = 'equipe-gestionnaire@leaselane.test'), 'aal', 'aal2', 'role', 'authenticated')::text, false);
-show timezone;
-select x ->> 'numero', x -> 'retards' from jsonb_array_elements(public.lanceur_juridique() -> 'dossiers') x where x ->> 'logement' like '640, 3e Avenue, Québec%';
+-- État du juridique en préproduction (lecture seule) : retards par mois de la démo, calcul détaillé.
+select to_char(m, 'YYYY-MM') mois, (select count(*) from public.payments p where p.lease_id = '00000000-0000-4000-d000-0000000009b4' and date_trunc('month', p.due_date) = m) n,
+  (select max(case when p.paid_date is not null then greatest(0, p.paid_date - p.due_date) when p.status <> 'paid' then greatest(0, current_date - p.due_date) else 0 end)
+   from public.payments p where p.lease_id = '00000000-0000-4000-d000-0000000009b4' and date_trunc('month', p.due_date) = m) jours
+from generate_series(date_trunc('month', now()) - interval '11 months', date_trunc('month', now()), interval '1 month') m;
+select pg_get_functiondef('public.lanceur_juridique()'::regprocedure) ~ 'paid_date - p.due_date' as def_ok;
