@@ -88,7 +88,7 @@ Une fois ta recherche terminée, appelle l'outil "soumettre" avec ce que tu as t
     const u = ai?.usage ?? {}, recherches = Number(u?.server_tool_use?.web_search_requests ?? 0);
     const cout = coutCents(Number(u.input_tokens ?? 0), Number(u.output_tokens ?? 0), recherches);
     if (!aiRes.ok) {
-      await rpc("agent_prospection_fin", { p_run: run, p_items: null, p_trouves: 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null, p_recherches: recherches, p_cout: cout, p_erreur: String(ai?.error?.message ?? aiRes.status).slice(0, 300) });
+      await rpc("agent_prospection_fin", { p_run: run, p_items: null, p_trouves: 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null, p_recherches: recherches, p_cout: cout, p_erreur: `${aiRes.status} ${ai?.error?.message ?? JSON.stringify(ai)}`.slice(0, 300) });
       return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
     }
     // Résultat structuré seulement par l'outil « soumettre », jamais lu dans le texte libre.
