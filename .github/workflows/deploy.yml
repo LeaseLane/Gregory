@@ -56,7 +56,7 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.116.0  # figée : « latest » interroge l’API GitHub à chaque passe (limite atteinte le 2026-10-14)
 
       - name: Régler l'URL de Supabase Auth (préproduction)
         # Même piège qu'en production (2026-09-26), constaté en préproduction le
@@ -153,7 +153,7 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.116.0  # figée : « latest » interroge l’API GitHub à chaque passe (limite atteinte le 2026-10-14)
 
       - name: Vérifier l'URL de Supabase Auth
         # Le réglage « Site URL » vit dans le tableau de bord Supabase, pas
