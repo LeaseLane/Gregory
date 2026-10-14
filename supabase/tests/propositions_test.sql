@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(22);
+select plan(25);
 
 create temp table t_ctx on commit drop as
 select (select id from auth.users where email = 'equipe-prospection@leaselane.test') as lp,
@@ -84,6 +84,12 @@ select throws_ok($$update audit_log set action = 'x' where action = 'proposal.ap
 select pg_temp.proposer('t12', '00000000-0000-4000-a000-000000000002', '{"next_action":"Appeler lundi avec l''estimation"}', 'update-prospect-followup');
 select is(crm.approve_proposal((select id from crm.proposals where idempotency_key = 't12')) ->> 'ok', 'true', '12 · suivi approuvé');
 select is((select next_action from prospects where id = '00000000-0000-4000-a000-000000000002'), 'Appeler lundi avec l''estimation', '12 · prochaine action gardée');
+
+-- 13 à 15. Décisions par défaut du 2026-10-15 (spec § 10)
+select pg_temp.proposer('t13', '00000000-0000-4000-a000-000000000001', '{"next_action":"Relancer"}', 'update-prospect-followup');
+select ok((select expires_at - created_at between interval '6 days 23 hours' and interval '7 days 1 hour' from crm.proposals where idempotency_key = 't13'), '13 · expiration à 7 jours');
+select is((select assignee_role from crm.proposals where idempotency_key = 't13'), 'prospection', '14 · sans responsable → rôle prospection');
+select is((select count(*)::int from crm.rejection_reasons where active), 6, '15 · six motifs actifs');
 
 select * from finish();
 rollback;

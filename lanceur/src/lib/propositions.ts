@@ -8,7 +8,7 @@ export type Proposition = {
 };
 export type Motif = { code: string; label: string };
 
-// Étapes actuelles de prospects ↔ pipeline des maquettes (correspondance à valider par Steven, spec § 10.3).
+// Les 6 étapes réelles des prospects (décision du 2026-10-15, spec § 10.3) : la maquette en montrait 4.
 export const ETAPES: Record<string, string> = { new: 'Nouveau', contacted: 'Contacté', interested: 'Qualifié', proposal_sent: 'Offre envoyée', signed: 'Converti', lost: 'Perdu' };
 export const INTERETS: Record<string, string> = { chaud: 'Chaud', tiede: 'Tiède', froid: 'Froid' };
 export const AGENTS: Record<string, { nom: string; icone: string }> = {
