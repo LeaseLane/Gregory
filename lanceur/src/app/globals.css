@@ -880,3 +880,32 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .pieces { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; } .pieces span { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 8px; background: #F5F7FA; font-size: 13px; font-weight: 500; }
 .personne-ligne { display: flex; gap: 12px; align-items: center; } .personne-ligne > div { display: grid; gap: 2px; } .personne-ligne strong { font-size: 14px; font-weight: 600; } .personne-ligne .gris { font-size: 13px; }
 .liste-demandes li.gris { padding: 12px; font-size: 13px; }
+.espace-actions { margin-left: auto; display: flex; gap: 12px; } .espace-actions .bouton { height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 20px; font-size: 14px; width: auto; }
+/* l16, e46–e51 · Juridique */
+.dossier-haut { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 24px; } .dossier-haut h2 { margin: 0 0 8px; font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+.dossier-haut .gris { margin: 0; font-size: 14px; } .choix-dossier { margin-left: 12px; border: 0; background: none; font: inherit; color: #2E5788; cursor: pointer; }
+.montant-du { display: grid; justify-items: end; gap: 8px; } .montant-du b { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: #0C2147; } .montant-du span { font-size: 13px; font-weight: 600; } .montant-du .rouge { color: #9B2E28; }
+.med { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.lettre { padding: 24px 28px; border: 1px solid #E1E6EC; border-radius: 8px; background: #fff; box-shadow: 0 6px 18px rgba(12,33,71,.06); font-size: 13px; line-height: 1.55; color: #0C2147; }
+.lettre p { margin: 0; } .lettre p.objet { font-weight: 600; } .lettre mark { background: #EEF4FB; outline: 1px solid #DCE7F5; border-radius: 4px; padding: 0 2px; color: inherit; }
+.lettre.petite { padding: 16px 20px; margin: 16px 0; font-size: 12.5px; }
+.lettre-edition { width: 100%; min-height: 380px; padding: 20px; border: 1px solid #C8DAF0; border-radius: 8px; font: 13px/1.55 inherit; color: #0C2147; resize: vertical; }
+.med-cote .garde-fous { margin-bottom: 24px; } .med-actions { display: grid; gap: 12px; } .med-actions .bouton { height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; width: 100%; }
+.med-actions > div { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rejet-ligne { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; margin-top: 16px; }
+.col-chart.retards { margin: 24px 0 32px; height: 132px; gap: 8px; } .col-chart.retards i { max-width: 14px; background: #E1E6EC; } .col-chart.retards .gris i { background: #8A99AB; }
+.col-chart.retards .rouge i { background: #9B2E28; } .col-chart.retards .rouge b, .col-chart.retards .rouge span { color: #9B2E28; font-weight: 600; }
+.pieces-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; } .pieces-liste li { display: flex; align-items: center; gap: 12px; font-size: 13px; } .pieces-liste li > span:not(.okdot) { flex: 1; }
+.pastilles-etapes { display: inline-flex; gap: 6px; } .pastilles-etapes > span { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 8px; border-radius: 13px; border: 1.5px solid #D1D6DB; font-size: 12px; color: #3E4A59; }
+.pastilles-etapes .fait { background: #0C2147; border-color: #0C2147; color: #fff; } .pastilles-etapes .actuel { border: 2px solid #4581CB; font-weight: 600; }
+.med-titre { margin: 8px 0 4px; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+.extrait { margin: 16px 0; padding: 12px 20px; border-left: 3px solid #4581CB; border-radius: 0 12px 12px 0; background: #F5F7FA; font-size: 13px; line-height: 1.45; }
+.verifs-ligne { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-bottom: 20px; font-size: 13px; } .verifs-ligne > span { display: inline-flex; align-items: center; gap: 8px; } .verifs-ligne .okdot { margin-top: 0; }
+.deal-actions .bouton { display: inline-flex; align-items: center; gap: 8px; padding: 0 20px; text-decoration: none; }
+.deux-lignes { display: grid; gap: 2px; } .deux-lignes .gris { font-size: 13px; padding-left: 28px; } .deux-lignes .ligne-ic strong { font-weight: 600; color: #0C2147; } .deux-lignes .okdot { margin-top: 0; }
+.unites { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; } .unites i { display: block; height: 24px; border-radius: 4px; background: #E1E6EC; } .unites i.paye { background: #4581CB; } .unites span { display: block; margin-top: 8px; font-size: 12px; font-weight: 600; }
+.modele-ligne { width: 100%; display: flex; align-items: center; gap: 16px; padding: 4px 8px; margin: 0 -8px; border: 0; border-radius: 10px; background: none; font: inherit; text-align: left; cursor: pointer; }
+.modele-ligne.sel { background: #ECF2F9; } .modele-ligne > div { flex: 1; display: grid; gap: 2px; }
+.revision { margin-top: 20px; padding-top: 16px; border-top: 1px solid #E1E6EC; }
+.signature-apercu { display: grid; justify-items: start; gap: 2px; padding: 16px; border-radius: 12px; background: #F5F7FA; } .signature-apercu i { width: 220px; height: 1px; background: #8A99AB; margin: 2px 0 6px; }
+.signature-apercu strong { font-size: 14px; } .signature-apercu .gris { font-size: 12px; } .signature-apercu .surtitre { margin: 0 0 4px; }

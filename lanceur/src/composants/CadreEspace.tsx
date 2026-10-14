@@ -5,7 +5,7 @@ import { Icone } from '@/composants/Icones';
    (actif : fond b025 + trait b500 de 3 px; pastille de compte). Un onglet sans page n'est pas un lien. */
 export type Onglet = { libelle: string; href?: string; compte?: number; rouge?: boolean };
 
-export function CadreEspace({ icone, nom, sous, onglets, actif, children }: { icone: string; nom: string; sous: string; onglets: Onglet[]; actif: number; children: React.ReactNode }) {
+export function CadreEspace({ icone, nom, sous, onglets, actif, actions, children }: { icone: string; nom: string; sous: string; onglets: Onglet[]; actif: number; actions?: React.ReactNode; children: React.ReactNode }) {
   return (
     <main className="espace-page">
       <section className="espace-tete">
@@ -15,6 +15,7 @@ export function CadreEspace({ icone, nom, sous, onglets, actif, children }: { ic
             <h1>{nom}</h1>
             <p>{sous}</p>
           </div>
+          {actions && <div className="espace-actions">{actions}</div>}
         </div>
         <nav className="onglets" aria-label={`Pages de ${nom}`}>
           {onglets.map((o, i) => {
