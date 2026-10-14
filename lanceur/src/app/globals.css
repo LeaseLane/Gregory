@@ -715,3 +715,4 @@ span.interrupteur { flex: none; opacity: .6; }
 .resume-mandat { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; padding: 14px 16px; border-radius: 12px; background: #EEF1F5; }
 .resume-mandat span { display: block; font-size: 12px; color: #58697F; } .resume-mandat b { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 16px; }
 .studio > .colonne-l18:first-child { gap: 24px; }
+.contacts-deal span.ini, .resume-mandat .ini { color: #fff; font-size: 12px; }
