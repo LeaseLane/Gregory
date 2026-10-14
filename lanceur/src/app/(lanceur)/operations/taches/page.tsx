@@ -1,0 +1,29 @@
+import { supabaseServeur } from '@/lib/supabase/serveur';
+import { CadreEspace } from '@/composants/CadreEspace';
+import { Taches, type DonneesTaches } from './Taches';
+
+/* Opérations · Mes tâches (maquette l03) : en retard, aujourd'hui, à venir; vues; retards par personne. */
+export default async function Page() {
+  const supabase = await supabaseServeur();
+  const [{ data, error }, { data: nb }, { data: fils }] = await Promise.all([
+    supabase.rpc('lanceur_taches'), supabase.rpc('lanceur_nb_a_approuver'), supabase.rpc('lanceur_conversations'),
+  ]);
+  const nonLus = ((fils as { unread: boolean }[] | null) ?? []).filter((f) => f.unread).length;
+  return (
+    <CadreEspace
+      icone="inbox"
+      nom="Opérations"
+      sous="Le quotidien de l’équipe : ce qui demande une action, vos tâches et vos messages"
+      actif={2}
+      onglets={[
+        { libelle: 'À traiter' },
+        { libelle: 'À approuver', href: '/operations/a-approuver', compte: (nb as number | null) ?? undefined },
+        { libelle: 'Mes tâches', href: '/operations/taches' },
+        { libelle: 'Inbox', href: '/operations/inbox', compte: nonLus || undefined },
+        { libelle: 'Agenda' },
+      ]}
+    >
+      <Taches donnees={(data as DonneesTaches | null) ?? null} erreurLecture={error ? 'Les tâches n’ont pas pu être lues.' : null} />
+    </CadreEspace>
+  );
+}

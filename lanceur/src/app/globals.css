@@ -511,3 +511,34 @@ li.non-lu .inbox-l2 { color: #3E4A59; }
 @media (max-width: 1300px) { .inbox { grid-template-columns: 340px minmax(0, 1fr); } .inbox-contact { display: none; } }
 @media (max-width: 900px) { .inbox { grid-template-columns: minmax(0, 1fr); height: auto; } .inbox-liste ul { max-height: 360px; } .inbox-fil { min-height: 600px; } }
 .inbox-contact > p.petit-texte { margin: 0 0 24px; font-size: 13px; }
+
+/* Opérations · Mes tâches (maquette l03) : groupes (sur-titre + lignes égales), vues, retards par personne. */
+.taches-actions { display: flex; align-items: center; gap: 12px; }
+.taches-actions .bouton { height: 44px; font-size: 14px; gap: 8px; padding: 0 16px; }
+.segment.large { width: 384px; } .segment.large button { flex: 1; justify-content: center; }
+.taches .groupe { padding: 0 24px 16px; }
+.taches .groupe .surtitre { margin: 0 0 12px; }
+.surtitre.rouge { color: #9B2E28; }
+.taches ul { list-style: none; margin: 0; padding: 0; }
+.taches li { display: grid; grid-template-columns: 20px minmax(0, 330px) minmax(0, 1fr) 18px 92px 120px; align-items: center; gap: 0 16px; min-height: 56px; border-top: 1px solid #E1E6EC; }
+.taches li:first-child { border-top: 0; }
+.taches li strong { font-size: 14px; font-weight: 600; color: #0C2147; }
+.taches .ctx { font-size: 13px; color: #58697F; }
+.taches .due { text-align: right; font-size: 13px; font-weight: 500; color: #3E4A59; white-space: nowrap; }
+.taches .due.rouge { color: #9B2E28; font-weight: 600; }
+.taches .qui { justify-self: end; }
+.cb { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid #78838F; background: #fff; padding: 0; cursor: pointer; }
+.cb:hover { border-color: #0C2147; background: #ECF2F9; }
+.vues nav { display: grid; gap: 4px; margin: 0 -12px 16px; }
+.vues nav button { position: relative; display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: none; font: inherit; font-size: 14px; font-weight: 500; color: #3E4A59; cursor: pointer; text-align: left; }
+.vues nav button .compte { margin-left: auto; }
+.vues nav button.actif { background: #ECF2F9; color: #0C2147; font-weight: 600; }
+.vues nav button.actif::before { content: ""; position: absolute; left: -12px; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: #4581CB; }
+.barres { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 16px; }
+.barres li { display: grid; grid-template-columns: 104px minmax(0, 1fr) 24px; align-items: center; gap: 12px; font-size: 13px; }
+.barres i { display: block; height: 16px; border-radius: 0 4px 4px 0; background: #4581CB; }
+.barres b { font-weight: 600; color: #0C2147; }
+.note { margin: 0; font-size: 13px; line-height: 1.45; }
+.nt-grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+.nt-grille .e70-raison { margin-top: 8px; }
+@media (max-width: 1100px) { .taches li { grid-template-columns: 20px minmax(0, 1fr) 80px 40px; } .taches .ctx, .taches .rec { display: none; } .segment.large { width: auto; } .taches-actions { flex-wrap: wrap; } }

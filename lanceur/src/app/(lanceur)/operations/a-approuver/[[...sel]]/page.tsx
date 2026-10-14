@@ -22,8 +22,8 @@ export default async function Page({ params }: { params: Promise<{ sel?: string[
       onglets={[
         { libelle: 'À traiter' },
         { libelle: 'À approuver', href: '/operations/a-approuver', compte: liste.length },
-        { libelle: 'Mes tâches' },
-        { libelle: 'Inbox' },
+        { libelle: 'Mes tâches', href: '/operations/taches' },
+        { libelle: 'Inbox', href: '/operations/inbox' },
         { libelle: 'Agenda' },
       ]}
     >
