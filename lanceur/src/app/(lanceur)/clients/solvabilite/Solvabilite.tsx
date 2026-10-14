@@ -67,15 +67,15 @@ export function Solvabilite({ donnees, erreurLecture }: { donnees: DonneesSolva 
           <section className="studio-liste" aria-label="Enquêtes de solvabilité">
             <header className="carte-tete"><h2>Enquêtes de solvabilité</h2><p>{B.fournisseur} · toujours avec le consentement écrit de la personne</p></header>
             <table className="tableau">
-              <colgroup><col style={{ width: '30%' }} /><col style={{ width: '14%' }} /><col style={{ width: '20%' }} /><col style={{ width: '10%' }} /><col /></colgroup>
-              <thead><tr><th>Personne</th><th>Motif</th><th>Consentement</th><th className="droite">Coût</th><th>Statut</th></tr></thead>
+              <colgroup><col style={{ width: '29%' }} /><col style={{ width: '13%' }} /><col style={{ width: '18%' }} /><col style={{ width: '12%' }} /><col /></colgroup>
+              <thead><tr><th>Personne</th><th>Motif</th><th>Consentement</th><th className="droite" style={{ paddingRight: 32 }}>Coût</th><th>Statut</th></tr></thead>
               <tbody>{E.map((e) => { const [t, k] = statut(e, B.fournisseur); return (
                 <tr key={e.id} className={e.id === sel ? 'sel' : ''} onClick={() => { setSel(e.id); setLu(null); }}>
                   <td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 12 }}>{initiales(e.nom)}</span><span><strong className="fort">{e.nom}</strong><span className="sous gris">{e.logement ?? '—'}</span></span></span></td>
                   <td>{MOTIFS[e.motif] ?? e.motif}</td>
                   <td>{e.consentement ? <span className="pastille-c"><i className="point ok" />reçu le {d(e.consentement)}</span> : e.statut === 'refused' ? <span className="gris">refusé</span>
                     : <span className="pastille-c"><i className="point" />{e.demande ? `demandé le ${d(e.demande)}` : 'à demander'}</span>}</td>
-                  <td className="droite">{e.cout != null && e.cout > 0 ? argent(e.cout) : e.statut === 'to_approve' ? argent(B.cout_unitaire) : <span className="gris">—</span>}</td>
+                  <td className="droite" style={{ paddingRight: 32 }}>{e.cout != null && e.cout > 0 ? argent(e.cout) : e.statut === 'to_approve' ? argent(B.cout_unitaire) : <span className="gris">—</span>}</td>
                   <td><span className={`puce ${k}`}>{t}</span></td></tr>); })}
                 {!E.length && <tr><td colSpan={5} className="gris">Aucune enquête. Elles se demandent depuis l’emménagement d’un locataire (Processus).</td></tr>}</tbody>
             </table>

@@ -15,7 +15,8 @@ export function simuler(courriel: string, loyer: number | null): Resultat {
   const paiements = Array.from({ length: 12 }, () => (r() < 0.12 ? 3 + Math.floor(r() * 20) : 0)); // jours de retard par mois
   const dossiers_tal = r() < 0.08 ? 1 : 0, retards = paiements.filter((j) => j > 0).length;
   const avis = cote >= 4 && ratio <= 33 && !dossiers_tal && retards <= 1 ? "favorable" : cote <= 2 || dossiers_tal || ratio > 40 ? "defavorable" : "reserve";
-  const raisons = [ratio <= 33 ? `loyer à ${Math.round(ratio)} % du revenu` : `loyer à ${Math.round(ratio)} % du revenu, au-dessus du seuil de 33 %`,
+  const COTE = ["cote faible", "cote passable", "bonne cote", "très bonne cote", "excellente cote"][cote - 1];
+  const raisons = [COTE, ratio <= 33 ? `loyer à ${Math.round(ratio)} % du revenu` : `loyer à ${Math.round(ratio)} % du revenu, au-dessus du seuil de 33 %`,
     dossiers_tal ? "un dossier au TAL" : "aucun dossier au TAL", retards ? `${retards} retard${retards > 1 ? "s" : ""} en 12 mois` : "aucun retard en 12 mois"];
   const mot = { favorable: "Favorable", reserve: "Avec réserve", defavorable: "Défavorable" }[avis];
   void loyer; // ponytail: le revenu est simulé; le vrai fournisseur le calcule à partir du loyer déclaré
