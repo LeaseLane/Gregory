@@ -47,13 +47,13 @@ export function Contacts({ donnees, role, q, tout, erreurLecture }: { donnees: D
           <section className="studio-liste" aria-label="Contacts">
             <header className="carte-tete"><h2>{donnees.filtres} contact{donnees.filtres > 1 ? 's' : ''}{donnees.filtres !== donnees.total ? ` sur ${donnees.total}` : ''}</h2><p>Une personne peut avoir plusieurs rôles · les plus récents d’abord</p></header>
             <table className="tableau">
-              <colgroup><col style={{ width: '30%' }} /><col style={{ width: '22%' }} /><col style={{ width: '13%' }} /><col style={{ width: '18%' }} /><col style={{ width: '17%' }} /></colgroup>
+              <colgroup><col style={{ width: '27%' }} /><col style={{ width: '19%' }} /><col style={{ width: '12%' }} /><col style={{ width: '23%' }} /><col style={{ width: '19%' }} /></colgroup>
               <thead><tr><th>Nom</th><th>Rôles</th><th>Deals liés</th><th>Consentements LCAP</th><th className="droite">Dernière activité</th></tr></thead>
               <tbody>{donnees.contacts.map((c) => (
                 <tr key={c.id} onClick={() => c.deal_id && router.push(`/ventes/deals/${c.deal_id}`)} style={{ cursor: c.deal_id ? 'pointer' : 'default' }}>
                   <td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 12 }}>{initiales(c.nom)}</span><span><strong className="fort">{c.nom}</strong><span className="sous gris">{c.sous}</span></span></span></td>
                   <td><span className="puces">{c.roles.length ? c.roles.map((r) => <span key={r} className="puce">{r}</span>) : <span className="gris">Contact</span>}</span></td>
-                  <td>{c.deals ? <span className="deux-lignes"><span>{c.deals} deal{c.deals > 1 ? 's' : ''}</span><span className="gris">{c.pipeline}</span></span> : <span className="gris">Aucun</span>}</td>
+                  <td>{c.deals ? <span className="deux-lignes"><span>{c.deals} deal{c.deals > 1 ? 's' : ''}</span><span className="gris">{c.pipeline?.split(' ')[0]}</span></span> : <span className="gris">Aucun</span>}</td>
                   <td><span className="consent-ligne"><Pastille ok={c.c_email} l="Courriel" /><Pastille ok={c.c_sms} l="SMS" /></span></td>
                   <td className="droite"><span className="deux-lignes"><span>{quand(c.derniere)}</span><span className="gris">{c.quoi}</span></span></td>
                 </tr>))}
