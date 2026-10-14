@@ -30,10 +30,10 @@ select ok(exists (select 1 from jsonb_array_elements(public.lanceur_cleo_context
 -- 3. Joker neutralisé : « % » ne trouve pas tout
 select is(jsonb_array_length(public.lanceur_recherche('%%') -> 'fiches'), 0, '3 · « %% » ne renvoie rien');
 
--- 4. Prospection : ni fiches de locataires ni loyers en retard
+-- 4. Prospection (clients.lire, sans finances ni juridique) : ni loyers en retard ni dossiers juridiques
 select pg_temp.comme('equipe-prospection@leaselane.test');
-select ok(not exists (select 1 from jsonb_array_elements(public.lanceur_recherche('Essaicleo') -> 'fiches') f where f ->> 'type' = 'locataire')
-      and not exists (select 1 from jsonb_array_elements(public.lanceur_cleo_contexte(null) -> 'faits') f where f ->> 'fait' = 'Loyer en retard'), '4 · prospection ne voit pas les locataires ni les retards');
+select ok(not exists (select 1 from jsonb_array_elements(public.lanceur_recherche('JUR-') -> 'fiches') f where f ->> 'type' = 'dossier')
+      and not exists (select 1 from jsonb_array_elements(public.lanceur_cleo_contexte(null) -> 'faits') f where f ->> 'fait' = 'Loyer en retard'), '4 · prospection ne voit ni les retards ni les dossiers juridiques');
 
 -- 5. Mesure : clé de service seulement
 select ok(not has_function_privilege('authenticated', 'public.service_cleo_mesure(jsonb)', 'execute'), '5 · mesure fermée aux personnes');
