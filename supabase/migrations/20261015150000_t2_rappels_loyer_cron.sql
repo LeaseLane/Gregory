@@ -8,16 +8,17 @@
 --    INACTIF tant que config.parametres « rappels_loyer » n'est pas vrai : les anciens rappels
 --    (trigger_payment_reminders, jours 1/3/5) tournent encore en production; activer les deux doublerait les rappels.
 
-create table config.parametres (
+create table if not exists config.parametres (
   cle        text primary key,
   valeur     jsonb not null,
   updated_at timestamptz not null default now()
 );
 alter table config.parametres enable row level security;
+drop policy if exists "equipe lit les parametres" on config.parametres;
 create policy "equipe lit les parametres" on config.parametres for select to authenticated using (crm.is_team_member());
 grant select on config.parametres to authenticated;
 grant all on config.parametres to service_role;
-insert into config.parametres (cle, valeur) values ('rappels_loyer', 'false'::jsonb);
+insert into config.parametres (cle, valeur) values ('rappels_loyer', 'false'::jsonb) on conflict (cle) do nothing;
 
 create or replace function comms.declencher_envois() returns void
 language plpgsql security definer set search_path = '' as $$
