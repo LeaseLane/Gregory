@@ -25,6 +25,7 @@ const hm = (iso: string) => new Date(iso).toLocaleTimeString('fr-CA', { hour: 'n
 const jour = (iso: string) => { const d = new Date(iso).toLocaleDateString('en-CA', { timeZone: TZ }), a = new Date().toLocaleDateString('en-CA', { timeZone: TZ });
   return d === a ? hm(iso) : `${new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', timeZone: TZ })} · ${hm(iso)}`; };
 const duree = (s: number | null) => s == null ? '—' : s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, '0')}`;
+const heureTxt = (t: string) => { const [h, m] = t.split(':').map(Number); return m ? `${h} h ${String(m).padStart(2, '0')}` : `${h} h`; };
 const tel = (e: string | null) => e ? e.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, '$1 $2-$3') : '';
 
 async function relais(r: string, corps: Record<string, unknown>) {
@@ -152,7 +153,7 @@ export function Appels({ donnees, prod, erreurLecture }: { donnees: DonneesAppel
           )}
 
           <section className="carte-l18" aria-label="Réglages de la téléphonie">
-            <header className="carte-tete sans-marge"><h2>Ligne Lease Lane</h2><p>Ouverte {h.debut.replace(':', ' h ')} à {h.fin.replace(':', ' h ')}, du lundi au vendredi · urgences 24/7</p></header>
+            <header className="carte-tete sans-marge"><h2>Ligne Lease Lane</h2><p>Ouverte de {heureTxt(h.debut)} à {heureTxt(h.fin)}, du lundi au vendredi · urgences 24/7</p></header>
             <label className="fenetre-lib" htmlFor="cell">Mon cellulaire<span>pour mes appels sortants</span></label>
             <div className="ligne-champ"><input id="cell" className="e70-raison" value={cell} onChange={(e) => setCell(e.target.value)} placeholder="418 555-0100" /><button className="bouton bouton-contour" disabled={envoi} onClick={sauverCell}>Enregistrer</button></div>
             <label className="fenetre-lib" htmlFor="garde">Personne de garde<span>reçoit les urgences (9), jour et nuit</span></label>

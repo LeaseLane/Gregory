@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 
-export type Fil = { id: string; display_name: string; channel: 'email' | 'sms'; status: 'open' | 'waiting' | 'closed'; unread: boolean; last_message_at: string; last_preview: string | null; assignee_user_id: string | null; assignee: string | null };
+export type Fil = { id: string; display_name: string; channel: 'email' | 'sms' | 'voice'; status: 'open' | 'waiting' | 'closed'; unread: boolean; last_message_at: string; last_preview: string | null; assignee_user_id: string | null; assignee: string | null };
 type Envoi = { status: string; scheduled_for: string; sent_at: string | null; erreur: string | null };
-type Message = { id: string; direction: 'in' | 'out'; channel: 'email' | 'sms'; author: 'contact' | 'cleo' | 'team' | 'system'; auteur: string | null; body: string; created_at: string; envoi: Envoi | null };
+type Message = { id: string; direction: 'in' | 'out'; channel: 'email' | 'sms' | 'voice'; author: 'contact' | 'cleo' | 'team' | 'system'; auteur: string | null; body: string; created_at: string; envoi: Envoi | null };
 export type Detail = {
-  id: string; display_name: string; channel: 'email' | 'sms'; status: Fil['status']; email: string | null; phone_e164: string | null; subject: string | null;
+  id: string; display_name: string; channel: 'email' | 'sms' | 'voice'; status: Fil['status']; email: string | null; phone_e164: string | null; subject: string | null;
   assignee_user_id: string | null; assignee: string | null; handoff_summary: string | null; handoff_at: string | null;
   locataire: { id: string; nom: string; logement: string | null } | null; messages: Message[];
   consentements: { email: { basis: string; obtained_at: string } | null; sms: { basis: string; obtained_at: string } | null };
@@ -53,7 +53,8 @@ export function Inbox({ fils, detail, moi, erreurLecture }: { fils: Fil[]; detai
   const [canalF, setCanalF] = useState<'' | 'email' | 'sms'>('');
   const [statutF, setStatutF] = useState<'' | Fil['status']>('');
   const [sansResp, setSansResp] = useState(false);
-  const [canal, setCanal] = useState<'sms' | 'email'>(detail?.channel ?? 'sms');
+  const canalDe = (c?: string | null): 'sms' | 'email' => c === 'email' ? 'email' : 'sms';  // un message vocal se répond par SMS
+  const [canal, setCanal] = useState<'sms' | 'email'>(canalDe(detail?.channel));
   const [texte, setTexte] = useState('');
   const [gabarits, setGabarits] = useState(false);
   const [envoi, setEnvoi] = useState(false);
@@ -61,7 +62,7 @@ export function Inbox({ fils, detail, moi, erreurLecture }: { fils: Fil[]; detai
   const [toast, setToast] = useState<string | null>(null);
   const fin = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setCanal(detail?.channel ?? 'sms'); setTexte(''); setBandeau(null); fin.current?.scrollIntoView({ block: 'end' }); }, [detail?.id, detail?.channel]);
+  useEffect(() => { setCanal(canalDe(detail?.channel)); setTexte(''); setBandeau(null); fin.current?.scrollIntoView({ block: 'end' }); }, [detail?.id, detail?.channel]);
   useEffect(() => { fin.current?.scrollIntoView({ block: 'end' }); }, [detail?.messages.length]);
   // Le fil choisi est toujours dans l'adresse : un rafraîchissement (envoi, temps réel) ne fait jamais changer de fil.
   useEffect(() => { if (detail && !location.pathname.endsWith(detail.id)) router.replace(`${BASE}/${detail.id}`, { scroll: false }); }, [detail, router]);
@@ -135,7 +136,7 @@ export function Inbox({ fils, detail, moi, erreurLecture }: { fils: Fil[]; detai
                     <span className="inbox-av"><Ini nom={f.display_name} taille={40} />{f.unread && <i />}</span>
                     <span className="inbox-ligne">
                       <span className="inbox-l1"><strong>{f.display_name}</strong><span>{quand(f.last_message_at)}</span></span>
-                      <span className="inbox-l2"><Icone nom={f.channel === 'sms' ? 'message' : 'mail'} taille={14} couleur="#58697F" />{f.last_preview}</span>
+                      <span className="inbox-l2"><Icone nom={f.channel === 'sms' ? 'message' : f.channel === 'voice' ? 'phone' : 'mail'} taille={14} couleur="#58697F" />{f.last_preview}</span>
                       <span className={'puce ' + STATUT[f.status][1]}>{STATUT[f.status][0]}</span>
                     </span>
                   </Link>
@@ -151,7 +152,7 @@ export function Inbox({ fils, detail, moi, erreurLecture }: { fils: Fil[]; detai
               <header className="fil-tete">
                 <Ini nom={detail.display_name} taille={40} />
                 <div><h2>{detail.display_name}</h2>
-                  <p>{[detail.channel === 'sms' ? 'SMS' : 'Courriel', detail.channel === 'sms' ? tel(detail.phone_e164) : detail.email, detail.locataire?.logement].filter(Boolean).join(' · ')}</p></div>
+                  <p>{[detail.channel === 'sms' ? 'SMS' : detail.channel === 'voice' ? 'Appel' : 'Courriel', detail.channel === 'email' ? detail.email : tel(detail.phone_e164), detail.locataire?.logement].filter(Boolean).join(' · ')}</p></div>
                 <label className="fil-statut"><span className="sr">Statut</span>
                   <select value={detail.status} onChange={(e) => maj({ status: e.target.value })}>{Object.entries(STATUT).map(([k, [l]]) => <option key={k} value={k}>{l}</option>)}</select>
                   <Icone nom="chevD" taille={18} couleur="#3E4A59" /></label>
@@ -170,7 +171,7 @@ export function Inbox({ fils, detail, moi, erreurLecture }: { fils: Fil[]; detai
                   return (
                     <div key={m.id} className={'msg ' + (sortant ? 'sortant' : m.author === 'cleo' ? 'cleo' : 'entrant')}>
                       {m.author === 'cleo' && <img src="/img/cleo.png" alt="" width={28} height={28} className="av-cleo" />}
-                      <div><p className="bulle-msg">{m.body}</p><span className="msg-heure">{[qui, hm(m.created_at), m.channel === 'email' && detail.channel === 'sms' ? 'courriel' : m.channel === 'sms' && detail.channel === 'email' ? 'SMS' : null, note].filter(Boolean).join(' · ')}</span></div>
+                      <div><p className="bulle-msg">{m.body}</p><span className="msg-heure">{[qui, hm(m.created_at), m.channel === 'voice' ? 'message vocal' : m.channel !== detail.channel ? (m.channel === 'sms' ? 'SMS' : 'courriel') : null, note].filter(Boolean).join(' · ')}</span></div>
                     </div>
                   );
                 })}
@@ -224,7 +225,7 @@ export function Inbox({ fils, detail, moi, erreurLecture }: { fils: Fil[]; detai
               </ul>
               <p className="surtitre gris">Activité</p>
               <ul className="activite">
-                {activite.map((m, i) => <li key={m.id}><i className={i ? '' : 'recent'} /><span>{m.author === 'contact' ? `Message reçu (${m.channel === 'sms' ? 'SMS' : 'courriel'})` : m.author === 'cleo' ? 'Réponse de Cléo' : `Réponse de ${m.auteur ?? 'l’équipe'}`}</span><span>{quand(m.created_at)}</span></li>)}
+                {activite.map((m, i) => <li key={m.id}><i className={i ? '' : 'recent'} /><span>{m.author === 'contact' ? m.channel === 'voice' ? 'Message vocal' : `Message reçu (${m.channel === 'sms' ? 'SMS' : 'courriel'})` : m.author === 'cleo' ? 'Réponse de Cléo' : `Réponse de ${m.auteur ?? 'l’équipe'}`}</span><span>{quand(m.created_at)}</span></li>)}
               </ul>
               <button className="bouton bouton-contour plein" disabled title="La fiche arrive avec les deals (T3)">Ouvrir la fiche du deal<Icone nom="arrow" taille={20} /></button>
             </>
