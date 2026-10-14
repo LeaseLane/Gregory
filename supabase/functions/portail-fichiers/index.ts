@@ -9,10 +9,11 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   const json = (d: unknown, status = 200) => new Response(JSON.stringify(d), { status, headers: { ...cors, "Content-Type": "application/json" } });
   const jeton = (req.headers.get("Authorization") ?? "").replace(/^Bearer /, "");
-  const { type, id, telecharger } = await req.json().catch(() => ({}));
-  if (!id || (type !== "document" && type !== "photo")) return json({ error: "Requête invalide." }, 400);
-  const r = await fetch(`${url}/rest/v1/rpc/${type === "photo" ? "portail_photo_chemin" : "portail_document_chemin"}`, { method: "POST",
-    headers: { apikey: anon, Authorization: `Bearer ${jeton}`, "Content-Type": "application/json" }, body: JSON.stringify(type === "photo" ? { p_building: id } : { p_id: id }) });
+  const { type, id, index, telecharger } = await req.json().catch(() => ({}));
+  const rpc = ({ document: ["portail_document_chemin", { p_id: id }], photo: ["portail_photo_chemin", { p_building: id }], photo_demande: ["portail_photo_demande", { p_id: id, p_index: Number(index) || 0 }] } as Record<string, [string, unknown]>)[type];
+  if (!id || !rpc) return json({ error: "Requête invalide." }, 400);
+  const r = await fetch(`${url}/rest/v1/rpc/${rpc[0]}`, { method: "POST",
+    headers: { apikey: anon, Authorization: `Bearer ${jeton}`, "Content-Type": "application/json" }, body: JSON.stringify(rpc[1]) });
   const d = await r.json().catch(() => null);
   if (!r.ok) return json({ error: d?.message ?? "Accès refusé." }, r.status === 400 ? 403 : r.status);
   const chemin = String(d.chemin ?? "").split("/").map(encodeURIComponent).join("/");
