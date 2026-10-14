@@ -8,7 +8,7 @@ export default async function Page() {
   const { data, error } = await supabase.rpc('lanceur_solvabilite');
   return (
     <CadreEspace icone="users" nom="Clients" sous="Propriétaires et locataires, leurs processus, leurs documents et leurs signatures" actif={4}
-      onglets={[{ libelle: 'Propriétaires' }, { libelle: 'Locataires' }, { libelle: 'Processus', href: '/clients/processus' }, { libelle: 'Cessions et sous-locations' }, { libelle: 'Solvabilité', href: '/clients/solvabilite' }, { libelle: 'Documents et signatures', href: '/clients/documents' }]}>
+      onglets={[{ libelle: 'Propriétaires' }, { libelle: 'Locataires' }, { libelle: 'Processus', href: '/clients/processus' }, { libelle: 'Cessions et sous-locations', href: '/clients/cessions' }, { libelle: 'Solvabilité', href: '/clients/solvabilite' }, { libelle: 'Documents et signatures', href: '/clients/documents' }]}>
       <Solvabilite donnees={(data as DonneesSolva | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les enquêtes n’ont pas pu être lues.') : null} />
     </CadreEspace>
   );

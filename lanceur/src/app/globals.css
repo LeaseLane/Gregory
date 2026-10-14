@@ -860,3 +860,22 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .bouton.pleine { width: 100%; height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
 .carte-l18 .barres li { grid-template-columns: 168px minmax(0, 1fr) 40px; }
 .cellule-doc { display: grid; gap: 2px; min-width: 0; } .cellule-doc > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .cellule-doc .gris { font-size: 13px; }
+/* l10 · Clients › Cessions et sous-locations */
+.cessions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 24px; align-items: start; }
+.liste-demandes { list-style: none; margin: 8px -12px 0; padding: 0; display: grid; gap: 4px; }
+.liste-demandes li + li { border-top: 1px solid #EEF1F5; padding-top: 4px; }
+.liste-demandes button { width: 100%; display: grid; justify-items: start; gap: 6px; padding: 16px 12px; border: 0; border-radius: 12px; background: none; font: inherit; text-align: left; cursor: pointer; position: relative; }
+.liste-demandes button.sel { background: #ECF2F9; } .liste-demandes button.sel::before { content: ""; position: absolute; left: -12px; top: 16px; bottom: 16px; width: 3px; border-radius: 0 3px 3px 0; background: #4581CB; }
+.liste-demandes strong { font-size: 14px; font-weight: 600; color: #0C2147; margin-top: 4px; } .liste-demandes .gris { font-size: 13px; }
+.ligne-jauge { display: flex; align-items: center; gap: 12px; margin-top: 4px; } .ligne-jauge .jauge { width: 96px; flex: none; } .ligne-jauge b { font-size: 13px; font-weight: 600; color: #0C2147; }
+.liste-demandes .ligne-ic { margin-top: 4px; }
+.cession-detail { display: grid; gap: 24px; }
+.cession-haut { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 24px; } .cession-haut h2 { margin: 0 0 8px; font-size: 24px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.25; }
+.cession-haut .gris { margin: 0; font-size: 14px; } .cession-haut .surtitre { margin-bottom: 8px; }
+.delai { width: 260px; flex: none; display: grid; gap: 8px; align-content: start; } .delai b { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; color: #0C2147; } .delai b.petit { font-size: 16px; }
+.delai .gris { font-size: 12px; line-height: 1.35; } .delai .surtitre { margin: 0; }
+.cession-bas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.fiche-dl { margin: 0; } .fiche-dl div { display: grid; grid-template-columns: 128px 1fr; gap: 8px; padding: 10px 0; border-top: 1px solid #EEF1F5; } .fiche-dl div:first-child { border-top: 0; }
+.fiche-dl dt { font-size: 13px; color: #58697F; } .fiche-dl dd { margin: 0; font-size: 14px; font-weight: 600; color: #0C2147; overflow-wrap: anywhere; }
+.pieces { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; } .pieces span { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 8px; background: #F5F7FA; font-size: 13px; font-weight: 500; }
+.personne-ligne { display: flex; gap: 12px; align-items: center; } .personne-ligne > div { display: grid; gap: 2px; } .personne-ligne strong { font-size: 14px; font-weight: 600; } .personne-ligne .gris { font-size: 13px; }
