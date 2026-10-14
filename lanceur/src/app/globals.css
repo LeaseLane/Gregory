@@ -1269,3 +1269,9 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .lo-raccourci { text-decoration: none; color: inherit; cursor: pointer; } .lo-raccourci:hover { border-color: #91B5E0; } .lo-jalon.muet strong, .lo-jalon.muet > span:last-child { visibility: hidden; }
 .po-onglets .lo-sortir { height: auto; border: 0; font-size: 13px; color: #2E5788; }
 .lo-bandeau .cloche-panneau { color: #0C2147; } .lo-recu-table thead th { text-transform: none; letter-spacing: 0; font-size: 12px; } .lo-champs { margin-top: 16px; }
+.lo-haut, .lo-bas { align-content: start; } .lo-haut .lo-sep, .lo-bas .lo-sep { width: 1px; height: 40px; margin: 0 8px; } .lo-urgence { white-space: nowrap; }
+@media (max-width: 760px) {
+  .lo-parcours { overflow-x: auto; padding-bottom: 8px; } .lo-parcours .lo-ligne { min-width: 720px; } .lo-parcours-titre { margin-bottom: 48px; }
+  .lo .lo-rail > a { min-width: 64px; font-size: 10px; } .lo .lo-cleo, .lo .lo-profil { font-size: 10px; padding: 6px; margin: 0; } .lo-bandeau-actions { flex-wrap: wrap; }
+}
+@media (max-width: 760px) { .lo .lo-rail > a.actif::before { display: none; } }
