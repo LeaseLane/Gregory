@@ -7,9 +7,9 @@
 
 -- ── Inbox : canal « portail » ──
 alter table crm.conversations drop constraint if exists conversations_channel_check;
-alter table crm.conversations add constraint conversations_channel_check check (channel in ('email', 'sms', 'portail'));
+alter table crm.conversations add constraint conversations_channel_check check (channel in ('email', 'sms', 'voice', 'portail'));
 alter table crm.conversation_messages drop constraint if exists conversation_messages_channel_check;
-alter table crm.conversation_messages add constraint conversation_messages_channel_check check (channel in ('email', 'sms', 'portail'));
+alter table crm.conversation_messages add constraint conversation_messages_channel_check check (channel in ('email', 'sms', 'voice', 'portail'));
 alter table crm.conversations add column if not exists owner_id uuid references public.owners(id) on delete set null,
   add column if not exists service_request_id uuid references public.service_requests(id) on delete set null,
   add column if not exists owner_unread boolean not null default false, add column if not exists owner_archived boolean not null default false;
@@ -69,8 +69,8 @@ begin
     return new;
   end if;
   perform crm.notifier(case when c.assignee_user_id is not null then array[c.assignee_user_id] else array(select crm.membres_role('gestionnaire')) end,
-    'info', case new.channel when 'sms' then 'message' else 'mail' end,
-    case new.channel when 'sms' then 'SMS reçu · ' when 'portail' then 'Message du portail · ' else 'Courriel reçu · ' end || c.display_name,
+    'info', case new.channel when 'sms' then 'message' when 'voice' then 'phone' when 'portail' then 'message' else 'mail' end,
+    case new.channel when 'sms' then 'SMS reçu · ' when 'voice' then 'Message vocal · ' when 'portail' then 'Message du portail · ' else 'Courriel reçu · ' end || c.display_name,
     '« ' || left(new.body, 90) || case when char_length(new.body) > 90 then '… »' else ' »' end,
     case when c.assignee_user_id is null then 'Sans responsable · à assigner' else 'Fil de ' || crm.nom_membre(c.assignee_user_id) end,
     '/operations/inbox/' || c.id, 'crm.conversations', c.id);
