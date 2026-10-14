@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(13);
+select plan(12);
 
 create function pg_temp.comme(p_courriel text, p_aal text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = p_courriel), 'aal', p_aal, 'role', 'authenticated')::text, true);
