@@ -1,9 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { heureQc } from '@/composants/portail/dates';
+import { BandeauLocataire, useLocataire } from '@/composants/portail/CoquilleLocataire';
+import { fenetreAvis } from '@/composants/portail/format';
 
 /* Locataire · 01 Accueil : parcours du mois, intervention à confirmer, prochain loyer, demande en cours, bail, gestionnaire,
    raccourcis, 4 indicateurs, loyer comparé au marché. « À confirmer » en puce marine (D3); vouvoiement; dates « 1er » (D13). */
@@ -24,7 +27,7 @@ const ETAPES = ['Signalée', 'Qualifiée', 'Assignée', 'Visite', 'Fermée'];
 const ICONE_PARCOURS: Record<string, string> = { loyer: 'card', demande: 'wrench', intervention: 'calendar' };
 
 export function Accueil({ prenom, maintenant, donnees, erreur }: { prenom: string; maintenant: string; donnees: AccueilLoc | null; erreur: string | null }) {
-  const router = useRouter();
+  const router = useRouter(), { pastilles } = useLocataire();
   const [envoi, setEnvoi] = useState(false), [toast, setToast] = useState<string | null>(null), [bandeau, setBandeau] = useState<string | null>(null);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   const auj = new Date(maintenant);   // une seule « maintenant », celle du serveur : aucun écart à l'hydratation
@@ -34,10 +37,12 @@ export function Accueil({ prenom, maintenant, donnees, erreur }: { prenom: strin
   const debut = new Date(auj.getFullYear(), auj.getMonth(), 1), fin = new Date(auj.getFullYear(), auj.getMonth() + 1, 15), duree = fin.getTime() - debut.getTime();
   const pos = (iso: string) => Math.min(100, Math.max(0, (100 * (new Date(`${iso.slice(0, 10)}T12:00:00`).getTime() - debut.getTime())) / duree));
   const jalons = D.parcours.filter((e) => pos(e.date) < 100);
+  // Deux jalons trop proches : on garde le libellé du plus récent (le premier reste lisible au survol).
+  const muets = new Set(jalons.map((e, k) => (k + 1 < jalons.length && pos(jalons[k + 1].date) - pos(e.date) < 9 ? k : -1)).filter((k) => k >= 0));
   const bail = D.bail, moisBail = bail?.fin ? Math.max(1, Math.round((new Date(bail.fin).getTime() - new Date(bail.debut).getTime()) / (30.44 * 864e5))) : null;
   const moisFaits = bail ? Math.max(0, Math.round((auj.getTime() - new Date(bail.debut).getTime()) / (30.44 * 864e5))) : 0;
   const restants = bail?.fin ? Math.max(0, Math.round((new Date(bail.fin).getTime() - auj.getTime()) / 864e5)) : null;
-  const fen = bail?.fenetre?.match(/\[?([\d-]+),([\d-]+)/);
+  const fen = fenetreAvis(bail?.fenetre);
 
   async function confirmer(choix: 'present' | 'acces') {
     if (!c) return; setEnvoi(true); setBandeau(null);
@@ -48,22 +53,16 @@ export function Accueil({ prenom, maintenant, donnees, erreur }: { prenom: strin
 
   return (
     <>
-      <section className="lo-bandeau">
-        <div className="lo-bandeau-haut">
-          <div><p className="surtitre">{auj.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-            <h1>Bonjour, {prenom}</h1><p className="lo-resume">{c ? 'Une seule chose demande votre attention cette semaine.' : 'Rien ne demande votre attention cette semaine.'}</p></div>
-          <div className="lo-bandeau-actions"><a className="lo-urgence" href="tel:+14185550000"><Icone nom="siren" taille={18} couleur="#9B2E28" />Urgence 24/7</a>
-            <button className="lo-cherche" type="button"><Icone nom="search" taille={18} couleur="#C8DAF0" />Rechercher…</button>
-            <button className="lo-cloche" type="button" aria-label="Notifications"><Icone nom="bell" taille={20} couleur="#fff" /></button></div>
-        </div>
+      <BandeauLocataire bas surtitre={auj.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Toronto' })} titre={`Bonjour, ${prenom}`}
+        sous={c ? 'Une seule chose demande votre attention cette semaine.' : 'Rien ne demande votre attention cette semaine.'}>
         <div className="lo-parcours">
           <p className="lo-parcours-titre">Mon parcours · {auj.toLocaleDateString('fr-CA', { month: 'long' })} à {fin.toLocaleDateString('fr-CA', { month: 'long' })}</p>
           <div className="lo-ligne"><i className="lo-fait" style={{ width: `${pos(auj.toISOString())}%` }} /><span className="lo-auj" style={{ left: `${pos(auj.toISOString())}%` }}>Aujourd’hui</span>
-            {jalons.map((e, k) => <div key={k} className={`lo-jalon ${e.fait ? 'fait' : ''} ${e.type}`} style={{ left: `${pos(e.date)}%` }}>
+            {jalons.map((e, k) => <div key={k} className={`lo-jalon ${e.fait ? 'fait' : ''} ${e.type} ${muets.has(k) ? 'muet' : ''}`} title={muets.has(k) ? `${e.titre} · ${e.sous}` : undefined} style={{ left: `${pos(e.date)}%` }}>
               <span className="lo-pastille">{e.fait && e.type === 'loyer' ? <Icone nom="check" taille={14} couleur="#0C2147" trait={2.6} /> : <Icone nom={ICONE_PARCOURS[e.type] ?? 'calendar'} taille={14} couleur="#fff" />}</span>
               <small>{jour(e.date)}</small><strong>{e.titre}</strong><span>{e.sous}</span></div>)}</div>
         </div>
-      </section>
+      </BandeauLocataire>
 
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       <div className="lo-grille lo-remonte">
@@ -87,7 +86,8 @@ export function Accueil({ prenom, maintenant, donnees, erreur }: { prenom: strin
         <section className="carte-l18" aria-label="Demande en cours">
           <header className="tete-action"><h2 className="titre-carte" style={{ margin: 0 }}>Demande en cours</h2>{D.demande && <span className="puce">{ETAPES[D.demande.etape]}</span>}</header>
           {D.demande ? <><p className="gris texte-13" style={{ margin: '4px 0 20px' }}>{D.demande.titre}</p>
-              <ol className="lo-etapes">{ETAPES.map((e, i) => <li key={e} className={i < D.demande!.etape ? 'fait' : i === D.demande!.etape ? 'actuel' : ''}><i /><strong>{e}</strong></li>)}</ol></>
+              <ol className="lo-etapes">{ETAPES.map((e, i) => <li key={e} className={i < D.demande!.etape ? 'fait' : i === D.demande!.etape ? 'actuel' : ''}><i /><strong>{e}</strong></li>)}</ol>
+              <Link className="lien ligne-ic" style={{ marginTop: 16 }} href={`/locataire/demandes?d=${D.demande.id}`}>Ouvrir le dossier<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link></>
             : <p className="gris texte-13">Aucune demande en cours.</p>}
         </section>
         <section className="carte-l18" aria-label="Mon bail">
@@ -95,20 +95,22 @@ export function Accueil({ prenom, maintenant, donnees, erreur }: { prenom: strin
           {bail ? <><p className="gris texte-13" style={{ margin: '4px 0 20px' }}>{moisBail ? `Mois ${Math.min(moisFaits + 1, moisBail)} sur ${moisBail} · ${restants} jours restants` : 'Bail sans date de fin'}</p>
               {bail.fin && <div className="lo-bail"><span className="jauge large"><i style={{ width: `${Math.min(100, (100 * moisFaits) / (moisBail ?? 12))}%` }} /></span>
                 <div className="lo-bail-dates"><span>{jourLong(bail.debut)}</span><span>{jourLong(bail.fin)}</span></div></div>}
-              {fen && <p className="texte-13" style={{ margin: '12px 0 0' }}>Avis de renouvellement du {jour(fen[1])} au {jour(fen[2])}</p>}</>
+              {fen && <p className="texte-13" style={{ margin: '12px 0 0' }}>Avis de renouvellement du {jour(fen[0])} au {jour(fen[1])}</p>}</>
             : <p className="gris texte-13">Aucun bail actif.</p>}
         </section>
         <section className="carte-l18" aria-label="Votre gestionnaire">
           {D.gestionnaire ? <><div className="personne-ligne"><span className="ini" style={{ width: 56, height: 56, fontSize: 16 }}>{D.gestionnaire.initiales}</span><div><strong style={{ fontSize: 16 }}>{D.gestionnaire.nom}</strong><span className="gris">Votre gestionnaire</span></div></div>
-              <p className="ligne-ic" style={{ margin: '16px 0 0' }}><Icone nom="mail" taille={16} couleur="#3E4A59" />{D.gestionnaire.courriel}</p>
+              {pastilles?.contact?.telephone ? <p className="ligne-ic" style={{ margin: '16px 0 0' }}><Icone nom="phone" taille={16} couleur="#3E4A59" />{pastilles.contact.telephone}</p>
+                : <p className="ligne-ic" style={{ margin: '16px 0 0' }}><Icone nom="mail" taille={16} couleur="#3E4A59" />{D.gestionnaire.courriel}</p>}
               <p className="ligne-ic" style={{ margin: '8px 0 16px' }}><Icone nom="clock" taille={16} couleur="#3E4A59" />Lun.–ven., 8 h à 17 h</p>
-              <a className="bouton bouton-contour" style={{ width: 'auto', display: 'inline-flex', padding: '0 20px', alignItems: 'center' }} href={`mailto:${D.gestionnaire.courriel}`}>Écrire à {D.gestionnaire.nom.split(' ')[0]}</a></>
+              <p className="a-faire-actions" style={{ margin: 0 }}><Link className="bouton bouton-contour" style={{ width: 'auto', display: 'inline-flex', padding: '0 20px', alignItems: 'center' }} href="/locataire/messages?nouveau=1">Écrire à {D.gestionnaire.nom.split(' ')[0]}</Link>
+                {pastilles?.contact?.telephone && <a className="lien" href={`tel:+1${pastilles.contact.telephone.replace(/,.*$/, '').replace(/\D/g, '').slice(-10)}`}>Appeler</a>}</p></>
             : <p className="gris texte-13">Votre gestionnaire vous sera présentée bientôt.</p>}
         </section>
       </div>
 
-      <div className="lo-grille trois">{[['plus', 'Nouvelle demande', 'Photo ou vidéo, 2 min'], ['receipt', 'Mes reçus', 'Reçus de loyer'], ['file', 'Documents', 'Bail et annexes']].map(([ic, t, s]) =>
-        <div key={t} className="carte-l18 lo-raccourci" aria-disabled="true" title="Arrive bientôt"><span className="a-faire-ic"><Icone nom={ic} taille={20} couleur="#0C2147" /></span><div><strong>{t}</strong><span className="gris texte-13">{s}</span></div><Icone nom="chevron" taille={18} couleur="#8A99AB" /></div>)}</div>
+      <div className="lo-grille trois">{[['plus', 'Nouvelle demande', 'Photo ou vidéo, 2 min', '/locataire/demandes/nouvelle'], ['receipt', 'Mes reçus', 'Reçus de loyer', '/locataire/paiements'], ['file', 'Documents', 'Bail et annexes', '/locataire/documents']].map(([ic, t, s, h]) =>
+        <Link key={t} href={h} className="carte-l18 lo-raccourci"><span className="a-faire-ic"><Icone nom={ic} taille={20} couleur="#0C2147" /></span><div><strong>{t}</strong><span className="gris texte-13">{s}</span></div><Icone nom="chevron" taille={18} couleur="#8A99AB" /></Link>)}</div>
 
       <div className="po-section"><div><h2>Mes indicateurs</h2><p>Vos chiffres clés, mis à jour chaque jour</p></div></div>
       <div className="po-kpis">
