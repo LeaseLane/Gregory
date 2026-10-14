@@ -24,7 +24,7 @@ export default async function Page({ params }: { params: Promise<{ sel?: string[
         { libelle: 'À approuver', href: '/operations/a-approuver', compte: liste.length },
         { libelle: 'Mes tâches', href: '/operations/taches' },
         { libelle: 'Inbox', href: '/operations/inbox' },
-        { libelle: 'Agenda' },
+        { libelle: 'Agenda', href: '/operations/agenda' },
       ]}
     >
       <AApprouver

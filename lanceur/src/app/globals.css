@@ -545,3 +545,42 @@ li.non-lu .inbox-l2 { color: #3E4A59; }
 .segment button { white-space: nowrap; }
 .nouvelle-tache { margin: 0 24px 24px; }
 .taches { display: flex; flex-direction: column; } .taches .nouvelle-tache { align-self: flex-start; margin-top: auto; }
+
+/* Opérations · Agenda (maquette e05) : grille 56 px par heure (8 h–18 h), rendez-vous proportionnels, « maintenant »; mois; à planifier. */
+.flip { display: inline-grid; transform: scaleX(-1); }
+.agenda .taches-actions .haut-ibtn { margin: 0; }
+.grille-h { position: relative; margin: 8px 24px 24px 88px; }
+.heure { position: absolute; left: 0; right: 0; height: 1px; background: #E1E6EC; }
+.heure.bord { background: #D1D6DB; }
+.heure span { position: absolute; left: -64px; top: -9px; width: 52px; text-align: right; font-size: 12px; color: #58697F; }
+.rdv { position: absolute; left: 8px; right: 0; display: flex; align-items: center; gap: 12px; padding: 6px 12px 6px 24px; border-radius: 8px; overflow: hidden; background: #ECF2F9; }
+.rdv > i { position: absolute; left: 8px; top: 6px; bottom: 6px; width: 3px; border-radius: 1.5px; background: #4581CB; }
+.rdv > div { flex: 1; min-width: 0; display: grid; }
+.rdv strong { font-size: 13px; font-weight: 600; color: #0C2147; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rdv span { font-size: 12px; color: #3E4A59; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rdv.court > div { display: flex; gap: 12px; align-items: baseline; } .rdv.court span { color: #58697F; }
+.rdv.passe { background: #EEF1F5; } .rdv.passe > i { background: #C8CDD4; } .rdv.passe strong { color: #3E4A59; } .rdv.passe span { color: #58697F; }
+.rdv.urg { background: #F8E4E2; } .rdv.urg > i { background: #9B2E28; } .rdv.urg strong { color: #9B2E28; }
+.rdv .urgence { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 6px; background: #9B2E28; color: #fff; font-size: 12px; font-weight: 600; flex: none; }
+.maintenant { position: absolute; left: -64px; right: 0; height: 2px; display: flex; align-items: center; z-index: 2; }
+.maintenant span { width: 56px; height: 20px; border-radius: 6px; background: #4581CB; color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; flex: none; }
+.maintenant i { flex: 1; height: 2px; border-radius: 1px; background: #4581CB; }
+.mois-tete { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.mois-tete h2 { margin: 0 auto 0 0; font-size: 16px; font-weight: 600; }
+.mois-tete a { width: 32px; height: 32px; border: 1px solid #E1E6EC; border-radius: 8px; display: grid; place-items: center; }
+.mois-grille { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 6px; text-align: center; }
+.mois-grille b { font-size: 12px; font-weight: 600; color: #58697F; padding-bottom: 8px; }
+.mois-grille a { position: relative; justify-self: center; width: 30px; height: 34px; padding-top: 5px; border-radius: 15px; font-size: 13px; font-weight: 500; color: #0C2147; text-decoration: none; }
+.mois-grille a.passe { color: #58697F; }
+.mois-grille a.choisi { background: #ECF2F9; }
+.mois-grille a.auj { background: #0C2147; color: #fff; font-weight: 600; height: 30px; }
+.mois-grille a i { position: absolute; left: 13px; bottom: -4px; width: 4px; height: 4px; border-radius: 50%; background: #4581CB; }
+.mois-grille a.passe i { background: #A6B1BE; }
+.sync { display: flex; align-items: center; gap: 10px; margin: 20px 0 0; padding-top: 16px; border-top: 1px solid #E1E6EC; font-size: 13px; color: #3E4A59; }
+.sync i.vide { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #78838F; }
+.planifier { list-style: none; margin: 0; padding: 0; }
+.planifier li { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-top: 1px solid #E1E6EC; }
+.planifier li:first-child { border-top: 0; padding-top: 0; }
+.planifier li > div { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.planifier strong { font-size: 14px; font-weight: 600; } .planifier span { font-size: 13px; color: #58697F; }
+.planifier .bouton { height: 36px; width: 104px; padding: 0; font-size: 14px; flex: none; }

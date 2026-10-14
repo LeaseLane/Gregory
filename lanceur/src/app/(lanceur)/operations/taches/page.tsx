@@ -20,7 +20,7 @@ export default async function Page() {
         { libelle: 'À approuver', href: '/operations/a-approuver', compte: (nb as number | null) ?? undefined },
         { libelle: 'Mes tâches', href: '/operations/taches' },
         { libelle: 'Inbox', href: '/operations/inbox', compte: nonLus || undefined },
-        { libelle: 'Agenda' },
+        { libelle: 'Agenda', href: '/operations/agenda' },
       ]}
     >
       <Taches donnees={(data as DonneesTaches | null) ?? null} erreurLecture={error ? 'Les tâches n’ont pas pu être lues.' : null} />
