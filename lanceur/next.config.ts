@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
   turbopack: { root: RACINE },
   outputFileTracingRoot: RACINE,
   poweredByHeader: false,
+  devIndicators: false,
 };
 
 export default nextConfig;

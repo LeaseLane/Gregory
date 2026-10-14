@@ -60,6 +60,8 @@ export async function lireAccueil(moi: Moi): Promise<Accueil> {
     { icone: 'chart', nom: 'Rapports et réglages', droit: 'rapports.lire', valeur: issues.length ? pl(issues.length, 'alerte', 'alertes') : sante.healthy ? 'Tout va bien' : '—', libelle: 'santé des services', puce: issues.length ? { texte: issues[0].type === 'cron_http_failed' ? 'Tâche planifiée en échec' : 'Incident', ton: 'todo' } : { texte: 'Aucun incident', ton: 'info' }, viz: null },
   ];
 
+  // Sans la vue d'ensemble, une puce ne doit rien affirmer (« Aucune urgence » à côté d'un « — » serait faux).
+  if (!ok) for (const x of tuiles) if (x.valeur === '—' && !x.puce.texte.includes(' · ')) { x.puce = { texte: moi.role === 'admin' ? 'Données indisponibles' : 'Pas encore pour votre rôle', ton: 'neutral' }; x.viz = null; }
   const visibles = tuiles.filter((x) => !x.droit || peut(moi, x.droit));
   const morceaux = [urgences && pl(urgences, 'urgence', 'urgences'), retards && pl(retards, 'loyer en retard', 'loyers en retard'), baux && pl(baux, 'bail à renouveler', 'baux à renouveler')].filter(Boolean);
   const briefing = moi.role !== 'admin' ? 'Votre briefing s’enrichira à mesure que vos espaces ouvriront.' : !ok ? 'Le résumé du jour n’a pas pu être lu. Les espaces restent accessibles.' : morceaux.length ? `${morceaux.join(', ')}.${urgences ? ' Commencez par les urgences dans Opérations.' : ''}` : 'Rien d’urgent ce matin : aucune urgence, aucun loyer en retard.';
