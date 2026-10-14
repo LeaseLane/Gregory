@@ -11,7 +11,7 @@ alter table public.service_requests disable trigger on_service_request_insert;
 do $$
 declare
   v_mdp text := current_setting('seed.mdp_roles'); v_uid uuid; v_t uuid; v_u uuid; v_b uuid; v_l uuid; v_l0 uuid; v_camille uuid; v_w uuid;
-  v_sr uuid := '00000000-0000-4000-e000-000000000155'; v_wo uuid := '00000000-0000-4000-e000-000000000156'; k int; v_rdv timestamptz;
+  v_sr uuid := '01550000-0000-4000-e000-000000000155'; v_wo uuid := '01560000-0000-4000-e000-000000000156'; k int; v_rdv timestamptz;
 begin
   if exists (select 1 from public.owners where full_name not like 'Préprod%' and full_name <> 'Marie-Josée Bérubé') then
     raise exception 'Base avec de vrais propriétaires : démonstration refusée (préproduction seulement).';
@@ -54,7 +54,7 @@ begin
     values (v_l0, 1450, (date '2026-01-01' + make_interval(months => k))::date, (date '2026-01-01' + make_interval(months => k))::date, 'paid', 1450, 'collected');
   end loop;
   update public.payments set collection_status = case when due_date = date '2026-07-01' then 'manual' else 'collected' end,
-    paid_date = case when due_date = date '2026-07-01' then date '2026-07-03' else due_date end where lease_id = v_l and status = 'paid';
+    paid_date = case when due_date = date '2026-07-01' then date '2026-07-02' else due_date end where lease_id = v_l and status = 'paid';
   if not exists (select 1 from public.payments where lease_id = v_l and due_date = date '2026-11-01') then
     insert into public.payments (lease_id, amount, due_date, status, amount_received) values (v_l, 1450, date '2026-11-01', 'pending', 0);
   end if;
@@ -65,6 +65,11 @@ begin
   -- Demande « fenêtre » : qualifiée, assignée à Menuiserie Lauzon, intervention dans deux jours (9 h) à confirmer
   insert into public.workers (id, name, company_name, specialty, requires_rbq, insurance_expiry, verification_status, active)
   values ('00000000-0000-4000-e000-000000000157', 'Menuiserie Lauzon', 'Menuiserie Lauzon', 'menuiserie', false, current_date + 300, 'verified', true) on conflict (id) do nothing;
+  delete from crm.conversations where service_request_id = '00000000-0000-4000-e000-000000000155';   -- ancienne démo (numéro DEM-…-0000)
+  delete from public.work_orders where service_request_id = '00000000-0000-4000-e000-000000000155';
+  delete from public.service_requests where id = '00000000-0000-4000-e000-000000000155';
+  update public.service_requests set title = 'Fuite sous l’évier de la cuisine', room = 'Cuisine', tenant_urgency = 'normale', created_at = now() - interval '6 days'
+   where tenant_id = v_t and description like 'Fuite lente sous l''évier%';
   delete from public.service_request_messages where service_request_id = v_sr; delete from crm.conversations where service_request_id = v_sr;
   delete from public.work_orders where id = v_wo; delete from public.service_requests where id = v_sr;
   v_rdv := (date_trunc('day', now() at time zone 'America/Toronto') + interval '2 days 9 hours') at time zone 'America/Toronto';
