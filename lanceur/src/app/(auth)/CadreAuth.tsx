@@ -54,7 +54,7 @@ function Ville() {
   );
 }
 
-export function CadreAuth({ children }: { children: React.ReactNode }) {
+export function CadreAuth({ children, espace = 'admin' }: { children: React.ReactNode; espace?: 'admin' | 'propriétaire' | 'locataire' }) {
   return (
     <div className="auth">
       <aside className="auth-panneau">
@@ -62,7 +62,7 @@ export function CadreAuth({ children }: { children: React.ReactNode }) {
         <Ville />
         <div className="auth-haut">
           <img className="auth-logo" src="/img/logo-sur-marine.svg" alt="Lease Lane" />
-          <h1 className="auth-titre">Espace <span>admin</span></h1>
+          <h1 className="auth-titre">Espace <span>{espace}</span></h1>
           <p className="auth-slogan"><span>Une <b>clé</b> d’avance et ce, en <b>permanence</b>.</span></p>
         </div>
         <nav className="auth-pied" aria-label="Information légale">

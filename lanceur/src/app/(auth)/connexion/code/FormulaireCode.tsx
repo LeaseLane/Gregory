@@ -10,7 +10,7 @@ import { executer } from '@/lib/ops';
 const ESSAIS = 5;
 const ATTENTE = 30;
 
-export function FormulaireCode() {
+export function FormulaireCode({ apres = '/', inscription = '/connexion/inscription-2fa', sortie = '/connexion' }: { apres?: string; inscription?: string; sortie?: string } = {}) {
   const [code, setCode] = useState('');
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState('');
@@ -31,7 +31,7 @@ export function FormulaireCode() {
     const { data: facteurs } = await supabase.auth.mfa.listFactors();
     const totp = facteurs?.totp.find((f) => f.status === 'verified');
     if (!totp) {
-      window.location.assign('/connexion/inscription-2fa' + window.location.search);
+      window.location.assign(inscription + window.location.search);
       return;
     }
     const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: totp.id, code: valeur });
@@ -50,12 +50,12 @@ export function FormulaireCode() {
     // Chaque connexion validée est inscrite au journal (record-sign-in). Un échec ici ne bloque pas l'accès.
     await executer(supabase, 'record-sign-in').catch(() => null);
     const suite = new URLSearchParams(window.location.search).get('suite');
-    window.location.assign(suite === '/mot-de-passe' ? suite : '/');
+    window.location.assign(suite === '/mot-de-passe' || suite === '/espace/mot-de-passe' ? suite : apres);
   }
 
   async function changerDeCompte() {
     await supabaseNavigateur().auth.signOut();
-    window.location.assign('/connexion');
+    window.location.assign(sortie);
   }
 
   return (

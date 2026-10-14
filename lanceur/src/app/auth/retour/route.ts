@@ -7,10 +7,11 @@ export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code');
   const suite = request.nextUrl.searchParams.get('suite');
   const apres = suite === '/mot-de-passe' ? '?suite=/mot-de-passe' : '';
+  const portail = suite === '/espace' || suite === '/espace/mot-de-passe';
   if (code) {
     const supabase = await supabaseServeur();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL('/connexion/code' + apres, request.url));
+    if (!error) return NextResponse.redirect(new URL(portail ? suite! : '/connexion/code' + apres, request.url));
   }
-  return NextResponse.redirect(new URL('/connexion?lien=expire', request.url));
+  return NextResponse.redirect(new URL(portail ? '/espace/connexion?lien=expire' : '/connexion?lien=expire', request.url));
 }

@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { destination } from '@/lib/acces';
+import { destination, destinationPortail, PORTAIL } from '@/lib/acces';
 import { TEMOIN_MEMOIRE, optionsTemoins } from '@/lib/memoire';
 
 /* Rafraîchit la session et applique la 2FA avant toute page de Lanceur.
@@ -33,6 +33,12 @@ export async function proxy(request: NextRequest) {
     /* Supabase injoignable : traité comme non connecté. */
   }
 
+  // Portails : leurs propres règles (connexion et code communs aux deux publics).
+  if (PORTAIL.test(chemin)) {
+    const c = destinationPortail(niveau, chemin);
+    const p = request.nextUrl.searchParams.get('p');
+    return c ? NextResponse.redirect(new URL(c + (p ? `?p=${p}` : chemin.startsWith('/proprietaire') ? '?p=proprietaire' : chemin.startsWith('/locataire') ? '?p=locataire' : ''), request.url)) : reponse;
+  }
   const cible = destination(niveau);
   const surConnexion = chemin.startsWith('/connexion');
   // Pages de connexion : seule l'étape due est accessible; session complète → accueil.

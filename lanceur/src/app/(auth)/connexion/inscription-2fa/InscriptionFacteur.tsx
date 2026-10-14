@@ -7,7 +7,7 @@ import { executer } from '@/lib/ops';
 
 /* Inscription obligatoire du facteur (aucune exemption, ARCHITECTURE.md § 4).
    Aucune maquette dédiée : mêmes briques que l'étape 2 (e66). */
-export function InscriptionFacteur() {
+export function InscriptionFacteur({ apres = '/', sortie = '/connexion' }: { apres?: string; sortie?: string } = {}) {
   const [facteur, setFacteur] = useState<{ id: string; qr: string; secret: string } | null>(null);
   const [code, setCode] = useState('');
   const [envoi, setEnvoi] = useState(false);
@@ -38,12 +38,12 @@ export function InscriptionFacteur() {
     }
     await executer(supabaseNavigateur(), 'record-sign-in').catch(() => null);
     const suite = new URLSearchParams(window.location.search).get('suite');
-    window.location.assign(suite === '/mot-de-passe' ? suite : '/');
+    window.location.assign(suite === '/mot-de-passe' || suite === '/espace/mot-de-passe' ? suite : apres);
   }
 
   async function changerDeCompte() {
     await supabaseNavigateur().auth.signOut();
-    window.location.assign('/connexion');
+    window.location.assign(sortie);
   }
 
   return (
