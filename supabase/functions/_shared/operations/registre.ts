@@ -16,6 +16,8 @@ export type Operation = {
   mcp: boolean;
   journal?: { action: string; lectureSensible?: boolean };
   description: string;
+  // Champs qu'un agent peut proposer (outils MCP « propose-<nom> »), en schéma JSON.
+  champs?: Record<string, { type: "string"; description: string; enum?: readonly string[]; format?: "date" }>;
 };
 
 const defineOperation = (o: Operation) => o;
@@ -62,10 +64,23 @@ export const REGISTRE = [
   defineOperation({
     nom: "move-prospect-stage", espace: "ventes", type: "sql", cible: "crm.move_prospect_stage", permission: "ventes.mandats.ecrire", ecriture: true, idempotente: true,
     agents: "proposition", mcp: true, journal: { action: "prospect.stage_change" }, description: "Change l'étape d'un prospect; « perdu » exige une raison; 409 si l'étape a changé.",
+    champs: {
+      stage: { type: "string", description: "Nouvelle étape", enum: ["new", "contacted", "interested", "proposal_sent", "signed", "lost"] },
+      loss_reason: { type: "string", description: "Raison de la perte (obligatoire si stage = lost)" },
+    },
   }),
   defineOperation({
     nom: "update-prospect-followup", espace: "ventes", type: "sql", cible: "crm.update_prospect_followup", permission: "ventes.mandats.ecrire", ecriture: true, idempotente: true,
     agents: "proposition", mcp: true, journal: { action: "prospect.followup_updated" }, description: "Intérêt, prochain suivi (jamais dans le passé) et prochaine action d'un prospect.",
+    champs: {
+      interest_level: { type: "string", description: "Intérêt du prospect", enum: ["chaud", "tiede", "froid"] },
+      next_followup_date: { type: "string", description: "Prochain suivi (AAAA-MM-JJ, aujourd'hui ou après)", format: "date" },
+      next_action: { type: "string", description: "Prochaine action, une phrase" },
+    },
+  }),
+  defineOperation({
+    nom: "get-proposal", espace: "operations", type: "sql", cible: "lanceur_agent_propositions", permission: null, ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, description: "État d'une proposition de l'agent (en attente, appliquée, rejetée avec motif, expirée).",
   }),
   defineOperation({
     nom: "get-overview", espace: "operations", type: "herite", cible: "admin-api", permission: "operations.lire", ecriture: false, idempotente: true,
