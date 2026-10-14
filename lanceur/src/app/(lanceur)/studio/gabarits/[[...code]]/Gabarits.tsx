@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
@@ -15,8 +15,20 @@ const ENVOI: Record<Gabarit['send_mode'], string> = { auto: 'Automatique', after
 const theme = (g: Gabarit) => String((g.contenu as { label?: string }).label ?? 'Autre');
 const quand = (g: Gabarit) => String(((g.contenu as { spec?: { when?: string } }).spec ?? {}).when ?? '');
 
+// Le courriel réel (600 px) réduit à la largeur de la carte, comme la miniature de la maquette.
+function Miniature({ titre, html }: { titre: string; html: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [k, setK] = useState(0.6);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const o = new ResizeObserver(([e]) => setK(e.contentRect.width / 664));
+    o.observe(el); return () => o.disconnect();
+  }, []);
+  return <div ref={ref} className="miniature" style={{ height: 520 * k }}><iframe title={titre} srcDoc={html} sandbox="" style={{ transform: `scale(${k})` }} /></div>;
+}
+
 export function Gabarits({ liste, selection, apercu, prod, erreurLecture }: {
-  liste: Gabarit[]; selection: string | null; apercu: { html: string; sms: string | null } | null; prod: boolean; erreurLecture: string | null;
+  liste: Gabarit[]; selection: string | null; apercu: { sujet: string; html: string; sms: string | null } | null; prod: boolean; erreurLecture: string | null;
 }) {
   const router = useRouter();
   const [type, setType] = useState<'courriels' | 'sms'>('courriels');
@@ -82,6 +94,7 @@ export function Gabarits({ liste, selection, apercu, prod, erreurLecture }: {
             <span className="lien inactif" title="Les planches de la maquette restent la référence">Voir le catalogue des courriels <Icone nom="arrow" taille={18} /></span>
           </header>
           <table className="tableau">
+            <colgroup><col style={{ width: 88 }} /><col style={{ width: 212 }} /><col style={{ width: 116 }} /><col /><col style={{ width: 156 }} /><col style={{ width: 80 }} /></colgroup>
             <thead><tr><th>Code</th><th>Nom</th><th>Public</th><th>Déclencheur</th><th>Envoi</th><th className="droite">Langues</th></tr></thead>
             <tbody>
               {filtres.map((x) => (
@@ -104,8 +117,8 @@ export function Gabarits({ liste, selection, apercu, prod, erreurLecture }: {
             <>
               <header className="carte-tete"><h2>{g.code} · {g.name}</h2><p>{[g.audience, ENVOI[g.send_mode].toLowerCase(), quand(g)].filter(Boolean).join(' · ')}</p></header>
               <div className="apercu-courriel">
-                <div className="apercu-objet"><strong>{g.subject}</strong><span>{g.active ? 'exemple' : 'maquette'}</span></div>
-                <iframe title={`Aperçu de ${g.code}`} srcDoc={apercu.html} sandbox="" />
+                <div className="apercu-objet"><strong>{apercu.sujet}</strong><span>{g.active ? 'exemple' : 'maquette'}</span></div>
+                <Miniature titre={`Aperçu de ${g.code}`} html={apercu.html} />
               </div>
               <div className="apercu-sms">
                 <div className="apercu-sms-tete"><Icone nom="message" taille={18} couleur="#0C2147" /><strong>Version SMS</strong>{apercu.sms && <span>{apercu.sms.length} caractères</span>}</div>
