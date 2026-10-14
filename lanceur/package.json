@@ -19,6 +19,7 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "puppeteer-core": "^23.11.1",
     "typescript": "^5"
   }
 }
