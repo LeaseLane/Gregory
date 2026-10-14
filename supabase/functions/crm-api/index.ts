@@ -1,5 +1,5 @@
+import { analyserAppel, changementsProposes, proposerSuivi } from "../_shared/analyse-appel.ts";
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
 
 
 Deno.serve(async (req) => {
@@ -167,51 +167,9 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "prospect introuvable" }), { status: 404, headers: corsHeaders });
       }
 
-      const prompt = `Tu es l'assistant CRM de "Lease Lane". Voici la transcription/notes d'un appel avec un prospect propriétaire. Analyse-la en détail.
-
-Transcription: "${transcript}"
-
-Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
-{
-  "summary": "résumé de l'appel en 1-2 phrases en français",
-  "key_quotes": ["jusqu'à 2 citations exactes et importantes tirées de la transcription"],
-  "objections": "les objections ou réticences exprimées par le prospect, ou null si aucune",
-  "commitment": "un engagement concret pris durant l'appel (ex: 'va envoyer les états financiers d'ici vendredi'), ou null si aucun",
-  "next_step": "la prochaine étape concrète à faire avec ce prospect, en une phrase",
-  "interest_level": "chaud ou tiede ou froid",
-  "confidence": un nombre entre 0 et 100 représentant ta confiance dans cette analyse — baisse-la si la transcription est courte, vague ou ambiguë,
-  "next_followup_days": un nombre entier de jours avant le prochain suivi recommandé
-}`;
-      const aiRes = await fetch(IA_MESSAGES_URL, {
-        method: "POST",
-        headers: {
-          "x-api-key": IA_CLE,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(avecContexte({
-          model: MODELE_RAPIDE,
-          max_tokens: 500,
-          messages: [{ role: "user", content: prompt }],
-        })),
-      });
-      const aiData = await aiRes.json();
-      const rawText = aiData.content?.[0]?.text ?? "{}";
-      const cleaned = rawText.replace(/```json|```/g, "").trim();
-      let parsed: any = {};
-      try {
-        parsed = JSON.parse(cleaned);
-      } catch {
-        parsed = {};
-      }
-
-      const followupDate = parsed.next_followup_days
-        ? new Date(Date.now() + parsed.next_followup_days * 86400000).toISOString().slice(0, 10)
-        : prospect.next_followup_date;
-      // interest_level est affiché tel quel dans l'admin — on le limite à
-      // une whitelist stricte, jamais le texte libre renvoyé par l'IA.
-      const allowedInterestLevels = ["chaud", "tiede", "froid"];
-      const interestLevel = allowedInterestLevels.includes(parsed.interest_level) ? parsed.interest_level : null;
+      const parsed = await analyserAppel(String(transcript ?? ""));
+      const { apres: apresAnalyse, suivi: followupDate } = changementsProposes(parsed, prospect);
+      const interestLevel = parsed.interest_level ?? null;
       const callHistory = Array.isArray(prospect.call_history) ? prospect.call_history : [];
       // Note : cette fonction ne touche JAMAIS "stage" — l'IA ne peut pas
       // classer un prospect "perdu" ni bloquer une relance ; seule
@@ -243,25 +201,9 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         }),
       });
       if (propositions) {
-        const apres: Record<string, unknown> = {};
-        if (interestLevel && interestLevel !== prospect.interest_level) apres.interest_level = interestLevel;
-        if (followupDate && followupDate !== prospect.next_followup_date) apres.next_followup_date = followupDate;
-        if (typeof parsed.next_step === "string" && parsed.next_step.trim()) apres.next_action = parsed.next_step.trim().slice(0, 200);
-        if (Object.keys(apres).length) {
-          const citation = Array.isArray(parsed.key_quotes) && parsed.key_quotes[0] ? String(parsed.key_quotes[0]) : String(transcript).slice(0, 300);
-          const pr = await fetch(`${supabaseUrl}/rest/v1/rpc/lanceur_proposer`, {
-            method: "POST",
-            headers: adminHeaders,
-            body: JSON.stringify({ p: {
-              agent: "analyse_appel", operation: "update-prospect-followup", target_id: prospect_id, after: apres,
-              reason: String(parsed.summary || "Analyse de l'appel : intérêt et suivi mis à jour.").slice(0, 1000).padEnd(10, "."),
-              source_type: "appel", source_ref: "Appel du " + new Date().toLocaleDateString("fr-CA", { timeZone: "America/Toronto" }),
-              source_excerpt: citation.slice(0, 2000), confidence: typeof parsed.confidence === "number" ? Math.max(0, Math.min(100, parsed.confidence)) : null,
-              idempotency_key: `appel:${prospect_id}:${callHistory.length - 1}`, channel: "api",
-            } }),
-          });
-          if (!pr.ok) console.error("Proposition d'analyse d'appel refusée", pr.status, await pr.text().catch(() => ""));
-        }
+        await proposerSuivi({ supabaseUrl: supabaseUrl!, headers: adminHeaders, prospectId: prospect_id, apres: apresAnalyse, analyse: parsed,
+          transcript: String(transcript ?? ""), sourceRef: "Appel du " + new Date().toLocaleDateString("fr-CA", { timeZone: "America/Toronto" }),
+          cle: `appel:${prospect_id}:${callHistory.length - 1}` });
       }
       return new Response(JSON.stringify({ ok: true, proposition: propositions }), { status: 200, headers: corsHeaders });
     }

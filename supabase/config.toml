@@ -112,3 +112,6 @@ verify_jwt = false
 [functions.envois-retour]
 # T2 : désabonnement (lien public signé) et SMS entrants Twilio (signature vérifiée dans la fonction).
 verify_jwt = false
+[functions.telephonie]
+# TT : webhooks Twilio (signature vérifiée dans la fonction) et routes de l'équipe (jeton vérifié par les RPC).
+verify_jwt = false
