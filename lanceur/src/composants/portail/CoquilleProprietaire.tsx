@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 import type { MoiPortail } from './Moi';
+import { Cloche } from './Cloche';
 
 /* Coquille du propriétaire (maquette 01) : rail à gauche avec libellés, Cléo, carte du compte; recherche « Demandez à Cléo » et cloche.
    Une rubrique sans page n'est pas un lien (elle arrive avec son jalon). Pastille marine; rouge seulement pour une urgence (D4). */
-const MENU: [string, string, string | null][] = [['grid', 'Tableau de bord', '/proprietaire'], ['building', 'Immeubles', '/proprietaire/immeubles'], ['users', 'Locataires', '/proprietaire/locataires'], ['wrench', 'Demandes', null],
-  ['message', 'Messages', null], ['card', 'Finance', null], ['folder', 'Documents', null], ['calendar', 'Calendrier', null], ['shield', 'Utilisateurs et accès', null],
+const MENU: [string, string, string | null][] = [['grid', 'Tableau de bord', '/proprietaire'], ['building', 'Immeubles', '/proprietaire/immeubles'], ['users', 'Locataires', '/proprietaire/locataires'], ['wrench', 'Demandes', '/proprietaire/demandes'],
+  ['message', 'Messages', '/proprietaire/messages'], ['card', 'Finance', null], ['folder', 'Documents', null], ['calendar', 'Calendrier', null], ['shield', 'Utilisateurs et accès', null],
   ['scale', 'Conformité Loi 25', null], ['help', 'Aide', null]];
 
 export function CoquilleProprietaire({ moi, comptes, children }: { moi: MoiPortail; comptes?: { demandes?: number; urgence?: boolean; messages?: number }; children: React.ReactNode }) {
@@ -33,7 +34,7 @@ export function CoquilleProprietaire({ moi, comptes, children }: { moi: MoiPorta
       <div className="po-principal">
         <header className="po-haut">
           <button type="button" className="po-cherche"><img src="/img/cleo.png" alt="" className="avatar-cleo" /><span>Demandez à Cléo ou cherchez : « approuver la soumission », « relevé de septembre »…</span></button>
-          <button type="button" className="haut-ibtn" aria-label="Notifications" style={{ margin: 0 }}><Icone nom="bell" taille={20} couleur="#0C2147" /></button>
+          <Cloche />
         </header>
         <main className="po-contenu">{children}</main>
       </div>

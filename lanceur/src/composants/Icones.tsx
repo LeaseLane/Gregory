@@ -41,6 +41,7 @@ const P: Record<string, React.ReactNode> = {
   help: <><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17v.1" /></>,
   siren: <><path d="M7 18v-5a5 5 0 0 1 10 0v5" /><path d="M5 18h14v3H5zM12 3v2M4.5 6.5l1.4 1.4M19.5 6.5l-1.4 1.4" /></>,
   file: <><path d="M7 3h7l5 5v13H7z" /><path d="M14 3v5h5M10 13h6M10 17h6" /></>,
+  clip: <path d="m20 11.5-8.3 8.3a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9" />,
   upload: <path d="M12 16V4M7 9l5-5 5 5M5 20h14" />,
   download: <path d="M12 4v12M7 11l5 5 5-5M5 20h14" />,
   camera: <><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></>,

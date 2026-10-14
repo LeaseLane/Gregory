@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { heureQc } from '@/composants/portail/dates';
 
 /* Locataire · 01 Accueil : parcours du mois, intervention à confirmer, prochain loyer, demande en cours, bail, gestionnaire,
    raccourcis, 4 indicateurs, loyer comparé au marché. « À confirmer » en puce marine (D3); vouvoiement; dates « 1er » (D13). */
@@ -68,7 +69,7 @@ export function Accueil({ prenom, maintenant, donnees, erreur }: { prenom: strin
       <div className="lo-grille lo-remonte">
         <section className="carte-l18 e2 lo-action" aria-label="À confirmer">
           {c ? <><span className="a-faire-ic"><Icone nom="calendar" taille={20} couleur="#0C2147" /></span>
-              <div><p><span className="puce action">À confirmer</span><span className="gris texte-13"> {new Date(c.quand).toLocaleDateString('fr-CA', { weekday: 'short', day: 'numeric', month: 'short' })} · {new Date(c.quand).getHours()} h</span></p>
+              <div><p><span className="puce action">À confirmer</span><span className="gris texte-13"> {new Date(c.quand).toLocaleDateString('fr-CA', { weekday: 'short', day: 'numeric', month: 'short' })} · {heureQc(c.quand)}</span></p>
                 <strong>{c.qui ?? 'Le fournisseur'} passe {new Date(c.quand).toLocaleDateString('fr-CA', { weekday: 'long' })}</strong><span className="gris texte-13">{c.quoi} · {c.numero}</span></div>
               <div className="a-faire-actions"><button className="bouton bouton-principal" disabled={envoi} onClick={() => confirmer('present')}>Je serai présent</button>
                 <button className="bouton bouton-contour" disabled={envoi} onClick={() => confirmer('acces')}>Autoriser l’accès</button></div></>

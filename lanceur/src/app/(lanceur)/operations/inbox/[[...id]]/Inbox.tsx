@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 
-export type Fil = { id: string; display_name: string; channel: 'email' | 'sms' | 'voice'; status: 'open' | 'waiting' | 'closed'; unread: boolean; last_message_at: string; last_preview: string | null; assignee_user_id: string | null; assignee: string | null };
+export type Fil = { id: string; display_name: string; channel: 'email' | 'sms' | 'voice' | 'portail'; status: 'open' | 'waiting' | 'closed'; unread: boolean; last_message_at: string; last_preview: string | null; assignee_user_id: string | null; assignee: string | null };
 type Envoi = { status: string; scheduled_for: string; sent_at: string | null; erreur: string | null };
-type Message = { id: string; direction: 'in' | 'out'; channel: 'email' | 'sms' | 'voice'; author: 'contact' | 'cleo' | 'team' | 'system'; auteur: string | null; body: string; created_at: string; envoi: Envoi | null };
+type Message = { id: string; direction: 'in' | 'out'; channel: 'email' | 'sms' | 'voice' | 'portail'; author: 'contact' | 'cleo' | 'team' | 'system'; auteur: string | null; body: string; created_at: string; envoi: Envoi | null };
 export type Detail = {
-  id: string; display_name: string; channel: 'email' | 'sms' | 'voice'; status: Fil['status']; email: string | null; phone_e164: string | null; subject: string | null;
+  id: string; display_name: string; channel: 'email' | 'sms' | 'voice' | 'portail'; status: Fil['status']; email: string | null; phone_e164: string | null; subject: string | null;
   assignee_user_id: string | null; assignee: string | null; handoff_summary: string | null; handoff_at: string | null;
   locataire: { id: string; nom: string; logement: string | null } | null; messages: Message[];
   consentements: { email: { basis: string; obtained_at: string } | null; sms: { basis: string; obtained_at: string } | null };
@@ -102,7 +102,7 @@ export function Inbox({ fils, detail, moi, erreurLecture }: { fils: Fil[]; detai
     && (!canalF || f.channel === canalF) && (!statutF || f.status === statutF) && (!sansResp || !f.assignee_user_id));
   const prenom = detail?.display_name.split(' ')[0] ?? '';
   const bloque = (c: string) => detail?.suppressions.some((s) => s.channel === c);
-  const mention = canal === 'sms'
+  const mention = detail?.channel === 'portail' ? 'Réponse dans le portail du propriétaire (aucun courriel)' : canal === 'sms'
     ? bloque('sms') ? 'STOP reçu : SMS bloqués' : detail?.consentements.sms ? 'SMS autorisé (LCAP) · STOP' : 'Réponse à une demande · STOP'
     : bloque('email') ? 'Désabonné : courriels bloqués' : detail?.consentements.email ? 'Courriel autorisé (LCAP)' : 'Réponse à une demande';
   const activite = (detail?.messages ?? []).slice(-3).reverse();
@@ -136,7 +136,7 @@ export function Inbox({ fils, detail, moi, erreurLecture }: { fils: Fil[]; detai
                     <span className="inbox-av"><Ini nom={f.display_name} taille={40} />{f.unread && <i />}</span>
                     <span className="inbox-ligne">
                       <span className="inbox-l1"><strong>{f.display_name}</strong><span>{quand(f.last_message_at)}</span></span>
-                      <span className="inbox-l2"><Icone nom={f.channel === 'sms' ? 'message' : f.channel === 'voice' ? 'phone' : 'mail'} taille={14} couleur="#58697F" />{f.last_preview}</span>
+                      <span className="inbox-l2"><Icone nom={f.channel === 'sms' ? 'message' : f.channel === 'voice' ? 'phone' : f.channel === 'portail' ? 'building' : 'mail'} taille={14} couleur="#58697F" />{f.last_preview}</span>
                       <span className={'puce ' + STATUT[f.status][1]}>{STATUT[f.status][0]}</span>
                     </span>
                   </Link>
@@ -152,7 +152,7 @@ export function Inbox({ fils, detail, moi, erreurLecture }: { fils: Fil[]; detai
               <header className="fil-tete">
                 <Ini nom={detail.display_name} taille={40} />
                 <div><h2>{detail.display_name}</h2>
-                  <p>{[detail.channel === 'sms' ? 'SMS' : detail.channel === 'voice' ? 'Appel' : 'Courriel', detail.channel === 'email' ? detail.email : tel(detail.phone_e164), detail.locataire?.logement].filter(Boolean).join(' · ')}</p></div>
+                  <p>{[detail.channel === 'sms' ? 'SMS' : detail.channel === 'voice' ? 'Appel' : detail.channel === 'portail' ? 'Portail propriétaire' : 'Courriel', detail.channel === 'email' ? detail.email : tel(detail.phone_e164), detail.locataire?.logement].filter(Boolean).join(' · ')}</p></div>
                 <label className="fil-statut"><span className="sr">Statut</span>
                   <select value={detail.status} onChange={(e) => maj({ status: e.target.value })}>{Object.entries(STATUT).map(([k, [l]]) => <option key={k} value={k}>{l}</option>)}</select>
                   <Icone nom="chevD" taille={18} couleur="#3E4A59" /></label>
@@ -186,7 +186,7 @@ export function Inbox({ fils, detail, moi, erreurLecture }: { fils: Fil[]; detai
               <div className="composer">
                 <div className="composer-haut">
                   <div className="segment petit" role="tablist" aria-label="Canal">
-                    {([['sms', 'SMS', detail.phone_e164], ['email', 'Courriel', detail.email]] as const).map(([k, l, a]) => (
+                    {detail.channel !== 'portail' && ([['sms', 'SMS', detail.phone_e164], ['email', 'Courriel', detail.email]] as const).map(([k, l, a]) => (
                       <button key={k} role="tab" aria-selected={canal === k} disabled={!a} title={a ? undefined : 'Aucune adresse pour ce canal'} className={canal === k ? 'actif' : ''} onClick={() => setCanal(k)}>{l}</button>
                     ))}
                   </div>

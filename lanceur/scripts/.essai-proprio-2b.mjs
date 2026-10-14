@@ -1,0 +1,13 @@
+import puppeteer from 'puppeteer-core';
+import { connecterPortail } from './connexion-portail.mjs';
+const S = '/private/tmp/claude-501/-Users-octa-Desktop-TWIM-PROJECTS-Gregory-main/342b025c-618f-49eb-8e60-b10fea3f97ac/scratchpad', att = (ms) => new Promise((r) => setTimeout(r, ms)), B = 'http://localhost:3020';
+const b = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new', defaultViewport: { width: 1440, height: 1024 } });
+const p = await b.newPage(); const err = []; p.on('console', (m) => { if (m.type() === 'error') err.push(m.text().slice(0, 160)); });
+const clic = async (sel, t) => { for (const e of await p.$$(sel)) if ((await e.evaluate((x) => x.textContent)).includes(t)) { await e.click(); return true; } return false; };
+await connecterPortail(p, 'proprietaire');
+await p.goto(B + '/proprietaire/demandes', { waitUntil: 'networkidle0' }); await att(1500); await p.screenshot({ path: S + '/po-07.png', fullPage: true });
+await p.goto(B + '/proprietaire/messages?nouveau=1', { waitUntil: 'networkidle0' }); await att(500);
+await p.type('#m-s', 'Question sur le chauffe-eau (essai)'); await p.type('[aria-label="Votre message"]', 'Bonjour, quand passe le plombier ?');
+await clic('button', 'Envoyer'); await att(3000); console.log('09', p.url()); await p.screenshot({ path: S + '/po-09.png', fullPage: true });
+await p.click('.cloche > button'); await att(800); await p.screenshot({ path: S + '/po-18.png' });
+console.log('erreurs', err.slice(0, 4)); await b.close();
