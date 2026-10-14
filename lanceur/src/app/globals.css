@@ -825,3 +825,26 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .etapes-proc .actuel { color: #0C2147; font-weight: 600; } .etapes-proc .actuel i { border: 2px solid #4581CB; }
 .bloc-proc { display: grid; gap: 10px; padding: 16px 0; border-top: 1px solid #E1E6EC; } .bloc-proc .surtitre { margin: 0; } .bloc-proc p { margin: 0; font-size: 14px; }
 .bloc-proc .bouton { justify-self: start; }
+/* l11 · Clients › Solvabilité, e25 */
+.point { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8A99AB; margin-right: 8px; flex: none; } .point.ok { background: #12694F; }
+.okdot.non { background: #9B2E28; }
+.vide-c.actuel { border: 3px solid #4581CB; }
+.rapport-ferme { display: flex; justify-content: space-between; align-items: center; gap: 16px; } .rapport-ferme h2 { margin: 0 0 4px; font-size: 16px; font-weight: 600; } .rapport-ferme p { margin: 0; font-size: 13px; }
+.montant-budget { margin: 0 0 16px; font-size: 14px; color: #58697F; } .montant-budget b { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; color: #0C2147; margin-right: 8px; }
+.jauge.large { display: block; width: 100%; height: 8px; border-radius: 4px; }
+.ligne-ic { display: flex; gap: 10px; align-items: flex-start; margin: 0; font-size: 13px; line-height: 1.45; color: #3E4A59; } .ligne-ic svg, .ligne-ic img { flex: none; }
+.details-e25 { display: grid; gap: 12px; padding: 16px; margin-bottom: 24px; border-radius: 12px; background: #F5F7FA; }
+.details-e25 > div { display: flex; justify-content: space-between; align-items: center; gap: 12px; } .details-e25 span { font-size: 13px; color: #58697F; }
+.details-e25 b { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #0C2147; } .details-e25 b.ok { font-weight: 400; } .details-e25 .okdot { margin-top: 0; }
+.rapport header { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 28px; } .rapport h2 { margin: 0; font-size: 16px; font-weight: 600; } .rapport header span { font-size: 13px; }
+.rapport-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+.bandes5 { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.bandes5 li { height: 32px; display: grid; place-items: center; border-radius: 4px; background: #EEF1F5; font-size: 11px; color: #58697F; }
+.bandes5 li.choisi { background: #0C2147; color: #fff; font-weight: 600; }
+.seuil { display: flex; align-items: center; gap: 12px; } .seuil strong { font-size: 14px; font-weight: 700; color: #0C2147; min-width: 40px; text-align: right; }
+.seuil .piste { position: relative; flex: 1; height: 10px; border-radius: 5px; background: #ECF2F9; }
+.seuil .piste i { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: #4581CB; } .seuil .piste i.au-dessus { background: #9B2E28; }
+.seuil .piste b { position: absolute; top: -5px; width: 2px; height: 20px; background: #0C2147; }
+.mois12 { list-style: none; margin: 0 0 8px; padding: 0; display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; }
+.mois12 li { height: 24px; border-radius: 4px; background: #EEF1F5; display: grid; place-items: center; } .mois12 li.retard { background: #9B2E28; }
+.texte-13 { margin: 0; font-size: 13px; color: #3E4A59; }

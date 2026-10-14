@@ -8,7 +8,7 @@ export default async function Page() {
   const { data, error } = await supabase.rpc('lanceur_processus');
   return (
     <CadreEspace icone="users" nom="Clients" sous="Propriétaires et locataires, leurs processus, leurs documents et leurs signatures" actif={2}
-      onglets={[{ libelle: 'Propriétaires' }, { libelle: 'Locataires' }, { libelle: 'Processus', href: '/clients/processus' }, { libelle: 'Cessions et sous-locations' }, { libelle: 'Solvabilité' }, { libelle: 'Documents et signatures' }]}>
+      onglets={[{ libelle: 'Propriétaires' }, { libelle: 'Locataires' }, { libelle: 'Processus', href: '/clients/processus' }, { libelle: 'Cessions et sous-locations' }, { libelle: 'Solvabilité', href: '/clients/solvabilite' }, { libelle: 'Documents et signatures' }]}>
       <Processus donnees={(data as DonneesProcessus | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les processus n’ont pas pu être lus.') : null} />
     </CadreEspace>
   );
