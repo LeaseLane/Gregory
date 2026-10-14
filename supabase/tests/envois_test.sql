@@ -104,7 +104,8 @@ insert into units (id, building_id, unit_number, status) values ('00000000-0000-
 insert into tenants (id, full_name, email, phone) values ('00000000-0000-4000-a000-0000000000d1', 'Gabriel Paquet', 'gabriel@exemple.test', '418 555-0101');
 insert into leases (id, unit_id, tenant_id, start_date, monthly_rent, status) values ('00000000-0000-4000-a000-0000000000e1', '00000000-0000-4000-a000-0000000000c1', '00000000-0000-4000-a000-0000000000d1', current_date - 300, 1195, 'active');
 insert into payments (id, lease_id, amount, due_date, status) values ('00000000-0000-4000-a000-0000000000a1', '00000000-0000-4000-a000-0000000000e1', 1195, current_date - 8, 'late');
-select is(comms.planifier_rappels_loyer(), 0, '9 · inactif par défaut (anciens rappels en production)');
+update config.parametres set valeur = 'false' where cle = 'rappels_loyer';  -- valeur de la production
+select is(comms.planifier_rappels_loyer(), 0, '9 · inactif tant que le réglage est faux (production)');
 update config.parametres set valeur = 'true' where cle = 'rappels_loyer';
 select comms.planifier_rappels_loyer();
 select comms.planifier_rappels_loyer();
