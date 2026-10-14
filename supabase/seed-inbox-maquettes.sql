@@ -15,7 +15,7 @@ begin
   perform crm.recevoir_message('sms', '+14185550164', 'Parfait, merci! À jeudi.', 'demo-eg-2');
   update crm.conversation_messages set created_at = t + time '12:01' where provider_message_id = 'demo-eg-2';
   update crm.conversations set display_name = 'Émilie Gagnon', last_message_at = t + time '12:01' where id = c;
-  perform crm.passer_la_main(c, 'Cléo a réservé la visite (jeu. 10 h) et passé la main. Budget 1 450 $, arrivée le 1er décembre, sans animaux.', camille);
+  perform crm.passer_la_main(c, 'Visite réservée jeudi 10 h. Budget 1 450 $, arrivée le 1er décembre, sans animaux.', camille);
 
   -- Gabriel Paquet : courriel, en attente
   c := crm.recevoir_message('email', 'gabriel@exemple-inbox.test', 'Je peux payer la moitié vendredi et le reste le 15. Est-ce que ça vous va?', 'demo-gp-1', 'Loyer d’octobre');

@@ -510,3 +510,4 @@ li.non-lu .inbox-l2 { color: #3E4A59; }
 .bouton:disabled { opacity: .55; cursor: not-allowed; }
 @media (max-width: 1300px) { .inbox { grid-template-columns: 340px minmax(0, 1fr); } .inbox-contact { display: none; } }
 @media (max-width: 900px) { .inbox { grid-template-columns: minmax(0, 1fr); height: auto; } .inbox-liste ul { max-height: 360px; } .inbox-fil { min-height: 600px; } }
+.inbox-contact > p.petit-texte { margin: 0 0 24px; font-size: 13px; }
