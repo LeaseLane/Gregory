@@ -770,3 +770,24 @@ span.interrupteur { flex: none; opacity: .6; }
 .encadre-lcap { display: flex; gap: 12px; padding: 16px; margin-bottom: 24px; border-radius: 12px; background: #ECF2F9; } .encadre-lcap > div { display: grid; gap: 4px; } .encadre-lcap strong { font-size: 14px; } .encadre-lcap span { font-size: 13px; color: #3E4A59; }
 .import-boutons { display: grid; gap: 12px; margin-top: 24px; } .import-boutons .bouton { height: 44px; font-size: 14px; width: 100%; }
 a.bouton-contour { color: #0C2147; }
+
+/* Ventes · Prospection IA (maquette l08). */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+.kpi { min-height: 136px; display: grid; align-content: start; gap: 4px; padding: 20px 24px; background: #fff; border: 1px solid #E1E6EC; border-radius: 16px; box-shadow: 0 2px 6px rgba(12,33,71,.07), 0 1px 2px rgba(12,33,71,.05); }
+.kpi > span:first-child { font-size: 13px; color: #58697F; } .kpi b { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; } .kpi > span:nth-child(3) { font-size: 12px; color: #58697F; }
+.kpi .micro.large { width: 100%; height: 32px; margin-top: 6px; } .kpi .jauge { margin-top: 12px; flex: none; width: 100%; }
+.e2-carte { border-color: #C8DAF0; box-shadow: 0 8px 24px rgba(12,33,71,.09), 0 2px 6px rgba(12,33,71,.05); }
+.recherche-agent { display: flex; gap: 8px; } .recherche-agent .e70-raison { margin: 0; width: 150px; height: 44px; } .recherche-agent input[type=number] { width: 72px; }
+.recherche-agent .bouton { width: auto; height: 44px; font-size: 14px; white-space: nowrap; }
+.suggestions { display: grid; gap: 16px; padding: 0 24px 24px; }
+.suggestion { padding: 20px; border: 1px solid #E1E6EC; border-radius: 12px; }
+.sugg-tete { display: flex; gap: 16px; } .sugg-tete > div:nth-child(2) { flex: 1; min-width: 0; }
+.sugg-tete h3 { margin: 0; font-size: 16px; font-weight: 600; } .sugg-tete p { margin: 4px 0 0; font-size: 13px; color: #58697F; }
+.pertinence { display: grid; text-align: right; } .pertinence b { font-size: 20px; font-weight: 700; } .pertinence span { font-size: 12px; color: #58697F; }
+.pourquoi { display: flex; gap: 10px; margin: 16px 0 12px; padding: 12px; border-radius: 8px; background: #EEF1F5; font-size: 13px; line-height: 1.4; }
+.pourquoi q { color: #3E4A59; font-style: italic; }
+.sugg-pied { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; } .sugg-pied .bouton { height: 36px; font-size: 14px; width: auto; padding: 0 16px; }
+.sugg-pied > .gris { font-size: 12px; } .sugg-pied a { color: #2E5788; }
+.chrono.seq { padding: 0; margin: 0 0 20px; } .chrono.seq .surtitre { margin: 0 0 2px; }
+hr.filet { border: 0; border-top: 1px solid #E1E6EC; margin: 0 0 20px; }
+@media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .recherche-agent { flex-wrap: wrap; } }
