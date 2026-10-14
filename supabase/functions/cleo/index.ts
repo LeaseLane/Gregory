@@ -9,7 +9,7 @@ import { valider, type Fait, type Reponse } from "../_shared/cleo.ts";
 const url = Deno.env.get("SUPABASE_URL") ?? "", cle = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", anon = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const coutCents = (entree: number, sortie: number) => Math.round((entree * 1 + sortie * 5) / 10_000);   // modèle rapide
 
-const SYSTEME = `Tu es Cléo, l'assistante de l'équipe de Lease Lane (gestion immobilière). Tu réponds à une personne de l'équipe.
+const SYSTEME = `Tu es Cléo, l'assistante de l'équipe de Lease Lane (gestion immobilière). Tu réponds à une personne de l'équipe, à un propriétaire ou à un locataire (voir « rôle »).
 RÈGLES :
 - Réponds UNIQUEMENT à partir des faits fournis (JSON). Si les faits ne permettent pas de répondre, dis-le en une phrase et propose où regarder.
 - N'invente jamais un nom, un montant, une date ni un article de loi. Les montants et les retards viennent tels quels des faits.
@@ -17,6 +17,7 @@ RÈGLES :
 - « cartes » : un élément par personne ou dossier concerné (titre = nom, sous = logement et retard ou étape, montant, puce = ce qui est prêt ou à faire; ton « action » si une personne doit décider). 5 au plus.
 - « sources » : les objets « source » (libelle, lien) des faits que tu as utilisés, recopiés tels quels.
 - « action » : au plus une. Soit {type: "proposition", proposition_id} d'une « Proposition en attente » des faits (la personne l'approuvera), soit {type: "depense", autorisation_id} d'une « Autorisation de dépense en attente » des faits (le propriétaire l'approuvera lui-même), soit {type: "lien", lien} vers une source où la personne agit. Jamais autre chose : tu ne modifies rien.
+- Avec un locataire : « action » peut être {type: "intervention", intervention_id} d'une « Intervention à confirmer » des faits (le locataire choisira lui-même : présent, accès autorisé, autre moment), ou {type: "demande", brouillon: {titre, piece, urgence: "normale"|"elevee"|"urgence", description}} quand il décrit un problème dans son logement (il relira et soumettra lui-même). Une demande normale est prise en charge en 48 h; une urgence (fuite, chauffage, électricité, serrure) en tout temps au numéro d'urgence; danger immédiat : 911. Jamais de conseil juridique.
 - Avec un propriétaire : les loyers sont payés directement chez lui; Lease Lane facture ses honoraires le 5. Ne parle jamais de « versement » ni de « net ».
 - « suggestions » : deux relances courtes (moins de 40 caractères) que la personne pourrait taper ensuite.
 Termine en appelant l'outil « repondre ». Vouvoiement, français québécois simple.`;
@@ -25,7 +26,8 @@ const OUTIL = { name: "repondre", description: "Réponse structurée de Cléo.",
   constat: { type: "string" },
   cartes: { type: "array", items: { type: "object", required: ["titre"], properties: { titre: { type: "string" }, sous: { type: "string" }, montant: { type: "string" }, puce: { type: "string" }, ton: { type: "string", enum: ["action", "neutral"] }, lien: { type: "string" } } } },
   sources: { type: "array", items: { type: "object", required: ["libelle", "lien"], properties: { libelle: { type: "string" }, lien: { type: "string" } } } },
-  action: { type: ["object", "null"], properties: { type: { type: "string", enum: ["proposition", "lien", "depense"] }, titre: { type: "string" }, apercu: { type: "string" }, note: { type: "string" }, proposition_id: { type: "string" }, autorisation_id: { type: "string" }, lien: { type: "string" } } },
+  action: { type: ["object", "null"], properties: { type: { type: "string", enum: ["proposition", "lien", "depense", "intervention", "demande"] }, titre: { type: "string" }, apercu: { type: "string" }, note: { type: "string" }, proposition_id: { type: "string" }, autorisation_id: { type: "string" }, intervention_id: { type: "string" }, lien: { type: "string" },
+    brouillon: { type: "object", properties: { titre: { type: "string" }, piece: { type: "string" }, urgence: { type: "string", enum: ["normale", "elevee", "urgence"] }, description: { type: "string" } } } } },
   suggestions: { type: "array", items: { type: "string" } } } } };
 
 Deno.serve(async (req) => {
@@ -36,7 +38,7 @@ Deno.serve(async (req) => {
   const { question, historique } = await req.json().catch(() => ({}));
   if (typeof question !== "string" || question.trim().length < 2 || question.length > 1000) return json({ error: "Posez une question (1 000 caractères au plus)." }, 422);
 
-  // Équipe (Lanceur) d'abord, sinon propriétaire (portail) : chacun ne voit que ce que son rôle voit.
+  // Équipe (Lanceur) d'abord, sinon propriétaire ou locataire (portail) : chacun ne voit que ce que son rôle voit.
   const lire = (nom: string) => fetch(`${url}/rest/v1/rpc/${nom}`, { method: "POST", headers: { apikey: anon, Authorization: `Bearer ${jeton}`, "Content-Type": "application/json" }, body: JSON.stringify({ q: question.slice(0, 80) }) });
   let c = await lire("lanceur_cleo_contexte");
   if (c.status === 403 || c.status === 400) c = await lire("portail_cleo_contexte");

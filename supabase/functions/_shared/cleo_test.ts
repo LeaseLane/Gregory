@@ -24,3 +24,14 @@ Deno.test("cleo : autorisation de dépense seulement si elle est dans les faits;
   assertEquals(valider({ constat: "x", action: { type: "depense", titre: "Approuver", autorisation_id: "a1", montant: 1 } }, f).action?.montant, 1250);
   assertEquals(valider({ constat: "x", action: { type: "depense", titre: "Approuver", autorisation_id: "inventee" } }, f).action, null);
 });
+Deno.test("cleo : intervention seulement si elle est dans les faits; fournisseur et moment de la base", () => {
+  const f = [{ fait: "Intervention à confirmer", intervention_id: "w1", fournisseur: "Menuiserie", quand: "2026-10-14 09:00", source: { libelle: "Demande", lien: "/locataire/demandes?d=1" } }];
+  const a = valider({ constat: "x", action: { type: "intervention", titre: "t", intervention_id: "w1", fournisseur: "Inventé" } }, f).action!;
+  assertEquals([a.fournisseur, a.quand, a.lien], ["Menuiserie", "2026-10-14 09:00", "/locataire/demandes?d=1"]);
+  assertEquals(valider({ constat: "x", action: { type: "intervention", titre: "t", intervention_id: "inventee" } }, f).action, null);
+});
+Deno.test("cleo : brouillon de demande nettoyé (urgence connue, textes bornés)", () => {
+  const a = valider({ constat: "x", action: { type: "demande", titre: "", brouillon: { titre: "Robinet qui goutte", urgence: "extreme" as never, description: "Le robinet de la salle de bain goutte." } } }, []).action!;
+  assertEquals([a.titre, a.brouillon?.urgence], ["Demande prête", "normale"]);
+  assertEquals(valider({ constat: "x", action: { type: "demande", titre: "t", brouillon: { titre: "x", urgence: "normale", description: "" } } }, []).action, null);
+});
