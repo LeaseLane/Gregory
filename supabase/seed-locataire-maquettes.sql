@@ -40,6 +40,7 @@ begin
   update public.buildings set renovated_year = 2021, floors = 3, access_notes = 'Entrée à code · buanderie au sous-sol', collection_notes = 'lundi (ordures), jeudi (recyclage)',
     city = 'Québec', postal_code = 'G1R 2S7', zone = 'Montcalm' where id = v_b;
   update public.leases set inclusions = '{"Eau chaude","Stationnement extérieur","Rangement au sous-sol"}' where id = v_l;
+  insert into public.company_settings (id) values (true) on conflict (id) do nothing;
   update public.company_settings set legal_name = 'Solutions locatives Lease Lane', neq = '1182479981', address = 'Québec (Québec)', phone_main = '418 555-0142, poste 3', phone_emergency = '418 555-0199' where id;
 
   -- Bail précédent (2025-2026) et ses loyers de janvier à juin 2026; loyers 2026-2027 en prélèvement (juillet par virement)
@@ -87,6 +88,7 @@ begin
     ('Fenêtre de la chambre : intervention prévue', E'Bonjour Samuel,\n\nMenuiserie Lauzon passera entre 9 h et 12 h pour la fenêtre de la chambre. Confirmez-vous votre présence, ou autorisez-vous l’accès en votre absence ?\n\nCamille'),
     ('Inspection de la toiture', E'Bonjour Samuel,\n\nUne inspection de la toiture aura lieu dans deux semaines. Elle se fait de l’extérieur : aucun accès à votre logement n’est requis.\n\nCamille'),
     ('Votre reçu d’octobre', 'Votre reçu de loyer d’octobre est disponible dans Paiements.')) m(sujet, body) on m.sujet = c.subject where c.tenant_id = v_t and c.channel = 'portail';
+  update crm.conversations set tenant_unread = subject like 'Fenêtre%' where tenant_id = v_t and channel = 'portail';   -- le déclencheur marque chaque réponse non lue
 
   -- Avis de l'immeuble, documents, notifications
   delete from public.building_notices where building_id = v_b;
