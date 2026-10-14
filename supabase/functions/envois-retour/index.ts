@@ -39,8 +39,9 @@ Deno.serve(async (req) => {
       return new Response("signature invalide", { status: 401 });
     }
     if (params.From) {
+      // Le message va dans l'Inbox (T7), qui arrête aussi les relances en cours; STOP supprime en plus l'adresse.
+      await rpc("inbox_recevoir", { p_channel: "sms", p_address: params.From, p_body: params.Body ?? "", p_provider_id: params.MessageSid ?? null });
       if (estArret(params.Body)) await rpc("envois_supprimer", { p_channel: "sms", p_address: params.From, p_reason: "stop" });
-      else await rpc("envois_reponse", { p_channel: "sms", p_address: params.From });
     }
     return new Response("<Response/>", { headers: { "Content-Type": "text/xml" } });
   }

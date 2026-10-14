@@ -47,7 +47,7 @@ const table = (style: string, rows: string) => `<table role="presentation" width
 
 type Bloc = (o: any, v: Record<string, unknown>) => string;
 const BLOCS: Record<string, Bloc> = {
-  p: (o, v) => `<p style="margin:0;font-family:${F};font-size:15px;line-height:1.6;color:${o.c ?? K.g700};font-weight:${o.wt ?? 400};">${tx(o.t, v)}</p>`,
+  p: (o, v) => `<p style="margin:0;white-space:pre-line;font-family:${F};font-size:15px;line-height:1.6;color:${o.c ?? K.g700};font-weight:${o.wt ?? 400};">${tx(o.t, v)}</p>`,
   kv: (o, v) => table(`background:${K.g025};border:1px solid ${K.g100};border-radius:12px;`,
     (o.rows as [string, string, string?][]).map(([k, val, em], i) =>
       `<tr>${td(`padding:${i ? 10 : 16}px 20px ${i === o.rows.length - 1 ? 16 : 10}px;font-size:14px;color:${K.g600};${i ? `border-top:1px solid ${K.g100};` : ""}`, tx(k, v))}` +

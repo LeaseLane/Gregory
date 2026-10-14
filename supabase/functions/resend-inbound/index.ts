@@ -129,8 +129,13 @@ if (import.meta.main) Deno.serve(async (req) => {
     workerId = (await r.json().catch(() => []))?.[0]?.id ?? null;
   }
   if (!workerId || !UUID.test(workerId)) {
-    // Réponse 200 : Resend ne doit pas réessayer un message qu'on ne saura jamais classer.
-    return new Response(JSON.stringify({ ok: true, ignore: "travailleur introuvable" }), { status: 200 });
+    // T7 : tout autre courriel (locataire sans demande ouverte, propriétaire, inconnu) va dans l'Inbox, rattaché à un seul fil.
+    const recuI = await fetch(`https://api.resend.com/emails/receiving/${d.email_id}`, { headers: { Authorization: `Bearer ${resendKey}` } });
+    const cI = await recuI.json().catch(() => ({}));
+    const insI = await fetch(`${supabaseUrl}/rest/v1/rpc/inbox_recevoir`, { method: "POST", headers: adminHeaders,
+      body: JSON.stringify({ p_channel: "email", p_address: expediteur, p_body: sansCitation(String(cI.text ?? "")) || "(message sans texte)", p_provider_id: d.email_id ?? null, p_subject: d.subject ?? cI.subject ?? null }) });
+    if (!insI.ok) return new Response(JSON.stringify({ error: "enregistrement impossible" }), { status: 500 });
+    return new Response(JSON.stringify({ ok: true, fil: "inbox" }), { status: 200 });
   }
 
   const recu = await fetch(`https://api.resend.com/emails/receiving/${d.email_id}`, { headers: { Authorization: `Bearer ${resendKey}` } });
