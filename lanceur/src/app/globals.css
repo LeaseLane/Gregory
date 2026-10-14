@@ -542,3 +542,6 @@ li.non-lu .inbox-l2 { color: #3E4A59; }
 .nt-grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
 .nt-grille .e70-raison { margin-top: 8px; }
 @media (max-width: 1100px) { .taches li { grid-template-columns: 20px minmax(0, 1fr) 80px 40px; } .taches .ctx, .taches .rec { display: none; } .segment.large { width: auto; } .taches-actions { flex-wrap: wrap; } }
+.segment button { white-space: nowrap; }
+.nouvelle-tache { margin: 0 24px 24px; }
+.taches { display: flex; flex-direction: column; } .taches .nouvelle-tache { align-self: flex-start; margin-top: auto; }

@@ -71,7 +71,6 @@ export function Taches({ donnees, erreurLecture }: { donnees: DonneesTaches | nu
           <header className="carte-tete studio-tete">
             <div><h2>Mes tâches</h2><p>{[nomMoi, `${groupes[0][2].length} en retard`, `${groupes[1][2].length} aujourd’hui`, `${groupes[2][2].length} à venir`].filter(Boolean).join(' · ').replace(' · ', ' · ')}</p></div>
             <div className="taches-actions">
-              <button className="bouton bouton-contour" onClick={() => setNouvelle(true)}><Icone nom="plus" taille={18} />Nouvelle tâche</button>
               <div className="segment large" role="tablist" aria-label="Portée">
                 {([['miennes', 'Les miennes'], ['role', 'Mon rôle'], ['equipe', 'Toute l’équipe']] as const).map(([k, l]) => (
                   <button key={k} role="tab" aria-selected={vue === k} className={vue === k ? 'actif' : ''} onClick={() => setVue(k)}>{l}</button>
@@ -96,6 +95,7 @@ export function Taches({ donnees, erreurLecture }: { donnees: DonneesTaches | nu
               </ul>
             </div>
           ))}
+          <button className="lien nouvelle-tache" onClick={() => setNouvelle(true)}>+ Nouvelle tâche</button>
         </section>
 
         <div className="colonne-l18">
