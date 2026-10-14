@@ -134,3 +134,7 @@ verify_jwt = true
 [functions.cleo]
 # T8c : Lanceur seulement; le contexte est lu avec le jeton de la personne.
 verify_jwt = true
+
+[functions.portail-fichiers]
+# TP : portails; accès vérifié en base avec le jeton de la personne, lien signé de 10 minutes.
+verify_jwt = true
