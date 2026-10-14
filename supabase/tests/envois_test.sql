@@ -80,7 +80,7 @@ select throws_ok($$ select public.lanceur_coupe_circuit('{"active":true}') $$, '
 select pg_temp.mettre('LOC-04', 't6:retenu');
 select public.lanceur_coupe_circuit('{"active":true,"reason":"Erreur de montant dans LOC-05"}');
 update comms.outbox set scheduled_for = now() - interval '1 minute' where status = 'queued';
-create temp table t_lot6 on commit drop as select * from comms.preparer_lot(100);
+create temp table t_lot6 on commit drop as select e ->> 'template_code' as template_code from comms.preparer_lot(100) e;
 select is(pg_temp.statut('t6:retenu'), 'held_kill_switch', '6 · coupe-circuit → non essentiel retenu');
 select ok((select count(*) from t_lot6 where template_code <> 'EQP-11') = 0 and (select count(*) from t_lot6 where template_code = 'EQP-11') >= 1,
           '6 · seuls les essentiels (EQP-11) partent');
