@@ -16,4 +16,11 @@ begin
     end;
   end loop;
 end $$;
+-- Emménagement de démonstration : un bail qui commence dans 40 jours (le déclencheur démarre le processus).
+insert into public.buildings (id, address) values ('00000000-0000-4000-d000-0000000009a1', '640, 3e Av., Québec') on conflict (id) do nothing;
+insert into public.units (id, building_id, unit_number, status) values ('00000000-0000-4000-d000-0000000009a2', '00000000-0000-4000-d000-0000000009a1', '4', 'soon_available') on conflict (id) do nothing;
+insert into public.tenants (id, full_name, email) values ('00000000-0000-4000-d000-0000000009a3', 'Émilie Gagnon', 'emilie.gagnon@exemple.test') on conflict (id) do nothing;
+insert into public.leases (id, unit_id, tenant_id, start_date, end_date, monthly_rent, status)
+select '00000000-0000-4000-d000-0000000009a4', '00000000-0000-4000-d000-0000000009a2', '00000000-0000-4000-d000-0000000009a3', current_date + 40, current_date + 405, 1350, 'active'
+where not exists (select 1 from public.leases where id = '00000000-0000-4000-d000-0000000009a4');
 select p.code, p.step, l.end_date from crm.processes p join public.leases l on l.id = p.lease_id where p.status = 'active' order by l.end_date;
