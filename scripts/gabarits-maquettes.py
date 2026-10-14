@@ -36,7 +36,7 @@ VARIABLES = {
     cta={'l': 'Payer {montant}', 'href': '{lien_paiement}', 'link': 'Proposer une entente de paiement', 'linkHref': '{lien_entente}'}, sign=GEST),
   'EQP-11': dict(pre='Par {par} à {heure} · {raison}',
     intro='{par} a suspendu les envois automatiques à {heure}. Rien ne part tant qu’une personne ne les réactive pas.',
-    blocks=[['kv', {'rows': [['Raison', '{raison}'], ['Durée', 'Jusqu’à la réactivation'], ['Envois retenus', '{envois_retenus}']]}],
+    blocks=[['kv', {'rows': [['Raison', '{raison}'], ['Durée', '{duree}'], ['Envois retenus', '{envois_retenus}']]}],
             ['bullets', {'items': ['Cléo répond toujours aux messages reçus, sans rien envoyer d’elle-même.', 'Les avis déjà approuvés attendent aussi la reprise.', 'La reprise sera inscrite au journal, avec son auteur et sa raison.']}]],
     cta={'l': 'Voir les automatisations', 'href': '{lien}'}),
 }
@@ -50,7 +50,7 @@ EXEMPLES = {
   'LOC-06': {'prenom': 'Gabriel', 'montant': '1 195 $', 'de_mois': 'd’octobre', 'jours_retard': '7', 'ratio_retard': '0.333', 'echeance': '1er octobre 2026',
              'adresse_logement': '640, 3e Avenue — 7', 'lien_paiement': 'https://app.leaselane.ca/?p=locataire', 'lien_entente': 'mailto:info@leaselane.ca?subject=Entente%20de%20paiement',
              'gestionnaire': 'Julie N.', 'initiales_gestionnaire': 'JN'},
-  'EQP-11': {'par': 'Steven Paradis', 'heure': '12 h 10', 'raison': 'Erreur de montant dans LOC-05', 'envois_retenus': '23', 'lien': 'https://app.leaselane.ca/'},
+  'EQP-11': {'par': 'Steven Paradis', 'heure': '12 h 10', 'raison': 'Erreur de montant dans LOC-05', 'duree': 'Jusqu’à la réactivation', 'envois_retenus': '23', 'lien': 'https://app.leaselane.ca/'},
 }
 
 def lcap(s):

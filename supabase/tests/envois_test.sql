@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, comms;
-select plan(34);
+select plan(36);
 
 create function pg_temp.comme(p_user uuid, p_aal text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', p_user, 'aal', p_aal, 'role', 'authenticated')::text, true);
@@ -86,6 +86,12 @@ select ok((select count(*) from t_lot6 where template_code <> 'EQP-11') = 0 and 
           '6 · seuls les essentiels (EQP-11) partent');
 select public.lanceur_coupe_circuit('{"active":false}');
 select is(pg_temp.statut('t6:retenu'), 'queued', '6 · reprise → remis en file');
+select public.lanceur_coupe_circuit('{"active":true,"reason":"essai d''une heure","duree":"1h"}');
+select ok((select until between now() + interval '59 minutes' and now() + interval '61 minutes' from config.kill_switch), '6 · « Pendant 1 heure » → échéance dans 1 h');
+update config.kill_switch set until = now() - interval '1 second';
+update comms.outbox set status = 'held_kill_switch' where idempotency_key = 't6:retenu';
+select comms.expirer_coupe_circuit();
+select ok(not (select active from config.kill_switch) and pg_temp.statut('t6:retenu') = 'queued', '6 · échéance passée → reprise automatique, envois remis en file');
 
 -- 7. Webhooks : STOP et réponse
 insert into comms.sequence_enrollments (id, sequence_code, channel, recipient) values ('00000000-0000-4000-a000-0000000000f2', 'essai2', 'sms', '+14185550000');

@@ -6,7 +6,7 @@ import { peut, type Moi } from '@/lib/moi';
    des exemples : là où la donnée n'existe pas encore, la tuile le dit (« — » + tranche). */
 export type Puce = { texte: string; ton: 'todo' | 'action' | 'neutral' | 'info' };
 export type Viz = { type: 'unit'; n: number; k: number } | { type: 'meter'; ratio: number } | null;
-export type Tuile = { icone: string; nom: string; valeur: string; libelle: string; puce: Puce; viz: Viz; droit?: string };
+export type Tuile = { icone: string; nom: string; valeur: string; libelle: string; puce: Puce; viz: Viz; droit?: string; href?: string };
 export type Accueil = { tuiles: Tuile[]; briefing: string; urgences: number; erreur?: string };
 
 type CC = Record<string, unknown>;
@@ -48,15 +48,15 @@ export async function lireAccueil(moi: Moi): Promise<Accueil> {
   const v = (x: number | string) => (ok ? String(x) : '—');
 
   const tuiles: Tuile[] = [
-    { icone: 'inbox', nom: 'Opérations', droit: 'operations.lire', valeur: v(aTraiter), libelle: 'à traiter', puce: urgences ? { texte: pl(urgences, 'urgent', 'urgents'), ton: 'todo' } : { texte: 'Aucune urgence', ton: 'neutral' }, viz: ok && aTraiter ? { type: 'unit', n: Math.min(aTraiter, 10), k: Math.min(urgences, 10) } : null },
+    { icone: 'inbox', nom: 'Opérations', droit: 'operations.lire', href: '/operations/a-approuver', valeur: v(aTraiter), libelle: 'à traiter', puce: urgences ? { texte: pl(urgences, 'urgent', 'urgents'), ton: 'todo' } : { texte: 'Aucune urgence', ton: 'neutral' }, viz: ok && aTraiter ? { type: 'unit', n: Math.min(aTraiter, 10), k: Math.min(urgences, 10) } : null },
     { icone: 'trend', nom: 'Ventes', droit: 'ventes.lire', valeur: v(n(cc.prospects_a_relancer)), libelle: 'prospects à relancer', puce: { texte: 'Pipelines · T3', ton: 'info' }, viz: null },
     { icone: 'users', nom: 'Clients', droit: 'clients.lire', valeur: v(t.clients_count ?? 0), libelle: 'clients actifs', puce: t.new_inquiries ? { texte: pl(t.new_inquiries, 'demande', 'demandes'), ton: 'neutral' } : { texte: 'Aucune demande', ton: 'info' }, viz: null },
     { icone: 'building', nom: 'Immeubles', droit: 'immeubles.lire', valeur: v(unites), libelle: 'logements gérés', puce: { texte: pl(unites - occupes, 'vacant', 'vacants'), ton: 'info' }, viz: ok && unites ? { type: 'meter', ratio: occupes / unites } : null },
     { icone: 'wrench', nom: 'Maintenance', droit: 'maintenance.lire', valeur: v(travaux), libelle: 'travaux à suivre', puce: n(cc.decisions_requises) ? { texte: pl(n((cc.decisions_requises as CC)?.approbations_en_attente), 'approbation', 'approbations'), ton: 'action' } : { texte: 'Rien en attente', ton: 'info' }, viz: null },
     { icone: 'dollar', nom: 'Finances', droit: 'finances.lire', valeur: ok ? argent(t.monthly_revenue ?? 0) : '—', libelle: 'honoraires mensuels prévus', puce: retards ? { texte: pl(retards, 'loyer en retard', 'loyers en retard'), ton: 'todo' } : { texte: 'Aucun retard', ton: 'info' }, viz: null },
     { icone: 'scale', nom: 'Juridique', droit: 'juridique.lire', valeur: '—', libelle: 'dossiers actifs', puce: { texte: 'À venir · T8', ton: 'neutral' }, viz: null },
-    { icone: 'globe', nom: 'Studio', droit: 'studio.lire', valeur: v(t.new_inquiries ?? 0), libelle: 'nouvelles demandes du site', puce: { texte: 'Site web · TS', ton: 'info' }, viz: null },
-    { icone: 'spark', nom: 'Cléo et IA', droit: 'ia.lire', valeur: v(iaReviser), libelle: 'décisions à réviser', puce: { texte: 'Propositions · T1', ton: 'neutral' }, viz: null },
+    { icone: 'globe', nom: 'Studio', droit: 'studio.lire', href: '/studio/gabarits', valeur: v(t.new_inquiries ?? 0), libelle: 'nouvelles demandes du site', puce: { texte: 'Site web · TS', ton: 'info' }, viz: null },
+    { icone: 'spark', nom: 'Cléo et IA', droit: 'ia.lire', href: '/cleo-ia/automatisations', valeur: v(iaReviser), libelle: 'décisions à réviser', puce: { texte: 'Propositions · T1', ton: 'neutral' }, viz: null },
     { icone: 'chart', nom: 'Rapports et réglages', droit: 'rapports.lire', valeur: issues.length ? pl(issues.length, 'alerte', 'alertes') : sante.healthy ? 'Tout va bien' : '—', libelle: 'santé des services', puce: issues.length ? { texte: issues[0].type === 'cron_http_failed' ? 'Tâche planifiée en échec' : 'Incident', ton: 'todo' } : { texte: 'Aucun incident', ton: 'info' }, viz: null },
   ];
 

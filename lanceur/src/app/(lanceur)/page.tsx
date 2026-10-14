@@ -1,5 +1,6 @@
 import { lireAccueil, type Tuile } from '@/lib/accueil';
 import { lireMoi } from '@/lib/moi';
+import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
 
 /* Accueil · 10 espaces (maquette l00 : 5 × 2, état en direct, « reprendre où vous étiez », astuce ⌘K). */
@@ -7,6 +8,13 @@ function Micro({ viz }: { viz: Tuile['viz'] }) {
   if (!viz) return null;
   if (viz.type === 'meter') return <span className="jauge" aria-hidden="true"><i style={{ width: `${Math.max(6, viz.ratio * 100)}%` }} /></span>;
   return <span className="unites" aria-hidden="true">{Array.from({ length: viz.n }, (_, i) => <i key={i} className={i < viz.k ? 'rouge' : ''} />)}</span>;
+}
+
+// Un espace qui a déjà une page s'ouvre au clic; les autres restent des tuiles d'état.
+function Carte({ href, label, children }: { href?: string; label: string; children: React.ReactNode }) {
+  return href
+    ? <Link href={href} className="espace lien-espace" aria-label={label}>{children}</Link>
+    : <article className="espace" tabIndex={0} aria-label={label}>{children}</article>;
 }
 
 export default async function Accueil() {
@@ -36,7 +44,7 @@ export default async function Accueil() {
       <p className="surtitre gris">Vos espaces</p>
       <div className="espaces">
         {a.tuiles.map((t) => (
-          <article key={t.nom} className="espace" tabIndex={0} aria-label={`${t.nom} : ${t.valeur} ${t.libelle}`}>
+          <Carte key={t.nom} href={t.href} label={`${t.nom} : ${t.valeur} ${t.libelle}`}>
             <span className="espace-ic"><Icone nom={t.icone} taille={24} couleur="#0C2147" /></span>
             <span className="espace-fl"><Icone nom="arrow" taille={20} couleur="#2E5788" /></span>
             <h2>{t.nom}</h2>
@@ -46,7 +54,7 @@ export default async function Accueil() {
               <span className={`puce ${t.puce.ton}`}>{t.puce.texte}</span>
               <Micro viz={t.viz} />
             </div>
-          </article>
+          </Carte>
         ))}
       </div>
 
