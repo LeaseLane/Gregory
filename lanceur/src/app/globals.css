@@ -909,3 +909,12 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .revision { margin-top: 20px; padding-top: 16px; border-top: 1px solid #E1E6EC; }
 .signature-apercu { display: grid; justify-items: start; gap: 2px; padding: 16px; border-radius: 12px; background: #F5F7FA; } .signature-apercu i { width: 220px; height: 1px; background: #8A99AB; margin: 2px 0 6px; }
 .signature-apercu strong { font-size: 14px; } .signature-apercu .gris { font-size: 12px; } .signature-apercu .surtitre { margin: 0 0 4px; }
+/* l14 · Maintenance › Soumissions */
+.th-note { text-transform: none; letter-spacing: 0; font-weight: 500; }
+.prix-barre { display: flex; align-items: center; gap: 12px; } .prix-barre strong { font-size: 14px; font-weight: 600; color: #0C2147; min-width: 64px; }
+.prix-barre .piste { position: relative; flex: 1; height: 16px; } .prix-barre .piste i { position: absolute; inset: 0 auto 0 0; border-radius: 0 4px 4px 0; background: #8A99AB; }
+.prix-barre .piste i.rec { background: #4581CB; } .prix-barre .piste b { position: absolute; top: -6px; bottom: -6px; width: 2px; border-radius: 1px; background: #0C2147; z-index: 1; }
+.ajout-soum { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 12px; margin-top: 16px; }
+.decision-soum { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.cleo-reco { display: flex; gap: 12px; padding: 16px; border-radius: 12px; background: #EEF4FB; } .cleo-reco .surtitre { margin: 0 0 6px; } .cleo-reco .texte-13 { line-height: 1.5; }
+.ligne-ic.rouge { color: #9B2E28; font-weight: 600; }
