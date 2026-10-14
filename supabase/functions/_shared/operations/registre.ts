@@ -39,6 +39,35 @@ export const REGISTRE = [
     description: "Change le nom, les initiales, le rôle ou l'état d'un membre. Refuse si la fiche a changé (409) ou s'il ne reste plus d'administrateur (422).",
   }),
   defineOperation({
+    nom: "list-proposals", espace: "operations", type: "sql", cible: "lanceur_propositions", permission: null, ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, description: "Propositions visibles selon le rôle (À approuver, l02); filtre de statut (pending par défaut).",
+  }),
+  defineOperation({
+    nom: "count-pending-proposals", espace: "operations", type: "sql", cible: "lanceur_nb_a_approuver", permission: null, ecriture: false, idempotente: true,
+    agents: "interdit", mcp: false, description: "Nombre de propositions en attente pour les pastilles.",
+  }),
+  defineOperation({
+    nom: "list-rejection-reasons", espace: "operations", type: "sql", cible: "lanceur_motifs_rejet", permission: null, ecriture: false, idempotente: true,
+    agents: "interdit", mcp: false, description: "Motifs de rejet actifs (e10).",
+  }),
+  defineOperation({
+    nom: "approve-proposal", espace: "operations", type: "sql", cible: "lanceur_approuver", permission: null, ecriture: true, idempotente: true,
+    agents: "interdit", mcp: false, journal: { action: "proposal.approved" },
+    description: "Approuve (ou modifie puis approuve) : applique par la même opération qu'un humain; 409 si déjà décidée; « proposition-perimee » si la fiche a changé.",
+  }),
+  defineOperation({
+    nom: "reject-proposal", espace: "operations", type: "sql", cible: "lanceur_rejeter", permission: null, ecriture: true, idempotente: true,
+    agents: "interdit", mcp: false, journal: { action: "proposal.rejected" }, description: "Rejette avec un motif obligatoire (« autre » exige une précision).",
+  }),
+  defineOperation({
+    nom: "move-prospect-stage", espace: "ventes", type: "sql", cible: "crm.move_prospect_stage", permission: "ventes.mandats.ecrire", ecriture: true, idempotente: true,
+    agents: "proposition", mcp: true, journal: { action: "prospect.stage_change" }, description: "Change l'étape d'un prospect; « perdu » exige une raison; 409 si l'étape a changé.",
+  }),
+  defineOperation({
+    nom: "update-prospect-followup", espace: "ventes", type: "sql", cible: "crm.update_prospect_followup", permission: "ventes.mandats.ecrire", ecriture: true, idempotente: true,
+    agents: "proposition", mcp: true, journal: { action: "prospect.followup_updated" }, description: "Intérêt, prochain suivi (jamais dans le passé) et prochaine action d'un prospect.",
+  }),
+  defineOperation({
     nom: "get-overview", espace: "operations", type: "herite", cible: "admin-api", permission: "operations.lire", ecriture: false, idempotente: true,
     agents: "direct", mcp: true, description: "Vue d'ensemble héritée : chiffres, « À traiter », anomalies (admin-api, sans action).",
   }),

@@ -37,4 +37,6 @@ jobs:
             url=""
           done
           [ -n "$url" ] || { echo "::error::Pooler de préproduction injoignable."; exit 1; }
-          psql "$url" -v ON_ERROR_STOP=1 -v mdp_roles="${MDP_ROLES:-}" -f "$FICHIER"
+          psql "$url" -v ON_ERROR_STOP=1 -v mdp_roles="${MDP_ROLES:-}" -f "$FICHIER" | tee sortie.txt
+          # Tests pgTAP : un « not ok » ou un plan non tenu fait échouer l'exécution.
+          if grep -qE '^\s*not ok|# Looks like' sortie.txt; then echo "::error::Des tests ont échoué."; exit 1; fi
