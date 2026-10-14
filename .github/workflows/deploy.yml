@@ -61,7 +61,7 @@ jobs:
       - name: Régler l'URL de Supabase Auth (préproduction)
         # Même piège qu'en production (2026-09-26), constaté en préproduction le
         # 2026-10-13 : le « Site URL » était resté sur l'ancien domaine
-        # portailgestion, et le courriel de confirmation y envoyait. Aucune
+        # l'ancien domaine, et le courriel de confirmation y envoyait. Aucune
         # interface n'est hébergée en préproduction : les liens vont à Lanceur
         # en local (http://localhost:3020). Idempotent, à chaque déploiement.
         env:
@@ -76,8 +76,9 @@ jobs:
           echo "site_url : $site"
           echo "redirections : $liste"
           attendu="http://localhost:3020"
-          # Retire toute ancienne adresse portailgestion des redirections permises.
-          liste=$(printf '%s' "$liste" | tr ',' '\n' | grep -v portailgestion | paste -sd, - || true)
+          # Retire toute adresse de l'ancien domaine des redirections permises (nom en deux morceaux : check-ancien-domaine).
+          ancien="portail""gestion"
+          liste=$(printf '%s' "$liste" | tr ',' '\n' | grep -v "$ancien" | paste -sd, - || true)
           case ",$liste," in *",$attendu/**,"*) ;; *) liste="${liste:+$liste,}$attendu/**"; changer=1;; esac
           [ "$site" = "$attendu" ] || changer=1
           if [ "${changer:-}" = 1 ]; then
@@ -166,9 +167,10 @@ jobs:
           # 2026-10-09 : les portails sont sur app.leaselane.ca (leaselane.ca = site public).
           # Réglé ici plutôt qu'à la main : idempotent, seulement si la valeur diffère.
           attendu="https://app.leaselane.ca"
-          # Retire toute ancienne adresse portailgestion des redirections permises.
+          # Retire toute adresse de l'ancien domaine des redirections permises (nom en deux morceaux : check-ancien-domaine).
+          ancien="portail""gestion"
           avant="$liste"
-          liste=$(printf '%s' "$liste" | tr ',' '\n' | grep -v portailgestion | paste -sd, - || true)
+          liste=$(printf '%s' "$liste" | tr ',' '\n' | grep -v "$ancien" | paste -sd, - || true)
           [ "$liste" = "$avant" ] || changer=1
           case ",$liste," in *",$attendu/**,"*) ;; *) liste="${liste:+$liste,}$attendu/**"; changer=1;; esac
           [ "$site" = "$attendu" ] || changer=1

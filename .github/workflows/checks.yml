@@ -36,6 +36,9 @@ jobs:
         # security definer / row_security = off.
         run: node scripts/check-rls-policies.mjs
 
+      - name: RLS et politiques dans la même migration (Phase 2)
+        run: node scripts/check-rls.mjs
+
       - name: Vérifications de logique métier
         # Un test que la chaîne n'exécute pas ne protège rien. Chacun de
         # ces fichiers est autonome (assert, aucun réseau) et couvre une

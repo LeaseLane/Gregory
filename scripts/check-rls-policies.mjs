@@ -32,7 +32,8 @@ const tout = fichiers.map((f) => f.contenu).join("\n");
 // pg_dump cite les identifiants ("public"."owners") alors que le SQL écrit
 // à la main ne les cite pas (public.owners) : les deux formes doivent être
 // reconnues, sinon la référence de schéma paraît dépourvue de RLS.
-const nomTable = String.raw`(?:"?public"?\.)?"?(\w+)"?`;
+// Schéma facultatif, quel qu'il soit (public, crm…) : « crm.team_members » donne « team_members », pas « crm ».
+const nomTable = String.raw`(?:"?\w+"?\.)?"?(\w+)"?`;
 
 const problemes = [];
 
