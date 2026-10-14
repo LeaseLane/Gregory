@@ -21,8 +21,8 @@ select ok(not exists (select 1 from crm.notifications where user_id = pg_temp.ui
 -- 2. Assigné par Julie à Camille → Camille notifiée, Julie non (sa propre action)
 select pg_temp.comme('equipe-gestionnaire@leaselane.test', 'aal2');
 select public.lanceur_maj_conversation(jsonb_build_object('id', (select id from t_c), 'assignee_user_id', pg_temp.uid('equipe-location@leaselane.test')));
-select ok(exists (select 1 from crm.notifications where user_id = pg_temp.uid('equipe-location@leaselane.test') and title like 'Fil assigné%'), '2 · fil assigné → la personne est notifiée');
-select is((select count(*)::int from crm.notifications where user_id = pg_temp.uid('equipe-gestionnaire@leaselane.test') and title like 'Fil assigné%'), 0, '2 · jamais pour sa propre action');
+select ok(exists (select 1 from crm.notifications where user_id = pg_temp.uid('equipe-location@leaselane.test') and title like 'Fil assigné%' and entity_id = (select id from t_c)), '2 · fil assigné → la personne est notifiée');
+select is((select count(*)::int from crm.notifications where user_id = pg_temp.uid('equipe-gestionnaire@leaselane.test') and title like 'Fil assigné%' and entity_id = (select id from t_c)), 0, '2 · jamais pour sa propre action');
 
 -- 3. Nouveau message sur ce fil → seulement la responsable
 select set_config('request.jwt.claims', '', true);
