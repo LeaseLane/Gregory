@@ -4,18 +4,19 @@ import Link from 'next/link';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
+import { heureQc } from '@/composants/portail/dates';
 
 /* Conversation avec Cléo (maquette e03) : une question, une réponse qui cite ses sources, et au plus une action proposée.
    Cléo ne modifie rien : l'action est une proposition déjà en attente (une personne l'approuve ici) ou un lien vers l'écran où agir. */
 type Rep = { constat: string; cartes: { titre: string; sous?: string; montant?: string; puce?: string; ton?: string; lien?: string }[]; sources: { libelle: string; lien: string }[];
-  action: { type: string; titre: string; apercu?: string; note?: string; proposition_id?: string; lien?: string; operation?: string } | null; suggestions: string[] };
+  action: { type: string; titre: string; apercu?: string; note?: string; proposition_id?: string; autorisation_id?: string; montant?: number; lien?: string; operation?: string } | null; suggestions: string[] };
 type Msg = { role: 'user' | 'assistant'; texte: string; rep?: Rep; erreur?: boolean; le: Date };
 const ICONES: [RegExp, string][] = [[/dossier|juridique|mise en demeure/i, 'scale'], [/paiement|loyer|registre/i, 'receipt'], [/tâche/i, 'check'], [/soumission/i, 'wrench']];
 
-export function Cleo({ question, fermer }: { question: string; fermer: () => void }) {
+export function Cleo({ question, fermer }: { question: string; fermer: () => void }) {  // équipe ou propriétaire : la fonction cleo lit le bon contexte
   const [msgs, setMsgs] = useState<Msg[]>([]), [saisie, setSaisie] = useState(''), [attente, setAttente] = useState(false), [faites, setFaites] = useState<string[]>([]);
   const bas = useRef<HTMLDivElement>(null), lance = useRef(false);
-  useEffect(() => { if (!lance.current && question) { lance.current = true; demander(question); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!lance.current && question.trim()) { lance.current = true; demander(question); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { bas.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs, attente]);
 
   async function demander(q: string) {
@@ -25,12 +26,18 @@ export function Cleo({ question, fermer }: { question: string; fermer: () => voi
     const j = await r.json().catch(() => ({})); setAttente(false);
     setMsgs((m) => [...m, r.ok ? { role: 'assistant', texte: j.constat, rep: j as Rep, le: new Date() } : { role: 'assistant', texte: j.error ?? 'Cléo ne répond pas pour l’instant. Vos actions restent possibles sans elle.', erreur: true, le: new Date() }]);
   }
+  // Propriétaire : approuver une dépense en attente (c'est la personne qui décide, ici).
+  async function approuverDepense(id: string) {
+    const { error } = await supabaseNavigateur().rpc('portail_decider_depense', { p: { id, decision: 'approuve' } });
+    if (error) { setMsgs((m) => [...m, { role: 'assistant', texte: error.message, erreur: true, le: new Date() }]); return; }
+    setFaites((f) => [...f, id]);
+  }
   async function approuver(id: string) {
     const { data, error } = await supabaseNavigateur().rpc('lanceur_approuver', { p: { id } });
     if (error || (data as { ok?: boolean })?.ok === false) { setMsgs((m) => [...m, { role: 'assistant', texte: error?.message ?? 'La proposition a changé depuis : ouvrez « À approuver ».', erreur: true, le: new Date() }]); return; }
     setFaites((f) => [...f, id]);
   }
-  const heure = (d: Date) => d.toLocaleTimeString('fr-CA', { hour: 'numeric', minute: '2-digit' }).replace(':', ' h ');
+  const heure = (d: Date) => heureQc(d.toISOString());
   const derniere = [...msgs].reverse().find((m) => m.rep)?.rep;
 
   return (
@@ -53,10 +60,15 @@ export function Cleo({ question, fermer }: { question: string; fermer: () => voi
                   {m.rep.action.apercu && <p className="cleo-apercu">{m.rep.action.apercu}</p>}
                   {m.rep.action.note && <p className="ligne-ic gris texte-13"><Icone nom="clock" taille={14} couleur="#58697F" />{m.rep.action.note}</p>}
                   <div className="deal-actions">
-                    {m.rep.action.type === 'proposition' && m.rep.action.operation !== 'approve-formal-notice' && m.rep.action.proposition_id
+                    {m.rep.action.type === 'depense' && m.rep.action.autorisation_id
+                      ? (faites.includes(m.rep.action.autorisation_id) ? <span className="ligne-ic"><span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>Dépense approuvée</span>
+                        : <button className="bouton bouton-principal" onClick={() => approuverDepense(m.rep!.action!.autorisation_id!)}>Approuver {m.rep.action.montant?.toLocaleString('fr-CA').replace(/\u202f/g, ' ')} $</button>)
+                      : null}
+                    {m.rep.action.type === 'depense' && m.rep.action.lien && <Link className="lien" href={m.rep.action.lien} onClick={fermer}>Voir le dossier</Link>}
+                    {m.rep.action.type !== 'depense' && (m.rep.action.type === 'proposition' && m.rep.action.operation !== 'approve-formal-notice' && m.rep.action.proposition_id
                       ? (faites.includes(m.rep.action.proposition_id) ? <span className="ligne-ic"><span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>Approuvée</span>
                         : <button className="bouton bouton-principal" onClick={() => approuver(m.rep!.action!.proposition_id!)}>Approuver</button>)
-                      : m.rep.action.lien && <Link className="bouton bouton-principal" href={m.rep.action.lien} onClick={fermer}>{m.rep.action.operation === 'approve-formal-notice' ? 'Ouvrir pour approuver et envoyer' : 'Ouvrir'}</Link>}
+                      : m.rep.action.lien && <Link className="bouton bouton-principal" href={m.rep.action.lien} onClick={fermer}>{m.rep.action.operation === 'approve-formal-notice' ? 'Ouvrir pour approuver et envoyer' : 'Ouvrir'}</Link>)}
                     {m.rep.action.type === 'proposition' && m.rep.action.lien && m.rep.action.operation !== 'approve-formal-notice' && <Link className="bouton bouton-contour" href={m.rep.action.lien} onClick={fermer}>Modifier</Link>}
                   </div></div>}
               </div></div>))}

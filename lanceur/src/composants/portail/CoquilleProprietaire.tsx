@@ -1,18 +1,21 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 import type { MoiPortail } from './Moi';
 import { Cloche } from './Cloche';
+import { Cleo } from '@/composants/Cleo';
 
 /* Coquille du propriétaire (maquette 01) : rail à gauche avec libellés, Cléo, carte du compte; recherche « Demandez à Cléo » et cloche.
    Une rubrique sans page n'est pas un lien (elle arrive avec son jalon). Pastille marine; rouge seulement pour une urgence (D4). */
 const MENU: [string, string, string | null][] = [['grid', 'Tableau de bord', '/proprietaire'], ['building', 'Immeubles', '/proprietaire/immeubles'], ['users', 'Locataires', '/proprietaire/locataires'], ['wrench', 'Demandes', '/proprietaire/demandes'],
-  ['message', 'Messages', '/proprietaire/messages'], ['card', 'Finance', null], ['folder', 'Documents', null], ['calendar', 'Calendrier', null], ['shield', 'Utilisateurs et accès', null],
-  ['scale', 'Conformité Loi 25', null], ['help', 'Aide', null]];
+  ['message', 'Messages', '/proprietaire/messages'], ['card', 'Finance', '/proprietaire/finance'], ['folder', 'Documents', '/proprietaire/documents'], ['calendar', 'Calendrier', '/proprietaire/calendrier'], ['shield', 'Utilisateurs et accès', '/proprietaire/acces'],
+  ['scale', 'Conformité Loi 25', '/proprietaire/loi25'], ['help', 'Aide', '/proprietaire/aide']];
 
 export function CoquilleProprietaire({ moi, comptes, children }: { moi: MoiPortail; comptes?: { demandes?: number; urgence?: boolean; messages?: number }; children: React.ReactNode }) {
   const chemin = usePathname();
+  const [cleo, setCleo] = useState<string | null>(null);
   return (
     <div className="po">
       <aside className="po-rail">
@@ -26,18 +29,19 @@ export function CoquilleProprietaire({ moi, comptes, children }: { moi: MoiPorta
             : <span key={l} className="inactif" aria-disabled="true" title="Arrive bientôt">{corps}</span>;
         })}</nav>
         <div className="po-bas">
-          <div className="po-cleo"><span className="po-cleo-av"><img src="/img/cleo.png" alt="" /><i /></span><div><strong>Cléo</strong><span>Assistante · en ligne</span></div></div>
+          <button type="button" className="po-cleo" onClick={() => setCleo('')}><span className="po-cleo-av"><img src="/img/cleo.png" alt="" /><i /></span><div><strong>Cléo</strong><span>Assistante · en ligne</span></div></button>
           <div className="po-compte"><span className="po-ini">{moi.initiales}</span><div><strong>{moi.nom}</strong><span>{moi.portes} logement{moi.portes > 1 ? 's' : ''} · {moi.immeubles} immeuble{moi.immeubles > 1 ? 's' : ''}</span></div>
             <form action="/deconnexion?p=proprietaire" method="post"><button className="po-sortir" aria-label="Me déconnecter" title="Me déconnecter"><Icone nom="arrow" taille={16} couleur="#C8DAF0" /></button></form></div>
         </div>
       </aside>
       <div className="po-principal">
         <header className="po-haut">
-          <button type="button" className="po-cherche"><img src="/img/cleo.png" alt="" className="avatar-cleo" /><span>Demandez à Cléo ou cherchez : « approuver la soumission », « relevé de septembre »…</span></button>
+          <button type="button" className="po-cherche" onClick={() => setCleo('')}><img src="/img/cleo.png" alt="" className="avatar-cleo" /><span>Demandez à Cléo ou cherchez : « approuver la soumission », « relevé de septembre »…</span></button>
           <Cloche />
         </header>
         <main className="po-contenu">{children}</main>
       </div>
+      {cleo !== null && <Cleo question={cleo} fermer={() => setCleo(null)} />}
     </div>
   );
 }
