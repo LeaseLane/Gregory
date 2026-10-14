@@ -21,6 +21,7 @@ export default async function Page() {
         { libelle: 'Mes tâches', href: '/operations/taches' },
         { libelle: 'Inbox', href: '/operations/inbox', compte: nonLus || undefined },
         { libelle: 'Agenda', href: '/operations/agenda' },
+        { libelle: 'Appels', href: '/operations/appels' },
       ]}
     >
       <Taches donnees={(data as DonneesTaches | null) ?? null} erreurLecture={error ? 'Les tâches n’ont pas pu être lues.' : null} />

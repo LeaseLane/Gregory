@@ -24,6 +24,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ j
         { libelle: 'Mes tâches', href: '/operations/taches' },
         { libelle: 'Inbox', href: '/operations/inbox', compte: nonLus || undefined },
         { libelle: 'Agenda', href: '/operations/agenda' },
+        { libelle: 'Appels', href: '/operations/appels' },
       ]}
     >
       <Agenda donnees={(data as DonneesAgenda | null) ?? null} aujourdhui={aujourdhui} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'L’agenda n’a pas pu être lu.') : null} />

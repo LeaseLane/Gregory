@@ -49,7 +49,7 @@ export async function lireAccueil(moi: Moi): Promise<Accueil> {
 
   const tuiles: Tuile[] = [
     { icone: 'inbox', nom: 'Opérations', droit: 'operations.lire', href: '/operations/a-approuver', valeur: v(aTraiter), libelle: 'à traiter', puce: urgences ? { texte: pl(urgences, 'urgent', 'urgents'), ton: 'todo' } : { texte: 'Aucune urgence', ton: 'neutral' }, viz: ok && aTraiter ? { type: 'unit', n: Math.min(aTraiter, 10), k: Math.min(urgences, 10) } : null },
-    { icone: 'trend', nom: 'Ventes', droit: 'ventes.lire', valeur: v(n(cc.prospects_a_relancer)), libelle: 'prospects à relancer', puce: { texte: 'Pipelines · T3', ton: 'info' }, viz: null },
+    { icone: 'trend', nom: 'Ventes', droit: 'ventes.lire', href: '/ventes/prospecteurs', valeur: v(n(cc.prospects_a_relancer)), libelle: 'prospects à relancer', puce: { texte: 'Pipelines · T3', ton: 'info' }, viz: null },
     { icone: 'users', nom: 'Clients', droit: 'clients.lire', valeur: v(t.clients_count ?? 0), libelle: 'clients actifs', puce: t.new_inquiries ? { texte: pl(t.new_inquiries, 'demande', 'demandes'), ton: 'neutral' } : { texte: 'Aucune demande', ton: 'info' }, viz: null },
     { icone: 'building', nom: 'Immeubles', droit: 'immeubles.lire', valeur: v(unites), libelle: 'logements gérés', puce: { texte: pl(unites - occupes, 'vacant', 'vacants'), ton: 'info' }, viz: ok && unites ? { type: 'meter', ratio: occupes / unites } : null },
     { icone: 'wrench', nom: 'Maintenance', droit: 'maintenance.lire', valeur: v(travaux), libelle: 'travaux à suivre', puce: n(cc.decisions_requises) ? { texte: pl(n((cc.decisions_requises as CC)?.approbations_en_attente), 'approbation', 'approbations'), ton: 'action' } : { texte: 'Rien en attente', ton: 'info' }, viz: null },

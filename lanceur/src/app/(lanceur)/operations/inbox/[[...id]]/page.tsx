@@ -27,6 +27,7 @@ export default async function Page({ params }: { params: Promise<{ id?: string[]
         { libelle: 'Mes tâches', href: '/operations/taches' },
         { libelle: 'Inbox', href: '/operations/inbox', compte: liste.filter((f) => f.unread).length || undefined },
         { libelle: 'Agenda', href: '/operations/agenda' },
+        { libelle: 'Appels', href: '/operations/appels' },
       ]}
     >
       <Inbox

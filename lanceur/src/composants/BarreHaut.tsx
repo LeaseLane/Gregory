@@ -12,11 +12,17 @@ const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/stud
 export function BarreHaut({ initiales, courriel, nonLues: initial, moi }: { initiales: string; courriel: string; nonLues: number; moi: string }) {
   const [nonLues, setNonLues] = useState(initial);
   const [tiroir, setTiroir] = useState(false);
+  // Téléphone (x16) : un appel à moi qui sonne ou est en cours s'affiche partout, avec l'état de l'avis d'enregistrement.
+  const [appel, setAppel] = useState<{ id: string; to_e164: string | null; status: string; consent_announced: boolean } | null>(null);
   useEffect(() => setNonLues(initial), [initial]);
   // Temps réel : une nouvelle notification allume la cloche sans recharger.
   useEffect(() => {
     const sb = supabaseNavigateur();
-    const c = sb.channel('cloche').on('postgres_changes', { event: 'INSERT', schema: 'crm', table: 'notifications', filter: `user_id=eq.${moi}` }, () => setNonLues((n) => n + 1)).subscribe();
+    const c = sb.channel('cloche').on('postgres_changes', { event: 'INSERT', schema: 'crm', table: 'notifications', filter: `user_id=eq.${moi}` }, () => setNonLues((n) => n + 1))
+      .on('postgres_changes', { event: '*', schema: 'comms', table: 'calls', filter: `caller_user_id=eq.${moi}` }, ({ new: n }) => {
+        const a = n as { id: string; to_e164: string | null; status: string; consent_announced: boolean };
+        setAppel(['initiated', 'ringing', 'in_progress'].includes(a.status) ? a : null);
+      }).subscribe();
     return () => { sb.removeChannel(c); };
   }, [moi]);
   const chemin = usePathname();
@@ -70,6 +76,13 @@ export function BarreHaut({ initiales, courriel, nonLues: initial, moi }: { init
           )}
         </div>
       </header>
+      {appel && (
+        <a className="appel-en-cours" href="/operations/appels" role="status">
+          <span className="pulse"><Icone nom="phone" taille={18} couleur="#fff" /></span>
+          <span><strong>{appel.status === 'in_progress' ? 'Appel en cours' : 'Appel en préparation : répondez à votre cellulaire'}</strong>
+            <span>{appel.to_e164?.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, '$1 $2-$3')} · {appel.consent_announced ? 'avis d’enregistrement joué' : 'avis d’enregistrement à venir'}</span></span>
+        </a>
+      )}
       {tiroir && <Notifications fermer={() => setTiroir(false)} surLecture={setNonLues} />}
       {palette && (
         <div className="palette-fond" onClick={() => setPalette(false)}>
