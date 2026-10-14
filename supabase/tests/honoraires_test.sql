@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(15);
+select plan(17);
 
 -- 1. Règle des honoraires sur travaux
 select is(crm.honoraire_travaux(1000, '2026-09-15'), 0::numeric, '1 · travaux à 1 000 $ → aucun honoraire');
@@ -44,6 +44,9 @@ select set_config('request.jwt.claims', json_build_object('sub', (select id from
 select throws_ok($$ select public.lanceur_emettre_releves('2026-08-01') $$, 'PT403', null, '4 · la location ne peut pas émettre');
 select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = 'equipe-comptabilite@leaselane.test'), 'aal', 'aal2', 'role', 'authenticated')::text, true);
 select throws_ok(format('select public.lanceur_emettre_releves(%L)', date_trunc('month', current_date)::date), 'PT422', null, '4 · le mois en cours ne se facture pas');
+select ok((select (r ->> 'emis')::boolean and jsonb_array_length(r -> 'historique') = 6 from (select public.lanceur_releve('00000000-0000-4000-a000-00000080b001', '2026-09-01') r) z), '4 · e45 : relevé émis et 6 mois d''honoraires');
+select public.lanceur_renvoyer_releve((select id from fin.owner_statements where owner_id = '00000000-0000-4000-a000-00000080b001'));
+select is((select count(*)::int from comms.outbox where entity_id = (select id from fin.owner_statements where owner_id = '00000000-0000-4000-a000-00000080b001')), 4, '4 · renvoi : PRO-05 et PRO-06 remis en file');
 
 select * from finish();
 rollback;
