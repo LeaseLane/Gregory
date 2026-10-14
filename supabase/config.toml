@@ -130,3 +130,7 @@ verify_jwt = true
 [functions.juridique]
 # T8a : Lanceur seulement; droit, 2FA et approbation humaine vérifiés en base avec le jeton de la personne.
 verify_jwt = true
+
+[functions.cleo]
+# T8c : Lanceur seulement; le contexte est lu avec le jeton de la personne.
+verify_jwt = true
