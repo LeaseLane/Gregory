@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(11);
+select plan(12);
 
 create function pg_temp.comme(p_courriel text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = p_courriel), 'aal', 'aal2', 'role', 'authenticated')::text, true);
@@ -46,8 +46,9 @@ create temp table t_u on commit drop as select public.lanceur_ajouter_soumission
 update work_orders set description = 'Fuite sous l''évier et remplacement du robinet' where id = '00000000-0000-4000-a000-00000000ff08';
 select throws_ok(format('select public.lanceur_choisir_soumission(%L)', jsonb_build_object('quote_id', (select id from t_u), 'urgence', 'Fuite active : eau coupée au logement depuis ce matin.')), 'PT422', null, '4 · portée changée → 422');
 update work_orders set description = 'Fuite sous l''évier' where id = '00000000-0000-4000-a000-00000000ff08';
-select ok((public.lanceur_choisir_soumission(jsonb_build_object('quote_id', (select id from t_u), 'urgence', 'Fuite active : eau coupée au logement depuis ce matin.')) ->> 'urgence')::boolean
-      and (select quote_urgency_note is not null from work_orders where id = '00000000-0000-4000-a000-00000000ff08'), '4 · urgence documentée : choisie sans accord, justification gardée');
+create temp table t_r on commit drop as select public.lanceur_choisir_soumission(jsonb_build_object('quote_id', (select id from t_u), 'urgence', 'Fuite active : eau coupée au logement depuis ce matin.')) as r;
+select is((select r from t_r), '{"ok": true, "urgence": true}'::jsonb, '4 · urgence documentée : choisie sans accord');
+select is((select quote_urgency_note from work_orders where id = '00000000-0000-4000-a000-00000000ff08'), 'Fuite active : eau coupée au logement depuis ce matin.', '4 · justification gardée au bon de travail');
 
 select * from finish();
 rollback;
