@@ -1,0 +1,44 @@
+name: Portails (GitHub Pages)
+
+# Publie app.leaselane.ca avec SEULEMENT ce que les portails servent : les pages HTML de la racine, assets/,
+# CNAME, robots.txt, sitemap.xml. Avant (2026-10-14), Pages publiait tout le dépôt : code de Lanceur, migrations,
+# schema.sql, seed.sql, docs/ (dont SECRETS.md), scripts/ étaient lisibles par n'importe qui.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assembler le site (liste blanche)
+        run: |
+          set -euo pipefail
+          mkdir _site
+          cp ./*.html CNAME robots.txt sitemap.xml _site/
+          cp -r assets _site/assets
+          # Garde-fou : rien d'autre ne doit partir.
+          for interdit in lanceur supabase scripts docs mobile lease-lane-site schema.sql seed.sql README.md; do
+            if [ -e "_site/$interdit" ]; then echo "::error::$interdit ne doit pas être publié"; exit 1; fi
+          done
+          echo "Publié : $(find _site -type f | wc -l) fichiers"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploiement
+        uses: actions/deploy-pages@v4
