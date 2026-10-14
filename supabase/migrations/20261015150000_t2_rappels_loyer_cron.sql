@@ -37,7 +37,7 @@ create or replace function comms.montant(p numeric) returns text language sql im
   select replace(replace(to_char(p, 'FM999G999G990D00'), ',', ' '), '.', ',') || ' $'
 $$;
 create or replace function comms.montant_court(p numeric) returns text language sql immutable set search_path = '' as $$
-  select regexp_replace(comms.montant(p), ',00 \$$', ' $')
+  select regexp_replace(comms.montant(p), ',00 [$]$', ' $')
 $$;
 
 create or replace function comms.planifier_rappels_loyer() returns int
