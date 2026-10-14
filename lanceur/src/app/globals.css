@@ -716,3 +716,23 @@ span.interrupteur { flex: none; opacity: .6; }
 .resume-mandat span { display: block; font-size: 12px; color: #58697F; } .resume-mandat b { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 16px; }
 .studio > .colonne-l18:first-child { gap: 24px; }
 .contacts-deal span.ini, .resume-mandat .ini { color: #fff; font-size: 12px; }
+
+/* Ventes · Leads entrants (l07), Nouveau lead (e16), doublon (e18). */
+.cellule-ini { display: inline-flex; align-items: center; gap: 12px; min-width: 0; } .cellule-ini > span:last-child { display: grid; min-width: 0; }
+.cellule-ini .sous { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.titre-carte { margin: 0 0 20px; font-size: 16px; font-weight: 600; }
+.regles-routage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.regles-routage > div { display: flex; align-items: flex-start; gap: 12px; } .regles-routage > div > div { flex: 1; display: grid; min-width: 0; }
+.regles-routage strong { font-size: 14px; } .regles-routage span:not(.interrupteur) { font-size: 13px; color: #58697F; }
+.regles-routage .inactif { opacity: .6; }
+.carte-l18.e2 { border-color: #C8DAF0; box-shadow: 0 8px 24px rgba(12,33,71,.09), 0 2px 6px rgba(12,33,71,.05); }
+.criteres { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 12px; }
+.criteres li { display: flex; gap: 10px; } .criteres li > div { display: grid; } .criteres strong { font-size: 13px; } .criteres span { font-size: 12px; color: #58697F; }
+.criteres i.vide { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #4581CB; flex: none; margin-top: 2px; }
+.formulaire { padding: 24px; }
+.doublon-saisie { display: flex; align-items: center; gap: 10px; margin: 0 0 20px; padding: 10px 12px; border-radius: 12px; background: #ECF2F9; font-size: 13px; color: #0C2147; }
+.doublon-saisie span { flex: 1; }
+.aide-lcap { margin: 4px 0 8px; font-size: 12px; color: #58697F; }
+.consentement { margin-bottom: 20px; }
+.routage-auto { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding: 12px 16px; border-radius: 12px; background: #EEF1F5; font-size: 13px; color: #3E4A59; }
+@media (max-width: 1100px) { .regles-routage { grid-template-columns: minmax(0, 1fr); } }
