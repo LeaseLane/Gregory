@@ -370,7 +370,7 @@ li.sel .av-agent { background: #fff; }
 .studio-actions { margin: auto 24px 0; padding-top: 24px; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 12px; }
 .studio-actions .bouton { height: 44px; font-size: 14px; width: 100%; }
 .studio-actions .bouton:disabled { opacity: .55; cursor: not-allowed; }
-@media (max-width: 1100px) { .studio { grid-template-columns: minmax(0, 1fr); } .chercher { margin-left: 0; width: 100%; } .tableau td:nth-child(4), .tableau th:nth-child(4) { display: none; } }
+@media (max-width: 1100px) { .studio { grid-template-columns: minmax(0, 1fr); } .chercher { margin-left: 0; width: 100%; } .studio .tableau td:nth-child(4), .studio .tableau th:nth-child(4) { display: none; } }
 
 /* Cléo et IA · Automatisations (l18) et coupe-circuit (e70) */
 .bandeau-l18 { display: flex; align-items: center; gap: 16px; min-height: 72px; padding: 14px 24px; border-radius: 12px; background: #F8E4E2; border: 1px solid #F0C9C5; }
@@ -1485,7 +1485,7 @@ textarea.e70-raison { height: auto; min-height: 96px; padding: 12px 16px; line-h
   .appel-ligne { grid-template-columns: 40px minmax(0, 1fr); } .appel-ligne > :nth-child(n+3) { display: none; }
   .ops li, .entonnoir li, .barres li, .carte-l18 .barres li { grid-template-columns: minmax(0, 1fr) auto; } .ops li > :first-child { grid-column: 1 / -1; }
   /* Tableaux : défilent dans leur carte au lieu d'élargir la page */
-  :has(> .tableau) { overflow-x: auto; } .tableau { min-width: 640px; }
+  :has(> .tableau) { overflow-x: auto; position: relative; } .tableau { min-width: 640px; }
   /* Portail propriétaire : menu en bas comme le portail locataire */
   .po { grid-template-columns: minmax(0, 1fr); padding: 12px 12px 96px; gap: 12px; }
   .po-rail { position: fixed; left: 8px; right: 8px; bottom: 8px; top: auto; height: auto; padding: 6px; border-radius: 16px; z-index: 20; flex-direction: row; }
@@ -1506,3 +1506,46 @@ textarea.e70-raison { height: auto; min-height: 96px; padding: 12px 16px; line-h
 .espace-page, .po-contenu, .lo-contenu { grid-template-columns: minmax(0, 1fr); } .espace-page > *, .po-principal, .coquille > * { min-width: 0; }
 @media (max-width: 760px) { .kpis > *, .kpi { min-width: 0; } }
 @media (max-width: 760px) { .po-cherche { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; } }
+
+/* ── Tablette (761–1180 px) : menu propriétaire en icônes, grilles du portail sur moins de colonnes ── */
+.a-faire li { flex-wrap: wrap; } .a-faire li > div:not(.a-faire-actions) { flex: 1 1 240px; } .po-docs-outils { flex-wrap: wrap; }
+@media (min-width: 761px) and (max-width: 1180px) {
+  .po { grid-template-columns: 72px minmax(0, 1fr); gap: 16px; padding: 16px 16px 24px 12px; }
+  .po-rail { padding: 16px 8px; align-items: center; } .po-espace { display: none; }
+  .po-logo { width: 36px; height: 36px; object-fit: cover; object-position: left; margin: 0 0 20px; align-self: center; }
+  .po-menu a, .po-menu span.inactif { position: relative; width: 48px; height: 48px; padding: 0; justify-content: center; } .po-menu a.actif { box-shadow: none; }
+  .po-menu a > span, .po-menu span.inactif > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .po-menu b { position: absolute; top: 2px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; }
+  .po-bas { justify-items: center; } .po-cleo, .po-compte { padding: 6px; background: none; } .po-compte { flex-direction: column; gap: 8px; } .po-cleo > div, .po-compte-lien > div { display: none; }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .po-grille-haut, .po-fiche, .po-fiche.inverse, .po-dem-bas, .lo-grille, .lo-maitre, .lo-detail-bas { grid-template-columns: minmax(0, 1fr); }
+  .po-kpis, .po-kpis.trois { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lo-detail-bas > div + div { padding-left: 0; border-left: 0; }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .lo-grille.trois { grid-template-columns: minmax(0, 1fr); } .lo-bandeau-haut { flex-direction: column; } .lo-cherche { width: 100%; }
+}
+@media (max-width: 1180px) { .tete-onglets { flex-wrap: wrap; row-gap: 0; } .tete-onglets .a-faire-actions { margin-left: auto; padding-bottom: 12px; flex-wrap: wrap; } }
+@media (max-width: 1180px) { .po-acces .lib-2fa { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
+.tuiles-filtres.quatre { grid-template-columns: repeat(4, minmax(0, 1fr)); } @media (max-width: 1100px) { .tuiles-filtres.quatre { grid-template-columns: repeat(2, minmax(0, 1fr)); } } .tuile-lien { min-width: 0; }
+/* Bons : une vraie grille (la classe .kanban mettait les colonnes en ligne, d'où des colonnes écrasées) */
+.bt-kanban { grid-auto-flow: row; overflow-x: visible; }
+input + .bouton { flex: none; }
+@media (max-width: 760px) {
+  .qb { grid-template-columns: 56px minmax(0, 1fr); gap: 16px; } .qb > .bouton { grid-column: 1 / -1; justify-self: start; }
+  .etapes-bt { overflow-x: auto; grid-auto-columns: minmax(84px, 1fr); padding-bottom: 4px; scrollbar-width: none; }
+}
+.tete-action { flex-wrap: wrap; row-gap: 12px; } .tete-action > .ligne-ic { flex-wrap: wrap; }
+@media (min-width: 761px) and (max-width: 1100px) { .taches li { grid-template-columns: 20px minmax(0, 1fr) 92px 120px; } .taches .qui { min-width: 0; } .taches .qui .puce { max-width: 100%; } }
+@media (min-width: 761px) and (max-width: 1100px) { .po-cartes, .po-recents { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sous-onglets { max-width: 100%; overflow-x: auto; scrollbar-width: none; } .sous-onglets > * { flex: none; }
+/* Tablette portrait : listes à deux colonnes empilées; les tableaux larges défilent dans leur carte au lieu d'écraser leurs colonnes */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .cessions, .cession-bas { grid-template-columns: minmax(0, 1fr); }
+  :has(> .tableau) { overflow-x: auto; position: relative; } .tableau { min-width: 760px; }
+}
+.haut-cherche span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 1100px) { .haut-fil { display: none; } .decision-soum { grid-template-columns: minmax(0, 1fr); } }
+input + .bouton { white-space: nowrap; } .bouton { overflow-wrap: normal; } .deal-actions { flex-wrap: wrap; justify-content: flex-end; }
+.deal-actions .bouton { flex: none; white-space: nowrap; }

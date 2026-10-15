@@ -25,7 +25,7 @@ export function TableauDeBord({ donnees: D, pipeline: P, filtres, erreurLecture 
         <div className="kpi"><span>Revenu de gestion · mois dernier</span><b>{argent(D.revenu_gestion)}</b><span>honoraires facturés le 5</span><Courbe valeurs={D.revenu_serie.map(Number)} /></div>
         <div className="kpi"><span>Mandats</span><b>{D.mandats.gagnes}</b><span>gagnés en 90 jours · {D.mandats.actifs} en cours</span></div>
       </div>
-      <div className="tuiles-filtres" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+      <div className="tuiles-filtres quatre">
         <Link href="/operations/a-approuver" className="tuile-lien"><span>Propositions à approuver</span><b>{D.propositions}</b></Link>
         <Link href="/operations/taches" className="tuile-lien"><span>Tâches en retard</span><b style={D.taches_en_retard ? { color: '#9B2E28' } : undefined}>{D.taches_en_retard}</b></Link>
         <Link href="/maintenance/bons" className="tuile-lien"><span>Bons ouverts{D.urgences ? ` · ${D.urgences} urgence${D.urgences > 1 ? 's' : ''}` : ''}</span><b>{D.bons_ouverts}</b></Link>
