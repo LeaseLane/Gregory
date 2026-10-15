@@ -40,7 +40,7 @@ export function Bons({ donnees: D, filtres, maintenant, erreurLecture }: { donne
         <div className="kpi"><span>Urgence en cours</span><b style={u ? { color: '#9B2E28' } : undefined}>{I.urgences.length}</b><span>{u ? <Link href={`/maintenance/bons/${u.id}`}>{u.titre} · {u.logement}</Link> : 'Aucune'}</span></div>
       </div>
       {filtres.immeuble && <p className="ligne-ic texte-13">Immeuble : <b>{D.immeubles.find((b) => b.id === filtres.immeuble)?.adresse}</b><button className="lien" onClick={() => router.push('/maintenance/bons')}>Tout afficher</button></p>}
-      <div className="kanban">{COLS.map((k) => { const l = D.bons.filter((b) => b.etape === k);
+      <div className="kanban bt-kanban">{COLS.map((k) => { const l = D.bons.filter((b) => b.etape === k);
         return <section key={k} className="kanban-col" aria-label={ETAPES[k]}>
           <header><h2>{ETAPES[k]}</h2><span className="compte">{l.length}</span><p>{resume(k, l)}</p></header>
           <ul>{l.map((b) => <li key={b.id}><Link href={`/maintenance/bons/${b.id}`} className={`bt-carte${b.urgent ? ' urgent-bord' : ''}`}>

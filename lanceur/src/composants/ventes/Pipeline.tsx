@@ -56,7 +56,7 @@ export function Pipeline({ donnees, raisons, erreurLecture }: { donnees: Donnees
     return (
       <Link href={`/ventes/deals/${d.id}`} className="deal" draggable={donnees.peut_ecrire} onDragStart={() => setGlisse(d.id)} onDragEnd={() => { setGlisse(null); setSurvol(null); }}>
         <span className="deal-l1"><strong>{d.title}</strong><b>{argent(d.monthly_value_cents)}</b></span>
-        <span className="deal-l2">{[d.doors ? `${d.doors} porte${d.doors > 1 ? 's' : ''}` : null, d.subtitle].filter(Boolean).join(' · ')}</span>
+        <span className="deal-l2" title={d.subtitle ?? undefined}>{[d.doors ? `${d.doors} porte${d.doors > 1 ? 's' : ''}` : null, d.subtitle].filter(Boolean).join(' · ')}</span>
         <span className="deal-l3">
           {d.source && <span className="puce">{d.source}</span>}
           {e.category === 'won' ? <span className="puce final">{d.converted_at ? 'Onboarding lancé' : 'Signé'}</span>
