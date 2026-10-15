@@ -903,7 +903,7 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .extrait { margin: 16px 0; padding: 12px 20px; border-left: 3px solid #4581CB; border-radius: 0 12px 12px 0; background: #F5F7FA; font-size: 13px; line-height: 1.45; }
 .verifs-ligne { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-bottom: 20px; font-size: 13px; } .verifs-ligne > span { display: inline-flex; align-items: center; gap: 8px; } .verifs-ligne .okdot { margin-top: 0; }
 .deal-actions .bouton { display: inline-flex; align-items: center; gap: 8px; padding: 0 20px; text-decoration: none; }
-.deux-lignes { display: grid; gap: 2px; } .deux-lignes .gris { font-size: 13px; padding-left: 28px; } .deux-lignes .ligne-ic strong { font-weight: 600; color: #0C2147; } .deux-lignes .okdot { margin-top: 0; }
+.deux-lignes { display: grid; gap: 2px; } .deux-lignes .gris { font-size: 13px; } .deux-lignes:has(.ligne-ic) .gris { padding-left: 28px; } .deux-lignes .ligne-ic strong { font-weight: 600; color: #0C2147; } .deux-lignes .okdot { margin-top: 0; }
 .unites { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; } .unites i { display: block; height: 24px; border-radius: 4px; background: #E1E6EC; } .unites i.paye { background: #4581CB; } .unites span { display: block; margin-top: 8px; font-size: 12px; font-weight: 600; }
 .modele-ligne { width: 100%; display: flex; align-items: center; gap: 16px; padding: 4px 8px; margin: 0 -8px; border: 0; border-radius: 10px; background: none; font: inherit; text-align: left; cursor: pointer; }
 .modele-ligne.sel { background: #ECF2F9; } .modele-ligne > div { flex: 1; display: grid; gap: 2px; }
@@ -1452,3 +1452,57 @@ textarea.e70-raison { height: auto; min-height: 96px; padding: 12px 16px; line-h
 /* Cartes de deal : détails longs (import) limités à 2 lignes; texte complet au survol. */
 .deal .deal-l2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .deal .deal-l3 { flex-wrap: wrap; } .deal .deal-l3 .puce { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Tableaux : aucun texte ne déborde sur la colonne voisine; trop long = coupé (…), texte complet au survol quand prévu. */
+.tableau th, .tableau td { overflow: hidden; text-overflow: ellipsis; } .tableau td:has(.menu-ligne) { overflow: visible; }
+.tableau .cellule-ini { display: flex; max-width: 100%; } .tableau .cellule-ini .ini { flex-shrink: 0; }
+.tableau .cellule-ini > span:last-child > *, .tableau td .sous, .tableau td .deux-lignes > * { overflow: hidden; text-overflow: ellipsis; }
+.tableau td .deux-lignes { display: grid; max-width: 100%; }
+/* Kanbans : une carte ne dépasse jamais sa colonne; noms longs passent à la ligne, pied coupé (…). */
+.colonne > *, .kanban-col ul, .kanban-col li, .deal > span, .bt-carte > * { min-width: 0; }
+.deal-l1 strong, .bt-carte strong { min-width: 0; overflow-wrap: anywhere; }
+.deal-l3 > *, .bt-pied > * { min-width: 0; } .deal-etat, .bt-pied small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Étiquettes (puces) : jamais plus larges que leur boîte; texte trop long coupé (…). */
+.puce { max-width: 100%; overflow: hidden; } .puce:not(:has(svg, button, i, span)) { display: inline-block; line-height: 26px; text-overflow: ellipsis; vertical-align: middle; }
+.espace-pied > *, .taches .due { min-width: 0; } .taches .due { overflow: hidden; text-overflow: ellipsis; }
+.inbox-ligne > * { max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Colonnes empilées : un enfant large (graphique, tableau) ne pousse plus la colonne hors de la page. */
+.po-colonne, .colonne-l18 { grid-template-columns: minmax(0, 1fr); }
+.tableau .cellule-ini { overflow: hidden; }
+.ligne-ic { min-width: 0; } .ligne-ic > * { min-width: 0; overflow-wrap: anywhere; }
+
+/* ── Téléphone (≤ 760 px) : tout sur une colonne, rien ne fait défiler la page de côté ── */
+@media (max-width: 760px) {
+  /* Lanceur : en-tête compact, onglets qui défilent, pages sur une colonne */
+  .haut { margin: 12px 12px 0; padding: 0 12px; gap: 8px; } .haut-cherche { margin-left: 8px; min-width: 0; } .haut-cherche span, .haut-lieu, .haut-filet, .haut-espace { display: none; }
+  .espace-page, .accueil { padding: 12px; } .espace-tete { padding: 16px; } .espace-tete h1 { font-size: 24px; }
+  .onglets, .sous-onglets, .po-onglets { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; } .onglets > *, .sous-onglets > *, .po-onglets > * { flex: none; }
+  .studio, .inbox, .recrutement, .cessions, .cession-bas, .med, .decision-soum, .po-grille-haut, .lo-grille, .po-fiche, .po-fiche.inverse, .po-dem-bas,
+  .grille-2-1, .grille-1-2, .demi-tableaux, .rapport-cols, .reserve, .bt-kanban, .details-deal, .regles-routage, .e11-grille, .nt-grille, .releve-parties,
+  .po-form .deux, .auth-deux, .po-deux, .med-actions > div, .rejet-ligne, .ajout-soum, .ec-ligne, .appro, .mm-annonce, .imm-tete, .po-cartes, .sq-grille { grid-template-columns: minmax(0, 1fr); }
+  .espaces, .kpis, .kpis-serres, .po-kpis, .po-kpis.trois, .po-recents, .tuiles-filtres, .imm-chiffres, .resume-mandat, .apercu-lignes, .reserve-raisons, .echec-etapes, .po-dep-cartes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .inbox { height: auto; } .studio-tete, .carte-tete, .taches-actions, .barre-outils, .accueil-tete { flex-wrap: wrap; gap: 12px; }
+  .taches li { grid-template-columns: 20px minmax(0, 1fr) 72px; } .taches .ctx, .taches .rec, .taches li > .ini { display: none; }
+  .appel-ligne { grid-template-columns: 40px minmax(0, 1fr); } .appel-ligne > :nth-child(n+3) { display: none; }
+  .ops li, .entonnoir li, .barres li, .carte-l18 .barres li { grid-template-columns: minmax(0, 1fr) auto; } .ops li > :first-child { grid-column: 1 / -1; }
+  /* Tableaux : défilent dans leur carte au lieu d'élargir la page */
+  :has(> .tableau) { overflow-x: auto; } .tableau { min-width: 640px; }
+  /* Portail propriétaire : menu en bas comme le portail locataire */
+  .po { grid-template-columns: minmax(0, 1fr); padding: 12px 12px 96px; gap: 12px; }
+  .po-rail { position: fixed; left: 8px; right: 8px; bottom: 8px; top: auto; height: auto; padding: 6px; border-radius: 16px; z-index: 20; flex-direction: row; }
+  .po-logo, .po-espace, .po-bas { display: none; } .po-menu { display: flex; gap: 2px; overflow-x: auto; width: 100%; scrollbar-width: none; }
+  .po-menu a, .po-menu span.inactif { flex: none; flex-direction: column; justify-content: center; gap: 2px; height: 52px; min-width: 64px; padding: 4px 8px; font-size: 10px; }
+  .po-menu a.actif { box-shadow: none; } .po-menu b { position: absolute; transform: translate(14px, -14px); min-width: 16px; height: 16px; font-size: 10px; } .po-menu a { position: relative; }
+  .a-faire li { flex-wrap: wrap; } .delai { width: 100%; flex: 1 1 100%; }
+  .tete-action, .fil-tete, .cession-tete, .po-docs-outils, .notif-page > header { flex-wrap: wrap; } .tete-action > *, .fil-tete > *, .cession-tete > *, .kpi > * { min-width: 0; max-width: 100%; }
+  .a-faire-actions, .notif-page > header > .a-faire-actions { flex-wrap: wrap; white-space: normal; } .cessions > *, .cession-detail, .cession-detail > * { min-width: 0; }
+  .lo-segments, .stepper, .fil-onglets, .deal-etapes { max-width: 100%; overflow-x: auto; scrollbar-width: none; } .po-docs-outils select, .po-docs-outils .bouton { max-width: 100%; }
+  .espace-tete-haut { flex-wrap: wrap; gap: 12px; } .espace-actions { margin-left: 0; flex-wrap: wrap; width: 100%; } .po-filtres { flex-wrap: wrap; } .po-filtres > * { min-width: 0; max-width: 100%; } .po-filtres .bascule { margin-left: 0 !important; }
+  .haut-fil { display: none; } .haut-logo { width: 96px; } .haut-cherche { flex: 1 1 0; width: auto; min-width: 0; padding: 0 8px; } .haut-cherche .touche, .haut .touche { display: none; } .haut-ibtn { margin: 0 0 0 auto; flex: none; } .haut-profil { flex: none; }
+  .segment { max-width: 100%; overflow-x: auto; scrollbar-width: none; } .segment.vue, .segment.large { width: auto; } .a-faire-actions { width: 100%; flex-wrap: wrap; }
+  .po-titre { font-size: 22px; } .po-haut { flex-wrap: wrap; } .po-cal, .lo-cal-grille { font-size: 11px; }
+}
+
+/* Pages : la colonne principale ne s’élargit jamais pour un tableau ou un kanban (ils défilent dans leur carte). */
+.espace-page, .po-contenu, .lo-contenu { grid-template-columns: minmax(0, 1fr); } .espace-page > *, .po-principal, .coquille > * { min-width: 0; }
+@media (max-width: 760px) { .kpis > *, .kpi { min-width: 0; } }
+@media (max-width: 760px) { .po-cherche { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; } }
