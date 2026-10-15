@@ -41,5 +41,5 @@ Deno.serve(async (req) => {
     return json({ error: e?.message ?? "L’invitation n’a pas pu être utilisée." }, 409);
   }
   const r = await l.json();
-  return json({ ok: true, espace: r.kind === "locataire" ? "locataire" : "proprietaire" });
+  return json({ ok: true, espace: r.kind === "locataire" ? "locataire" : r.kind === "equipe" ? "equipe" : "proprietaire" });
 });
