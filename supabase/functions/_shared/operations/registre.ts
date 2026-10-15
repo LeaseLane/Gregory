@@ -14,6 +14,7 @@ export type Operation = {
   idempotente: boolean;
   agents: "direct" | "proposition" | "interdit";
   mcp: boolean;
+  api?: boolean;            // T10 : exposée par l'API publique et le MCP (miroir de crm.api_operations; la base vérifie la portée de la clé)
   journal?: { action: string; lectureSensible?: boolean };
   description: string;
   // Champs qu'un agent peut proposer (outils MCP « propose-<nom> »), en schéma JSON.
@@ -85,6 +86,60 @@ export const REGISTRE = [
   defineOperation({
     nom: "get-overview", espace: "operations", type: "herite", cible: "admin-api", permission: "operations.lire", ecriture: false, idempotente: true,
     agents: "direct", mcp: true, description: "Vue d'ensemble héritée : chiffres, « À traiter », anomalies (admin-api, sans action).",
+  }),
+  defineOperation({
+    nom: "list-deals", espace: "ventes", type: "sql", cible: "lanceur_pipeline", permission: "ventes.lire", ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, api: true, description: "Deals d'un pipeline (mandats ou location) par étape; argument pipeline.",
+  }),
+  defineOperation({
+    nom: "list-leads", espace: "ventes", type: "sql", cible: "lanceur_leads", permission: "ventes.lire", ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, api: true, description: "Leads à qualifier.",
+  }),
+  defineOperation({
+    nom: "list-owners", espace: "clients", type: "sql", cible: "lanceur_proprietaires", permission: "clients.lire", ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, api: true, description: "Propriétaires, parc et approbations; filtres q, quartier, portail.",
+  }),
+  defineOperation({
+    nom: "list-tenants", espace: "clients", type: "sql", cible: "lanceur_locataires", permission: "clients.lire", ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, api: true, description: "Locataires et paiements (sans la fiche détaillée); filtre retard, fin, sans_portail.",
+  }),
+  defineOperation({
+    nom: "list-buildings", espace: "immeubles", type: "sql", cible: "lanceur_immeubles", permission: "immeubles.lire", ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, api: true, description: "Immeubles et occupation; filtre q.",
+  }),
+  defineOperation({
+    nom: "list-units", espace: "immeubles", type: "sql", cible: "lanceur_logements", permission: "immeubles.lire", ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, api: true, description: "Logements, loyer et médiane du quartier; filtres statut, immeuble, type.",
+  }),
+  defineOperation({
+    nom: "list-work-orders", espace: "maintenance", type: "sql", cible: "lanceur_bons", permission: "maintenance.lire", ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, api: true, description: "Bons de travail par étape; filtres immeuble, q.",
+  }),
+  defineOperation({
+    nom: "list-suppliers", espace: "maintenance", type: "sql", cible: "lanceur_fournisseurs", permission: "maintenance.lire", ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, api: true, description: "Fournisseurs, assurance et délai de réponse; filtre q.",
+  }),
+  defineOperation({
+    nom: "list-payments", espace: "finances", type: "sql", cible: "lanceur_paiements", permission: "finances.lire", ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, api: true, description: "Loyers suivis du mois, retards et relances; filtres periode, immeuble.",
+  }),
+  defineOperation({
+    nom: "list-tasks", espace: "operations", type: "sql", cible: "lanceur_taches", permission: "operations.lire", ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, api: true, description: "Tâches de la personne qui a créé la clé.",
+  }),
+  defineOperation({
+    nom: "report-pipeline", espace: "rapports", type: "sql", cible: "lanceur_rapport_pipeline", permission: "rapports.lire", ecriture: false, idempotente: true,
+    agents: "direct", mcp: true, api: true, description: "Conversion d'une étape à la suivante et temps moyen par étape; arguments pipeline, jours.",
+  }),
+  defineOperation({
+    nom: "move-deal-stage", espace: "ventes", type: "sql", cible: "crm.move_deal_stage", permission: "ventes.lire", ecriture: true, idempotente: true,
+    agents: "proposition", mcp: true, api: true, journal: { action: "deal.stage_moved" },
+    description: "Change l'étape d'un deal; « perdu » exige une raison; la conversion se fait par « Convertir ».",
+    champs: {
+      stage_id: { type: "string", description: "Identifiant de la nouvelle étape (voir list-deals)" },
+      loss_reason_code: { type: "string", description: "Raison de la perte (obligatoire si l'étape est « perdu »)" },
+      loss_note: { type: "string", description: "Précision de la raison « autre »" },
+    },
   }),
 ] as const satisfies readonly Operation[];
 

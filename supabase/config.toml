@@ -103,6 +103,9 @@ verify_jwt = false
 verify_jwt = false
 [functions.resend-inbound]
 verify_jwt = false
+[functions.api]
+# T10 : API publique; authentifiée par une clé d'API « ll_… » vérifiée en base (empreinte, portée, droits de l'auteur).
+verify_jwt = false
 [functions.mcp]
 # Agents (MCP) : authentifiés par leur secret (MCP_CLES) dans la fonction, pas par un jeton d'usager.
 verify_jwt = false

@@ -1,8 +1,7 @@
 // Serveur MCP des agents Lease Lane (spec T1 § 6) : transport HTTP « streamable », réponses JSON.
-// Authentification provisoire (spec § 10.5) : un secret par agent et par environnement dans MCP_CLES
-// (« cleo:<secret>,prospection:<secret> ») jusqu'aux clés d'API de T10. Sans MCP_CLES, tout est refusé
-// (production pour l'instant). L'agent est déduit du secret, jamais de la requête.
-import { appeler, outils, type Rpc } from "./outils.ts";
+// Authentification (T10) : une clé d'API « ll_… » (Réglages › API et MCP; agent, portées et journal vérifiés en base), ou, provisoirement,
+// un secret par agent dans MCP_CLES (« cleo:<secret> »). L'agent est déduit du secret, jamais de la requête.
+import { appeler, outils, type Agent, type Rpc } from "./outils.ts";
 
 const PROTOCOLE = "2025-06-18";
 
@@ -14,12 +13,16 @@ function egal(a: string, b: string): boolean {
   return d === 0;
 }
 
-function agentDe(req: Request): string | null {
+async function agentDe(req: Request): Promise<Agent | null> {
   const jeton = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!jeton) return null;
+  if (jeton.startsWith("ll_")) {
+    const r = await rpc("service_cle_api_verifier", { p_secret: jeton });
+    return r.ok ? { nom: (r.data as { agent: string }).agent, secret: jeton } : null;
+  }
   for (const paire of (Deno.env.get("MCP_CLES") || "").split(",")) {
     const i = paire.indexOf(":");
-    if (i > 0 && egal(jeton, paire.slice(i + 1).trim())) return paire.slice(0, i).trim();
+    if (i > 0 && egal(jeton, paire.slice(i + 1).trim())) return { nom: paire.slice(0, i).trim() };
   }
   return null;
 }
@@ -38,7 +41,7 @@ type Requete = { jsonrpc: "2.0"; id?: string | number | null; method: string; pa
 const repondre = (id: Requete["id"], result: unknown) => ({ jsonrpc: "2.0", id, result });
 const erreur = (id: Requete["id"], code: number, message: string) => ({ jsonrpc: "2.0", id: id ?? null, error: { code, message } });
 
-async function traiter(m: Requete, agent: string) {
+async function traiter(m: Requete, agent: Agent) {
   switch (m.method) {
     case "initialize":
       return repondre(m.id, { protocolVersion: PROTOCOLE, capabilities: { tools: { listChanged: false } }, serverInfo: { name: "lease-lane", version: "1.0.0" },
@@ -46,7 +49,7 @@ async function traiter(m: Requete, agent: string) {
     case "ping":
       return repondre(m.id, {});
     case "tools/list":
-      return repondre(m.id, { tools: outils() });
+      return repondre(m.id, { tools: outils(!!agent.secret) });
     case "tools/call": {
       const p = m.params ?? {};
       return repondre(m.id, await appeler(String(p.name ?? ""), (p.arguments ?? {}) as Record<string, unknown>, agent, rpc));
@@ -58,7 +61,7 @@ async function traiter(m: Requete, agent: string) {
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response(JSON.stringify(erreur(null, -32600, "POST seulement")), { status: 405, headers: { "Content-Type": "application/json", Allow: "POST" } });
-  const agent = agentDe(req);
+  const agent = await agentDe(req);
   if (!agent) return new Response(JSON.stringify(erreur(null, -32001, "Agent non authentifié")), { status: 401, headers: { "Content-Type": "application/json" } });
   const corps = await req.json().catch(() => null);
   if (!corps) return new Response(JSON.stringify(erreur(null, -32700, "JSON invalide")), { status: 400, headers: { "Content-Type": "application/json" } });

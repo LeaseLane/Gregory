@@ -22,3 +22,7 @@ Deno.test("retour périmé traduit en 409", () => {
 Deno.test("agents : propositions seulement, jamais d'approbation", () => {
   for (const o of REGISTRE) if (/^(approve|reject)-proposal$/.test(o.nom) && o.agents !== "interdit") throw new Error(o.nom);
 });
+
+Deno.test("API : chaque opération exposée est une lecture ou une proposition, jamais une écriture directe", () => {
+  for (const o of REGISTRE) if ((o as { api?: boolean }).api && o.ecriture && o.agents !== "proposition") throw new Error(o.nom);
+});
