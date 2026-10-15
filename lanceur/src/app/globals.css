@@ -1444,3 +1444,7 @@ a.kpi { text-decoration: none; color: inherit; } a.kpi:hover { box-shadow: 0 0 0
 .etapes-cleo { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; } .etapes-cleo .bouton { width: 100%; justify-content: flex-start; }
 .apercu-annonce { padding: 16px; border: 1px solid #E1E6EC; border-radius: 12px; }
 textarea.e70-raison { height: auto; min-height: 96px; padding: 12px 16px; line-height: 1.5; resize: vertical; }
+/* Leads à traiter : noms et détails longs coupés (…) au lieu de déborder sur la colonne Source; texte complet au survol. */
+.leads-table { table-layout: fixed; } .leads-table td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leads-table .cellule-ini { display: flex; } .leads-table .cellule-ini strong, .leads-table .sous { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leads-table .ini { flex-shrink: 0; }

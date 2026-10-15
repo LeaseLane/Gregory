@@ -47,13 +47,13 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
               <div className="taches-actions"><Link className="bouton bouton-contour" style={{ height: 44, fontSize: 14 }} href="/ventes/leads/import"><Icone nom="file" taille={20} />Importer un CSV</Link>
               <button className="bouton bouton-principal" style={{ width: 'auto', height: 44, fontSize: 14 }} onClick={() => setTiroir(true)}><Icone nom="plus" taille={20} couleur="#fff" />Nouveau lead</button></div>
             </header>
-            <table className="tableau">
+            <table className="tableau leads-table">
               <colgroup><col style={{ width: '32%' }} /><col style={{ width: '20%' }} /><col style={{ width: '15%' }} /><col style={{ width: '20%' }} /><col style={{ width: '13%' }} /></colgroup>
               <thead><tr><th>Lead</th><th>Source</th><th>Pipeline</th><th>Responsable</th><th className="droite">Reçu</th></tr></thead>
               <tbody>
                 {donnees.leads.map((l) => (
                   <tr key={l.id} onClick={() => router.push(`/ventes/deals/${l.id}`)}>
-                    <td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 12 }}>{initiales(l.title)}</span><span><strong className="fort">{l.title}</strong><span className="sous gris">{l.subtitle}</span></span></span></td>
+                    <td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 12 }}>{initiales(l.title)}</span><span title={[l.title, l.subtitle].filter(Boolean).join('\n')}><strong className="fort">{l.title}</strong><span className="sous gris">{l.subtitle}</span></span></span></td>
                     <td>{l.source ?? '—'}</td>
                     <td><span className={'puce' + (l.pipeline_code === 'location' ? ' neutral' : '')}>{l.pipeline_code === 'mandats' ? 'Mandats' : 'Location'}</span></td>
                     <td>{l.doublon ? <span className="puce">Doublon possible</span> : l.owner ? <span className="cellule-ini"><span className="ini" style={{ width: 28, height: 28, fontSize: 11 }}>{initiales(l.owner)}</span>{court(l.owner)}</span> : <span className="gris">Sans responsable</span>}</td>
