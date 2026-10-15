@@ -80,8 +80,8 @@ export function Logement({ donnees: D, erreur }: { donnees: LogementLoc | null; 
         <ul className="lo-docs">
           {D.documents.map((x) => <li key={x.id}><span className="a-faire-ic"><Icone nom="file" taille={18} couleur="#0C2147" /></span><div><strong>{x.titre}</strong><span className="gris texte-13">{x.categorie.replace(/ et annexes$/, '')} · {dateCourte(x.le, true)}</span></div>
             <button className="bouton bouton-contour lo-pdf" disabled={!x.lisible} title={x.lisible ? '' : 'Fichier pas encore déposé'} onClick={() => ouvrir(x.id)}><Icone nom="download" taille={14} couleur="#0C2147" />PDF</button></li>)}
-          <li><span className="a-faire-ic"><Icone nom="file" taille={18} couleur="#0C2147" /></span><div><strong>Relevé 31 — {new Date().getFullYear()}</strong><span className="gris texte-13">Relevé fiscal</span></div>
-            {D.releve31 ? <button className="bouton bouton-contour lo-pdf" onClick={() => ouvrir(D.releve31!.id)}><Icone nom="download" taille={14} couleur="#0C2147" />PDF</button> : <span className="puce neutral">Disponible en février</span>}</li>
+          <li><span className="a-faire-ic"><Icone nom="file" taille={18} couleur="#0C2147" /></span><div><strong>Relevé 31 — {D.releve31?.annee ?? new Date().getFullYear() - 1}</strong><span className="gris texte-13">Relevé fiscal</span></div>
+            {D.releve31 ? <Link className="bouton bouton-contour lo-pdf" href={`/locataire/paiements?rl31=${D.releve31.id}`}><Icone nom="download" taille={14} couleur="#0C2147" />PDF</Link> : <span className="puce neutral">Disponible en février</span>}</li>
         </ul>
       </section>
     </>

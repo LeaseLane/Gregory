@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 
 /* Nouveau mot de passe (après un lien « Mot de passe oublié ? » et le code 2FA). */
@@ -7,11 +7,13 @@ export default function MotDePasse() {
   const [mdp, setMdp] = useState('');
   const [fait, setFait] = useState(false);
   const [erreur, setErreur] = useState('');
+  const [min, setMin] = useState(12);
+  useEffect(() => { supabaseNavigateur().rpc('lanceur_politique').then(({ data }) => { const m = (data as { mdp_min?: number } | null)?.mdp_min; if (m) setMin(m); }); }, []);
 
   async function changer(e: React.FormEvent) {
     e.preventDefault();
     setErreur('');
-    if (mdp.length < 12) return setErreur('12 caractères minimum.');
+    if (mdp.length < min) return setErreur(`${min} caractères minimum.`);
     const { error } = await supabaseNavigateur().auth.updateUser({ password: mdp });
     if (error) return setErreur('Le mot de passe n’a pas été changé : ' + error.message);
     setFait(true);
@@ -27,7 +29,7 @@ export default function MotDePasse() {
           <>
             <div className="champ">
               <label htmlFor="nouveau">Nouveau mot de passe</label>
-              <div className="saisie"><input id="nouveau" type="password" autoComplete="new-password" value={mdp} onChange={(e) => setMdp(e.target.value)} placeholder="12 caractères minimum" /></div>
+              <div className="saisie"><input id="nouveau" type="password" autoComplete="new-password" value={mdp} onChange={(e) => setMdp(e.target.value)} placeholder={`${min} caractères minimum`} /></div>
             </div>
             {erreur && <p className="erreur" role="alert">{erreur}</p>}
             <button className="bouton bouton-principal" type="submit">Enregistrer</button>

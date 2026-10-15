@@ -39,6 +39,8 @@ export function FormulaireConnexion({ espace }: { espace?: Espace } = {}) {
     choisirMemoire(rester);
     const { error } = await supabaseNavigateur().auth.signInWithPassword({ email: courriel.trim(), password: motDePasse });
     if (error) {
+      // journal d'accès : la tentative refusée est inscrite (plafonnée par adresse IP en base)
+      await supabaseNavigateur().rpc('journal_acces_refuse', { p: { courriel: courriel.trim(), raison: 'mot_de_passe' } }).then(() => null, () => null);
       setErreur('Courriel ou mot de passe incorrect. Vérifiez-les, ou utilisez « Mot de passe oublié ? ».');
       setEnvoi(false);
       return;
@@ -109,7 +111,7 @@ export function FormulaireConnexion({ espace }: { espace?: Espace } = {}) {
           <IconeCourriel taille={16} /> Recevoir un lien par courriel
         </button>
       </div>
-      {espace && <p className="auth-premiere">Première visite ? Votre gestionnaire vous envoie votre accès par courriel.</p>}
+      {espace && <p className="auth-premiere">Première visite ? <a className="lien" href={`/espace/inscription?p=${espace}`}>Créer mon compte avec mon code d’invitation</a></p>}
     </form>
   );
 }

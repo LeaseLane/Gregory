@@ -33,7 +33,7 @@ export function Cleo({ question, fermer, locataire }: { question: string; fermer
     const historique = avant.map((m) => ({ role: m.role, content: m.rep?.constat ?? m.texte }));
     const r = await fetch('/api/cleo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q, historique }) });
     const j = await r.json().catch(() => ({})); setAttente(false);
-    setMsgs((m) => [...m, r.ok ? { role: 'assistant', texte: j.constat, rep: j as Rep, le: new Date() } : { role: 'assistant', texte: j.error ?? 'Cléo ne répond pas pour l’instant. Vos actions restent possibles sans elle.', erreur: true, le: new Date() }]);
+    setMsgs((m) => [...m, r.ok && typeof j.constat === 'string' && Array.isArray(j.cartes) ? { role: 'assistant', texte: j.constat, rep: j as Rep, le: new Date() } : { role: 'assistant', texte: j.error ?? 'Cléo ne répond pas pour l’instant. Vos actions restent possibles sans elle.', erreur: true, le: new Date() }]);
   }
   // Propriétaire : approuver une dépense en attente (c'est la personne qui décide, ici).
   async function approuverDepense(id: string) {

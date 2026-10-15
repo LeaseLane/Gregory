@@ -72,6 +72,7 @@ export function BarreHaut({ initiales, courriel, nonLues: initial, moi }: { init
           {menu && (
             <div className="menu" role="menu">
               <p className="menu-qui">{courriel}</p>
+              <a href="/compte" role="menuitem">Mon compte</a>
               <form action="/deconnexion" method="post"><button type="submit" role="menuitem">Me déconnecter</button></form>
             </div>
           )}

@@ -6,9 +6,11 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { BandeauLocataire, useLocataire } from '@/composants/portail/CoquilleLocataire';
 import { dateCourte, dateLongue } from '@/composants/portail/format';
+import { Confidentialite } from '@/composants/portail/Confidentialite';
 
 /* Locataire · 17 Mes informations (logement en lecture seule), 18 Notifications (type d'avis × courriel / SMS; urgences verrouillées;
-   avis de service séparés des communications de Lease Lane, consentement LCAP daté, STOP — CONCORDANCE 2.8), 19 Affichage (position du menu). */
+   avis de service séparés des communications de Lease Lane, consentement LCAP daté, STOP — CONCORDANCE 2.8), 19 Affichage (position du menu),
+   Confidentialité (Loi 25 — CONCORDANCE 2.9). */
 export type ProfilLoc = { prenom: string; nom: string | null; courriel: string | null; telephone: string | null; langue: string; logement: string | null; bail: { debut: string | null; fin: string | null };
   notifications: Record<string, { courriel: boolean; sms: boolean }>; lcap: { le: string; canal: string } | null; menu: 'gauche' | 'droite' | 'haut' | 'bas' };
 const AVIS: [string, string, (g: string) => string, { courriel: boolean; sms: boolean }][] = [
@@ -18,7 +20,7 @@ const AVIS: [string, string, (g: string) => string, { courriel: boolean; sms: bo
   ['avis', 'Avis de l’immeuble', () => 'Travaux, inspections, coupures prévues', { courriel: true, sms: false }]];
 const POSITIONS: ['gauche' | 'droite' | 'haut' | 'bas', string][] = [['gauche', 'Gauche'], ['droite', 'Droite'], ['haut', 'Haut'], ['bas', 'Bas']];
 
-export function Profil({ donnees: D, onglet, erreur }: { donnees: ProfilLoc | null; onglet: string; erreur: string | null }) {
+export function Profil({ donnees: D, onglet, maintenant, erreur }: { donnees: ProfilLoc | null; onglet: string; maintenant: string; erreur: string | null }) {
   const router = useRouter(), { pastilles } = useLocataire();
   const [f, setF] = useState({ prenom: D?.prenom ?? '', nom: D?.nom ?? '', courriel: D?.courriel ?? '', telephone: D?.telephone ?? '', langue: D?.langue ?? 'fr' });
   const [prefs, setPrefs] = useState(() => Object.fromEntries(AVIS.map(([k, , , def]) => [k, D?.notifications?.[k] ?? def])) as Record<string, { courriel: boolean; sms: boolean }>);
@@ -54,7 +56,7 @@ export function Profil({ donnees: D, onglet, erreur }: { donnees: ProfilLoc | nu
       <BandeauLocataire titre="Mon profil" sous="Vos informations et vos préférences d’affichage" />
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       <section className="carte-l18 e2 lo-remonte lo-profil-carte">
-        <nav className="po-onglets">{[['infos', 'Mes informations'], ['notifications', 'Notifications'], ['affichage', 'Affichage']].map(([k, l]) =>
+        <nav className="po-onglets">{[['infos', 'Mes informations'], ['notifications', 'Notifications'], ['affichage', 'Affichage'], ['confidentialite', 'Confidentialité']].map(([k, l]) =>
           <Link key={k} href={`/locataire/profil${k === 'infos' ? '' : `?t=${k}`}`} className={onglet === k ? 'actif' : ''} aria-current={onglet === k ? 'page' : undefined}>{l}</Link>)}
           <form action="/deconnexion?p=locataire" method="post" style={{ marginLeft: 'auto', alignSelf: 'center' }}><button className="lien ligne-ic lo-sortir"><Icone nom="arrow" taille={14} couleur="#2E5788" />Me déconnecter</button></form></nav>
 
@@ -93,6 +95,8 @@ export function Profil({ donnees: D, onglet, erreur }: { donnees: ProfilLoc | nu
             <div><strong>Infolettre et offres de Lease Lane</strong><span className="gris texte-13">{lcap ? `Consentement donné le ${dateCourte(lcap.le, true)}. Vous pouvez le retirer en tout temps.` : 'Facultatif. Sans votre consentement, vous ne recevez aucune communication commerciale (LCAP).'}</span></div></label>
           <Enregistre k="notifications" />
         </div>}
+
+        {onglet === 'confidentialite' && <div className="lo-profil-corps"><Confidentialite maintenant={maintenant} /></div>}
 
         {onglet === 'affichage' && <div className="lo-profil-corps">
           <h2 className="titre-carte" style={{ marginBottom: 2 }}>Position du menu</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>Choisissez où le menu s’affiche sur ordinateur et tablette. Le changement s’applique tout de suite.</p>

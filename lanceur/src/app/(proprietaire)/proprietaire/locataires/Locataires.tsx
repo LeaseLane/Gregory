@@ -20,7 +20,7 @@ export function Locataires({ donnees, erreur }: { donnees: DonneesLocataires | n
   return (
     <>
       <div className="po-entete"><div><h1 className="po-titre">Locataires</h1><p className="po-sous" style={{ margin: '4px 0 0' }}>Baux, paiements et demandes par personne</p></div>
-        <button className="bouton bouton-contour po-bouton" disabled title="Arrive avec « Proposer un locataire » : vous proposez, l’équipe valide"><Icone nom="plus" taille={18} couleur="#0C2147" />Proposer un locataire</button></div>
+        <Link className="bouton bouton-contour po-bouton" href="/proprietaire/locataires/proposer"><Icone nom="plus" taille={18} couleur="#0C2147" />Proposer un locataire</Link></div>
       <div className="po-kpis">
         <div className="carte-l18 kpi-po"><span>Locataires<Icone nom="users" taille={18} couleur="#58697F" /></span><b>{L.length}</b><small>sur {donnees.occupes} logements occupés</small></div>
         <div className="carte-l18 kpi-po"><span>À jour<Icone nom="check" taille={18} couleur="#58697F" /></span><b>{aJour}</b><small>loyers {DE}{MOIS} reçus</small></div>

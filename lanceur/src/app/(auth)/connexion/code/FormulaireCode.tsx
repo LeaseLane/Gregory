@@ -36,6 +36,8 @@ export function FormulaireCode({ apres = '/', inscription = '/connexion/inscript
     }
     const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: totp.id, code: valeur });
     if (error) {
+      const { data: u } = await supabase.auth.getUser();
+      await supabase.rpc('journal_acces_refuse', { p: { courriel: u.user?.email ?? '', raison: 'code_2fa' } }).then(() => null, () => null);
       const n = rates + 1;
       setRates(n);
       setCode('');

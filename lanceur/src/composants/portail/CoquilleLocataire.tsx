@@ -54,7 +54,7 @@ export function BandeauLocataire({ titre, sous, retour, surtitre, children, bas 
           <a className="lo-urgence" href={tel ? `tel:+1${tel.replace(/\D/g, '').slice(-10)}` : '/locataire/aide#urgence'}><Icone nom="siren" taille={18} couleur="#9B2E28" />Urgence 24/7</a>
           <form className="lo-cherche" role="search" onSubmit={(e) => { e.preventDefault(); ouvrirCleo(q.trim()); setQ(''); }}>
             <Icone nom="search" taille={18} couleur="#C8DAF0" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher…" aria-label="Rechercher ou demander à Cléo" /></form>
-          <Cloche clair={false} />
+          <Cloche clair={false} toutVoir="/locataire/notifications" />
         </div>
       </div>
       {children}

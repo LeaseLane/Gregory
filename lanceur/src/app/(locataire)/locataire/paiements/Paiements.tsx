@@ -13,11 +13,13 @@ import { argent, dateCourte, dateLongue, moisAnnee } from '@/composants/portail/
    refusé » sans blâme, avec la marche à suivre (CONCORDANCE 2.10, 2.14). */
 export type PaiementsLoc = { prochain: { echeance: string; montant: number; en_retard: boolean; jours: number; echec: boolean } | null; annee: { paye: number; loyers: number; prevus: number };
   retards: number; en_retard: number; historique: { id: string; periode: string; recu_le: string | null; mode: string | null; montant: number; statut: string }[];
-  mode: { type: string; depuis?: string; compte?: string | null }; interac: string | null; reference: string | null; releve31: { id: string } | null };
+  mode: { type: string; depuis?: string; compte?: string | null }; interac: string | null; reference: string | null; releve31: { id: string; annee: number } | null };
+export type RL31 = { id: string; annee: number; code: string; remis_le: string; donnees: { numero_logement: string; logement: { adresse: string; ville: string | null; code_postal: string | null };
+  locateur: { nom: string; adresse: string | null }; mandataire: { nom: string; neq: string | null } | null; occupant: { nom: string }; motif_correction?: string } };
 export type Recu = { numero: string; emis_le: string; periode: string; montant: number; mode: string; emetteur: { nom: string; pour: string; neq: string | null; adresse: string | null };
   locataire: { nom: string; logement: string; ville: string } };
 
-export function Paiements({ donnees: D, recu, erreurRecu, mode, maintenant, erreur }: { donnees: PaiementsLoc | null; recu: Recu | null; erreurRecu: string | null; mode: boolean; maintenant: string; erreur: string | null }) {
+export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant, erreur }: { donnees: PaiementsLoc | null; recu: Recu | null; rl31: RL31 | null; erreurRecu: string | null; mode: boolean; maintenant: string; erreur: string | null }) {
   const router = useRouter();
   const [fenetreMode, setFenetreMode] = useState(mode), [toast, setToast] = useState<string | null>(null), [bandeau, setBandeau] = useState<string | null>(erreurRecu);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
@@ -68,9 +70,9 @@ export function Paiements({ donnees: D, recu, erreurRecu, mode, maintenant, erre
             {!pad && D.reference && <p className="texte-13">Référence à écrire dans le message du virement : <b>{D.reference}</b></p>}
             <p className="gris texte-12">Les loyers sont déposés directement dans le compte du propriétaire. Lease Lane n’a pas accès à vos identifiants bancaires.</p>
           </section>
-          <section className="carte-l18" aria-label="Relevé 31"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Relevé 31 — {annee}</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>Relevé fiscal annuel</p>
-            {D.releve31 ? <button className="bouton bouton-contour" onClick={() => ouvrirFichier(D.releve31!.id, true)}><Icone nom="download" taille={16} couleur="#0C2147" />Télécharger le relevé</button> : <span className="puce neutral">Disponible en février</span>}
-            <p className="texte-13">Il vous sera remis au plus tard le 28 février, dans vos documents.</p></section>
+          <section className="carte-l18" aria-label="Relevé 31"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Relevé 31 — {D.releve31?.annee ?? annee}</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>Relevé fiscal annuel</p>
+            {D.releve31 ? <Link className="bouton bouton-contour" style={{ width: 'auto', display: 'inline-flex', padding: '0 20px' }} scroll={false} href={`/locataire/paiements?rl31=${D.releve31.id}`}><Icone nom="download" taille={16} couleur="#0C2147" />Voir et télécharger</Link> : <span className="puce neutral">Disponible en février</span>}
+            <p className="texte-13">Il vous est remis au plus tard le 28 février, pour votre déclaration de revenus (crédit d’impôt pour solidarité).</p></section>
         </div>
       </div>
 
@@ -88,6 +90,21 @@ export function Paiements({ donnees: D, recu, erreurRecu, mode, maintenant, erre
             <button className="bouton bouton-principal" onClick={() => window.print()}><Icone nom="download" taille={16} couleur="#fff" />Télécharger le PDF</button></div>
         </div></div>}
 
+      {rl31 && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermerRecu()}>
+        <div className="modale lo-recu" role="dialog" aria-modal="true" aria-labelledby="rl31-t">
+          <header className="tete-action"><div><h2 id="rl31-t" style={{ margin: 0, fontSize: 20 }}>Relevé 31 — {rl31.annee}</h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>Renseignements sur l’occupation d’un logement au 31 décembre {rl31.annee}{rl31.code === 'A' ? ' · relevé modifié' : ''}</p></div>
+            <button className="haut-ibtn non-imprime" onClick={fermerRecu} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
+          <div className="lo-recu-parties"><div><p className="surtitre">Locateur</p><p>{rl31.donnees.locateur.nom}{rl31.donnees.locateur.adresse ? <><br />{rl31.donnees.locateur.adresse}</> : null}
+              {rl31.donnees.mandataire?.nom ? <><br /><span className="gris">par {rl31.donnees.mandataire.nom}{rl31.donnees.mandataire.neq ? ` · NEQ ${rl31.donnees.mandataire.neq}` : ''}</span></> : null}</p></div>
+            <div><p className="surtitre">Occupant au 31 décembre</p><p>{rl31.donnees.occupant.nom}</p></div></div>
+          <table className="tableau lo-recu-table"><tbody>
+            <tr><td className="fort">Numéro d’identification du logement</td><td className="droite fort">{rl31.donnees.numero_logement}</td></tr>
+            <tr><td className="fort">Adresse du logement</td><td className="droite">{rl31.donnees.logement.adresse.replace(/, Québec(?= —)/, '')}{rl31.donnees.logement.code_postal ? `, ${rl31.donnees.logement.code_postal}` : ''}</td></tr>
+            <tr><td className="fort">Remis le</td><td className="droite">{dateLongue(rl31.remis_le)}</td></tr></tbody></table>
+          <p className="lo-recu-note">Conservez ce relevé : Revenu Québec le demande pour le crédit d’impôt pour solidarité. Une erreur ? Écrivez à votre gestionnaire; un relevé modifié vous sera remis.</p>
+          <div className="a-faire-actions non-imprime" style={{ justifyContent: 'flex-end' }}><button className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="printer" taille={16} couleur="#0C2147" />Imprimer</button>
+            <button className="bouton bouton-principal" onClick={() => window.print()}><Icone nom="download" taille={16} couleur="#fff" />Télécharger le PDF</button></div>
+        </div></div>}
       {fenetreMode && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setFenetreMode(false)}>
         <div className="modale lo-modes" role="dialog" aria-modal="true" aria-labelledby="mode-t">
           <header className="tete-action"><div><p className="surtitre">Paiements</p><h2 id="mode-t" style={{ margin: 0 }}>Changer de mode de paiement</h2></div>

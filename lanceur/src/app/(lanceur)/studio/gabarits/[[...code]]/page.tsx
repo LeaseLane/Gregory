@@ -1,5 +1,6 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
+import { ONGLETS_STUDIO } from '../../onglets';
 import { rendreCourriel, rendreSms, type Contenu } from '@partage/gabarits.ts';
 import { Gabarits, type Gabarit } from './Gabarits';
 
@@ -21,7 +22,7 @@ export default async function Page({ params }: { params: Promise<{ code?: string
       nom="Studio"
       sous="Site web, campagnes, sources et gabarits de messages"
       actif={3}
-      onglets={[{ libelle: 'Site web' }, { libelle: 'Campagnes' }, { libelle: 'Sources' }, { libelle: 'Gabarits', href: '/studio/gabarits' }]}
+      onglets={ONGLETS_STUDIO}
     >
       <Gabarits
         liste={liste}

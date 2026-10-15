@@ -1,11 +1,15 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 
 /* Propriétaire · 10 Finance (décisions du 13 oct.) : les loyers sont payés directement chez vous et suivis par Lease Lane; Lease Lane
    facture le 5 ses honoraires et, pour une facture de travaux de plus de 1 000 $, 10 % de coordination. Aucun « net », aucun « versé ».
-   Relevés 31 : la production arrive avec TF (février); la liste des locataires au 31 décembre est déjà là. */
+   Relevés 31 (TF) : produire ses relevés, puis les valider et les remettre aux locataires (aucune remise sans vous). */
 type Ecriture = { le: string; libelle: string; categorie: string; montant: number };
+export type DonneesRL31 = { annee: number; echeance: string; production_possible: boolean; logements: { immeuble: string; logement: string; locataire: string; numero: boolean; releve: { id: string; statut: string; code: string } | null }[] };
 export type DonneesFinance = { mois: string; taux: number; ecritures: Ecriture[]; precedent: { loyers: number; travaux: number }; releves: string[]; releves_31: { immeuble: string; logement: string; locataire: string }[] };
 const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, ' ')} $`;
 const moisNom = (ym: string) => new Date(`${ym.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' }).replace(/^./, (c) => c.toUpperCase());
@@ -13,7 +17,7 @@ const jour = (iso: string) => { const x = new Date(`${iso}T12:00:00`); return `$
 const ecart = (a: number, b: number) => b ? `${a >= b ? '+' : ''}${(((a - b) / b) * 100).toFixed(1).replace('.', ',')} %` : '';
 const CAT: Record<string, string> = { Loyers: '', 'Loyer partiel': 'todo', Honoraires: 'neutral', Entretien: 'neutral', Coordination: 'neutral' };
 
-export function Finance({ donnees, erreur }: { donnees: DonneesFinance | null; erreur: string | null }) {
+export function Finance({ rl31, donnees, erreur }: { rl31: DonneesRL31 | null; donnees: DonneesFinance | null; erreur: string | null }) {
   if (erreur || !donnees) return <div className="bandeau erreur" role="alert">{erreur ?? 'Vos finances n’ont pas pu être lues.'}</div>;
   const D = donnees, E = D.ecritures, somme = (f: (e: Ecriture) => boolean) => E.filter(f).reduce((a, e) => a + e.montant, 0);
   const pos = (n: number) => (Math.abs(n) < 0.005 ? 0 : n);
@@ -58,14 +62,35 @@ export function Finance({ donnees, erreur }: { donnees: DonneesFinance | null; e
           </section>
         </div>
       </div>
-      <section className="studio-liste" aria-label="Relevés 31">
-        <header className="carte-tete tete-action"><div><h2>Relevés 31 — année {new Date().getFullYear()}</h2><p>Un relevé par logement, pour chaque locataire au 31 décembre · échéance fin février</p></div>
-          <div className="a-faire-actions"><button className="bouton bouton-contour po-bouton" disabled title="Production en janvier : arrive avec les Relevés 31">Produire les Relevés 31</button>
-            <button className="bouton bouton-contour po-bouton" disabled title="Après la production">Remettre aux locataires</button></div></header>
-        <table className="tableau"><thead><tr><th>Immeuble</th><th>Logement</th><th>Locataire au 31 décembre</th><th>Statut</th></tr></thead>
-          <tbody>{D.releves_31.map((r, i) => <tr key={i}><td>{r.immeuble}</td><td>{r.logement}</td><td>{r.locataire}</td><td><span className="puce neutral">À produire</span></td></tr>)}
-            {!D.releves_31.length && <tr><td colSpan={4} className="gris">Aucun bail au 31 décembre.</td></tr>}</tbody></table>
-      </section>
+      {rl31 && <Releves31 R={rl31} />}
     </>
+  );
+}
+
+// Relevés 31 : produire ses brouillons (après le 31 décembre), puis valider et remettre (les locataires les trouvent dans Paiements).
+function Releves31({ R }: { R: DonneesRL31 }) {
+  const router = useRouter();
+  const [envoi, setEnvoi] = useState(false), [msg, setMsg] = useState<string | null>(null), [err, setErr] = useState<string | null>(null);
+  const brouillons = R.logements.filter((l) => l.releve?.statut === 'brouillon').length, sansNumero = R.logements.filter((l) => !l.numero).length;
+  async function agir(f: 'portail_rl31_produire' | 'portail_rl31_remettre') {
+    setEnvoi(true); setErr(null); setMsg(null);
+    const { data, error } = await supabaseNavigateur().rpc(f, { p_annee: R.annee });
+    setEnvoi(false); if (error) return setErr(error.message);
+    setMsg(f === 'portail_rl31_remettre' ? `${data} relevé${Number(data) > 1 ? 's' : ''} remis : vos locataires les trouvent dans leur espace.` : `${(data as { crees: number }).crees} relevé(s) produit(s) : vérifiez-les, puis remettez-les.`); router.refresh();
+  }
+  const ETAT: Record<string, [string, string]> = { brouillon: ['À valider', 'action'], remis: ['Remis', 'ok'] };
+  return (
+    <section className="studio-liste" aria-label="Relevés 31">
+      <header className="carte-tete tete-action"><div><h2 className="ligne-ic">Relevés 31 — année {R.annee}<Link className="lien texte-13" href={`/proprietaire/finance?a=${R.annee - 1}`}>{R.annee - 1}</Link><Link className="lien texte-13" href={`/proprietaire/finance?a=${R.annee + 1}`}>{R.annee + 1}</Link></h2><p>Un relevé par logement, pour chaque locataire au 31 décembre · à remettre au plus tard le 28 février {R.annee + 1}</p></div>
+        <div className="a-faire-actions"><button className="bouton bouton-contour po-bouton" disabled={envoi || !R.production_possible} title={R.production_possible ? '' : `Production après le 31 décembre ${R.annee}`} onClick={() => agir('portail_rl31_produire')}>Produire les Relevés 31</button>
+          <button className="bouton bouton-principal po-bouton" disabled={envoi || !brouillons} title={brouillons ? '' : 'Produisez d’abord les relevés'} onClick={() => agir('portail_rl31_remettre')}>Valider et remettre aux locataires</button></div></header>
+      {err && <div className="bandeau erreur" role="alert" style={{ margin: '0 24px' }}>{err}</div>}
+      {msg && <div className="bandeau info" role="status" style={{ margin: '0 24px' }}>{msg}</div>}
+      {!!sansNumero && <p className="po-note" style={{ margin: '0 24px' }}><Icone nom="info" taille={14} couleur="#3E4A59" />{sansNumero} logement{sansNumero > 1 ? 's' : ''} sans numéro d’identification de Revenu Québec : l’équipe Lease Lane le complète avant la production.</p>}
+      <table className="tableau"><thead><tr><th>Immeuble</th><th>Logement</th><th>Locataire au 31 décembre</th><th>Statut</th></tr></thead>
+        <tbody>{R.logements.map((r, i) => { const [l, t] = r.releve ? ETAT[r.releve.statut] ?? [r.releve.statut, 'neutral'] : !r.numero ? ['Numéro manquant', 'todo'] : ['À produire', 'neutral'];
+          return <tr key={i}><td>{r.immeuble}</td><td>{r.logement}</td><td>{r.locataire}</td><td><span className={`puce ${t}`}>{l}{r.releve?.code === 'A' ? ' · modifié' : ''}</span></td></tr>; })}
+          {!R.logements.length && <tr><td colSpan={4} className="gris">Aucun bail au 31 décembre {R.annee}.</td></tr>}</tbody></table>
+    </section>
   );
 }

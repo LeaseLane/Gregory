@@ -181,6 +181,8 @@ jobs:
           liste=$(printf '%s' "$liste" | tr ',' '\n' | grep -v "$ancien" | paste -sd, - || true)
           [ "$liste" = "$avant" ] || changer=1
           case ",$liste," in *",$attendu/**,"*) ;; *) liste="${liste:+$liste,}$attendu/**"; changer=1;; esac
+          # 2026-10-15 : Lanceur (équipe) sur admin.leaselane.ca — redirection permise, site_url inchangé.
+          case ",$liste," in *",https://admin.leaselane.ca/**,"*) ;; *) liste="$liste,https://admin.leaselane.ca/**"; changer=1;; esac
           [ "$site" = "$attendu" ] || changer=1
           if [ "${changer:-}" = 1 ]; then
             corps=$(python3 -c "import json,sys;print(json.dumps({'site_url':sys.argv[1],'uri_allow_list':sys.argv[2]}))" "$attendu" "$liste")
