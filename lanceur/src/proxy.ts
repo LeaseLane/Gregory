@@ -27,6 +27,8 @@ export async function proxy(request: NextRequest) {
   // Relais des portails et de Cléo : chacun exige une session et la base vérifie le niveau (2FA); un locataire sans 2FA ne doit pas
   // être renvoyé vers l'inscription 2FA de l'équipe (réponse HTML au lieu de JSON).
   if (chemin === '/api/cleo' || chemin.startsWith('/api/portail/')) return reponse;
+  // Démonstration : code à 6 chiffres calculé pour le compte connecté (404 hors LL_ENV=demo; la route vérifie la session).
+  if (chemin === '/api/demo/code') return reponse;
   let niveau = { utilisateur: false, actuel: null as string | null, suivant: null as string | null };
   try {
     const { data } = await supabase.auth.getUser();
