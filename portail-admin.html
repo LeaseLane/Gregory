@@ -673,6 +673,7 @@
     <div style="display:flex;align-items:center;gap:10px;margin:0 0 10px;">
       <label class="ch-label" for="pr-filtre" style="margin:0">Afficher</label>
       <select id="pr-filtre" onchange="prChoisirFiltre(this.value)"></select>
+      <input type="search" id="pr-recherche" placeholder="Rechercher : nom, courriel, téléphone, entreprise, notes…" aria-label="Rechercher un prospect" oninput="renderProspects()" style="flex:1;min-width:0;max-width:420px">
     </div>
     <div style="overflow-x:auto;max-width:100%"><table><thead><tr><th>Prospect</th><th class="num">Portes</th><th class="num">Revenu potentiel/mois</th><th>Intérêt</th><th>Statut</th><th class="num">Complétude</th><th class="num">Prob. signature</th><th>Prochain geste</th><th>Prochain suivi</th><th>Prospecteur</th><th></th></tr></thead>
       <tbody id="prospects-body"><tr class="empty-row"><td colspan="11">Chargement...</td></tr></tbody>
@@ -4084,9 +4085,15 @@ function renderProspects(){
   const sel = document.getElementById('pr-filtre');
   if(sel) sel.innerHTML = [['actifs', 'Actifs (sans perdus ni archivés)'], ...Object.entries(stageLabel), ['archives', 'Archivés'], ['tous', 'Tous']]
     .map(([k, l]) => `<option value="${k}"${k === prFiltre ? ' selected' : ''}>${l} (${n(filtres[k])})</option>`).join('');
-  const prospects = prospectsTous.filter(filtres[prFiltre] || filtres.actifs);
+  // Recherche sans accents ni majuscules; les chiffres du téléphone se comparent sans espaces ni tirets.
+  const plat = x => String(x ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const q = plat(document.getElementById('pr-recherche')?.value.trim());
+  const chiffres = q.replace(/\D/g, '');
+  const trouve = p => !q || plat([p.full_name, p.email, p.phone, p.company_name, p.notes, p.lead_source].join(' ')).includes(q)
+    || (chiffres.length >= 3 && String(p.phone ?? '').replace(/\D/g, '').includes(chiffres));
+  const prospects = prospectsTous.filter(filtres[prFiltre] || filtres.actifs).filter(trouve);
   if(!prospects.length){
-    body.innerHTML = `<tr class="empty-row"><td colspan="11">${prospectsTous.length ? 'Aucun prospect pour ce filtre.' : 'Aucun prospect.'}</td></tr>`;
+    body.innerHTML = `<tr class="empty-row"><td colspan="11">${q ? 'Aucun prospect ne correspond à la recherche.' : prospectsTous.length ? 'Aucun prospect pour ce filtre.' : 'Aucun prospect.'}</td></tr>`;
     return;
   }
   body.innerHTML = prospects.map(p => `
