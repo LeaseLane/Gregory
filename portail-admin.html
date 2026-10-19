@@ -667,20 +667,16 @@
       <div><label class="ch-label" for="pr-phone">Téléphone</label><input type="text" id="pr-phone"></div>
       <div><label class="ch-label" for="pr-doors">Portes</label><input type="number" id="pr-doors"></div>
       <div><label class="ch-label" for="pr-rent">Loyer moyen</label><input type="number" id="pr-rent"></div>
-      <div><label class="ch-label" for="pr-company">Entreprise</label><input type="text" id="pr-company"></div>
-      <div><label class="ch-label" for="pr-cost">Coût d'acquisition ($)</label><input type="number" step="0.01" id="pr-cost"></div>
-      <div style="flex-basis:100%"><label class="ch-label" for="pr-notes">Notes</label><textarea id="pr-notes" rows="2"></textarea></div>
-      <button id="pr-enregistrer" onclick="createProspect()" class="ll-bouton ll-bouton--primaire">Ajouter un prospect</button>
-      <button id="pr-annuler" onclick="prFinEdition()" class="ll-bouton ll-bouton--secondaire" hidden>Annuler</button>
+      <button onclick="createProspect()" class="ll-bouton ll-bouton--primaire">Ajouter un prospect</button>
     </div>
 
     <div style="display:flex;align-items:center;gap:10px;margin:0 0 10px;">
       <label class="ch-label" for="pr-filtre" style="margin:0">Afficher</label>
       <select id="pr-filtre" onchange="prChoisirFiltre(this.value)"></select>
     </div>
-    <table><thead><tr><th>Prospect</th><th class="num">Portes</th><th class="num">Revenu potentiel/mois</th><th>Intérêt</th><th>Statut</th><th class="num">Complétude</th><th class="num">Prob. signature</th><th>Prochain geste</th><th>Prochain suivi</th><th>Prospecteur</th><th></th></tr></thead>
+    <div style="overflow-x:auto;max-width:100%"><table><thead><tr><th>Prospect</th><th class="num">Portes</th><th class="num">Revenu potentiel/mois</th><th>Intérêt</th><th>Statut</th><th class="num">Complétude</th><th class="num">Prob. signature</th><th>Prochain geste</th><th>Prochain suivi</th><th>Prospecteur</th><th></th></tr></thead>
       <tbody id="prospects-body"><tr class="empty-row"><td colspan="11">Chargement...</td></tr></tbody>
-    </table>
+    </table></div>
 
     <div style="display:flex;align-items:center;gap:12px;margin:-8px 0 32px;">
       <button onclick="runFindProspectsAi()" id="find-prospects-btn" class="vo-action">🔍 Chercher des prospects maintenant (IA)</button>
@@ -5332,42 +5328,48 @@ async function promptRecordRenewalResponse(lease_id){
   if(res?.ok){ await loadLeaseRenewals(); }
 }
 
-/* Modifier un prospect : le formulaire du haut se remplit avec sa fiche. */
-let prEdition = null;
-const PR_CHAMPS = { 'pr-name': 'full_name', 'pr-email': 'email', 'pr-phone': 'phone', 'pr-doors': 'num_doors', 'pr-rent': 'avg_rent', 'pr-company': 'company_name', 'pr-cost': 'acquisition_cost', 'pr-notes': 'notes' };
+/* Modifier un prospect : fenêtre avec toute sa fiche. */
+const PR_CHAMPS = [['full_name', 'Nom', 'text'], ['email', 'Courriel', 'email'], ['phone', 'Téléphone', 'text'], ['company_name', 'Entreprise', 'text'],
+  ['num_doors', 'Portes', 'number'], ['avg_rent', 'Loyer moyen ($)', 'number'], ['acquisition_cost', 'Coût d\'acquisition ($)', 'number'], ['notes', 'Notes', 'textarea']];
 function prModifier(id){
   const p = prospectsTous.find(x => x.id === id); if(!p) return;
-  prEdition = id;
-  for(const [el, k] of Object.entries(PR_CHAMPS)) document.getElementById(el).value = p[k] ?? '';
-  document.getElementById('pr-enregistrer').textContent = 'Enregistrer les modifications';
-  document.getElementById('pr-annuler').hidden = false;
-  document.getElementById('pr-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  document.getElementById('pr-name').focus({ preventScroll: true });
-}
-function prFinEdition(){
-  prEdition = null;
-  for(const el of Object.keys(PR_CHAMPS)) document.getElementById(el).value = '';
-  document.getElementById('pr-enregistrer').textContent = 'Ajouter un prospect';
-  document.getElementById('pr-annuler').hidden = true;
+  const fond = document.createElement('div');
+  fond.className = 'll-modale-fond';
+  fond.innerHTML = `<form class="ll-modale" role="dialog" aria-modal="true" aria-labelledby="pr-mod-titre" style="max-width:560px;width:calc(100vw - 32px)">
+    <p id="pr-mod-titre" class="ll-modale__texte"><b>Modifier le prospect</b></p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px 14px;margin-bottom:18px">
+      ${PR_CHAMPS.map(([k, lib, type]) => `<div${type === 'textarea' ? ' style="grid-column:1/-1"' : ''}><label class="ch-label" for="pr-mod-${k}">${lib}</label>${type === 'textarea'
+        ? `<textarea id="pr-mod-${k}" name="${k}" rows="3" style="width:100%;box-sizing:border-box">${esc(p[k] ?? '')}</textarea>`
+        : `<input id="pr-mod-${k}" name="${k}" type="${type}"${type === 'number' ? ' step="any" min="0"' : ''} value="${esc(p[k] ?? '')}" style="width:100%;box-sizing:border-box"${k === 'full_name' ? ' required' : ''}>`}</div>`).join('')}
+    </div>
+    <div class="ll-modale__actions"><button type="button" class="ll-bouton ll-bouton--secondaire" data-annuler>Annuler</button><button type="submit" class="ll-bouton ll-bouton--primaire">Enregistrer</button></div>
+  </form>`;
+  const fermer = () => { fond.classList.remove('ll-modale-fond--visible'); setTimeout(() => fond.remove(), 180); document.removeEventListener('keydown', echap, true); };
+  const echap = e => { if(e.key === 'Escape') fermer(); };
+  document.addEventListener('keydown', echap, true);
+  fond.addEventListener('mousedown', e => { if(e.target === fond) fermer(); });
+  fond.querySelector('[data-annuler]').onclick = fermer;
+  fond.querySelector('form').onsubmit = async e => {
+    e.preventDefault();
+    const champs = Object.fromEntries(PR_CHAMPS.map(([k]) => [k, fond.querySelector(`[name="${k}"]`).value]));
+    if(!champs.full_name.trim()){ llToast('Le nom est requis.', 'erreur'); return; }
+    const r = await callCrmApi({ action: 'update_prospect', prospect_id: id, ...champs });
+    if(r?.ok){ llToast('Prospect modifié.', 'succes'); fermer(); await loadProspects(); }
+  };
+  document.body.appendChild(fond);
+  requestAnimationFrame(() => fond.classList.add('ll-modale-fond--visible'));
+  fond.querySelector('#pr-mod-full_name').focus();
 }
 
 async function createProspect(){
-  if(prEdition){
-    const champs = Object.fromEntries(Object.entries(PR_CHAMPS).map(([el, k]) => [k, document.getElementById(el).value]));
-    if(!champs.full_name.trim()){ llToast('Le nom est requis.', 'erreur'); return; }
-    const r = await callCrmApi({ action: 'update_prospect', prospect_id: prEdition, ...champs });
-    if(r?.ok){ llToast('Prospect modifié.', 'succes'); prFinEdition(); await loadProspects(); }
-    return;
-  }
   const full_name = document.getElementById('pr-name').value;
   const email = document.getElementById('pr-email').value;
   const phone = document.getElementById('pr-phone').value;
   const num_doors = document.getElementById('pr-doors').value;
   const avg_rent = document.getElementById('pr-rent').value;
   if(!full_name){ alert('Le nom est requis.'); return; }
-  const company_name = document.getElementById('pr-company').value || null, acquisition_cost = document.getElementById('pr-cost').value;
-  await callCrmApi({ action: 'create', full_name, email, phone, company_name, num_doors: num_doors ? Number(num_doors) : null, avg_rent: avg_rent ? Number(avg_rent) : null, acquisition_cost: acquisition_cost ? Number(acquisition_cost) : null, notes: document.getElementById('pr-notes').value.trim() || null });
-  prFinEdition();
+  await callCrmApi({ action: 'create', full_name, email, phone, num_doors: num_doors ? Number(num_doors) : null, avg_rent: avg_rent ? Number(avg_rent) : null });
+  for(const id of ['pr-name', 'pr-email', 'pr-phone', 'pr-doors', 'pr-rent']) document.getElementById(id).value = '';
   await loadProspects();
 }
 
