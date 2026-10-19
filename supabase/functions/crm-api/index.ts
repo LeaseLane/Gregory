@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "create") {
-      const { full_name, email, phone, company_name, num_doors, avg_rent, lead_source, acquisition_cost } = body;
+      const { full_name, email, phone, company_name, num_doors, avg_rent, lead_source, acquisition_cost, notes } = body;
       const potential = num_doors && avg_rent ? Math.round(num_doors * avg_rent * 0.06 * 100) / 100 : null;
       await fetch(`${supabaseUrl}/rest/v1/prospects`, {
         method: "POST",
@@ -107,6 +107,7 @@ Deno.serve(async (req) => {
           stage: "new",
           lead_source: lead_source || "manuel",
           acquisition_cost: acquisition_cost || null,
+          notes: typeof notes === "string" ? notes.trim().slice(0, 5000) || null : null,
         }),
       });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
@@ -144,6 +145,30 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: e.message || "Étape non modifiée." }), { status: r.status === 401 ? 403 : r.status, headers: corsHeaders });
       }
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
+    }
+
+    // Modifier la fiche d'un prospect (nom, coordonnées, portes, loyer, coût, notes).
+    if (action === "update_prospect") {
+      const { prospect_id } = body;
+      if (!prospect_id || !/^[0-9a-f-]{36}$/i.test(prospect_id)) return new Response(JSON.stringify({ error: "Prospect invalide" }), { status: 400, headers: corsHeaders });
+      const texte = (x: unknown, max = 200) => String(x ?? "").trim().slice(0, max) || null;
+      const nombre = (x: unknown) => x === "" || x == null || !Number.isFinite(Number(x)) || Number(x) < 0 ? null : Number(x);
+      const full_name = texte(body.full_name);
+      if (!full_name) return new Response(JSON.stringify({ error: "Le nom est requis." }), { status: 400, headers: corsHeaders });
+      const num_doors = nombre(body.num_doors), avg_rent = nombre(body.avg_rent);
+      const maj = {
+        full_name, email: texte(body.email), phone: texte(body.phone, 40), company_name: texte(body.company_name),
+        num_doors: num_doors == null ? null : Math.round(num_doors), avg_rent,
+        potential_monthly_revenue: num_doors && avg_rent ? Math.round(num_doors * avg_rent * 0.06 * 100) / 100 : null,
+        acquisition_cost: nombre(body.acquisition_cost), notes: texte(body.notes, 5000),
+      };
+      const r = await fetch(`${supabaseUrl}/rest/v1/prospects?id=eq.${prospect_id}`, { method: "PATCH", headers: { ...adminHeaders, Prefer: "return=representation" }, body: JSON.stringify(maj) });
+      if (!r.ok || !(await r.json()).length) return new Response(JSON.stringify({ error: "Non enregistré" }), { status: 409, headers: corsHeaders });
+      await fetch(`${supabaseUrl}/rest/v1/audit_log`, {
+        method: "POST", headers: adminHeaders,
+        body: JSON.stringify({ actor_type: "admin", actor_id: userId, action: "prospect.updated", entity_type: "prospects", entity_id: prospect_id, details: { champs: Object.keys(maj) } }),
+      });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "update_acquisition_cost") {
