@@ -32,6 +32,7 @@ export function CoquilleLocataire({ moi, pastilles, children }: { moi: MoiPortai
           <span className="lo-sep" />
           <button type="button" className={`lo-cleo ${cleo !== null ? 'actif' : ''}`} onClick={() => setCleo('')}><span className="po-cleo-av"><img src="/img/cleo.png" alt="" /><i /></span><span>Cléo</span></button>
           <Link href="/locataire/profil" className={`lo-profil ${actif('/locataire/profil') ? 'actif' : ''}`} aria-label={`${moi.nom} · mon profil`}><b>{moi.initiales}</b><span>Profil</span></Link>
+          <form action="/deconnexion?p=locataire" method="post" className="lo-sortir-f"><button className="lo-sortir" title="Me déconnecter"><Icone nom="sortir" taille={20} couleur="currentColor" /><span>Déconnexion</span></button></form>
         </nav>
         <main className="lo-contenu">{children}</main>
         {cleo !== null && <Cleo question={cleo} fermer={() => setCleo(null)} locataire={{ prenom: moi.prenom, aConfirmer: pastilles?.a_confirmer ?? null, gestionnaire: pastilles?.contact?.nom ?? null }} />}

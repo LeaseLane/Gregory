@@ -34,7 +34,8 @@ export function CoquilleProprietaire({ moi, comptes, children }: { moi: MoiPorta
           <button type="button" className="po-cleo" onClick={() => setCleo('')}><span className="po-cleo-av"><img src="/img/cleo.png" alt="" /><i /></span><div><strong>Cléo</strong><span>Assistante · en ligne</span></div></button>
           <div className="po-compte"><Link href="/proprietaire/profil" className="po-compte-lien" aria-label={`${moi.nom} · mon profil`}><span className="po-ini">{moi.initiales}</span><div><strong>{moi.nom}</strong>
             <span>{moi.pour ? `${moi.acces === 'comptable' ? 'Comptabilité' : 'Copropriétaire'} · ${moi.pour}` : `${moi.portes} logement${moi.portes > 1 ? 's' : ''} · ${moi.immeubles} immeuble${moi.immeubles > 1 ? 's' : ''}`}</span></div></Link>
-            <form action="/deconnexion?p=proprietaire" method="post"><button className="po-sortir" aria-label="Me déconnecter" title="Me déconnecter"><Icone nom="arrow" taille={16} couleur="#C8DAF0" /></button></form></div>
+</div>
+          <form action="/deconnexion?p=proprietaire" method="post"><button className="po-sortir" title="Me déconnecter"><Icone nom="sortir" taille={18} couleur="#C8DAF0" /><span>Me déconnecter</span></button></form>
         </div>
       </aside>
       <div className="po-principal">

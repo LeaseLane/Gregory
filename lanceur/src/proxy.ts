@@ -29,6 +29,8 @@ export async function proxy(request: NextRequest) {
   if (chemin === '/api/cleo' || chemin.startsWith('/api/portail/')) return reponse;
   // Démonstration : code à 6 chiffres calculé pour le compte connecté (404 hors LL_ENV=demo; la route vérifie la session).
   if (chemin === '/api/demo/code') return reponse;
+  // Déconnexion : toujours permise, quel que soit le niveau de session (la route ferme la session elle-même).
+  if (chemin === '/deconnexion') return reponse;
   let niveau = { utilisateur: false, actuel: null as string | null, suivant: null as string | null };
   try {
     const { data } = await supabase.auth.getUser();

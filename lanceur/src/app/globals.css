@@ -963,7 +963,9 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .po-cleo strong, .po-compte strong { font-size: 14px; } .po-cleo span:not(.po-cleo-av), .po-compte div span { font-size: 12px; color: #C8DAF0; }
 .po-cleo-av { position: relative; flex: none; } .po-cleo-av img { width: 32px; height: 32px; border-radius: 50%; } .po-cleo-av i { position: absolute; right: -2px; top: -2px; width: 10px; height: 10px; border-radius: 50%; background: #2E9E6E; border: 2px solid #13305E; }
 .po-ini { width: 44px; height: 44px; border-radius: 12px; background: #fff; color: #0C2147; display: grid; place-items: center; font-weight: 700; font-size: 14px; flex: none; }
-.po-sortir { border: 0; background: none; cursor: pointer; padding: 4px; }
+.po-sortir { display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; padding: 0 14px; border: 0; border-radius: 10px; background: none; color: #C8DAF0; font: inherit; font-size: 14px; cursor: pointer; }
+.po-sortir:hover { background: rgba(255,255,255,.06); color: #fff; }
+.po-rail { min-height: 0; } .po-menu { min-height: 0; overflow-y: auto; scrollbar-width: thin; } .po-bas { flex: none; }
 .po-principal { min-width: 0; } .po-haut { display: flex; gap: 16px; margin-bottom: 24px; }
 .po-cherche { flex: 1; display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 14px; border: 1px solid #E1E6EC; border-radius: 14px; background: #fff; font: inherit; font-size: 14px; color: #58697F; text-align: left; cursor: pointer; }
 .po-contenu { display: grid; gap: 24px; } .po-titre { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.4px; } .po-sous { margin: -16px 0 0; font-size: 14px; color: #58697F; }
@@ -1129,6 +1131,18 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .lo-cleo { border: 0; font: inherit; font-size: 12px; color: #fff; cursor: pointer; } .lo-cleo.actif { background: rgba(255,255,255,.18); }
 .lo-profil { display: grid; justify-items: center; gap: 6px; padding: 10px; border-radius: 12px; color: #DCE7F5; font-size: 12px; text-decoration: none; margin-top: 8px; }
 .lo-profil.actif { background: rgba(255,255,255,.12); color: #fff; font-weight: 600; } .lo-profil.actif b { background: #fff; color: #0C2147; }
+/* Rail du locataire : défile dans sa hauteur si la fenêtre est basse (Profil et Déconnexion restent atteignables). */
+.lo-rail { overflow-y: auto; scrollbar-width: none; } .lo-rail > * { flex: none; }
+.lo-sortir { display: grid; justify-items: center; gap: 6px; width: 72px; padding: 10px 4px; border: 0; border-radius: 12px; background: none; color: #C8DAF0; font: inherit; font-size: 12px; cursor: pointer; }
+.lo-sortir:hover { background: rgba(255,255,255,.08); color: #fff; }
+@media (max-width: 760px) { .lo-sortir-f { display: none; } }
+.lo-sortir span { font-size: 11px; white-space: nowrap; }
+/* Fenêtres basses : menus plus serrés pour que tout tienne sans défiler (Profil, Déconnexion compris). */
+@media (min-width: 761px) and (max-height: 900px) {
+  .lo-rail { gap: 2px; padding: 12px 8px; } .lo-rail > a, .lo-rail > span.inactif, .lo-sortir { gap: 3px; padding: 6px 4px; } .lo-logo { margin-bottom: 4px; }
+  .lo-cleo, .lo-profil { gap: 3px; padding: 6px; } .lo-profil { margin-top: 2px; } .lo-sep { margin: 4px 0; }
+  .po-menu a, .po-menu span.inactif { height: 38px; } .po-bas { gap: 8px; padding-top: 10px; } .po-cleo, .po-compte { padding: 8px 10px; } .po-sortir { height: 34px; }
+}
 .lo-bandeau.court { padding-bottom: 120px; } .lo-retour { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 13px; color: #fff; text-decoration: none; } .lo-retour svg { transform: rotate(180deg); }
 .lo-cherche input { flex: 1; min-width: 0; border: 0; background: none; color: #fff; font: inherit; font-size: 14px; outline: none; } .lo-cherche input::placeholder { color: #C8DAF0; }
 .lo-cherche:focus-within { border-color: #fff; }
@@ -1523,6 +1537,7 @@ textarea.e70-raison { height: auto; min-height: 96px; padding: 12px 16px; line-h
   .po-menu a > span, .po-menu span.inactif > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .po-menu b { position: absolute; top: 2px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; }
   .po-bas { justify-items: center; } .po-cleo, .po-compte { padding: 6px; background: none; } .po-compte { flex-direction: column; gap: 8px; } .po-cleo > div, .po-compte-lien > div { display: none; }
+  .po-sortir { width: 48px; padding: 0; justify-content: center; } .po-sortir span { display: none; }
 }
 @media (min-width: 761px) and (max-width: 1100px) {
   .po-grille-haut, .po-fiche, .po-fiche.inverse, .po-dem-bas, .lo-grille, .lo-maitre, .lo-detail-bas { grid-template-columns: minmax(0, 1fr); }
