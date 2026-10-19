@@ -667,7 +667,11 @@
       <div><label class="ch-label" for="pr-phone">Téléphone</label><input type="text" id="pr-phone"></div>
       <div><label class="ch-label" for="pr-doors">Portes</label><input type="number" id="pr-doors"></div>
       <div><label class="ch-label" for="pr-rent">Loyer moyen</label><input type="number" id="pr-rent"></div>
-      <button onclick="createProspect()" class="ll-bouton ll-bouton--primaire">Ajouter un prospect</button>
+      <div><label class="ch-label" for="pr-company">Entreprise</label><input type="text" id="pr-company"></div>
+      <div><label class="ch-label" for="pr-cost">Coût d'acquisition ($)</label><input type="number" step="0.01" id="pr-cost"></div>
+      <div style="flex-basis:100%"><label class="ch-label" for="pr-notes">Notes</label><textarea id="pr-notes" rows="2"></textarea></div>
+      <button id="pr-enregistrer" onclick="createProspect()" class="ll-bouton ll-bouton--primaire">Ajouter un prospect</button>
+      <button id="pr-annuler" onclick="prFinEdition()" class="ll-bouton ll-bouton--secondaire" hidden>Annuler</button>
     </div>
 
     <div style="display:flex;align-items:center;gap:10px;margin:0 0 10px;">
@@ -4091,7 +4095,7 @@ function renderProspects(){
   }
   body.innerHTML = prospects.map(p => `
     <tr>
-      <td>${esc(p.full_name)}<br><span style="color:var(--muted);font-size:11.5px;">${esc(p.email) || ''} ${esc(p.phone) || ''}</span><br><span style="color:var(--muted);font-size:11px;">Source : ${esc(p.lead_source) || 'inconnue'}${p.source_url ? ' (<a href="' + esc(p.source_url) + '" target="_blank" rel="noopener">vérifier</a>)' : ''}${p.acquisition_cost != null ? ' — coût : ' + Number(p.acquisition_cost).toLocaleString('fr-CA') + ' $' : ''} <a href="#" onclick="promptAcquisitionCost('${p.id}', ${p.acquisition_cost ?? 'null'}); return false;">modifier</a></span>${p.stage === 'lost' && p.loss_reason ? '<br><span style="color:var(--rust);font-size:11px;">Raison de perte : ' + esc(p.loss_reason) + '</span>' : ''}</td>
+      <td>${esc(p.full_name)}<br><span style="color:var(--muted);font-size:11.5px;">${esc(p.email) || ''} ${esc(p.phone) || ''}</span><br><span style="color:var(--muted);font-size:11px;">Source : ${esc(p.lead_source) || 'inconnue'}${p.source_url ? ' (<a href="' + esc(p.source_url) + '" target="_blank" rel="noopener">vérifier</a>)' : ''}${p.acquisition_cost != null ? ' — coût : ' + Number(p.acquisition_cost).toLocaleString('fr-CA') + ' $' : ''} <a href="#" onclick="prModifier('${p.id}'); return false;">modifier</a></span>${p.stage === 'lost' && p.loss_reason ? '<br><span style="color:var(--rust);font-size:11px;">Raison de perte : ' + esc(p.loss_reason) + '</span>' : ''}</td>
       <td class="num">${p.num_doors ?? '—'}</td>
       <td class="num">${p.potential_monthly_revenue != null ? Number(p.potential_monthly_revenue).toLocaleString('fr-CA') + ' $' : '—'}${p.vendor_commission_estimate != null ? '<br><span style="color:var(--muted);font-size:11px;">commission est. ' + Number(p.vendor_commission_estimate).toLocaleString('fr-CA') + ' $</span>' : ''}</td>
       <td>${esc(p.interest_level) || '—'}</td>
@@ -5328,26 +5332,42 @@ async function promptRecordRenewalResponse(lease_id){
   if(res?.ok){ await loadLeaseRenewals(); }
 }
 
-async function promptAcquisitionCost(prospect_id, current){
-  const value = await llDemander('Coût d\'acquisition de ce prospect ($) — laisse vide pour effacer :', current != null ? String(current) : '');
-  if(value === null) return;
-  await callCrmApi({ action: 'update_acquisition_cost', prospect_id, acquisition_cost: value.trim() });
-  await loadProspects();
+/* Modifier un prospect : le formulaire du haut se remplit avec sa fiche. */
+let prEdition = null;
+const PR_CHAMPS = { 'pr-name': 'full_name', 'pr-email': 'email', 'pr-phone': 'phone', 'pr-doors': 'num_doors', 'pr-rent': 'avg_rent', 'pr-company': 'company_name', 'pr-cost': 'acquisition_cost', 'pr-notes': 'notes' };
+function prModifier(id){
+  const p = prospectsTous.find(x => x.id === id); if(!p) return;
+  prEdition = id;
+  for(const [el, k] of Object.entries(PR_CHAMPS)) document.getElementById(el).value = p[k] ?? '';
+  document.getElementById('pr-enregistrer').textContent = 'Enregistrer les modifications';
+  document.getElementById('pr-annuler').hidden = false;
+  document.getElementById('pr-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('pr-name').focus({ preventScroll: true });
+}
+function prFinEdition(){
+  prEdition = null;
+  for(const el of Object.keys(PR_CHAMPS)) document.getElementById(el).value = '';
+  document.getElementById('pr-enregistrer').textContent = 'Ajouter un prospect';
+  document.getElementById('pr-annuler').hidden = true;
 }
 
 async function createProspect(){
+  if(prEdition){
+    const champs = Object.fromEntries(Object.entries(PR_CHAMPS).map(([el, k]) => [k, document.getElementById(el).value]));
+    if(!champs.full_name.trim()){ llToast('Le nom est requis.', 'erreur'); return; }
+    const r = await callCrmApi({ action: 'update_prospect', prospect_id: prEdition, ...champs });
+    if(r?.ok){ llToast('Prospect modifié.', 'succes'); prFinEdition(); await loadProspects(); }
+    return;
+  }
   const full_name = document.getElementById('pr-name').value;
   const email = document.getElementById('pr-email').value;
   const phone = document.getElementById('pr-phone').value;
   const num_doors = document.getElementById('pr-doors').value;
   const avg_rent = document.getElementById('pr-rent').value;
   if(!full_name){ alert('Le nom est requis.'); return; }
-  await callCrmApi({ action: 'create', full_name, email, phone, num_doors: num_doors ? Number(num_doors) : null, avg_rent: avg_rent ? Number(avg_rent) : null });
-  document.getElementById('pr-name').value = '';
-  document.getElementById('pr-email').value = '';
-  document.getElementById('pr-phone').value = '';
-  document.getElementById('pr-doors').value = '';
-  document.getElementById('pr-rent').value = '';
+  const company_name = document.getElementById('pr-company').value || null, acquisition_cost = document.getElementById('pr-cost').value;
+  await callCrmApi({ action: 'create', full_name, email, phone, company_name, num_doors: num_doors ? Number(num_doors) : null, avg_rent: avg_rent ? Number(avg_rent) : null, acquisition_cost: acquisition_cost ? Number(acquisition_cost) : null, notes: document.getElementById('pr-notes').value.trim() || null });
+  prFinEdition();
   await loadProspects();
 }
 
