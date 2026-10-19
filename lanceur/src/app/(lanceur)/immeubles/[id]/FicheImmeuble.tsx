@@ -31,7 +31,7 @@ export function FicheImmeuble({ donnees: D, erreurLecture }: { donnees: DonneesI
     setEnvoi(false); if (error) return setBandeau(error.message); setEdit(false); setOk('Fiche mise à jour.'); router.refresh();
   }
   const statut = (u: Log) => u.retard ? <span className="puce todo">Retard · {u.retard} j</span> : u.etat === 'vacant' ? <span className="puce action">À louer</span> : u.etat === 'preavis' ? <span className="puce">À louer</span> : <span className="puce neutral">Loué</span>;
-  const demi = (part: Log[]) => <table className="tableau tab-fixe"><colgroup><col style={{ width: '30%' }} /><col style={{ width: '36%' }} /><col style={{ width: '16%' }} /><col /></colgroup>
+  const demi = (part: Log[]) => <table className="tableau tab-fixe"><colgroup><col style={{ width: '22%' }} /><col style={{ width: '36%' }} /><col style={{ width: '14%' }} /><col /></colgroup>
     <thead><tr><th>Logement</th><th>Locataire</th><th className="droite">Loyer</th><th>Statut</th></tr></thead>
     <tbody>{part.map((u) => <tr key={u.id} className="ligne-lien" onClick={() => setLogement(u)}><td><span className="no-logement">{u.numero}</span>{u.type ?? '—'}</td>
       <td>{u.tenant_id ? <Link className="fort" href={`/clients/locataires/${u.tenant_id}`} onClick={(e) => e.stopPropagation()}>{u.locataire}</Link> : <span className="gris">Libre</span>}
