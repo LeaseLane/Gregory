@@ -6,6 +6,7 @@ import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 import { montantSigne } from "../_shared/fiducie.ts";
 import { classer, type Bail } from "../_shared/rapprochement-fiducie.ts";
 import { enTetesAppelInterne } from "../_shared/appel-interne.ts";
+import { notifierEquipe } from "../_shared/inscription.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
 // navigateur d'un usager (CSRF via fetch). Les appels serveur à
@@ -1404,6 +1405,51 @@ Deno.serve(async (req) => {
         method: "PATCH", headers: adminHeaders, body: JSON.stringify({ status: "contacted" }),
       });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
+    }
+
+    // « Inscrire mon entreprise » (formulaire du site) : dossiers reçus, statut, renvoi de l'avis, preuve d'assurance.
+    if (action === "list_inscriptions_entreprises") {
+      const res = await fetch(`${supabaseUrl}/rest/v1/inscriptions_entreprises?select=*,worker:workers(id,name,user_id)&order=created_at.desc&limit=500`, { headers: adminHeaders });
+      const inscriptions = await res.json().catch(() => null);
+      if (!res.ok || !Array.isArray(inscriptions)) return new Response(JSON.stringify({ error: "Impossible de lire les inscriptions" }), { status: 502, headers: corsHeaders });
+      return new Response(JSON.stringify({ inscriptions }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "inscription_statut") {
+      const { id, statut, note } = body;
+      if (!id || !["recue", "a_completer", "invitation_envoyee", "ecartee"].includes(statut)) {
+        return new Response(JSON.stringify({ error: "id ou statut invalide" }), { status: 400, headers: corsHeaders });
+      }
+      const patch: Record<string, unknown> = { statut };
+      if (note !== undefined) patch.note = note ? String(note).slice(0, 2000) : null;
+      const res = await fetch(`${supabaseUrl}/rest/v1/inscriptions_entreprises?id=eq.${id}`, { method: "PATCH", headers: { ...adminHeaders, Prefer: "return=representation" }, body: JSON.stringify(patch) });
+      const rows = await res.json().catch(() => null);
+      // 409 : rouvrir une demande écartée alors qu'une autre est ouverte pour le même courriel.
+      if (res.status === 409) return new Response(JSON.stringify({ error: "Une autre demande est déjà ouverte pour ce courriel" }), { status: 409, headers: corsHeaders });
+      if (!res.ok || !Array.isArray(rows) || !rows.length) return new Response(JSON.stringify({ error: "Demande introuvable" }), { status: res.ok ? 404 : 502, headers: corsHeaders });
+      await logAudit("inscription.statut", "inscriptions_entreprises", id, { statut });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "inscription_renvoyer_notification") {
+      const { id } = body;
+      const res = await fetch(`${supabaseUrl}/rest/v1/inscriptions_entreprises?id=eq.${id}&select=id,courriel,telephone,poste,created_at`, { headers: adminHeaders });
+      const [i] = await res.json().catch(() => []);
+      if (!i) return new Response(JSON.stringify({ error: "Demande introuvable" }), { status: 404, headers: corsHeaders });
+      const r = await notifierEquipe(supabaseUrl!, adminHeaders, resendKey, i);
+      await logAudit("inscription.avis_renvoye", "inscriptions_entreprises", id, { envoye: !!r.notifie_le });
+      return new Response(JSON.stringify({ ok: true, ...r }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "inscription_document") {
+      const { id } = body;
+      const res = await fetch(`${supabaseUrl}/rest/v1/inscriptions_entreprises?id=eq.${id}&select=fichier_chemin`, { headers: adminHeaders });
+      const [i] = await res.json().catch(() => []);
+      if (!i?.fichier_chemin) return new Response(JSON.stringify({ error: "Document introuvable" }), { status: 404, headers: corsHeaders });
+      const sRes = await fetch(`${supabaseUrl}/storage/v1/object/sign/documents/${i.fichier_chemin}`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ expiresIn: 600 }) });
+      const sData = await sRes.json().catch(() => ({}));
+      if (!sRes.ok || !sData.signedURL) return new Response(JSON.stringify({ error: sData.message || "Lien indisponible" }), { status: 502, headers: corsHeaders });
+      return new Response(JSON.stringify({ signed_url: `${supabaseUrl}/storage/v1${sData.signedURL}` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "list_visits") {

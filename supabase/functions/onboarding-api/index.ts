@@ -48,12 +48,46 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ actor_type: "admin", actor_id: userId, action, entity_type: entityType, entity_id: entityId, details }),
       });
 
-    const sendEmail = (to: string, subject: string, text: string) =>
+    const sendEmail = (to: string, subject: string, text: string, options: Parameters<typeof avecHtml>[1] = {}) =>
       fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify(avecHtml({ from: EXPEDITEUR, to: [to], subject, text })),
+        body: JSON.stringify(avecHtml({ from: EXPEDITEUR, to: [to], subject, text }, options)),
       });
+
+    // Accès portail d'un travailleur, sans mot de passe par courriel : le compte reçoit un mot de passe
+    // aléatoire que personne ne connaît, puis un lien de connexion temporaire (type recovery) est envoyé;
+    // à l'arrivée, assets/compte.js fait choisir le mot de passe (doit_changer_mdp). Partagé par
+    // grant_worker_access et inviter_inscription. Le lien n'est jamais renvoyé dans la réponse.
+    const ouvrirAccesTravailleur = async (w: { id: string; name?: string | null; email: string }): Promise<{ courrielEnvoye: boolean } | { erreur: string; status: number }> => {
+      const authRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+        method: "POST", headers: adminHeaders,
+        body: JSON.stringify({ email: w.email, password: crypto.randomUUID() + crypto.randomUUID(), email_confirm: true, user_metadata: { doit_changer_mdp: true } }),
+      });
+      const authData = await authRes.json().catch(() => ({}));
+      if (!authRes.ok || !authData.id) return { erreur: authData.msg || authData.error_description || "Impossible de créer le compte", status: 400 };
+      // Le lien d'abord : sans lui, le compte est retiré pour qu'un nouvel essai reste possible.
+      const linkRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
+        method: "POST", headers: adminHeaders,
+        // redirect_to à la racine du corps et adresse réelle du fichier (voir impersonate_user).
+        body: JSON.stringify({ type: "recovery", email: w.email, redirect_to: `${SITE_BASE_URL}/portail-travailleur.html` }),
+      });
+      const linkData = await linkRes.json().catch(() => ({}));
+      const lienAcces = linkData?.action_link || linkData?.properties?.action_link;
+      if (!linkRes.ok || !lienAcces) {
+        await fetch(`${supabaseUrl}/auth/v1/admin/users/${authData.id}`, { method: "DELETE", headers: adminHeaders });
+        return { erreur: linkData?.msg || linkData?.error_description || "Impossible de générer le lien d'accès", status: 502 };
+      }
+      await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${authData.id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ role: "worker" }) });
+      const lien = await fetch(`${supabaseUrl}/rest/v1/workers?id=eq.${w.id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ user_id: authData.id }) });
+      if (!lien.ok) return { erreur: "Compte créé mais fiche non liée.", status: 500 };
+      const prenom = w.name && !w.name.startsWith("À compléter") ? w.name.split(" ")[0] : "";
+      const envoi = await sendEmail(w.email, "Ton accès au portail Lease Lane",
+        `Bonjour${prenom ? " " + prenom : ""},\n\nTon portail travailleur Lease Lane est prêt : tes offres de travail, tes travaux, tes paiements et tes échanges avec l'équipe, au même endroit.\n\nPour activer ton accès, ouvre ce lien personnel et choisis ton mot de passe :\n${lienAcces}\n\nCe lien est temporaire et ne sert qu'une fois. S'il a expiré, va sur ${PORTAILS.travailleur} et choisis « Mot de passe oublié » avec ce courriel (${w.email}).\n\nL'équipe Lease Lane`,
+        { bouton: { libelle: "Activer mon accès", url: lienAcces } }).catch(() => null);
+      if (!envoi?.ok) console.error("Accès travailleur : courriel non envoyé", w.id, envoi?.status);
+      return { courrielEnvoye: !!envoi?.ok };
+    };
 
     // Compte Auth d'un locataire, partagé par create_tenant et grant_tenant_access.
     const creerCompteLocataire = async (email: string): Promise<{ userId: string; motDePasse: string } | { erreur: string }> => {
@@ -635,8 +669,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true, temp_password: acces.motDePasse }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Accès au portail pour un travailleur ajouté par l'équipe (sans compte) :
-    // compte créé avec un mot de passe temporaire à changer au premier accès.
+    // Accès au portail pour un travailleur ajouté par l'équipe (sans compte) : lien de connexion temporaire, aucun mot de passe envoyé.
     if (action === "grant_worker_access") {
       const { worker_id } = body;
       const wRes = await fetch(`${supabaseUrl}/rest/v1/workers?id=eq.${worker_id}&select=id,name,email,user_id`, { headers: adminHeaders });
@@ -644,22 +677,61 @@ Deno.serve(async (req) => {
       if (!w) return new Response(JSON.stringify({ error: "Travailleur introuvable" }), { status: 404, headers: corsHeaders });
       if (w.user_id) return new Response(JSON.stringify({ error: "Ce travailleur a déjà un accès" }), { status: 409, headers: corsHeaders });
       if (!w.email) return new Response(JSON.stringify({ error: "Ajoute d'abord un courriel à ce travailleur" }), { status: 400, headers: corsHeaders });
-      const motDePasse = randomPassword();
-      const authRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
-        method: "POST", headers: adminHeaders,
-        body: JSON.stringify({ email: w.email, password: motDePasse, email_confirm: true, user_metadata: { doit_changer_mdp: true } }),
-      });
-      const authData = await authRes.json();
-      if (!authRes.ok || !authData.id) {
-        return new Response(JSON.stringify({ error: authData.msg || authData.error_description || "Impossible de créer le compte" }), { status: 400, headers: corsHeaders });
+      const r = await ouvrirAccesTravailleur(w);
+      if ("erreur" in r) return new Response(JSON.stringify({ error: r.erreur }), { status: r.status, headers: corsHeaders });
+      await logAudit("worker.access_granted", "workers", worker_id, { email: w.email, courriel_envoye: r.courrielEnvoye });
+      return new Response(JSON.stringify({ ok: true, courriel_envoye: r.courrielEnvoye }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // « Inscrire mon entreprise » : la demande devient une fiche travailleur (assurance REÇUE, pas vérifiée :
+    // verification_status reste « pending »), la preuve est rattachée, puis l'accès part par lien temporaire.
+    // Rejouable : une fiche déjà créée pour la demande est reprise, jamais dupliquée.
+    if (action === "inviter_inscription") {
+      const { id } = body;
+      const iRes = await fetch(`${supabaseUrl}/rest/v1/inscriptions_entreprises?id=eq.${id}&select=*`, { headers: adminHeaders });
+      const [i] = await iRes.json().catch(() => []);
+      if (!i) return new Response(JSON.stringify({ error: "Demande introuvable" }), { status: 404, headers: corsHeaders });
+      if (i.statut === "ecartee") return new Response(JSON.stringify({ error: "Cette demande a été écartée" }), { status: 409, headers: corsHeaders });
+      let w: { id: string; name: string; email: string; user_id: string | null } | null = null;
+      if (i.worker_id) {
+        const r = await fetch(`${supabaseUrl}/rest/v1/workers?id=eq.${i.worker_id}&select=id,name,email,user_id`, { headers: adminHeaders });
+        [w] = await r.json().catch(() => [null]);
       }
-      await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${authData.id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ role: "worker" }) });
-      const lien = await fetch(`${supabaseUrl}/rest/v1/workers?id=eq.${worker_id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ user_id: authData.id }) });
-      if (!lien.ok) return new Response(JSON.stringify({ error: "Compte créé mais fiche non liée." }), { status: 500, headers: corsHeaders });
-      await sendEmail(w.email, "Ton accès au portail Lease Lane",
-        `Bonjour ${w.name?.split(" ")[0] || ""},\n\nTon portail travailleur Lease Lane est prêt : tes offres de travail, tes travaux, tes paiements et tes échanges avec l'équipe, au même endroit.\n\nConnexion : ${PORTAILS.travailleur}\nCourriel : ${w.email}\nMot de passe temporaire : ${motDePasse}\n\nÀ ta première connexion, tu choisiras ton propre mot de passe.\n\nL'équipe Lease Lane`);
-      await logAudit("worker.access_granted", "workers", worker_id, { email: w.email });
-      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // Fiche travailleur déjà créée avec ce courriel (ajoutée par l'équipe) : on la reprend au lieu d'en créer une 2e.
+      if (!w) {
+        const r = await fetch(`${supabaseUrl}/rest/v1/workers?email=ilike.${encodeURIComponent(i.courriel)}&select=id,name,email,user_id&limit=1`, { headers: adminHeaders });
+        [w] = await r.json().catch(() => [null]);
+        if (w) await fetch(`${supabaseUrl}/rest/v1/inscriptions_entreprises?id=eq.${id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ worker_id: w.id }) });
+      }
+      if (!w) {
+        const t = String(i.telephone || "");
+        const wRes = await fetch(`${supabaseUrl}/rest/v1/workers`, {
+          method: "POST", headers: { ...adminHeaders, Prefer: "return=representation" },
+          body: JSON.stringify({
+            name: `À compléter (${i.courriel})`, email: i.courriel, phone: t.length === 10 ? `${t.slice(0, 3)} ${t.slice(3, 6)}-${t.slice(6)}` : t || null,
+            verification_status: "pending",
+            verification_notes: `Inscription du site du ${String(i.created_at).slice(0, 10)}. Preuve d'assurance reçue, non vérifiée.${i.poste ? ` Poste : ${i.poste}.` : ""}`,
+          }),
+        });
+        [w] = await wRes.json().catch(() => [null]);
+        if (!wRes.ok || !w?.id) return new Response(JSON.stringify({ error: "Fiche travailleur non créée" }), { status: 502, headers: corsHeaders });
+        if (i.fichier_chemin) {
+          const docRes = await fetch(`${supabaseUrl}/rest/v1/documents`, {
+            method: "POST", headers: { ...adminHeaders, Prefer: "return=representation" },
+            body: JSON.stringify({ worker_id: w.id, title: "Preuve d'assurance (inscription du site)", doc_type: "assurance_travailleur", file_url: i.fichier_chemin }),
+          });
+          const [doc] = await docRes.json().catch(() => [null]);
+          if (doc?.id) await fetch(`${supabaseUrl}/rest/v1/workers?id=eq.${w.id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ insurance_document_id: doc.id }) });
+          else console.error("inviter_inscription : document non rattaché", w.id, docRes.status);
+        }
+        await fetch(`${supabaseUrl}/rest/v1/inscriptions_entreprises?id=eq.${id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ worker_id: w.id }) });
+      }
+      if (w.user_id) return new Response(JSON.stringify({ error: "Ce travailleur a déjà un accès" }), { status: 409, headers: corsHeaders });
+      const r = await ouvrirAccesTravailleur(w);
+      if ("erreur" in r) return new Response(JSON.stringify({ error: r.erreur, worker_id: w.id }), { status: r.status, headers: corsHeaders });
+      await fetch(`${supabaseUrl}/rest/v1/inscriptions_entreprises?id=eq.${id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ statut: "invitation_envoyee" }) });
+      await logAudit("inscription.invitation", "inscriptions_entreprises", id, { worker_id: w.id, courriel_envoye: r.courrielEnvoye });
+      return new Response(JSON.stringify({ ok: true, worker_id: w.id, courriel_envoye: r.courrielEnvoye }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "create_cold_caller") {

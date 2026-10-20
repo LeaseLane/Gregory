@@ -145,3 +145,7 @@ verify_jwt = true
 [functions.portail-inscription]
 # TP · A2 : inscription par code d'invitation, sans session; code vérifié en base (courriel invité, 14 jours, une seule fois).
 verify_jwt = false
+
+[functions.inscription-entreprise]
+# Page « Inscrire mon entreprise » du site : formulaire public multipart (preuve d’assurance), sans session; champ piège, Turnstile, limite par IP.
+verify_jwt = false
