@@ -221,8 +221,22 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         console.error("Failed to record renewal response on lease", await responsePatchRes.text());
         return new Response(JSON.stringify({ error: "Impossible d'enregistrer la réponse sur le bail." }), { status: 500, headers: corsHeaders });
       }
-      await logAudit("lease_renewal.response_recorded", lease_id, { renewal_response, renewal_signed, renewal_response_note });
-      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
+      // Non-renouvellement : la fin du bail est inscrite à sa date de fin (bail_terminer), le logement passe « à louer bientôt »
+      // et la bascule de la nuit le libère à la date. Un bail sans date de fin reste à terminer à la main.
+      let fin: Record<string, unknown> | null = null;
+      if (renewal_response === "refused") {
+        const [l] = await fetch(`${supabaseUrl}/rest/v1/leases?id=eq.${lease_id}&select=end_date,status`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+        if (l?.end_date && l.status !== "ended") {
+          const r = await fetch(`${supabaseUrl}/rest/v1/rpc/bail_terminer`, {
+            method: "POST", headers: adminHeaders,
+            body: JSON.stringify({ p_lease: lease_id, p_fin: l.end_date, p_motif: "non_renouvellement", p_note: renewal_response_note || null, p_par: userId }),
+          });
+          fin = await r.json().catch(() => null);
+          if (!r.ok) console.error("bail_terminer (non-renouvellement) refusé", fin);
+        }
+      }
+      await logAudit("lease_renewal.response_recorded", lease_id, { renewal_response, renewal_signed, renewal_response_note, fin_inscrite: !!fin?.ok });
+      return new Response(JSON.stringify({ ok: true, fin_inscrite: !!fin?.ok, sans_date_de_fin: renewal_response === "refused" && !fin }), { status: 200, headers: corsHeaders });
     }
 
     return new Response(JSON.stringify({ error: "action inconnue" }), { status: 400, headers: corsHeaders });

@@ -91,6 +91,31 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ buildings: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Logements d'un propriétaire avec le bail en cours et le bail à venir (fenêtre « Logements et baux »).
+    if (action === "list_owner_units") {
+      if (!/^[0-9a-f-]{36}$/i.test(String(body.owner_id ?? ""))) return new Response(JSON.stringify({ error: "owner_id invalide" }), { status: 400, headers: corsHeaders });
+      const sel = "id,address,units(id,unit_number,status,leases(id,status,start_date,end_date,monthly_rent,fin_motif,fin_note,renewal_response,tenants(id,full_name,email,phone)))";
+      const res = await fetch(`${supabaseUrl}/rest/v1/buildings?owner_id=eq.${body.owner_id}&select=${sel}&units.leases.status=in.(active,renewed,a_venir)&order=address.asc&units.order=unit_number.asc`, { headers: adminHeaders });
+      if (!res.ok) return new Response(JSON.stringify({ error: "Logements illisibles" }), { status: 502, headers: corsHeaders });
+      return new Response(JSON.stringify({ buildings: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Fin de bail : résiliation, départ, non-renouvellement, entente (fonction SQL bail_terminer, tout ou rien).
+    if (action === "end_lease") {
+      const { lease_id, end_date, motif, note } = body;
+      if (!/^[0-9a-f-]{36}$/i.test(String(lease_id ?? "")) || !/^\d{4}-\d{2}-\d{2}$/.test(String(end_date ?? ""))) {
+        return new Response(JSON.stringify({ error: "Bail ou date de fin invalide" }), { status: 400, headers: corsHeaders });
+      }
+      const r = await fetch(`${supabaseUrl}/rest/v1/rpc/bail_terminer`, {
+        method: "POST", headers: adminHeaders,
+        body: JSON.stringify({ p_lease: lease_id, p_fin: end_date, p_motif: motif, p_note: String(note ?? "").trim().slice(0, 1000) || null, p_par: userId }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) return new Response(JSON.stringify({ error: data?.message || "Fin de bail refusée" }), { status: 409, headers: corsHeaders });
+      await logAudit("lease.end", "leases", lease_id, { end_date, motif, immediat: data.immediat, loyers_retires: data.loyers_retires });
+      return new Response(JSON.stringify({ ok: true, ...data }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "list_units") {
       const res = await fetch(`${supabaseUrl}/rest/v1/units?building_id=eq.${body.building_id}&select=id,unit_number,status&order=unit_number.asc`, { headers: adminHeaders });
       return new Response(JSON.stringify({ units: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -517,6 +542,16 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Champs manquants (nom, unité, loyer, date de début)" }), { status: 400, headers: corsHeaders });
       }
 
+      // Bail en cours sur ce logement : le nouveau bail doit commencer après sa fin (il sera « à venir »).
+      const [enCours] = await fetch(`${supabaseUrl}/rest/v1/leases?unit_id=eq.${unit_id}&status=in.(active,renewed)&select=id,end_date&limit=1`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+      const [prevu] = await fetch(`${supabaseUrl}/rest/v1/leases?unit_id=eq.${unit_id}&status=eq.a_venir&select=id&limit=1`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+      if (prevu) return new Response(JSON.stringify({ error: "Un nouveau bail est déjà prévu pour ce logement." }), { status: 409, headers: corsHeaders });
+      if (enCours && (!enCours.end_date || start_date <= enCours.end_date)) {
+        return new Response(JSON.stringify({ error: enCours.end_date ? `Le bail en cours se termine le ${enCours.end_date} : le nouveau bail doit commencer après.` : "Ce logement a un bail en cours sans date de fin : inscrivez d'abord la fin du bail." }), { status: 409, headers: corsHeaders });
+      }
+      const aujourdhui = new Date().toLocaleDateString("en-CA", { timeZone: "America/Toronto" });
+      const statutBail = enCours || start_date > aujourdhui ? "a_venir" : "active";
+
       // Le courriel est optionnel : un locataire réel dont on gère le
       // logement n'a pas nécessairement été informé de ce système et n'a
       // donc pas à recevoir un compte/courriel de bienvenue. Sans courriel,
@@ -545,21 +580,24 @@ Deno.serve(async (req) => {
       const leaseRes = await fetch(`${supabaseUrl}/rest/v1/leases`, {
         method: "POST",
         headers: adminHeaders,
-        body: JSON.stringify({ unit_id, tenant_id: tenant.id, start_date, end_date: end_date || null, monthly_rent, status: "active" }),
+        body: JSON.stringify({ unit_id, tenant_id: tenant.id, start_date, end_date: end_date || null, monthly_rent, status: statutBail }),
       });
       if (!leaseRes.ok) {
         console.error("Failed to create lease row", await leaseRes.text());
         return new Response(JSON.stringify({ error: "Locataire créé mais échec de création du bail." }), { status: 500, headers: corsHeaders });
       }
 
-      await fetch(`${supabaseUrl}/rest/v1/units?id=eq.${unit_id}`, {
-        method: "PATCH", headers: adminHeaders, body: JSON.stringify({ status: "occupied" }),
-      });
+      // Bail à venir : le logement garde son statut jusqu'au début (bascule de la nuit, baux_transitions).
+      if (statutBail === "active") {
+        await fetch(`${supabaseUrl}/rest/v1/units?id=eq.${unit_id}`, {
+          method: "PATCH", headers: adminHeaders, body: JSON.stringify({ status: "occupied" }),
+        });
+      }
 
       if (email) await courrielBienvenueLocataire(email, full_name, tempPassword!);
 
-      await logAudit("tenant.create", "tenants", tenant?.id ?? null, { email: email || null, unit_id, has_login: !!authUserId });
-      return new Response(JSON.stringify({ ok: true, tenant_id: tenant?.id, temp_password: tempPassword }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      await logAudit("tenant.create", "tenants", tenant?.id ?? null, { email: email || null, unit_id, has_login: !!authUserId, bail: statutBail });
+      return new Response(JSON.stringify({ ok: true, tenant_id: tenant?.id, temp_password: tempPassword, bail: statutBail }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Donner un accès portail à un locataire enregistré sans courriel
