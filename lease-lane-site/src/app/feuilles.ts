@@ -15,3 +15,5 @@ import '@/styles/proto/accueil-chiffres-services.css';
 import '@/styles/proto/kit-ll.css';
 import '@/styles/proto/accueil-v2.css';
 import '@/styles/proto/pages-blogue.css';
+/* Page « Inscrire mon entreprise » et ses points d'accès (bouton de l'en-tête, bande de l'accueil). */
+import '@/styles/inscription.css';

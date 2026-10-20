@@ -78,6 +78,8 @@
     table{display:block;overflow-x:auto;}
     .metrics{grid-template-columns:1fr 1fr;}
   }
+  /* 4 signaux : la grille à 3 colonnes de leaselane.css passe en auto-fit (une colonne sur mobile). */
+  #overview .vo-signaux{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}
 </style>
 <link rel="stylesheet" href="assets/leaselane.css?v=202610111500">
 <script src="assets/charger-portail.js?v=202610091900"></script>
@@ -168,6 +170,7 @@
       <button class="tab-btn" data-tab="visits" onclick="showTab('visits')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#calendar-check"/></svg><span>Visites</span></button>
       <button class="tab-btn" data-tab="late-payments" onclick="showTab('late-payments')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-alert"/></svg><span>Paiements en retard</span></button>
       <button class="tab-btn" data-tab="workers" onclick="showTab('workers')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#users"/></svg><span>Travailleurs</span></button>
+      <button class="tab-btn" data-tab="inscriptions-entreprises" onclick="showTab('inscriptions-entreprises')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#building-2"/></svg><span>Inscriptions d'entreprises</span></button>
       <button class="tab-btn" data-tab="service-catalog" onclick="showTab('service-catalog')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#list"/></svg><span>Catalogue de services</span></button>
       <button class="tab-btn" data-tab="renewals" onclick="showTab('renewals')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#refresh-cw"/></svg><span>Renouvellements de bail</span></button>
       <button class="tab-btn" data-tab="tenants" onclick="showTab('tenants')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#user"/></svg><span>Locataires</span></button>
@@ -218,6 +221,7 @@
     <div class="vo-signaux">
       <button class="vo-signal" data-signal onclick="showTab('work-requests')"><span>Travaux en attente d'approbation</span><b id="m-approvals">—</b></button>
       <button class="vo-signal" data-signal="info" onclick="showTab('mandat-inquiries')"><span>Nouvelles demandes</span><b id="m-inquiries">—</b></button>
+      <button class="vo-signal" data-signal="info" onclick="showTab('inscriptions-entreprises')"><span>Inscriptions d'entreprises à traiter</span><b id="m-inscriptions">—</b></button>
       <button class="vo-signal" data-signal onclick="showTab('anomalies')"><span>Anomalies financières ouvertes</span><b id="m-anomalies">—</b></button>
     </div>
 
@@ -655,6 +659,22 @@
       </div>
     </div>
     <div id="site-messages-body"><p class="tr-vide">Chargement...</p></div>
+      </section>
+
+      <section id="inscriptions-entreprises" class="section">
+    <div class="tr-entete">
+      <div>
+        <h1>Inscriptions d'entreprises</h1>
+        <p class="subtitle">Formulaire « Inscrire mon entreprise » du site : téléphone, courriel et preuve d'assurance. La personne a déjà reçu une confirmation. L'assurance reçue n'est pas vérifiée : la vérification se fait ensuite dans la fiche du travailleur.</p>
+      </div>
+    </div>
+    <div id="ie-resume" class="tr-resume"></div>
+    <div class="tr-outils">
+      <select id="ie-filtre" aria-label="Afficher" onchange="ieEtat.filtre=this.value;renderInscriptionsEntreprises()">
+        <option value="a_traiter">À traiter (reçues et à compléter)</option><option value="toutes">Toutes, y compris invitées et écartées</option>
+      </select>
+    </div>
+    <div id="inscriptions-entreprises-body"><p class="tr-vide">Chargement...</p></div>
       </section>
 
       <section id="crm" class="section">
@@ -2350,7 +2370,7 @@ function photoLinksHtml(bucket, paths, label){
 async function loadOps(){
   await Promise.allSettled([
     loadMarketplaceListings(), loadBuildingsForReceipts(), loadServiceCatalog(),
-    loadVisitInquiries(), loadMandatInquiries(), loadSiteMessages(), loadFiducie(), loadVisitsAdmin(),
+    loadVisitInquiries(), loadMandatInquiries(), loadSiteMessages(), loadInscriptionsEntreprises(), loadFiducie(), loadVisitsAdmin(),
     // Les listes de demandes et de travaux proposent les travailleurs :
     // elles attendent que workersDirectory soit rempli.
     loadWorkersAdmin().then(() => Promise.allSettled([loadServiceRequestsAdmin(), loadWorkOrdersAdmin()])),
@@ -2712,6 +2732,117 @@ async function markInquiryHandled(inquiry_id){
   const res = await callOpsApi({ action: 'mark_inquiry_handled', inquiry_id });
   if(res) llToast('Demande marquée comme traitée.', 'succes');
   await Promise.all([loadMandatInquiries(), loadSiteMessages()]);
+}
+
+// ── Inscriptions d'entreprises ──────────────────────────────────────
+// Demandes du formulaire « Inscrire mon entreprise » (fonction
+// inscription-entreprise). Le document reste dans le compartiment privé
+// « documents » : on demande un lien signé à chaque ouverture.
+const IE_STATUTS = { recue: ['info', 'Reçue'], a_completer: ['att', 'À compléter'], invitation_envoyee: ['ok', 'Invitation envoyée'], ecartee: ['ko', 'Écartée'] };
+const ieATraiter = i => i.statut === 'recue' || i.statut === 'a_completer';
+const ieTel = t => /^\d{10}$/.test(t || '') ? `(${t.slice(0, 3)}) ${t.slice(3, 6)}-${t.slice(6)}` : (t || '');
+let ieEtat = { liste: [], filtre: 'a_traiter' };
+
+async function loadInscriptionsEntreprises(){
+  ieEtat.liste = (await callOpsApi({ action: 'list_inscriptions_entreprises' }))?.inscriptions || [];
+  const nb = ieEtat.liste.filter(ieATraiter).length;
+  const m = document.getElementById('m-inscriptions');
+  if(m){ m.textContent = nb; m.closest('.vo-signal').classList.toggle('vo-signal--info', nb > 0); }
+  renderInscriptionsEntreprises();
+}
+
+function renderInscriptionsEntreprises(){
+  const container = document.getElementById('inscriptions-entreprises-body');
+  const nb = ieEtat.liste.filter(ieATraiter).length;
+  document.getElementById('ie-resume').innerHTML = ieEtat.liste.length ? `<span><b>${nb}</b> à traiter</span><span>${ieEtat.liste.length} au total</span>` : '';
+  const liste = ieEtat.filtre === 'toutes' ? ieEtat.liste : ieEtat.liste.filter(ieATraiter);
+  if(!liste.length){
+    container.innerHTML = `<div class="vo-rien"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-check"/></svg>${ieEtat.filtre === 'toutes' ? 'Aucune inscription reçue.' : 'Aucune inscription à traiter.'}</div>`;
+    return;
+  }
+  container.innerHTML = liste.map(i => {
+    const [ton, libelle] = IE_STATUTS[i.statut] || ['info', i.statut];
+    const tel = /^\d{10}$/.test(i.telephone || '') ? `+1${i.telephone}${i.poste ? ',' + i.poste : ''}` : i.telephone;
+    const invite = !!i.worker_id || i.statut === 'invitation_envoyee';
+    return `
+    <article class="tr-carte">
+      <header class="tr-tete">
+        <span class="tr-avatar" aria-hidden="true">${esc((i.courriel || '?').slice(0, 2).toUpperCase())}</span>
+        <div class="tr-ident">
+          <h3>${esc(i.courriel)}</h3>
+          <div class="md-sous">Reçue le ${new Date(i.created_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+        </div>
+        <div class="tr-pastilles">
+          <span class="tr-pastille tr-pastille--${ton}">${esc(libelle)}</span>
+          ${i.notification_erreur ? `<span class="tr-pastille tr-pastille--att" title="${esc(i.notification_erreur)}">Courriel à l'équipe non parti</span>` : ''}
+        </div>
+      </header>
+      <div class="tr-infos">
+        ${i.telephone ? `<a href="tel:${esc(tel)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#phone"/></svg>${esc(ieTel(i.telephone))}${i.poste ? ', poste ' + esc(i.poste) : ''}</a>` : ''}
+        ${i.courriel ? `<a href="mailto:${esc(i.courriel)}"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#mail"/></svg>${esc(i.courriel)}</a>` : ''}
+        <span><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#shield-check"/></svg>Assurance reçue, non vérifiée</span>
+        ${i.worker ? `<span><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#user"/></svg>Fiche : ${esc(i.worker.name)}</span>` : ''}
+      </div>
+      ${i.note ? `<blockquote class="md-message" style="white-space:pre-line">${esc(i.note)}</blockquote>` : ''}
+      <footer class="tr-pied">
+        ${i.fichier_chemin ? `<button class="ll-bouton ll-bouton--secondaire" onclick="ieVoirAssurance('${esc(i.id)}', this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#file-text"/></svg>Voir l'assurance</button>` : ''}
+        ${i.worker_id ? `<button class="ll-bouton ll-bouton--secondaire" onclick="ouvrirFicheTravailleur('${esc(i.worker_id)}')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#user"/></svg>Ouvrir la fiche</button>` : ''}
+        ${!i.notifie_le || i.notification_erreur ? `<button class="ll-bouton ll-bouton--secondaire" onclick="ieRenvoyer('${esc(i.id)}', this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#refresh-cw"/></svg>Renvoyer la notification</button>` : ''}
+        <span class="tr-espace"></span>
+        ${i.statut === 'recue' ? `<button class="ll-bouton ll-bouton--secondaire" onclick="ieStatut('${esc(i.id)}', 'a_completer', this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#pencil"/></svg>À compléter</button>` : ''}
+        ${ieATraiter(i) ? `<button class="ll-bouton ll-bouton--secondaire" onclick="ieStatut('${esc(i.id)}', 'ecartee', this)"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#x"/></svg>Écarter</button>` : ''}
+        ${i.statut !== 'ecartee' ? `<button class="ll-bouton ll-bouton--primaire" onclick="ieInviter('${esc(i.id)}', this)"${invite ? ' disabled style="cursor:default" title="Invitation déjà envoyée"' : ''}><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#key"/></svg>Inviter au portail</button>` : ''}
+      </footer>
+    </article>`;
+  }).join('');
+}
+
+async function ieVoirAssurance(id, btn){
+  const i = ieEtat.liste.find(x => x.id === id) || {};
+  btn.disabled = true;
+  const res = await callOpsApi({ action: 'inscription_document', id });
+  btn.disabled = false;
+  // Aperçu dans la page (llApercu) : pas de fenêtre surgissante à bloquer.
+  // Titre fixe : llApercu (assets/ui.js) n'échappe pas les guillemets dans ses attributs; le courriel vient du public.
+  if(res?.signed_url) llApercu(res.signed_url, 'Preuve d’assurance', i.fichier_chemin);
+}
+
+async function ieStatut(id, statut, btn){
+  const i = ieEtat.liste.find(x => x.id === id) || {};
+  const note = await llDemander(statut === 'ecartee'
+    ? `Écarter la demande de ${i.courriel} ?\nElle sortira de la liste « À traiter ». Raison (facultatif, visible par l’équipe seulement) :`
+    : `Marquer la demande de ${i.courriel} « À compléter ».\nCe qui manque (facultatif, visible par l’équipe seulement) :`, i.note || '');
+  if(note === null) return;
+  btn.disabled = true;
+  const res = await callOpsApi({ action: 'inscription_statut', id, statut, note: note.trim() });
+  btn.disabled = false;
+  if(res?.ok) llToast(statut === 'ecartee' ? 'Demande écartée.' : 'Demande marquée « À compléter ».', 'succes');
+  await loadInscriptionsEntreprises();
+}
+
+async function ieRenvoyer(id, btn){
+  btn.disabled = true;
+  const res = await callOpsApi({ action: 'inscription_renvoyer_notification', id });
+  btn.disabled = false;
+  if(!res) return;
+  if(res.ok && res.notifie_le) llToast("Notification renvoyée à l'équipe.", 'succes');
+  else llToast("Le courriel à l'équipe n'est pas parti" + (res.error ? ' : ' + res.error : '. Réessaie dans quelques minutes.'), 'erreur');
+  await loadInscriptionsEntreprises();
+}
+
+async function ieInviter(id, btn){
+  const i = ieEtat.liste.find(x => x.id === id) || {};
+  if(!await llConfirmer(`Inviter ${i.courriel} au portail ?\n\nUne fiche travailleur « à compléter » est créée avec son téléphone et sa preuve d’assurance, puis un lien de connexion temporaire part par courriel (jamais de mot de passe).\nL’assurance reste « non vérifiée » tant que tu ne l’as pas vérifiée dans la fiche.`, { libelle: 'Inviter' })) return;
+  btn.disabled = true;
+  const res = await callOnboardingApi({ action: 'inviter_inscription', id });
+  btn.disabled = false;
+  if(res?.ok){
+    if(res.courriel_envoye === false) llToast('Fiche et accès créés, mais le courriel à ' + i.courriel + ' n’est pas parti. Dis-lui d’utiliser « Mot de passe oublié » sur le portail.', 'erreur');
+    else llToast('Invitation envoyée à ' + i.courriel + '. La fiche travailleur est créée.', 'succes');
+    loadWorkersAdmin();
+  }
+  else llToast('Erreur : ' + (res?.error || 'invitation impossible'), 'erreur');
+  await loadInscriptionsEntreprises();
 }
 
 async function proposeVisit(inquiry_id, unit_id){
@@ -3351,12 +3482,13 @@ async function envoyerCourrielTravailleur(){
 
 async function inviterTravailleurPortail(id, btn){
   const w = workersDirectory.find(x => x.id === id) || ficheTr.data?.worker || {};
-  if(!await llConfirmer(`Créer l'accès au portail pour ${w.name || 'ce travailleur'} et envoyer ses identifiants à ${w.email} ?`, { libelle: 'Inviter' })) return;
+  if(!await llConfirmer(`Créer l'accès au portail pour ${w.name || 'ce travailleur'} et lui envoyer un lien de connexion à ${w.email} ?`, { libelle: 'Inviter' })) return;
   btn.disabled = true;
   const res = await callOnboardingApi({ action: 'grant_worker_access', worker_id: id });
   btn.disabled = false;
   if(!res?.ok){ llToast('Erreur : ' + (res?.error || 'invitation impossible'), 'erreur'); return; }
-  llToast('Invitation envoyée à ' + w.email + '.', 'succes');
+  if(res.courriel_envoye === false) llToast('Accès créé, mais le courriel à ' + w.email + ' n’est pas parti. Dis-lui d’utiliser « Mot de passe oublié » sur le portail.', 'erreur');
+  else llToast('Invitation envoyée à ' + w.email + '.', 'succes');
   await loadWorkersAdmin(); ouvrirFicheTravailleur(id);
 }
 

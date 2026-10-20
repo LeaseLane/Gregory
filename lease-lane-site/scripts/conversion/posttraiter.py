@@ -155,3 +155,32 @@ def blogue_langue(s):
     return s.replace("import React from 'react';", "import React from 'react';\nimport { useLangue } from '@/lib/i18n/contexte';", 1)
 edit('pages-blogue.jsx', blogue_langue)
 edit('pages-levis.jsx', blogue_langue)
+
+# Inscrire mon entreprise (page faite main : src/components/InscriptionEntreprise.jsx, styles src/styles/inscription.css).
+# Points d'accès demandés par la livraison design (LISEZMOI §2) : bouton de l'en-tête (masqué ≤ 620 px, il passe dans le menu),
+# entrée du menu, colonne « Entreprises » du pied de page et bande d'appel sur l'accueil.
+def ie_entete(s):
+    a = "<LangueEntete />"
+    assert s.count(a) == 1, 'LangueEntete'
+    return s.replace(a, '<a href="/inscrire-mon-entreprise" className="ll-entete-inscrire">Inscrire mon entreprise <ChIcon name="building-2" size={18} /></a>' + a, 1)
+edit('chrome.jsx', ie_entete)
+def ie_menu(s):
+    a = "const EXTRA = {"
+    b = "ids: ['apropos', 'joindre', 'faq', 'blogue', 'cleo', 'confid']"
+    assert s.count(a) == 1 and s.count(b) == 1, 'menu EXTRA/PROFILS'
+    s = s.replace(a, a + "\n  entreprise: {\n    id: 'entreprise',\n    t: 'Inscrire mon entreprise',\n    d: 'Inscription gratuite des entrepreneurs',\n    ic: 'building-2',\n    to: '/inscrire-mon-entreprise',\n    type: 'page'\n  },", 1)
+    return s.replace(b, "ids: ['apropos', 'joindre', 'faq', 'blogue', 'cleo', 'entreprise', 'confid']", 1)
+edit('menu-options.jsx', ie_menu)
+def ie_pied(s):
+    a = "['/faq', 'Foire aux questions']]]];"
+    b = "repeat(4,max-content)"
+    assert s.count(a) == 1 and s.count(b) == 1, 'pied COLS'
+    s = s.replace(a, "['/faq', 'Foire aux questions']]], ['Entreprises', [['/inscrire-mon-entreprise', 'Inscrire mon entreprise']]]];", 1)
+    return s.replace(b, "repeat(5,max-content)", 1)
+edit('pied-options.jsx', ie_pied)
+def ie_accueil(s):
+    a = "{<AccFaq actuel={<FAQSujets />} />}</React.Fragment>;"
+    assert s.count(a) == 1, 'accueil corps'
+    s = s.replace(a, "{<AppelInscription accueil />}" + a, 1)
+    return s.replace("import React from 'react';", "import React from 'react';\nimport { AppelInscription } from '@/components/InscriptionEntreprise';", 1)
+edit('accueil.jsx', ie_accueil)

@@ -1,0 +1,258 @@
+/* Page « Inscrire mon entreprise » (src/components/InscriptionEntreprise.jsx) : CSS du prototype de la livraison design,
+   classes préfixées ie- (aucune collision avec le site). Valeurs exactes du prototype; réactif à 1100 et 620 px.
+   Aussi : bouton de l'en-tête (.ll-entete-inscrire, src/proto/chrome.jsx via posttraiter.py). */
+.ie, .ie-appel {
+  --ie-marine: #0C2147; --ie-marine-2: #173A6E; --ie-bleu: #4581CB; --ie-bleu-600: #3767A2; --ie-bleu-700: #2E5788;
+  --ie-bleu-025: #ECF2F9; --ie-bleu-050: #C8DAF0; --ie-bleu-100: #B5CDEA; --ie-bleu-200: #91B5E0; --ie-bleu-300: #6A9AD5;
+  --ie-douce: #F5F8FC; --ie-texte: #3E4A59; --ie-discret: #58697F; --ie-indication: #6B7A8F; --ie-ligne: #DCE3EC; --ie-ligne-2: #C9D3E0;
+  --ie-succes: #0B7A55; --ie-succes-fond: #E7F4EE; --ie-erreur: #9B2E28; --ie-erreur-fond: #FBEDEC;
+  --ie-degrade: linear-gradient(135deg, #0C2147 0%, #122744 55%, #1C3053 100%);
+  --ie-ombre-carte: 0 2px 4px rgba(12,33,71,.05), 0 40px 80px -30px rgba(12,33,71,.30);
+  --ie-ombre-1: 0 1px 2px rgba(12,33,71,.06), 0 8px 24px rgba(12,33,71,.08);
+  --ie-anneau: 0 0 0 4px rgba(69,129,203,.18);
+  --ie-gouttiere: 80px;
+  font-family: var(--police-corps); font-size: 16px; line-height: normal; color: var(--ie-texte); background: #fff; -webkit-font-smoothing: antialiased;
+}
+.ie *, .ie-appel * { box-sizing: border-box; }
+.ie :is(h1, h2, h3, p), .ie-appel :is(h2, p) { margin: 0; font-family: var(--police-corps); }
+.ie a { color: var(--ie-bleu-600); }
+.ie :where(button) { font: inherit; }
+.ie-ic { width: 20px; height: 20px; flex: 0 0 auto; display: block; }
+.ie-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ie :focus-visible, .ie-appel :focus-visible { outline: 3px solid var(--ie-bleu); outline-offset: 2px; }
+.ie-conteneur { max-width: calc(1280px + 2 * var(--ie-gouttiere)); margin: 0 auto; padding: 0 var(--ie-gouttiere); }
+.ie-surtitre { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ie-bleu-600); }
+
+/* Boutons (liens ou boutons; couleurs gardées au survol malgré a:hover du site) */
+.ie-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 24px; border-radius: 12px; border: 0; font-size: 15px; font-weight: 600; line-height: 1.2; text-decoration: none; cursor: pointer; transition: background .15s, box-shadow .15s, transform .15s; }
+.ie .ie-btn-plein, .ie .ie-btn-plein:hover, .ll-entete-inscrire, .ll-entete-inscrire:hover { color: #fff; }
+.ie-btn-plein { background: var(--ie-marine); }
+.ie-btn-plein:hover { background: var(--ie-marine-2); }
+.ie .ie-btn-contour, .ie .ie-btn-contour:hover, .ie-appel .ie-btn-inverse, .ie-appel .ie-btn-inverse:hover { color: var(--ie-marine); }
+.ie-btn-contour { background: #fff; box-shadow: inset 0 0 0 1px var(--ie-ligne-2); }
+.ie-btn-contour:hover { box-shadow: inset 0 0 0 1px var(--ie-bleu); background: var(--ie-douce); }
+.ie-btn-inverse { background: #fff; }
+.ie-btn-inverse:hover { background: var(--ie-bleu-025); }
+.ie-btn-s { min-height: 44px; padding: 0 20px; font-size: 14px; }
+
+/* En-tête du site : bouton « Inscrire mon entreprise » (ordinateur seulement; dans le menu sur mobile) */
+.ll-entete-inscrire { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; margin-right: 16px; padding: 0 20px; border-radius: 12px; background: #0C2147; font-family: var(--police-corps); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: background .15s; }
+.ll-entete-inscrire:hover { background: #173A6E; }
+
+/* Bandeau */
+.ie-bandeau { position: relative; overflow: hidden; background: var(--ie-degrade); padding: 52px 0 208px; color: #fff; }
+.ie-bandeau::before { content: ""; position: absolute; inset: 0; background: radial-gradient(40% 60% at 55% 45%, rgba(145,181,224,.28), rgba(12,33,71,0) 70%); }
+.ie-bandeau > .ie-chevrons { position: absolute; top: 0; right: -80px; height: 100%; width: 560px; pointer-events: none; }
+.ie-bandeau .ie-conteneur { position: relative; }
+.ie-fil { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; list-style: none; margin: 0; padding: 0; font-size: 14px; }
+.ie .ie-fil a { color: var(--ie-bleu-200); text-decoration: none; }
+.ie-fil li + li::before { content: "›"; margin-right: 10px; color: var(--ie-bleu-300); }
+.ie-fil [aria-current] { color: #fff; font-weight: 500; }
+.ie-bandeau .ie-surtitre { color: var(--ie-bleu-300); margin-top: 48px; display: block; }
+.ie .ie-bandeau h1 { margin-top: 16px; font-size: 52px; font-weight: 700; line-height: 1.15; letter-spacing: -0.027em; max-width: 14ch; color: #fff; }
+.ie-bandeau h1 span { display: block; color: var(--ie-bleu); }
+.ie .ie-chapeau { margin-top: 24px; max-width: 600px; font-size: 16px; line-height: 1.65; color: var(--ie-bleu-100); }
+.ie-reperes { display: flex; flex-wrap: wrap; gap: 10px; margin: 32px 0 0; padding: 0; list-style: none; }
+.ie-reperes li { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 16px 0 14px; border-radius: 10px; background: rgba(255,255,255,.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); font-size: 14px; font-weight: 600; }
+.ie-reperes .ie-ic { width: 18px; height: 18px; color: var(--ie-bleu-200); }
+
+/* Carte d'inscription */
+.ie-carte-zone { position: relative; margin-top: -108px; padding-bottom: 96px; }
+.ie-carte { display: grid; grid-template-columns: 400px minmax(0, 1fr); border-radius: 24px; background: #fff; box-shadow: var(--ie-ombre-carte); overflow: hidden; scroll-margin-top: calc(var(--web-entete, 108px) + 16px); }
+.ie-colonne { position: relative; display: flex; flex-direction: column; padding: 48px 40px 40px; background: var(--ie-degrade); color: #fff; }
+.ie-colonne::before { content: ""; position: absolute; inset: 0; background: radial-gradient(60% 40% at 10% 90%, rgba(69,129,203,.28), rgba(12,33,71,0) 70%); pointer-events: none; }
+.ie-colonne > * { position: relative; }
+.ie-colonne .ie-surtitre { color: var(--ie-bleu-300); }
+.ie-demandes { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 32px; }
+.ie-demandes li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; align-items: center; }
+.ie-pastille-nuit { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); color: var(--ie-bleu-200); }
+.ie-demandes strong { display: block; color: #fff; font-size: 15px; font-weight: 600; line-height: 1.3; }
+.ie-demandes span { display: block; margin-top: 4px; font-size: 13px; line-height: 1.3; color: var(--ie-bleu-100); }
+/* Le prototype laisse .demandes span écraser display:grid de la pastille (icône en haut à gauche); la maquette la centre. */
+.ie-demandes .ie-pastille-nuit { display: grid; }
+.ie-colonne hr { border: 0; height: 1px; background: rgba(255,255,255,.14); margin: 40px 0 32px; }
+.ie-ensuite { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 14px; }
+.ie-ensuite li { display: flex; gap: 12px; align-items: center; font-size: 14px; color: var(--ie-bleu-100); }
+.ie-ensuite .ie-ic { width: 18px; height: 18px; color: var(--ie-bleu-300); }
+.ie .ie-connexion { margin-top: auto; padding-top: 40px; font-size: 14px; color: var(--ie-bleu-100); }
+.ie .ie-connexion a { display: inline-flex; align-items: center; gap: 6px; color: #fff; font-weight: 600; text-decoration: none; }
+.ie-connexion .ie-ic { width: 18px; height: 18px; color: var(--ie-bleu-200); }
+
+.ie-formulaire { padding: 48px 56px 56px; }
+.ie .ie-formulaire h2 { font-size: 24px; font-weight: 700; line-height: 1.3; letter-spacing: -0.012em; color: var(--ie-marine); }
+.ie .ie-sous-titre { margin-top: 8px; font-size: 14px; line-height: 1.5; color: var(--ie-discret); }
+.ie form { margin-top: 40px; display: grid; gap: 32px; }
+.ie-groupe { display: grid; gap: 10px; }
+.ie-rangee { display: grid; grid-template-columns: minmax(0, 1fr) 232px; gap: 16px; align-items: start; }
+.ie label:not(.ie-btn), .ie-libelle { font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--ie-marine); }
+.ie-facultatif { margin-left: 6px; font-weight: 400; color: var(--ie-discret); }
+.ie-boite { position: relative; display: flex; align-items: center; height: 52px; border-radius: 12px; background: #fff; box-shadow: inset 0 0 0 1px var(--ie-ligne-2); transition: box-shadow .15s; }
+.ie-boite .ie-ic { position: absolute; left: 16px; color: var(--ie-discret); pointer-events: none; }
+.ie .ie-boite input { width: 100%; height: 100%; padding: 0 16px; border: 0; border-radius: 12px; background: transparent; font: 500 16px/1.3 var(--police-corps); color: var(--ie-marine); }
+.ie .ie-boite .ie-ic + input { padding-left: 48px; }
+#ll-page .ie .ie-boite input::placeholder { color: var(--ie-indication); font-weight: 400; }
+.ie .ie-boite input:focus, .ie .ie-boite input:focus-visible { outline: none; }
+/* Le contour d'erreur est porté par la boîte (finition.css le met sinon sur le champ lui-même). */
+#ll-page .ie input[aria-invalid="true"] { border: 0 !important; box-shadow: none !important; }
+.ie-boite:focus-within { box-shadow: inset 0 0 0 2px var(--ie-bleu), var(--ie-anneau); }
+.ie .ie-aide, .ie .ie-erreur { font-size: 13px; line-height: 1.45; }
+.ie .ie-aide { color: var(--ie-discret); }
+.ie .ie-erreur { display: flex; align-items: flex-start; gap: 8px; font-weight: 500; color: var(--ie-erreur); }
+.ie-erreur .ie-ic { width: 16px; height: 16px; margin-top: 2px; }
+[data-invalide="true"] .ie-boite { box-shadow: inset 0 0 0 2px var(--ie-erreur); }
+[data-invalide="true"] .ie-boite .ie-ic { color: var(--ie-erreur); }
+
+/* Zone de dépôt */
+.ie-depot { position: relative; display: flex; align-items: center; gap: 20px; min-height: 148px; padding: 24px; border-radius: 14px; border: 1.5px dashed var(--ie-bleu-200); background: var(--ie-douce); cursor: pointer; transition: border-color .15s, background .15s; }
+.ie-depot:hover, .ie-depot.ie-survol { border-color: var(--ie-bleu); background: var(--ie-bleu-025); }
+.ie-depot:focus-within { box-shadow: var(--ie-anneau); border-color: var(--ie-bleu); }
+.ie-depot > input[type=file] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.ie-depot .ie-cercle { width: 52px; height: 52px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; background: #fff; color: var(--ie-bleu-600); }
+.ie-cercle .ie-ic { width: 22px; height: 22px; }
+.ie-depot strong { display: block; font-size: 15px; font-weight: 600; color: var(--ie-marine); }
+.ie-depot strong em { font-style: normal; color: var(--ie-bleu-600); }
+.ie-depot span { display: block; margin-top: 6px; font-size: 13px; color: var(--ie-discret); }
+.ie-depot .ie-photo, .ie-depot .ie-photo-titre { display: none; }
+[data-invalide="true"] .ie-depot { border: 2px solid var(--ie-erreur); background: var(--ie-erreur-fond); }
+[data-invalide="true"] .ie-depot .ie-cercle { color: var(--ie-erreur); }
+.ie-joint { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 44px; gap: 16px; align-items: center; min-height: 76px; padding: 16px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--ie-ligne-2); }
+.ie-pastille { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: var(--ie-bleu-025); color: var(--ie-bleu-600); }
+.ie-joint strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 600; color: var(--ie-marine); }
+.ie-etat { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 13px; font-weight: 500; color: var(--ie-succes); }
+.ie-etat .ie-ic { width: 16px; height: 16px; }
+.ie-lien-btn { min-height: 44px; border: 0; background: none; padding: 10px 6px; font-size: 14px; font-weight: 600; color: var(--ie-bleu-600); cursor: pointer; }
+.ie-retirer { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 12px; background: var(--ie-douce); color: var(--ie-discret); cursor: pointer; }
+.ie-retirer:hover { color: var(--ie-erreur); }
+[data-joint="true"] .ie-depot { display: none; }
+
+.ie .ie-confidentialite { display: flex; gap: 16px; padding: 18px 20px; border-radius: 12px; background: var(--ie-douce); font-size: 13px; line-height: 1.6; color: var(--ie-texte); }
+.ie-confidentialite .ie-ic { color: var(--ie-bleu-600); margin-top: 2px; }
+.ie .ie-confidentialite a { font-weight: 600; text-decoration: none; }
+.ie-envoyer { width: 100%; min-height: 56px; font-size: 16px; }
+.ie .ie-envoyer[aria-disabled="true"] { background: var(--ie-bleu-700); cursor: progress; }
+.ie-tourne { animation: ie-tourne 1s linear infinite; }
+@keyframes ie-tourne { to { transform: rotate(360deg); } }
+.ie-connexion-mobile { display: none; }
+
+/* Messages (échec, doublon) */
+.ie-message { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 14px; padding: 20px 24px; border-radius: 14px; border-left: 4px solid; }
+.ie-message strong { display: block; font-size: 15px; font-weight: 700; color: var(--ie-marine); }
+.ie .ie-message p { margin-top: 6px; font-size: 14px; line-height: 1.55; }
+.ie-message-erreur { background: var(--ie-erreur-fond); border-color: var(--ie-erreur); color: var(--ie-texte); }
+.ie-message-erreur > .ie-ic { color: var(--ie-erreur); }
+.ie-message-info { background: var(--ie-bleu-025); border-color: var(--ie-bleu-600); }
+.ie-message-info > .ie-ic { color: var(--ie-bleu-600); }
+.ie-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+
+/* Confirmation */
+.ie-confirmation { padding: 64px 56px; text-align: center; }
+.ie-confirmation:focus { outline: none; }
+.ie-cercle-ok { width: 80px; height: 80px; margin: 0 auto; display: grid; place-items: center; border-radius: 50%; background: var(--ie-succes-fond); color: var(--ie-succes); }
+.ie-cercle-ok .ie-ic { width: 40px; height: 40px; }
+.ie .ie-confirmation h2 { margin-top: 24px; font-size: 30px; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em; color: var(--ie-marine); }
+.ie .ie-confirmation > p { max-width: 640px; margin: 16px auto 0; font-size: 15px; line-height: 1.7; }
+.ie-suites { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; max-width: 520px; margin: 40px auto 0; padding: 0; list-style: none; text-align: left; }
+.ie-suites li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; align-items: center; padding: 16px 20px; border-radius: 14px; background: var(--ie-douce); }
+.ie-suites .ie-pastille { display: grid; background: #fff; color: var(--ie-bleu-600); }
+.ie-suites strong { display: block; font-size: 14px; font-weight: 600; color: var(--ie-marine); }
+.ie-suites span { display: block; margin-top: 4px; font-size: 13px; color: var(--ie-discret); overflow-wrap: anywhere; }
+.ie-confirmation .ie-btn { margin-top: 40px; }
+
+/* Comment ça fonctionne */
+.ie-parcours { padding: 0 0 96px; text-align: center; }
+.ie .ie-parcours h2, .ie .ie-faq h2 { margin-top: 16px; font-size: 36px; font-weight: 700; line-height: 1.2; letter-spacing: -0.022em; color: var(--ie-marine); }
+.ie .ie-parcours .ie-intro { margin-top: 16px; font-size: 15px; line-height: 1.6; }
+.ie-etapes { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin: 56px 0 0; padding: 0; list-style: none; }
+.ie-etapes::before { content: ""; position: absolute; top: 28px; left: 12.5%; right: 12.5%; height: 2px; background: var(--ie-bleu-050); }
+.ie-etapes li { position: relative; display: grid; justify-items: center; }
+.ie-rond { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 2px var(--ie-bleu); color: var(--ie-bleu-600); }
+.ie-etapes li:first-child .ie-rond { background: var(--ie-marine); box-shadow: none; color: #fff; }
+.ie-rond .ie-ic { width: 24px; height: 24px; }
+.ie-etapes small { margin-top: 24px; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ie-bleu-600); }
+.ie .ie-etapes h3 { margin-top: 10px; font-size: 18px; font-weight: 700; line-height: 1.35; color: var(--ie-marine); }
+.ie .ie-etapes p { max-width: 264px; margin-top: 12px; font-size: 14px; line-height: 1.6; }
+
+/* FAQ */
+.ie-faq { padding: 96px 0; background: var(--ie-douce); }
+.ie-faq .ie-conteneur { display: grid; grid-template-columns: 440px minmax(0, 1fr); gap: 120px; align-items: start; }
+.ie .ie-faq .ie-intro { margin-top: 16px; font-size: 14px; line-height: 1.7; max-width: 400px; }
+.ie-faq .ie-btn { margin-top: 32px; }
+.ie-questions { display: grid; gap: 12px; }
+.ie-questions details { border-radius: 14px; background: #fff; box-shadow: inset 0 0 0 1px var(--ie-ligne); }
+.ie-questions details[open] { box-shadow: inset 0 0 0 1px var(--ie-bleu-100), var(--ie-ombre-1); }
+#ll-page .ie-questions summary, .ie-questions summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 72px; padding: 16px 24px; list-style: none; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--ie-marine); }
+.ie-questions summary::-webkit-details-marker { display: none; }
+.ie-plus { width: 32px; height: 32px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; background: var(--ie-bleu-025); color: var(--ie-marine); transition: transform .2s, background .2s; }
+.ie-questions details[open] .ie-plus { background: var(--ie-marine); color: #fff; transform: rotate(45deg); }
+.ie-plus .ie-ic { width: 16px; height: 16px; }
+.ie .ie-questions details p { padding: 0 24px 24px; font-size: 14px; line-height: 1.7; max-width: 640px; }
+
+/* Bande d'appel (bas de page et accueil) */
+.ie-appel { padding: 80px 0; background: #fff; }
+.ie-bande { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 56px; border-radius: 24px; background: var(--ie-degrade); color: #fff; }
+.ie-bande > div { position: relative; }
+.ie-appel .ie-surtitre { display: block; margin-bottom: 12px; color: var(--ie-bleu-300); }
+.ie-appel .ie-bande h2 { font-size: 30px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; color: #fff; }
+.ie-appel .ie-bande p { margin-top: 12px; font-size: 15px; line-height: 1.6; color: var(--ie-bleu-100); }
+.ie-bande > .ie-chevrons { position: absolute; right: -20px; top: 0; height: 100%; opacity: .9; pointer-events: none; }
+.ie-bande .ie-btn { position: relative; flex: none; margin-right: 260px; }
+
+/* Tablette (≤ 1100 px) : la colonne marine passe au-dessus du formulaire, avec ses 3 éléments seulement */
+@media (max-width: 1100px) {
+  .ie, .ie-appel { --ie-gouttiere: 40px; }
+  .ie-carte { grid-template-columns: minmax(0, 1fr); }
+  .ie-colonne { padding: 32px 40px; }
+  .ie-colonne .ie-ensuite, .ie-colonne hr, .ie-colonne .ie-ensuite-titre { display: none; }
+  .ie-demandes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+  .ie .ie-connexion { padding-top: 24px; }
+  .ie-faq .ie-conteneur { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .ie-bande .ie-btn { margin-right: 0; }
+}
+/* Mobile (≤ 620 px) : texte centré, sauf le formulaire */
+@media (max-width: 620px) {
+  .ie, .ie-appel { --ie-gouttiere: 16px; }
+  .ll-entete-inscrire { display: none; }
+  .ie-bandeau { padding: 28px 0 176px; text-align: center; }
+  .ie-fil { justify-content: center; font-size: 10px; gap: 6px; }
+  .ie-fil li + li::before { margin-right: 6px; }
+  .ie-bandeau .ie-surtitre { margin-top: 28px; font-size: 11px; }
+  .ie .ie-bandeau h1 { margin: 12px auto 0; font-size: 32px; letter-spacing: -0.025em; }
+  .ie .ie-chapeau { margin: 20px auto 0; font-size: 14px; }
+  .ie-reperes { justify-content: center; flex-direction: column; align-items: center; margin-top: 24px; }
+  .ie-reperes li:nth-child(2) { display: none; }
+  .ie-bandeau > .ie-chevrons { display: none; }
+  .ie-carte-zone { margin-top: -136px; padding-bottom: 64px; }
+  .ie-carte { border-radius: 20px; }
+  .ie-colonne { display: none; }
+  .ie-formulaire { padding: 28px 20px 32px; }
+  #ll-page .ie form { text-align: left; } /* le site centre le texte des blocs qui ont un h2 sur mobile; le formulaire reste à gauche */
+  .ie .ie-formulaire h2, .ie .ie-sous-titre { text-align: center; }
+  .ie .ie-formulaire h2 { font-size: 20px; }
+  .ie form { margin-top: 28px; gap: 28px; }
+  .ie-rangee { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .ie-depot { flex-direction: column; text-align: center; padding: 20px 16px 16px; }
+  .ie-depot .ie-glisser { display: none; }
+  .ie-depot .ie-photo-titre { display: block; }
+  .ie-depot .ie-photo { display: grid; gap: 8px; width: 100%; margin-top: 8px; }
+  .ie-depot .ie-photo .ie-btn { width: 100%; position: relative; z-index: 1; }
+  .ie-depot > input[type=file] { pointer-events: none; }
+  .ie-joint { grid-template-columns: 44px minmax(0, 1fr) 44px; }
+  .ie-joint .ie-lien-btn { display: none; }
+  .ie .ie-confidentialite { padding: 16px; }
+  .ie .ie-connexion-mobile { display: block; text-align: center; font-size: 14px; }
+  .ie-confirmation { padding: 40px 20px; }
+  .ie .ie-confirmation h2 { font-size: 24px; }
+  .ie .ie-parcours h2, .ie .ie-faq h2 { font-size: 26px; }
+  .ie-etapes { grid-template-columns: minmax(0, 1fr); gap: 40px; margin-top: 40px; }
+  .ie-etapes::before { display: none; }
+  .ie-etapes small { margin-top: 14px; }
+  .ie-faq { padding: 64px 0; text-align: center; }
+  .ie .ie-faq .ie-intro { margin: 16px auto 0; }
+  .ie-questions { text-align: left; }
+  .ie-appel { padding: 48px 0; }
+  .ie-bande { flex-direction: column; text-align: center; padding: 40px 24px; }
+  .ie-bande > .ie-chevrons { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ie *, .ie-appel *, .ll-entete-inscrire { transition: none !important; animation: none !important; }
+}

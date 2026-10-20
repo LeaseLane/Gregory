@@ -18,6 +18,14 @@ const bureau = () => !!(((__ssr() ? "undefined" : typeof window) !== "undefined"
 
 /* Pages hors de l'index du menu actuel */
 const EXTRA = {
+  entreprise: {
+    id: 'entreprise',
+    t: 'Inscrire mon entreprise',
+    d: 'Inscription gratuite des entrepreneurs',
+    ic: 'building-2',
+    to: '/inscrire-mon-entreprise',
+    type: 'page'
+  },
   quartiers: {
     id: 'quartiers',
     t: 'La grande région de Québec',
@@ -57,7 +65,7 @@ const PROFILS = [{
   court: 'Lease Lane',
   d: 'L’équipe, la FAQ, vos droits',
   ic: 'info',
-  ids: ['apropos', 'joindre', 'faq', 'blogue', 'cleo', 'confid']
+  ids: ['apropos', 'joindre', 'faq', 'blogue', 'cleo', 'entreprise', 'confid']
 }];
 const fixerProfil = k => {
   const v = k === 'info' ? null : k;

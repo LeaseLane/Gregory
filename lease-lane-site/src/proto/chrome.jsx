@@ -119,7 +119,7 @@ function Entete({
           gap: '8px',
           flex: 'none'
         }}>
-          <LangueEntete />
+          <a href="/inscrire-mon-entreprise" className="ll-entete-inscrire">Inscrire mon entreprise <ChIcon name="building-2" size={18} /></a><LangueEntete />
           <button aria-label={ouvert ? 'Fermer le menu' : 'Ouvrir le menu'} aria-expanded={ouvert} title={ouvert ? 'Fermer le menu' : 'Menu'} onClick={() => setOuvert(!ouvert)} style={{
             width: '44px',
             height: '44px',

@@ -8,7 +8,10 @@ const PRIORITE: Record<string, number> = { accueil: 1, gestion: 0.9, location: 0
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const D = LL_SITE.domaine;
-  return LL_ROUTES.filter((r: { index?: boolean }) => r.index !== false).flatMap((r: { path: string; page: string }) => {
+  // Page faite main hors de LL_ROUTES : Inscrire mon entreprise et sa jumelle anglaise.
+  const ie = { languages: { 'fr-CA': D + '/inscrire-mon-entreprise', 'en-CA': D + '/en/list-your-business', 'x-default': D + '/inscrire-mon-entreprise' } };
+  const inscription = [{ url: D + '/inscrire-mon-entreprise', lastModified: '2026-10-20', priority: 0.7, alternates: ie }, { url: D + '/en/list-your-business', lastModified: '2026-10-20', priority: 0.6, alternates: ie }];
+  return [...inscription, ...LL_ROUTES.filter((r: { index?: boolean }) => r.index !== false).flatMap((r: { path: string; page: string }) => {
     const fr = D + (r.path === '/' ? '/' : r.path), en = D + versEN(r.path);
     const alternates = { languages: { 'fr-CA': fr, 'en-CA': en, 'x-default': fr } };
     const p = PRIORITE[r.page] ?? 0.6;
@@ -16,5 +19,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       { url: fr, lastModified: '2026-10-12', priority: p, alternates },
       { url: en, lastModified: '2026-10-12', priority: Math.round(p * 0.9 * 10) / 10, alternates },
     ];
-  });
+  })];
 }
