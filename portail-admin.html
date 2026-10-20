@@ -1730,12 +1730,138 @@ function renderOwnersList(liste){
         <td class="cl-actions">
           <button class="ll-bouton ll-bouton--primaire" id="own-save-${o.id}" onclick="saveOwnerRates('${o.id}')" hidden>Enregistrer</button>
           <span id="own-msg-${o.id}" class="cl-msg"></span>
+          <button class="vo-action" onclick="blOuvrir('${o.id}')">Logements et baux</button>
           <button class="vo-action" data-role="owner" data-target-id="${esc(o.id)}" onclick="impersonateFromButton(this)">Voir son portail</button>
           <button class="vo-action" onclick="clArchiver('${o.id}', ${!o.archived_at})">${o.archived_at ? 'Réactiver' : 'Archiver'}</button>
         </td>
       </tr>`).join('')}
     </tbody>
   </table>`;
+}
+
+/* ---- Logements et baux d'un client : ajouter un locataire, mettre fin à un bail (le propriétaire reste en lecture seule) ---- */
+const BL_MOTIFS = { resiliation: 'Résiliation', depart: 'Départ du locataire', non_renouvellement: 'Non-renouvellement', entente: 'Entente entre les parties', autre: 'Autre' };
+const blArgent = n => n != null ? Number(n).toLocaleString('fr-CA', { maximumFractionDigits: 2 }) + ' $' : '—';
+const blJour = d => d ? new Date(d + 'T12:00').toLocaleDateString('fr-CA', { dateStyle: 'medium' }) : '—';
+const blAujourdhui = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+const blLendemain = d => { const x = new Date(d + 'T12:00'); x.setDate(x.getDate() + 1); return x.toISOString().slice(0, 10); };
+
+/* Petite fenêtre de saisie : renvoie les valeurs du formulaire (par « name »), ou null si annulée. */
+function blFenetre(titre, champs, libelle = 'Enregistrer'){
+  return new Promise(resoudre => {
+    const fond = document.createElement('div');
+    fond.className = 'll-modale-fond'; fond.style.zIndex = '1300';
+    fond.innerHTML = `<form class="ll-modale" role="dialog" aria-modal="true" aria-label="${esc(titre)}" style="max-width:560px;width:calc(100vw - 32px)">
+      <p class="ll-modale__texte"><b>${esc(titre)}</b></p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px 14px;margin-bottom:18px">${champs}</div>
+      <div class="ll-modale__actions"><button type="button" class="ll-bouton ll-bouton--secondaire" data-annuler>Annuler</button><button type="submit" class="ll-bouton ll-bouton--primaire">${esc(libelle)}</button></div></form>`;
+    const fin = v => { fond.classList.remove('ll-modale-fond--visible'); setTimeout(() => fond.remove(), 180); document.removeEventListener('keydown', echap, true); resoudre(v); };
+    const echap = e => { if(e.key === 'Escape'){ e.stopPropagation(); fin(null); } };
+    document.addEventListener('keydown', echap, true);
+    fond.addEventListener('mousedown', e => { if(e.target === fond) fin(null); });
+    fond.querySelector('[data-annuler]').onclick = () => fin(null);
+    fond.querySelector('form').onsubmit = e => { e.preventDefault(); const f = e.target; if(!f.reportValidity()) return;
+      fin(Object.fromEntries([...f.elements].filter(x => x.name).map(x => [x.name, x.type === 'checkbox' ? x.checked : x.value]))); };
+    document.body.appendChild(fond);
+    requestAnimationFrame(() => fond.classList.add('ll-modale-fond--visible'));
+    fond.querySelector('input,select,textarea')?.focus();
+  });
+}
+
+let blEtat = { owner: null, data: null };
+async function blOuvrir(ownerId){
+  blEtat = { owner: ownerId, data: null };
+  if(!document.getElementById('fiche-bl')){
+    document.body.insertAdjacentHTML('beforeend', '<div id="fiche-bl-fond" class="fi-fond" onclick="blFermer()"></div><aside id="fiche-bl" class="fi-tiroir" role="dialog" aria-modal="true" aria-label="Logements et baux"></aside>');
+    document.addEventListener('keydown', e => { if(e.key === 'Escape' && blEtat.owner && !document.querySelector('.ll-modale-fond')) blFermer(); });
+  }
+  // Fenêtre à part : n'utilise pas body.fi-ouvert (qui ouvrirait aussi les autres fiches présentes dans la page).
+  const fond = document.getElementById('fiche-bl-fond'), tiroir = document.getElementById('fiche-bl');
+  fond.style.opacity = '1'; fond.style.pointerEvents = 'auto'; tiroir.style.transform = 'none'; tiroir.style.width = 'min(860px, 100vw)';
+  blRendre();
+  const res = await callOnboardingApi({ action: 'list_owner_units', owner_id: ownerId });
+  if(blEtat.owner !== ownerId) return;
+  blEtat.data = res?.buildings ? res.buildings : { erreur: true };
+  blRendre();
+}
+function blFermer(){
+  blEtat.owner = null;
+  const t = document.getElementById('fiche-bl'), f = document.getElementById('fiche-bl-fond');
+  if(t) t.style.transform = ''; if(f){ f.style.opacity = ''; f.style.pointerEvents = ''; }
+}
+function blRendre(){
+  const t = document.getElementById('fiche-bl'); if(!t || !blEtat.owner) return;
+  const o = ownersTous.find(x => x.id === blEtat.owner) || {};
+  const d = blEtat.data;
+  let corps;
+  if(!d) corps = '<p class="tr-vide">Chargement…</p>';
+  else if(d.erreur) corps = '<p class="tr-vide">Logements indisponibles pour le moment.</p>';
+  else if(!d.length) corps = '<p class="tr-vide">Aucun immeuble pour ce client. Ajoutez-en un dans « Nouveau client ».</p>';
+  else corps = d.map(b => `<h3 class="sous-titre" style="margin:18px 0 8px">${esc(b.address)}</h3>
+    <div style="overflow-x:auto"><table class="tr-table"><thead><tr><th>Unité</th><th>Locataire</th><th class="num">Loyer</th><th>Bail</th><th></th></tr></thead><tbody>
+    ${(b.units || []).map(u => {
+      const cur = (u.leases || []).find(l => l.status === 'active' || l.status === 'renewed');
+      const next = (u.leases || []).find(l => l.status === 'a_venir');
+      const pastille = !cur && !next ? '<span class="tr-pastille tr-pastille--ko">Vacant</span>'
+        : cur && cur.fin_motif ? `<span class="tr-pastille tr-pastille--att">Fin le ${blJour(cur.end_date)}</span><small>${esc(BL_MOTIFS[cur.fin_motif] || '')}</small>`
+        : cur ? `<span class="tr-pastille tr-pastille--ok">En cours</span><small>${blJour(cur.start_date)} → ${cur.end_date ? blJour(cur.end_date) : 'sans date de fin'}</small>` : '';
+      const arrivee = next ? `<div style="margin-top:6px"><span class="tr-pastille">À venir</span> <b>${esc(next.tenants?.full_name || '')}</b><small>dès le ${blJour(next.start_date)} · ${blArgent(next.monthly_rent)}</small></div>` : '';
+      const peutAjouter = !next && (!cur || (cur.end_date && cur.fin_motif) || !cur);
+      const actions = [
+        cur ? `<button class="vo-action" onclick="blFinBail('${cur.id}')">${cur.fin_motif ? 'Modifier la fin' : 'Mettre fin au bail'}</button>` : '',
+        peutAjouter ? `<button class="ll-bouton ll-bouton--primaire" style="padding:6px 12px;font-size:13px" onclick="blAjouter('${u.id}')">Ajouter un locataire</button>` : '',
+        next ? `<button class="tr-lien-danger" onclick="blAnnulerArrivee('${next.id}')">Annuler l'arrivée</button>` : '',
+      ].join(' ');
+      return `<tr><td><b>${esc(u.unit_number)}</b></td>
+        <td>${cur ? esc(cur.tenants?.full_name || '—') : '<span style="color:var(--muted)">Libre</span>'}${arrivee}</td>
+        <td class="num">${cur ? blArgent(cur.monthly_rent) : '—'}</td><td>${pastille}</td><td style="text-align:right">${actions}</td></tr>`;
+    }).join('') || '<tr><td colspan="5" class="tr-vide">Aucun logement.</td></tr>'}</tbody></table></div>`).join('');
+  t.innerHTML = `<header class="fi-tete"><div><h2 style="margin:0">Logements et baux</h2><p class="subtitle" style="margin:2px 0 0">${esc(o.full_name || '')} · le propriétaire voit ces baux en lecture seule dans son portail</p>
+    <p class="subtitle" style="margin:6px 0 0">Nouveau locataire dans un logement occupé : inscrivez d'abord la fin du bail en cours (« Mettre fin au bail »), puis « Ajouter un locataire » apparaît sur la ligne.</p></div>
+    <button class="fi-fermer" onclick="blFermer()" aria-label="Fermer">✕</button></header><div class="fi-corps">${corps}</div>`;
+}
+const blTrouver = id => { for(const b of blEtat.data || []) for(const u of b.units || []) { if(u.id === id) return { u, b }; for(const l of u.leases || []) if(l.id === id) return { l, u, b }; } return {}; };
+
+async function blAjouter(unitId){
+  const { u, b } = blTrouver(unitId); if(!u) return;
+  const cur = (u.leases || []).find(l => l.status === 'active' || l.status === 'renewed');
+  const debut = cur?.end_date ? blLendemain(cur.end_date) : blAujourdhui();
+  const v = await blFenetre(`Nouveau locataire · ${b.address}, unité ${u.unit_number}`, `
+    <div style="grid-column:1/-1"><label class="ch-label" for="bl-nom">Nom complet</label><input id="bl-nom" name="full_name" required style="width:100%;box-sizing:border-box"></div>
+    <div><label class="ch-label" for="bl-courriel">Courriel (facultatif)</label><input id="bl-courriel" name="email" type="email" style="width:100%;box-sizing:border-box"></div>
+    <div><label class="ch-label" for="bl-tel">Téléphone</label><input id="bl-tel" name="phone" style="width:100%;box-sizing:border-box"></div>
+    <div><label class="ch-label" for="bl-loyer">Loyer mensuel ($)</label><input id="bl-loyer" name="monthly_rent" type="number" min="1" step="0.01" required value="${cur ? Number(cur.monthly_rent) : ''}" style="width:100%;box-sizing:border-box"></div>
+    <div><label class="ch-label" for="bl-debut">Début du bail</label><input id="bl-debut" name="start_date" type="date" required value="${debut}" ${cur?.end_date ? `min="${blLendemain(cur.end_date)}"` : ''} style="width:100%;box-sizing:border-box"></div>
+    <div><label class="ch-label" for="bl-fin">Fin du bail</label><input id="bl-fin" name="end_date" type="date" style="width:100%;box-sizing:border-box"></div>
+    <p class="subtitle" style="grid-column:1/-1;margin:0">${cur ? `Le bail actuel se termine le ${blJour(cur.end_date)} : ce bail sera « à venir » et prendra le relais à sa date de début.` : 'Avec un courriel, le locataire reçoit ses accès au portail. Sans courriel, seul le dossier est créé.'}</p>`, 'Ajouter le locataire');
+  if(!v) return;
+  const res = await callOnboardingApi({ action: 'create_tenant', unit_id: unitId, full_name: v.full_name.trim(), email: v.email.trim() || null, phone: v.phone.trim() || null, monthly_rent: Number(v.monthly_rent), start_date: v.start_date, end_date: v.end_date || null });
+  if(res?.error){ llToast(res.error, 'erreur'); return; }
+  llToast(res?.bail === 'a_venir' ? `Locataire ajouté : bail à venir dès le ${blJour(v.start_date)}.` : 'Locataire ajouté, bail en cours.', 'succes');
+  await blOuvrir(blEtat.owner);
+}
+
+async function blFinBail(leaseId){
+  const { l, u, b } = blTrouver(leaseId); if(!l) return;
+  const v = await blFenetre(`Fin du bail · ${l.tenants?.full_name || ''} (${b.address}, unité ${u.unit_number})`, `
+    <div><label class="ch-label" for="bl-date-fin">Dernier jour du bail</label><input id="bl-date-fin" name="end_date" type="date" required min="${l.start_date}" value="${l.end_date || blAujourdhui()}" style="width:100%;box-sizing:border-box"></div>
+    <div><label class="ch-label" for="bl-motif">Motif</label><select id="bl-motif" name="motif" style="width:100%">${Object.entries(BL_MOTIFS).map(([k, x]) => `<option value="${k}"${l.fin_motif === k ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
+    <div style="grid-column:1/-1"><label class="ch-label" for="bl-note">Note (facultatif)</label><textarea id="bl-note" name="note" rows="2" style="width:100%;box-sizing:border-box">${esc(l.fin_note || '')}</textarea></div>
+    <p class="subtitle" style="grid-column:1/-1;margin:0">Les loyers s'arrêtent après cette date (un loyer déjà généré pour plus tard, non payé, est retiré). Si la date est passée, le bail se termine tout de suite et le logement devient vacant; sinon il passe « à louer bientôt ».</p>`, 'Inscrire la fin du bail');
+  if(!v) return;
+  const res = await callOnboardingApi({ action: 'end_lease', lease_id: leaseId, end_date: v.end_date, motif: v.motif, note: v.note });
+  if(res?.error){ llToast(res.error, 'erreur'); return; }
+  llToast(res.immediat ? `Bail terminé${res.loyers_retires ? ` · ${res.loyers_retires} loyer(s) futur(s) retiré(s)` : ''}. Le logement est vacant.` : `Fin du bail inscrite au ${blJour(v.end_date)}${res.loyers_retires ? ` · ${res.loyers_retires} loyer(s) futur(s) retiré(s)` : ''}.`, 'succes');
+  await blOuvrir(blEtat.owner);
+}
+
+async function blAnnulerArrivee(leaseId){
+  const { l } = blTrouver(leaseId); if(!l) return;
+  if(!(await llConfirmer(`Annuler l'arrivée de ${l.tenants?.full_name || 'ce locataire'} (bail à venir dès le ${blJour(l.start_date)}) ? Le bail est fermé sans avoir commencé; sa fiche locataire reste.`))) return;
+  const res = await callOnboardingApi({ action: 'end_lease', lease_id: leaseId, end_date: l.start_date, motif: 'entente', note: 'Arrivée annulée avant le début du bail' });
+  if(res?.error){ llToast(res.error, 'erreur'); return; }
+  llToast('Arrivée annulée.', 'succes');
+  await blOuvrir(blEtat.owner);
 }
 
 async function clArchiver(id, archiver){
@@ -5327,12 +5453,18 @@ async function sendLeaseRenewalNotice(lease_id){
 }
 
 async function promptRecordRenewalResponse(lease_id){
-  const responseVal = await llDemander('Réponse du locataire (accepted / refused / no_response) :');
-  if(!responseVal || !['accepted','refused','no_response'].includes(responseVal.trim())) return;
-  const signedVal = await llConfirmer('Le document de renouvellement a-t-il été signé ?');
-  const note = await llDemander('Note additionnelle (optionnel) :') || null;
-  const res = await callLeaseRenewalApi({ action: 'record_response', lease_id, renewal_response: responseVal.trim(), renewal_signed: signedVal, renewal_response_note: note });
-  if(res?.ok){ await loadLeaseRenewals(); }
+  const choix = await blFenetre('Réponse du locataire', `
+    <div style="grid-column:1/-1"><label class="ch-label" for="bl-rep">Réponse</label><select id="bl-rep" name="rep" style="width:100%">
+      <option value="accepted">Renouvelé : le locataire reste</option><option value="refused">Non renouvelé : le locataire quitte à la fin du bail</option><option value="no_response">Sans réponse pour l'instant</option></select></div>
+    <label style="grid-column:1/-1;display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" name="signe"> Le document de renouvellement est signé</label>
+    <div style="grid-column:1/-1"><label class="ch-label" for="bl-rep-note">Note (facultatif)</label><textarea id="bl-rep-note" name="note" rows="2" style="width:100%;box-sizing:border-box"></textarea></div>
+    <p class="subtitle" style="grid-column:1/-1;margin:0">« Non renouvelé » inscrit la fin du bail à sa date de fin : le logement passe « à louer » et vous pourrez y ajouter le prochain locataire.</p>`, 'Enregistrer');
+  if(!choix) return;
+  const res = await callLeaseRenewalApi({ action: 'record_response', lease_id, renewal_response: choix.rep, renewal_signed: !!choix.signe, renewal_response_note: choix.note.trim() || null });
+  if(res?.ok){
+    llToast(res.fin_inscrite ? 'Non-renouvellement inscrit : fin du bail programmée, logement à louer.' : res.sans_date_de_fin ? 'Réponse enregistrée. Ce bail n\'a pas de date de fin : inscrivez la fin dans « Logements et baux ».' : 'Réponse enregistrée.', 'succes');
+    await loadLeaseRenewals();
+  }
 }
 
 /* Modifier un prospect : fenêtre avec toute sa fiche. */
