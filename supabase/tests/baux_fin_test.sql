@@ -61,3 +61,37 @@ begin
   assert ok, 'motif invalide : refusé';
   raise notice 'baux : toutes les règles tiennent';
 end $$;
+
+-- Correctifs du 2026-10-20 (migration 20261106100000).
+do $$
+declare
+  o uuid := gen_random_uuid(); b uuid := gen_random_uuid(); u uuid := gen_random_uuid(); u2 uuid := gen_random_uuid(); t uuid := gen_random_uuid();
+  l uuid := gen_random_uuid(); lv uuid := gen_random_uuid(); l2 uuid := gen_random_uuid(); aujourdhui date := date_quebec(); r jsonb; ok boolean;
+begin
+  insert into owners (id, full_name) values (o, 'Correctifs');
+  insert into buildings (id, owner_id, address) values (b, o, 'C');
+  insert into units (id, building_id, unit_number, status) values (u, b, '1', 'occupied'), (u2, b, '2', 'occupied');
+  insert into tenants (id, full_name) values (t, 'Reconduit');
+  -- 1. Bail échu sans fin inscrite (reconduction tacite) : la nuit ne le ferme PAS.
+  insert into leases (id, tenant_id, unit_id, status, monthly_rent, start_date, end_date) values (l, t, u, 'active', 1000, aujourdhui - 500, aujourdhui - 30);
+  r := baux_transitions();
+  assert (select status from leases where id = l) = 'active' and (select status from units where id = u) = 'occupied', 'reconduction tacite respectée';
+  -- 2. Fin qui chevauche un bail à venir : refusée.
+  update leases set end_date = aujourdhui + 30 where id = l;
+  insert into leases (id, tenant_id, unit_id, status, monthly_rent, start_date) values (lv, t, u, 'a_venir', 1100, aujourdhui + 31);
+  ok := false; begin perform bail_terminer(l, aujourdhui + 40, 'depart'); exception when others then ok := true; end;
+  assert ok, 'chevauchement refusé';
+  r := bail_terminer(l, aujourdhui + 30, 'depart');
+  assert (select renewal_signature_token from leases where id = l) is null, 'lien de signature effacé';
+  -- 3. Annuler le bail à venir puis terminer le bail actuel : logement recalculé (libre).
+  r := bail_terminer(lv, aujourdhui, 'entente');
+  r := bail_terminer(l, aujourdhui - 1, 'depart');
+  assert (select status from units where id = u) = 'available', 'logement libre après annulation et fin';
+  -- 4. Loyer postérieur à la fin, payé en partie : ramené au montant reçu.
+  insert into leases (id, tenant_id, unit_id, status, monthly_rent, start_date) values (l2, t, u2, 'active', 900, aujourdhui - 200);
+  insert into payments (lease_id, amount, due_date, status, amount_received) values (l2, 900, aujourdhui + 15, 'late', 300);
+  r := bail_terminer(l2, aujourdhui, 'resiliation');
+  assert (r->>'loyers_ramenes')::int = 1 and (select amount from payments where lease_id = l2) = 300 and (select status from payments where lease_id = l2) = 'paid', 'partiel ramené';
+  assert r ? 'ancienne_fin', 'ancienne fin renvoyée';
+  raise notice 'baux (correctifs) : toutes les règles tiennent';
+end $$;

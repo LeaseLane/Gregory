@@ -194,7 +194,17 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
       // aussi propager end_date/monthly_rent/status, sinon
       // generate_monthly_payments() cesse de générer les loyers de ce bail
       // dès que l'ancienne end_date est dépassée.
+      const [etat] = await fetch(`${supabaseUrl}/rest/v1/leases?id=eq.${lease_id}&select=status,fin_motif,unit_id`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+      if (etat?.status === "ended") return new Response(JSON.stringify({ error: "Ce bail est terminé." }), { status: 409, headers: corsHeaders });
       if (renewal_response === "accepted") {
+        // Un nouveau locataire est déjà prévu : on ne renouvelle pas par-dessus (annuler d'abord son arrivée).
+        const [prevu] = await fetch(`${supabaseUrl}/rest/v1/leases?unit_id=eq.${etat?.unit_id}&status=eq.a_venir&select=id&limit=1`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+        if (prevu) return new Response(JSON.stringify({ error: "Un nouveau locataire est déjà prévu pour ce logement : annulez d'abord son arrivée dans « Logements et baux »." }), { status: 409, headers: corsHeaders });
+        // Changement d'avis (« non renouvelé » → « renouvelé ») : la fin inscrite est effacée, le logement redevient occupé.
+        if (etat?.fin_motif) {
+          Object.assign(leasePatch, { fin_motif: null, fin_note: null, fin_inscrite_le: null, fin_inscrite_par: null });
+          await fetch(`${supabaseUrl}/rest/v1/units?id=eq.${etat.unit_id}`, { method: "PATCH", headers: adminHeaders, body: JSON.stringify({ status: "occupied" }) });
+        }
         const leaseRes = await fetch(
           `${supabaseUrl}/rest/v1/leases?id=eq.${lease_id}&select=start_date,end_date,renewal_notice_type,renewal_notice_amount`,
           { headers: adminHeaders },
@@ -225,8 +235,10 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
       // et la bascule de la nuit le libère à la date. Un bail sans date de fin reste à terminer à la main.
       let fin: Record<string, unknown> | null = null;
       if (renewal_response === "refused") {
-        const [l] = await fetch(`${supabaseUrl}/rest/v1/leases?id=eq.${lease_id}&select=end_date,status`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
-        if (l?.end_date && l.status !== "ended") {
+        const [l] = await fetch(`${supabaseUrl}/rest/v1/leases?id=eq.${lease_id}&select=end_date,status,fin_motif`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+        // Une fin déjà inscrite (résiliation, départ…) n'est pas remplacée.
+        if (l?.fin_motif) fin = { ok: true, deja: true };
+        else if (l?.end_date && l.status !== "ended") {
           const r = await fetch(`${supabaseUrl}/rest/v1/rpc/bail_terminer`, {
             method: "POST", headers: adminHeaders,
             body: JSON.stringify({ p_lease: lease_id, p_fin: l.end_date, p_motif: "non_renouvellement", p_note: renewal_response_note || null, p_par: userId }),

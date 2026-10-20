@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
       });
       const data = await r.json().catch(() => ({}));
       if (!r.ok) return new Response(JSON.stringify({ error: data?.message || "Fin de bail refusée" }), { status: 409, headers: corsHeaders });
-      await logAudit("lease.end", "leases", lease_id, { end_date, motif, immediat: data.immediat, loyers_retires: data.loyers_retires });
+      await logAudit("lease.end", "leases", lease_id, { end_date, motif, immediat: data.immediat, loyers_retires: data.loyers_retires, loyers_ramenes: data.loyers_ramenes, ancienne_fin: data.ancienne_fin, ancien_motif: data.ancien_motif });
       return new Response(JSON.stringify({ ok: true, ...data }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -542,6 +542,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Champs manquants (nom, unité, loyer, date de début)" }), { status: 400, headers: corsHeaders });
       }
 
+      if (end_date && end_date < start_date) return new Response(JSON.stringify({ error: "La fin du bail précède son début." }), { status: 400, headers: corsHeaders });
       // Bail en cours sur ce logement : le nouveau bail doit commencer après sa fin (il sera « à venir »).
       const [enCours] = await fetch(`${supabaseUrl}/rest/v1/leases?unit_id=eq.${unit_id}&status=in.(active,renewed)&select=id,end_date&limit=1`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
       const [prevu] = await fetch(`${supabaseUrl}/rest/v1/leases?unit_id=eq.${unit_id}&status=eq.a_venir&select=id&limit=1`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
@@ -583,8 +584,13 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ unit_id, tenant_id: tenant.id, start_date, end_date: end_date || null, monthly_rent, status: statutBail }),
       });
       if (!leaseRes.ok) {
-        console.error("Failed to create lease row", await leaseRes.text());
-        return new Response(JSON.stringify({ error: "Locataire créé mais échec de création du bail." }), { status: 500, headers: corsHeaders });
+        const detail = await leaseRes.text();
+        console.error("Failed to create lease row", detail);
+        // Rien de créé à moitié : fiche (et compte) retirés si le bail est refusé (ex. deux ajouts simultanés).
+        await fetch(`${supabaseUrl}/rest/v1/tenants?id=eq.${tenant.id}`, { method: "DELETE", headers: adminHeaders }).catch(() => null);
+        if (authUserId) await fetch(`${supabaseUrl}/auth/v1/admin/users/${authUserId}`, { method: "DELETE", headers: adminHeaders }).catch(() => null);
+        const conflit = detail.includes("leases_unite_bail");
+        return new Response(JSON.stringify({ error: conflit ? "Un autre bail vient d'être créé pour ce logement : rechargez la liste." : "Échec de création du bail." }), { status: conflit ? 409 : 500, headers: corsHeaders });
       }
 
       // Bail à venir : le logement garde son statut jusqu'au début (bascule de la nuit, baux_transitions).

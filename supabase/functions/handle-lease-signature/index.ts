@@ -34,6 +34,9 @@ Deno.serve(async (req) => {
     if (!lease.renewal_notice_sent_at) {
       return new Response(JSON.stringify({ error: "Aucun avis de renouvellement en attente pour ce bail" }), { status: 404, headers: corsHeaders });
     }
+    if (lease.status === "ended" || lease.fin_motif) {
+      return new Response(JSON.stringify({ error: "Ce bail se termine : l'avis de renouvellement n'est plus valide. Communiquez avec Lease Lane." }), { status: 409, headers: corsHeaders });
+    }
     if (lease.renewal_signed) {
       return new Response(JSON.stringify({ error: "Ce bail a déjà été signé", already_signed: true }), { status: 409, headers: corsHeaders });
     }
