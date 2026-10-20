@@ -1769,6 +1769,11 @@ function blFenetre(titre, champs, libelle = 'Enregistrer'){
 }
 
 let blEtat = { owner: null, data: null };
+async function blApres(owner){
+  if(blEtat.owner === owner) await blOuvrir(owner);
+  if(typeof loadLeaseRenewals === 'function') loadLeaseRenewals();
+  if(typeof loadTenants === 'function') loadTenants();
+}
 async function blOuvrir(ownerId){
   blEtat = { owner: ownerId, data: null };
   if(!document.getElementById('fiche-bl')){
@@ -1787,7 +1792,8 @@ async function blOuvrir(ownerId){
 function blFermer(){
   blEtat.owner = null;
   const t = document.getElementById('fiche-bl'), f = document.getElementById('fiche-bl-fond');
-  if(t) t.style.transform = ''; if(f){ f.style.opacity = ''; f.style.pointerEvents = ''; }
+  // Fermeture explicite : sinon body.fi-ouvert (autres fiches) rouvrirait cette fenêtre par-dessus.
+  if(t) t.style.transform = 'translateX(100%)'; if(f){ f.style.opacity = '0'; f.style.pointerEvents = 'none'; }
 }
 function blRendre(){
   const t = document.getElementById('fiche-bl'); if(!t || !blEtat.owner) return;
@@ -1823,6 +1829,7 @@ function blRendre(){
 const blTrouver = id => { for(const b of blEtat.data || []) for(const u of b.units || []) { if(u.id === id) return { u, b }; for(const l of u.leases || []) if(l.id === id) return { l, u, b }; } return {}; };
 
 async function blAjouter(unitId){
+  const owner = blEtat.owner;
   const { u, b } = blTrouver(unitId); if(!u) return;
   const cur = (u.leases || []).find(l => l.status === 'active' || l.status === 'renewed');
   const debut = cur?.end_date ? blLendemain(cur.end_date) : blAujourdhui();
@@ -1838,30 +1845,33 @@ async function blAjouter(unitId){
   const res = await callOnboardingApi({ action: 'create_tenant', unit_id: unitId, full_name: v.full_name.trim(), email: v.email.trim() || null, phone: v.phone.trim() || null, monthly_rent: Number(v.monthly_rent), start_date: v.start_date, end_date: v.end_date || null });
   if(res?.error){ llToast(res.error, 'erreur'); return; }
   llToast(res?.bail === 'a_venir' ? `Locataire ajouté : bail à venir dès le ${blJour(v.start_date)}.` : 'Locataire ajouté, bail en cours.', 'succes');
-  await blOuvrir(blEtat.owner);
+  await blApres(owner);
 }
 
 async function blFinBail(leaseId){
+  const owner = blEtat.owner;
   const { l, u, b } = blTrouver(leaseId); if(!l) return;
   const v = await blFenetre(`Fin du bail · ${l.tenants?.full_name || ''} (${b.address}, unité ${u.unit_number})`, `
     <div><label class="ch-label" for="bl-date-fin">Dernier jour du bail</label><input id="bl-date-fin" name="end_date" type="date" required min="${l.start_date}" value="${l.end_date || blAujourdhui()}" style="width:100%;box-sizing:border-box"></div>
-    <div><label class="ch-label" for="bl-motif">Motif</label><select id="bl-motif" name="motif" style="width:100%">${Object.entries(BL_MOTIFS).map(([k, x]) => `<option value="${k}"${l.fin_motif === k ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
+    <div><label class="ch-label" for="bl-motif">Motif</label><select id="bl-motif" name="motif" required style="width:100%">${l.fin_motif ? '' : '<option value="" disabled selected>Choisir le motif…</option>'}${Object.entries(BL_MOTIFS).map(([k, x]) => `<option value="${k}"${l.fin_motif === k ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
     <div style="grid-column:1/-1"><label class="ch-label" for="bl-note">Note (facultatif)</label><textarea id="bl-note" name="note" rows="2" style="width:100%;box-sizing:border-box">${esc(l.fin_note || '')}</textarea></div>
     <p class="subtitle" style="grid-column:1/-1;margin:0">Les loyers s'arrêtent après cette date (un loyer déjà généré pour plus tard, non payé, est retiré). Si la date est passée, le bail se termine tout de suite et le logement devient vacant; sinon il passe « à louer bientôt ».</p>`, 'Inscrire la fin du bail');
   if(!v) return;
   const res = await callOnboardingApi({ action: 'end_lease', lease_id: leaseId, end_date: v.end_date, motif: v.motif, note: v.note });
   if(res?.error){ llToast(res.error, 'erreur'); return; }
-  llToast(res.immediat ? `Bail terminé${res.loyers_retires ? ` · ${res.loyers_retires} loyer(s) futur(s) retiré(s)` : ''}. Le logement est vacant.` : `Fin du bail inscrite au ${blJour(v.end_date)}${res.loyers_retires ? ` · ${res.loyers_retires} loyer(s) futur(s) retiré(s)` : ''}.`, 'succes');
-  await blOuvrir(blEtat.owner);
+  const prevu = (u.leases || []).some(x => x.status === 'a_venir');
+  llToast(res.immediat ? `Bail terminé${res.loyers_retires ? ` · ${res.loyers_retires} loyer(s) futur(s) retiré(s)` : ''}.${prevu ? '' : ' Le logement est vacant.'}` : `Fin du bail inscrite au ${blJour(v.end_date)}${res.loyers_retires ? ` · ${res.loyers_retires} loyer(s) futur(s) retiré(s)` : ''}.`, 'succes');
+  await blApres(owner);
 }
 
 async function blAnnulerArrivee(leaseId){
+  const owner = blEtat.owner;
   const { l } = blTrouver(leaseId); if(!l) return;
   if(!(await llConfirmer(`Annuler l'arrivée de ${l.tenants?.full_name || 'ce locataire'} (bail à venir dès le ${blJour(l.start_date)}) ? Le bail est fermé sans avoir commencé; sa fiche locataire reste.`))) return;
   const res = await callOnboardingApi({ action: 'end_lease', lease_id: leaseId, end_date: l.start_date, motif: 'entente', note: 'Arrivée annulée avant le début du bail' });
   if(res?.error){ llToast(res.error, 'erreur'); return; }
   llToast('Arrivée annulée.', 'succes');
-  await blOuvrir(blEtat.owner);
+  await blApres(owner);
 }
 
 async function clArchiver(id, archiver){
@@ -5434,7 +5444,7 @@ async function loadLeaseRenewals(){
           <option value="non_renouvellement">Non-renouvellement</option>
         </select>
         <input type="number" id="notice-amount-${l.lease_id}" placeholder="Nouveau loyer (si augmentation)">
-        <button onclick="sendLeaseRenewalNotice('${l.lease_id}')" class="vo-action">Envoyer l'avis</button>
+        ${l.fin_motif ? `<span class="tr-pastille tr-pastille--att">Fin inscrite · ${esc(BL_MOTIFS[l.fin_motif] || l.fin_motif)}</span>` : `<button onclick="sendLeaseRenewalNotice('${l.lease_id}')" class="vo-action">Envoyer l'avis</button>`}
         <button onclick="promptRecordRenewalResponse('${l.lease_id}')" class="vo-action">Enregistrer la réponse du locataire</button>
       </div>
     </div>`;
@@ -5454,7 +5464,7 @@ async function sendLeaseRenewalNotice(lease_id){
 
 async function promptRecordRenewalResponse(lease_id){
   const choix = await blFenetre('Réponse du locataire', `
-    <div style="grid-column:1/-1"><label class="ch-label" for="bl-rep">Réponse</label><select id="bl-rep" name="rep" style="width:100%">
+    <div style="grid-column:1/-1"><label class="ch-label" for="bl-rep">Réponse</label><select id="bl-rep" name="rep" required style="width:100%"><option value="" disabled selected>Choisir la réponse…</option>
       <option value="accepted">Renouvelé : le locataire reste</option><option value="refused">Non renouvelé : le locataire quitte à la fin du bail</option><option value="no_response">Sans réponse pour l'instant</option></select></div>
     <label style="grid-column:1/-1;display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" name="signe"> Le document de renouvellement est signé</label>
     <div style="grid-column:1/-1"><label class="ch-label" for="bl-rep-note">Note (facultatif)</label><textarea id="bl-rep-note" name="note" rows="2" style="width:100%;box-sizing:border-box"></textarea></div>
