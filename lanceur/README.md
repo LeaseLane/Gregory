@@ -1,6 +1,6 @@
 # Lanceur — admin Lease Lane (Next.js + Supabase)
 
-Phase 2, Epic 1 (T0 · socle). Plan : `PHASE 2 COMPLÈTE/READ.ME/ARCHITECTURE.md`.
+Phase 2, Epic 1 (T0 · socle). Plan : `_documents/phase-2/READ.ME/ARCHITECTURE.md`.
 
 ## Démarrer
 

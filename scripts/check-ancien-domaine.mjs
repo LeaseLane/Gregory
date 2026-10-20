@@ -12,7 +12,7 @@ import { execSync } from "node:child_process";
 
 const MOTIF = ["portail", "gestion"].join("");
 const EXCLUS = [
-  "Lease Lane Design System/", // sources fournies par le client, non servies
+  "_documents/", // vidéos, SEO, maquettes et design system fournis par le client, non servis
   "site-vitrine.html",         // vitrine archivée, hors ligne
   "scripts/check-ancien-domaine.mjs",
 ];

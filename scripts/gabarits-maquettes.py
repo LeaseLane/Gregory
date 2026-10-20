@@ -1,5 +1,5 @@
 # Écrit la migration des 58 gabarits de courriels (comms.email_templates) à partir des maquettes :
-#   PHASE 2 COMPLÈTE/…/penpot-sources/gen/c_loc.py et c_autres.py (mêmes définitions que les planches Penpot).
+#   _documents/phase-2/…/penpot-sources/gen/c_loc.py et c_autres.py (mêmes définitions que les planches Penpot).
 # Les maquettes contiennent des EXEMPLES (Gabriel Paquet, 1 195 $…). Un gabarit n'est activé qu'une fois
 # ses exemples remplacés par des {variables} : voir VARIABLES ci-dessous. Les autres sont importés inactifs
 # (visibles dans e54, impossibles à mettre en file).
