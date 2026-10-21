@@ -11,6 +11,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Page faite main hors de LL_ROUTES : Inscrire mon entreprise et sa jumelle anglaise.
   const ie = { languages: { 'fr-CA': D + '/inscrire-mon-entreprise', 'en-CA': D + '/en/list-your-business', 'x-default': D + '/inscrire-mon-entreprise' } };
   const inscription = [{ url: D + '/inscrire-mon-entreprise', lastModified: '2026-10-20', priority: 0.7, alternates: ie }, { url: D + '/en/list-your-business', lastModified: '2026-10-20', priority: 0.6, alternates: ie }];
+  // Article et calculateur de la hausse 2027 (page faite main).
+  const h27 = { languages: { 'fr-CA': D + '/blogue/hausse-de-loyer-2027', 'en-CA': D + '/en/blog/rent-increase-2027', 'x-default': D + '/blogue/hausse-de-loyer-2027' } };
+  inscription.push({ url: D + '/blogue/hausse-de-loyer-2027', lastModified: '2026-10-21', priority: 0.8, alternates: h27 }, { url: D + '/en/blog/rent-increase-2027', lastModified: '2026-10-21', priority: 0.7, alternates: h27 });
   return [...inscription, ...LL_ROUTES.filter((r: { index?: boolean }) => r.index !== false).flatMap((r: { path: string; page: string }) => {
     const fr = D + (r.path === '/' ? '/' : r.path), en = D + versEN(r.path);
     const alternates = { languages: { 'fr-CA': fr, 'en-CA': en, 'x-default': fr } };

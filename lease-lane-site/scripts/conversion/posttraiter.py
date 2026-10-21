@@ -197,3 +197,20 @@ def hausse_date_blogue(s):
     assert s.count(a) == 1, 'hausse 2026 blogue'
     return s.replace(a, "  d: '2026-10-09',\n  m: '2026-10-09',", 1)
 edit('pages-blogue.jsx', hausse_date_blogue)
+
+# Article 2027 (calculateur, page faite main /blogue/hausse-de-loyer-2027) : à la une du blogue, et lien
+# « Voir les règles 2027 » dans l'article 2026 (lien croisé demandé par le plan SEO, lot 6).
+def hausse_2027_liste(s):
+    a = "const ARTICLES = [{\n  slug: 'hausse-de-loyer-2026',"
+    assert s.count(a) == 1, 'ARTICLES'
+    s = s.replace(a, "const ARTICLES = [{\n  slug: 'hausse-de-loyer-2027',\n  cat: 'droit',\n  t: 'Hausse de loyer 2027 : calculez la vôtre',\n  r: 'Le calculateur applique la méthode du TAL en vigueur depuis janvier 2026 : taux de base, taxes, assurance et travaux.',\n  d: '2026-10-21',\n  m: '2026-10-21',\n  min: 5,\n  aut: 'jt',\n  une: 1\n}, {\n  slug: 'hausse-de-loyer-2026',", 1)
+    b = "  min: 7,\n  aut: 'jt',\n  une: 1\n}, ...LL_ARTICLES"
+    assert s.count(b) == 1, 'une 2026'
+    return s.replace(b, "  min: 7,\n  aut: 'jt'\n}, ...LL_ARTICLES", 1)
+edit('pages-blogue.jsx', hausse_2027_liste)
+def hausse_2027_lien(s):
+    a = "}}>Notre méthode</strong>Chaque article de droit du logement cite ses sources officielles et porte sa date de mise à jour. <a href=\"/a-propos\">En savoir plus</a></div>\n      </aside>"
+    assert s.count(a) >= 1, 'aside 2026'
+    i = s.index(a)
+    return s[:i] + a.replace("</div>\n      </aside>", "</div>\n          <div style={{ padding: '16px 18px', borderRadius: '14px', border: FIN, fontSize: '13px', lineHeight: 1.6, color: TXT }}><strong style={{ display: 'block', color: MAR, marginBottom: '4px' }}>Hausse de loyer 2027</strong>Le calculateur de la hausse 2027 et ses règles. <a href=\"/blogue/hausse-de-loyer-2027\">Voir les règles 2027</a></div>\n      </aside>") + s[i + len(a):]
+edit('pages-blogue.jsx', hausse_2027_lien)

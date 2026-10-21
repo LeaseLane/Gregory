@@ -40,6 +40,16 @@ const AUTEURS = {
 };
 /* Articles : la hausse de loyer (gabarit d'origine, traduit par le dictionnaire) + les articles de articles-blogue.js (contenu FR et EN dans les données). */
 const ARTICLES = [{
+  slug: 'hausse-de-loyer-2027',
+  cat: 'droit',
+  t: 'Hausse de loyer 2027 : calculez la vôtre',
+  r: 'Le calculateur applique la méthode du TAL en vigueur depuis janvier 2026 : taux de base, taxes, assurance et travaux.',
+  d: '2026-10-21',
+  m: '2026-10-21',
+  min: 5,
+  aut: 'jt',
+  une: 1
+}, {
   slug: 'hausse-de-loyer-2026',
   cat: 'droit',
   t: 'Hausse de loyer 2026 : délais, calcul et recours au TAL',
@@ -47,8 +57,7 @@ const ARTICLES = [{
   d: '2026-10-09',
   m: '2026-10-09',
   min: 7,
-  aut: 'jt',
-  une: 1
+  aut: 'jt'
 }, ...LL_ARTICLES.map(x => ({
   slug: x.slug,
   cat: x.cat,
@@ -849,6 +858,7 @@ function PageArticleHausse({
               color: MAR,
               marginBottom: '4px'
             }}>Notre méthode</strong>Chaque article de droit du logement cite ses sources officielles et porte sa date de mise à jour. <a href="/a-propos">En savoir plus</a></div>
+          <div style={{ padding: '16px 18px', borderRadius: '14px', border: FIN, fontSize: '13px', lineHeight: 1.6, color: TXT }}><strong style={{ display: 'block', color: MAR, marginBottom: '4px' }}>Hausse de loyer 2027</strong>Le calculateur de la hausse 2027 et ses règles. <a href="/blogue/hausse-de-loyer-2027">Voir les règles 2027</a></div>
       </aside>
     </div></section>
     <section aria-labelledby="bl-suite" style={{
