@@ -44,8 +44,8 @@ const ARTICLES = [{
   cat: 'droit',
   t: 'Hausse de loyer 2026 : délais, calcul et recours au TAL',
   r: 'Les fenêtres d’avis, le taux de base publié par le TAL et ce que chaque partie peut faire, étape par étape.',
-  d: '2026-01-20',
-  m: '2026-10-08',
+  d: '2026-10-09',
+  m: '2026-10-09',
   min: 7,
   aut: 'jt',
   une: 1

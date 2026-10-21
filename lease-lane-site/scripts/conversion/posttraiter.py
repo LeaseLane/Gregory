@@ -184,3 +184,16 @@ def ie_accueil(s):
     s = s.replace(a, "{<AppelInscription accueil />}" + a, 1)
     return s.replace("import React from 'react';", "import React from 'react';\nimport { AppelInscription } from '@/components/InscriptionEntreprise';", 1)
 edit('accueil.jsx', ie_accueil)
+
+# Article « Hausse de loyer 2026 » : la maquette le datait du 20 janvier 2026, avant la mise en ligne du site
+# (9 octobre 2026). Date réelle de publication.
+def hausse_date_routes(s):
+    a = "  date: '2026-01-20',\n  maj: '2026-10-08'"
+    assert s.count(a) == 1, 'hausse 2026 routes'
+    return s.replace(a, "  date: '2026-10-09',\n  maj: '2026-10-09'", 1)
+edit('routes.jsx', hausse_date_routes)
+def hausse_date_blogue(s):
+    a = "  d: '2026-01-20',\n  m: '2026-10-08',"
+    assert s.count(a) == 1, 'hausse 2026 blogue'
+    return s.replace(a, "  d: '2026-10-09',\n  m: '2026-10-09',", 1)
+edit('pages-blogue.jsx', hausse_date_blogue)

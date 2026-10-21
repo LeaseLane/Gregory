@@ -551,8 +551,8 @@ let LL_ROUTES = [{
   image: 'https://leaselane.ca/assets/img/blogue/hausse-de-loyer-2026-og.jpg',
   imageAlt: 'Bail, stylo et calculatrice sur une table, devant des maisons en rangée de Québec en hiver',
   imageAltEn: 'Lease, pen and calculator on a table, in front of Québec City row houses in winter',
-  date: '2026-01-20',
-  maj: '2026-10-08'
+  date: '2026-10-09',
+  maj: '2026-10-09'
 }, {
   path: '/a-propos',
   page: 'apropos',
