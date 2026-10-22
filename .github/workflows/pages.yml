@@ -24,7 +24,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deploiement.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Assembler le site (liste blanche)
         run: |
           set -euo pipefail
@@ -36,9 +36,9 @@ jobs:
             if [ -e "_site/$interdit" ]; then echo "::error::$interdit ne doit pas être publié"; exit 1; fi
           done
           echo "Publié : $(find _site -type f | wc -l) fichiers"
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
       - id: deploiement
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
