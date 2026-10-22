@@ -66,7 +66,7 @@ const P = ({
 const slugDe = route => String(route && route.path || '').split('/').filter(Boolean).pop();
 /* Guide du secteur (/quartiers/<slug>), s'il existe. */
 const guideLocal = slug => {
-  const p = '/quartiers/' + (slug === 'sainte-foy-sillery-cap-rouge' ? 'sainte-foysillerycap-rouge' : slug);
+  const p = '/quartiers/' + (slug === 'sainte-foy-sillery-cap-rouge' ? 'sainte-foy-sillery-cap-rouge' : slug);
   return LL_ROUTES.some(r => r.path === p) ? p : null;
 };
 function PageLocale({

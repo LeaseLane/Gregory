@@ -566,7 +566,7 @@ const QUARTIERS = [{
   dates: [["1916", "Fondation de Québec-Ouest, future Vanier"], ["1963", "Ouverture de Place Fleur de Lys"], ["1970", "Annexion de Duberger et des Saules"], ["1981", "Ouverture des Galeries de la Capitale"], ["2002", "Création de l’arrondissement"]],
   wiki: "https://fr.wikipedia.org/wiki/Les_Rivières_(Québec)"
 }, {
-  s: "sainte-foysillerycap-rouge",
+  s: "sainte-foy-sillery-cap-rouge",
   n: "Sainte-Foy–Sillery–Cap-Rouge",
   dans: "dans Sainte-Foy–Sillery–Cap-Rouge",
   de: "de Sainte-Foy–Sillery–Cap-Rouge",
@@ -2626,7 +2626,7 @@ const PROPRIO_PARENT = {
   'saint-sauveur': 'la-cite-limoilou',
   'vieux-quebec': 'la-cite-limoilou',
   'sainte-foy': 'sainte-foy-sillery-cap-rouge',
-  'sainte-foysillerycap-rouge': 'sainte-foy-sillery-cap-rouge',
+  'sainte-foy-sillery-cap-rouge': 'sainte-foy-sillery-cap-rouge',
   lebourgneuf: 'les-rivieres',
   desjardins: 'levis',
   'les-chutes-de-la-chaudiere-est': 'levis',
@@ -2780,7 +2780,7 @@ const CARTE_QC = {
     "saint-raymond": [68.1, 356.1],
     "la-cite-limoilou": [437.7, 400.4, 246.7, 138.1],
     "les-rivieres": [396.2, 422.9, 154.9, 188.0],
-    "sainte-foysillerycap-rouge": [358.8, 470.6, 72.2, 293.5],
+    "sainte-foy-sillery-cap-rouge": [358.8, 470.6, 72.2, 293.5],
     "wendake": [353.8, 384.2, 61.1, 102.3],
     "lac-delage": [323.9, 285.2],
     "saint-gabriel-de-valcartier": [286.7, 317.7],

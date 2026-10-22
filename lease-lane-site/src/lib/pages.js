@@ -26,20 +26,38 @@ function enTete(r, en) {
   return e ? { ...r, titre: e.titre, description: e.description, requete: e.requete, fil: r.fil.map(([n, p]) => [(ROUTES_EN[p] || {}).fil || n, p]) } : r;
 }
 
+/* Plan SEO, lot 3 (audit du 19 oct. 2026) : pages en noindex temporaire (retirées du sitemap aussi : sitemap.ts),
+   titres ≤ 60 et descriptions ≤ 155 caractères. Ici plutôt que dans routes.js / langue.js : la conversion ne les écrase pas.
+   Clé = adresse française de la page. */
+export const NOINDEX = new Set(['/logements-a-louer']); // « bientôt disponibles » : à retirer le jour où les logements sont en ligne
+const COURTS = {
+  fr: {
+    '/blogue/reprise-de-logement': { titre: 'Reprise de logement au Québec : délais et moratoire', description: 'Reprise pour soi ou un proche, avis de 6 mois, silence du locataire, aînés de 65 ans et plus, moratoire sur les évictions : les règles au Québec.' },
+    '/gestion-immobiliere/saint-augustin-de-desmaures': { titre: 'Gestion immobilière à Saint-Augustin-de-Desmaures', description: 'Gestionnaire immobilier à Saint-Augustin-de-Desmaures : location, loyers et entretien 24/7. 18,5 % des ménages y sont locataires.' },
+    '/quartiers': { titre: 'Grande région de Québec : 129 secteurs | Lease Lane' },
+  },
+  en: {
+    '/blogue/hausse-de-loyer-2026': { titre: '2026 Rent Increase in Québec: Deadlines and TAL' },
+    '/nous-joindre': { titre: 'Contact Lease Lane | Québec City and Lévis' },
+    '/gestion-immobiliere/sainte-catherine-de-la-jacques-cartier': { titre: 'Property Management, Ste-Catherine-de-la-J.-C.', description: 'Property manager in Sainte-Catherine-de-la-Jacques-Cartier: leasing, rent and 24/7 maintenance. 15.0% of households rent there.' },
+  },
+};
+
 /* ——— Balises <head> (metadata Next.js) ——— */
 export function metadataDe(path, lang = 'fr') {
   const en = lang === 'en';
-  const r0 = routeDe(path), r = enTete(r0, en);
+  const r0 = routeDe(path), r = { ...enTete(r0, en), ...(COURTS[en ? 'en' : 'fr'][r0.path] || {}) };
   const url = urlDe(r0.path, en);
   const image = imageDe(r0, en);
   const alt = en && r0.imageAltEn ? r0.imageAltEn : en ? (r0.page === 'fiche' ? 'Renovated 4½ for rent on avenue Cartier, Montcalm' : 'Lease Lane, smart rental solutions') : (r0.imageAlt || 'Lease Lane, solutions locatives intelligentes');
   return {
     title: { absolute: r.titre },
     description: r.description,
-    robots: r0.index === false ? { index: false, follow: true } : { index: true, follow: true },
-    alternates: { canonical: url, languages: { 'fr-CA': urlFR(r0.path), 'en-CA': urlEN(r0.path), 'x-default': urlFR(r0.path) } },
+    robots: r0.index === false || NOINDEX.has(r0.path) ? { index: false, follow: true } : { index: true, follow: true },
+    /* Accueil : canonical, hreflang et og:url écrits par BalisesAccueil (Next.js retirerait la barre oblique finale). */
+    ...(r0.path === '/' ? {} : { alternates: { canonical: url, languages: { 'fr-CA': urlFR(r0.path), 'en-CA': urlEN(r0.path), 'x-default': urlFR(r0.path) } } }),
     openGraph: {
-      title: r.titre, description: r.description, url, siteName: S.nom, locale: en ? 'en_CA' : 'fr_CA', alternateLocale: [en ? 'fr_CA' : 'en_CA'],
+      title: r.titre, description: r.description, ...(r0.path === '/' ? {} : { url }), siteName: S.nom, locale: en ? 'en_CA' : 'fr_CA', alternateLocale: [en ? 'fr_CA' : 'en_CA'],
       type: r0.page === 'article' ? 'article' : 'website',
       images: [{ url: image, width: 1200, height: 630, alt }],
     },

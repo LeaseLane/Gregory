@@ -2,6 +2,7 @@
 import type { Metadata, Viewport } from 'next';
 import '../feuilles';
 import Coquille from '@/components/Coquille';
+import BalisesAccueil from '@/components/BalisesAccueil';
 import FournisseurEN from '@/lib/i18n/FournisseurEN';
 import { LL_SITE } from '@/proto/routes';
 
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-CA" data-site="principal">
       <body>
+        <BalisesAccueil />
         <FournisseurEN>
           <Coquille>{children}</Coquille>
         </FournisseurEN>

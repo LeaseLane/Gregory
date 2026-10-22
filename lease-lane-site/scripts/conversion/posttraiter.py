@@ -214,3 +214,11 @@ def hausse_2027_lien(s):
     i = s.index(a)
     return s[:i] + a.replace("</div>\n      </aside>", "</div>\n          <div style={{ padding: '16px 18px', borderRadius: '14px', border: FIN, fontSize: '13px', lineHeight: 1.6, color: TXT }}><strong style={{ display: 'block', color: MAR, marginBottom: '4px' }}>Hausse de loyer 2027</strong>Le calculateur de la hausse 2027 et ses règles. <a href=\"/blogue/hausse-de-loyer-2027\">Voir les règles 2027</a></div>\n      </aside>") + s[i + len(a):]
 edit('pages-blogue.jsx', hausse_2027_lien)
+
+# Plan SEO, lot 3 : adresse du quartier Sainte-Foy–Sillery–Cap-Rouge avec ses traits d'union
+# (l'ancienne /quartiers/sainte-foysillerycap-rouge redirige en 301 : next.config.ts). Tolérant : si la designer
+# corrige déjà l'adresse, rien à faire.
+import glob as _glob
+for _p in _glob.glob(D + '/*.jsx'):
+    _s = open(_p).read()
+    if 'sainte-foysillerycap-rouge' in _s: open(_p, 'w').write(_s.replace('sainte-foysillerycap-rouge', 'sainte-foy-sillery-cap-rouge'))

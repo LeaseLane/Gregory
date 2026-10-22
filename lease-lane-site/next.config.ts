@@ -24,6 +24,12 @@ const nextConfig: NextConfig = {
      Temporaires (302) : rien d'éternel à mettre en cache chez les navigateurs. */
   async redirects() {
     return [
+      /* Plan SEO, lot 1 : filet de sécurité derrière le proxy (Traefik redirige déjà www et http en permanent) :
+         www.leaselane.ca → leaselane.ca, un seul saut permanent (308, traité comme un 301 par Google). */
+      { source: '/:path*', has: [{ type: 'host', value: 'www.leaselane.ca' }], destination: 'https://leaselane.ca/:path*', permanent: true },
+      /* Plan SEO, lot 3 : adresse du quartier avec ses traits d'union. */
+      { source: '/quartiers/sainte-foysillerycap-rouge', destination: '/quartiers/sainte-foy-sillery-cap-rouge', permanent: true },
+      { source: '/en/neighbourhoods/sainte-foysillerycap-rouge', destination: '/en/neighbourhoods/sainte-foy-sillery-cap-rouge', permanent: true },
       ...ANCIENNES_ADRESSES_PORTAIL.map(source => ({ source, destination: PORTAIL, permanent: true })),
       /* « Espace locataire / propriétaire » (/connexion?profil=…) : ouvre directement le bon portail. */
       { source: '/connexion', has: [{ type: 'query', key: 'profil', value: '(?<profil>locataire|proprietaire)' }], destination: APP + '/?p=:profil', permanent: false },
