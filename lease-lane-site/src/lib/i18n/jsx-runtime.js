@@ -8,8 +8,12 @@ export { Fragment };
    préchargée sur le site : le logo de l'en-tête. Les autres passent en chargement différé (sauf loading/fetchPriority
    explicites dans le composant). */
 const PRECHARGEE = /leaselane-horizontal-blanc\.svg/;
-const img = (type, props) => (type === 'img' && props && props.loading == null && props.fetchPriority == null && !PRECHARGEE.test(String(props.src || ''))
-  ? { ...props, loading: 'lazy', decoding: props.decoding || 'async' } : props);
+/* PageSpeed (22 oct. 2026) : le fond de la section d'ouverture de l'accueil est l'élément le plus grand (LCP) :
+   chargé tout de suite, en priorité haute, au lieu d'en différé. */
+const LCP = /fond-lignes-neon\.jpg/;
+const img = (type, props) => (type !== 'img' || !props || props.loading != null || props.fetchPriority != null ? props
+  : LCP.test(String(props.src || '')) ? { ...props, loading: 'eager', fetchPriority: 'high' }
+  : PRECHARGEE.test(String(props.src || '')) ? props : { ...props, loading: 'lazy', decoding: props.decoding || 'async' });
 export function jsx(type, props, key) {
   props = img(type, props);
   const e = envelopper(type, props, false);

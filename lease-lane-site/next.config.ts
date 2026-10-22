@@ -18,7 +18,8 @@ const nextConfig: NextConfig = {
   /* Les composants du prototype ne sont pas écrits pour le double montage des effets du mode strict (développement seulement). */
   reactStrictMode: false,
   /* Deux gabarits racines (français, anglais) : page 404 commune (app/global-not-found.tsx). */
-  experimental: { globalNotFound: true },
+  /* inlineCss (PageSpeed, 22 oct. 2026) : les feuilles de style sont incluses dans la page au lieu de bloquer le premier affichage. */
+  experimental: { globalNotFound: true, inlineCss: true },
   /* Les portails et les pages à lien (courriels déjà envoyés : confirmer une visite, signer un bail, logo des
      courriels…) vivaient sur leaselane.ca jusqu'au 2026-10-09; ils sont maintenant sur app.leaselane.ca.
      Temporaires (302) : rien d'éternel à mettre en cache chez les navigateurs. */
