@@ -1,7 +1,7 @@
 /** @jsxImportSource @/lib/i18n */
 'use client';
 /* Article « Hausse de loyer 2027 » + calculateur (/blogue/hausse-de-loyer-2027, /en/blog/rent-increase-2027) : port du
-   prototype de la livraison design (hausse-de-loyer-2027/prototype/index.html). Styles : src/styles/hausse-2027.css (.h27).
+   prototype de la livraison design (_documents/livraisons-design/hausse-de-loyer-2027/prototype/index.html). Styles : src/styles/hausse-2027.css (.h27).
    Paramètres et formule : src/lib/hausse-2027.js (valeurs d'exemple à valider avant la mise en ligne).
    Textes fixes en français, traduits par le dictionnaire; textes calculés (montants, année) faits ici selon la langue. */
 import React, { useEffect, useState } from 'react';

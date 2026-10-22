@@ -1,5 +1,5 @@
 /* Calculateur « Hausse de loyer 2027 » : SEUL ENDROIT À METTRE À JOUR.
-   ⚠️ tauxTravaux et la formule viennent de la livraison design (hausse-de-loyer-2027/LISEZMOI.md § 2). Avant la mise en ligne :
+   ⚠️ tauxTravaux et la formule viennent de la livraison design (_documents/livraisons-design/hausse-de-loyer-2027/LISEZMOI.md § 2). Avant la mise en ligne :
    remplacer par les valeurs officielles (Règlement sur les critères de fixation de loyer, outil du TAL) et faire
    valider par Steven sur au moins 3 cas comparés à l'outil officiel du TAL.
    Quand le TAL publie le taux 2027 (janvier) : changer annee et tauxBase, rien d'autre. */

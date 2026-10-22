@@ -1,7 +1,7 @@
 /** @jsxImportSource @/lib/i18n */
 'use client';
 /* Page « Inscrire mon entreprise » (/inscrire-mon-entreprise, /en/list-your-business) : port du prototype de la livraison
-   design (inscrire-mon-entreprise/prototype/index.html, sans la barre « Mode revue »). Styles : src/styles/inscription.css (préfixe ie-).
+   design (_documents/livraisons-design/inscrire-mon-entreprise/prototype/index.html, sans la barre « Mode revue »). Styles : src/styles/inscription.css (préfixe ie-).
    Envoi : envoyerInscription (src/lib/envoi.js), POST multipart vers la fonction inscription-entreprise.
    La confirmation ne s'affiche qu'après la réponse ok du serveur (demande et document enregistrés). */
 import React, { useEffect, useRef, useState } from 'react';
