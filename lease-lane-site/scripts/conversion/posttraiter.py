@@ -182,7 +182,7 @@ def ie_accueil(s):
     a = "{<AccFaq actuel={<FAQSujets />} />}</React.Fragment>;"
     assert s.count(a) == 1, 'accueil corps'
     s = s.replace(a, "{<AppelInscription accueil />}" + a, 1)
-    return s.replace("import React from 'react';", "import React from 'react';\nimport { AppelInscription } from '@/components/InscriptionEntreprise';", 1)
+    return s.replace("import React from 'react';", "import React from 'react';\nimport { AppelInscription } from '@/components/AppelInscription';", 1)
 edit('accueil.jsx', ie_accueil)
 
 # Article « Hausse de loyer 2026 » : la maquette le datait du 20 janvier 2026, avant la mise en ligne du site
@@ -192,6 +192,38 @@ def hausse_date_routes(s):
     assert s.count(a) == 1, 'hausse 2026 routes'
     return s.replace(a, "  date: '2026-10-09',\n  maj: '2026-10-09'", 1)
 edit('routes.jsx', hausse_date_routes)
+
+# Performance (PageSpeed, 22 oct. 2026) : la liste des adresses ne lit que les métadonnées des articles (src/lib/articles-meta.js,
+# régénéré par scripts/articles-meta.mjs avant chaque construction), pas leur texte complet, chargé sinon sur chaque page.
+def routes_articles_meta(s):
+    a = "import { LL_ARTICLES } from '@/proto/articles-blogue';"
+    assert s.count(a) == 1, 'routes articles'
+    return s.replace(a, "import { LL_ARTICLES } from '@/lib/articles-meta';", 1)
+edit('routes.jsx', routes_articles_meta)
+
+# Performance : la bannière des pages intérieures (PBHeros, avec gestion-options-a/b) et le formulaire d'offre (FormOffreP)
+# ne sont chargés que sur les pages qui les affichent; blocs.jsx est importé par l'en-tête de chaque page.
+LENT = {
+ "import { PBHeros } from '@/proto/pages-proprio-b';": ("PBHeros", "@/proto/pages-proprio-b"),
+ "import { FormOffreP } from '@/proto/forms-principal';": ("FormOffreP", "@/proto/forms-principal"),
+}
+def blocs_lent(s):
+    for a, (n, m) in LENT.items():
+        assert s.count(a) == 1, 'blocs ' + n
+        s = s.replace(a, "const %s__ = React.lazy(() => import('%s').then(m => ({ default: m.%s })));\nconst %s = p => <React.Suspense fallback={null}><%s__ {...p} /></React.Suspense>;" % (n, m, n, n, n), 1)
+    return s
+edit('blocs.jsx', blocs_lent)
+
+# Performance : l'accroche de la bannière d'accueil sans importer pages-proprietaires.jsx.
+import re
+def heros3_lead(s):
+    a = "import { PPC } from '@/proto/pages-proprietaires';"
+    assert s.count(a) == 1, 'heros3 PPC'
+    pp = open(D + '/pages-proprietaires.jsx').read()
+    m = re.search(r"const PPC = \{\s*gestion: \{.*?\n    lead: ('(?:[^'\\]|\\.)*'),", pp, re.S)
+    assert m, 'PPC.gestion.lead'
+    return s.replace(a, "/* Seule la phrase d'accroche de PPC.gestion sert ici : copiée de pages-proprietaires.jsx par posttraiter.py au lieu d'importer\n   tout le module (≈ 170 Ko avec ses dépendances, chargés sinon sur l'accueil; PageSpeed, 22 oct. 2026). */\nconst PPC = { gestion: { lead: " + m.group(1) + " } };", 1)
+edit('accueil-heros3.jsx', heros3_lead)
 def hausse_date_blogue(s):
     a = "  d: '2026-01-20',\n  m: '2026-10-08',"
     assert s.count(a) == 1, 'hausse 2026 blogue'

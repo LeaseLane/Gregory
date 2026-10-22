@@ -3,7 +3,9 @@
 
 /* Converti depuis ui_kits/site-public/accueil-heros3.jsx (prototype) — ne pas réintroduire de globaux window. */
 import React from 'react';
-import { PPC } from '@/proto/pages-proprietaires';
+/* Seule la phrase d'accroche de PPC.gestion sert ici : copiée de pages-proprietaires.jsx par posttraiter.py au lieu d'importer
+   tout le module (≈ 170 Ko avec ses dépendances, chargés sinon sur l'accueil; PageSpeed, 22 oct. 2026). */
+const PPC = { gestion: { lead: 'Lease Lane gère vos immeubles à Québec avec une plateforme automatisée et Cléo, notre agent IA. Les tâches répétitives se font toutes seules, l\u2019équipe s\u2019occupe du reste, et vous approuvez les décisions importantes.' } };
 import { BoutonLien, Exemple } from '@/proto/blocs';
 import { useEtatClient, __ssr } from '@/lib/hydratation';
 const CT = {

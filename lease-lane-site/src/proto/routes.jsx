@@ -1,6 +1,6 @@
 /* Converti depuis ui_kits/site-public/routes.js (prototype) — ne pas réintroduire de globaux window. */
 import { LL_LOCALITES_ROUTES } from '@/proto/localites-routes';
-import { LL_ARTICLES } from '@/proto/articles-blogue';
+import { LL_ARTICLES } from '@/lib/articles-meta';
 const A = ['Accueil', '/'],
   PROP = ['Gestion immobilière', '/gestion-immobiliere'],
   LOC = ['Service aux locataires', '/locataires'];

@@ -6,11 +6,13 @@ import React from 'react';
 import { Icon, Button, Badge, Overline, Input, Select, Checkbox } from '@/components/ds';
 import { ouvrirCleo } from '@/proto/seo';
 import { naviguer } from '@/lib/routeur';
-import { PBHeros } from '@/proto/pages-proprio-b';
+const PBHeros__ = React.lazy(() => import('@/proto/pages-proprio-b').then(m => ({ default: m.PBHeros })));
+const PBHeros = p => <React.Suspense fallback={null}><PBHeros__ {...p} /></React.Suspense>;
 import { Section } from '@/proto/accueil';
 import { LL_FAQ } from '@/proto/faq';
 import { LL_SITE } from '@/proto/routes';
-import { FormOffreP } from '@/proto/forms-principal';
+const FormOffreP__ = React.lazy(() => import('@/proto/forms-principal').then(m => ({ default: m.FormOffreP })));
+const FormOffreP = p => <React.Suspense fallback={null}><FormOffreP__ {...p} /></React.Suspense>;
 import { __ssr } from '@/lib/hydratation';
 
 /* Blocs partagés des pages de la feuille de route. Texte entre crochets = gabarit (souligné pointillé).

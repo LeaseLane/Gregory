@@ -8,6 +8,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/ds';
 import { envoyerInscription } from '@/lib/envoi';
 import { useLangue } from '@/lib/i18n/contexte';
+import { AppelInscription } from '@/components/AppelInscription';
+export { AppelInscription };
 
 const MAX = 10 * 1024 * 1024, TYPES = ['application/pdf', 'image/jpeg', 'image/png'], EXT = /\.(pdf|jpe?g|png)$/i;
 const ACCEPT = '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png';
@@ -40,21 +42,6 @@ const Ic = ({ n, s = 20, cls = '' }) => <Icon name={n} size={s} className={'ie-i
 
 /* Erreur sous un champ (rendue seulement en erreur : aria-describedby ne pointe que vers un texte visible). */
 const Erreur = ({ id, msg }) => msg ? <p className="ie-erreur" id={id}><Ic n="circle-alert" s={16} /><span>{msg}</span></p> : null;
-
-/* Bande d'appel : bas de la page d'inscription (ramène au formulaire) et page d'accueil (ouvre la page). */
-export function AppelInscription({ accueil = false }) {
-  return <section className={'ie-appel' + (accueil ? ' ie-appel-accueil' : '')} aria-labelledby={accueil ? 't-appel-accueil' : 't-appel'}>
-    <div className="ie-conteneur">
-      <div className="ie-bande">
-        <svg className="ie-chevrons" viewBox="0 0 300 200" preserveAspectRatio="xMaxYMid slice" aria-hidden="true"><g fill="none" stroke="#2E5788" strokeWidth="40" opacity=".5"><path d="M20 -30 L150 100 L20 230" /><path d="M120 -30 L250 100 L120 230" /></g></svg>
-        {accueil
-          ? <div><span className="ie-surtitre">Entrepreneurs et travailleurs autonomes</span><h2 id="t-appel-accueil">Faites découvrir votre entreprise</h2><p>Inscription gratuite : preuve d’assurance, téléphone et courriel suffisent pour commencer.</p></div>
-          : <div><h2 id="t-appel">Prêt à vous faire découvrir?</h2><p>Trois éléments, et votre inscription gratuite est envoyée.</p></div>}
-        <a className="ie-btn ie-btn-inverse" href={accueil ? '/inscrire-mon-entreprise' : '#inscription'}>Inscrire mon entreprise <Ic n="arrow-right" /></a>
-      </div>
-    </div>
-  </section>;
-}
 
 export default function InscriptionEntreprise() {
   const en = useLangue() === 'en';

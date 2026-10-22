@@ -3,7 +3,7 @@
 
 /* Converti depuis ui_kits/site-public/accueil.jsx (prototype) — ne pas réintroduire de globaux window. */
 import React from 'react';
-import { AppelInscription } from '@/components/InscriptionEntreprise';
+import { AppelInscription } from '@/components/AppelInscription';
 import { routeDe } from '@/proto/seo';
 import { AccueilHeros7 } from '@/proto/accueil-heros7';
 import { AccChiffres, AccVolets } from '@/proto/accueil-chiffres-services';
