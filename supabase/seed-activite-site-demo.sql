@@ -18,6 +18,33 @@ cross join lateral generate_series(1, greatest(0, round(random() * 3 + (180 - j)
   + case when extract(day from d) <= 3 then 2 else 0 end)::int)) k
 cross join lateral (select (array['visite', 'visite', 'visite', 'mandat', 'contact'])[1 + floor(random() * 5 + 0 * k)::int] as type) t
 cross join lateral (select (array['Émilie Gagnon', 'Gabriel Paquet', 'Léa Bouchard', 'Olivier Roy', 'Chloé Tremblay', 'William Côté', 'Alice Pelletier', 'Thomas Lavoie'])[1 + floor(random() * 8 + 0 * k)::int] as nom) n;
+-- Articles du blogue (bloc Articles) : les 8 articles du prototype, auteur « Lease Lane (démo) ». Le corps est un texte de remplissage
+-- de la bonne longueur, avec le bon nombre de liens internes, pour que le score SEO calculé par site.score soit celui du prototype.
+delete from site.articles where auteur = 'Lease Lane (démo)';
+insert into site.articles (slug, categorie, titre, meta, mot_cle, corps, statut, auteur, relu_par, relu_le, publie_le, updated_at)
+select nullif(a.slug, ''), a.cat, a.titre, a.meta, a.kw,
+  btrim(repeat('Texte de démonstration pour le tableau de bord du Studio. ', a.mots / 8)) || ' ' ||
+  (select coalesce(string_agg('[Lire aussi](/blogue/article-' || n || ')', ' '), '') from generate_series(1, a.liens) n),
+  a.statut, 'Lease Lane (démo)', case when a.statut = 'publie' then (select id from auth.users where email = 'equipe-admin@leaselane.test') end,
+  case when a.statut = 'publie' then now() - a.jours * interval '1 day' end, case when a.statut = 'publie' then now() - a.jours * interval '1 day' end, now() - a.jours * interval '1 day'
+from (values
+  ('hausse-de-loyer-2026', 'droit', 'Hausse de loyer 2026 : délais, calcul et recours au TAL', 'Avis de hausse de loyer en 2026 : délais à respecter, calcul selon la nouvelle méthode du TAL (IPC moyen sur 3 ans) et recours possibles pour le locataire.', 'hausse de loyer', 4, 1650, 'publie', 14),
+  ('cession-de-bail-loi-31', 'locataires', 'Cession de bail : ce qui change avec la Loi 31', '', 'cession de bail', 1, 980, 'publie', 60),
+  ('logement-vacant-cout', 'proprietaires', 'Combien coûte vraiment un logement vacant?', 'Le coût réel d’un logement vacant, calculé jour par jour, et les leviers concrets pour réduire la période de location de votre immeuble.', 'logement vacant', 3, 820, 'publie', 35),
+  ('urgences-locatives', 'locataires', 'Fuite, chauffage, serrure : qu’est-ce qu’une urgence?', 'Les quatre niveaux d’urgence en location.', 'urgence locative', 2, 640, 'publie', 48),
+  ('regles-du-tal-cleo', 'nouvelles', 'Cléo explique maintenant les règles du TAL', 'Cléo, l’agent IA de Lease Lane, répond maintenant aux questions sur les règles du TAL, avec ses limites et un relais vers une personne.', 'règles du TAL', 2, 540, 'publie', 7),
+  ('depot-de-garantie', 'droit', 'Dépôt de garantie : pourquoi il est interdit au Québec', 'Au Québec, le propriétaire ne peut pas exiger de dépôt de garantie. Ce qu’il peut demander légalement, et ce qu’il ne peut pas.', 'dépôt de garantie', 3, 760, 'revision', 5),
+  ('renouvellement-de-bail-2027', 'droit', 'Renouvellement de bail 2027 : le calendrier complet', 'Le calendrier complet du renouvellement de bail pour 2027 : avis, délais de réponse et dates clés pour locataires et propriétaires.', 'renouvellement de bail', 2, 1120, 'brouillon', 3),
+  ('', 'proprietaires', 'Choisir un bon locataire', '', '', 0, 180, 'brouillon', 2)
+) a(slug, cat, titre, meta, kw, liens, mots, statut, jours);
+-- Logements du site (bloc Propriétés) : les logements libres ou en préavis de l'univers fictif passent « publié » avec 2 photos
+-- (listing-photos/demo/). Le statut et le loyer ne changent pas : le déclencheur on_unit_listing_change ne fait aucun appel.
+update public.units u set site_statut = 'publie', site_publie_le = coalesce(u.site_publie_le, now() - interval '20 days'),
+  photo_urls = '["demo/montcalm-cartier.jpg", "demo/facade-bleue.jpg"]'::jsonb,
+  photo_alts = '{"demo/montcalm-cartier.jpg": "Façade de l’immeuble", "demo/facade-bleue.jpg": "Façade bleue de l’immeuble"}'::jsonb,
+  marketplace_title = coalesce(u.marketplace_title, u.unit_type || ' à louer, ' || b.zone), listing_description = coalesce(u.listing_description, 'Logement lumineux, près des services. Visite sur rendez-vous.')
+from public.buildings b
+where b.id = u.building_id and u.unit_type is not null and b.address not like '%Préprod%' and crm.etat_logement(u.id) <> 'loue';
 -- Demandes de visite rattachées aux logements affichés sur le site (bloc Propriétés), en proportions inégales.
 with l as (select id, row_number() over (order by id) - 1 k, count(*) over () n from public.site_logements_publies)
 update public.inquiries i set unit_id = l.id from l
