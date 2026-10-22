@@ -8,11 +8,17 @@ export { Fragment };
    préchargée sur le site : le logo de l'en-tête. Les autres passent en chargement différé (sauf loading/fetchPriority
    explicites dans le composant). */
 const PRECHARGEE = /leaselane-horizontal-blanc\.svg/;
-/* PageSpeed (22 oct. 2026) : le fond de la section d'ouverture de l'accueil est l'élément le plus grand (LCP) :
-   chargé tout de suite, en priorité haute, au lieu d'en différé. */
+/* PageSpeed (22 oct. 2026) : le fond « lignes néon » de la bannière d'accueil (affiché à 2 % d'opacité) était compté comme
+   l'élément principal (LCP) de la page. Il est remplacé par une version de 1 Ko (96 × 54, invisible à 2 %) : Chrome ignore les
+   images aussi pauvres en détail, et c'est le titre, affiché dès le premier rendu, qui devient l'élément principal. */
 const LCP = /fond-lignes-neon\.jpg/;
+/* La ligne d'immeubles de la bannière (couverture-immeubles.png) devient alors l'élément principal sur ordinateur : servie
+   en WebP (35 Ko au lieu de 70 Ko, transparence conservée). Elle reste en différé : en priorité haute, elle retarde le
+   mobile (mesuré, Lighthouse 22 oct. 2026). */
+const PRIORITAIRE = /couverture-immeubles\.png/;
 const img = (type, props) => (type !== 'img' || !props || props.loading != null || props.fetchPriority != null ? props
-  : LCP.test(String(props.src || '')) ? { ...props, loading: 'eager', fetchPriority: 'high' }
+  : LCP.test(String(props.src || '')) ? { ...props, src: String(props.src).replace('fond-lignes-neon.jpg', 'fond-lignes-neon-leger.jpg') }
+  : PRIORITAIRE.test(String(props.src || '')) ? { ...props, src: String(props.src).replace(/\.png$/, '.webp'), loading: 'lazy', decoding: props.decoding || 'async' }
   : PRECHARGEE.test(String(props.src || '')) ? props : { ...props, loading: 'lazy', decoding: props.decoding || 'async' });
 export function jsx(type, props, key) {
   props = img(type, props);

@@ -15,7 +15,6 @@ import { naviguer, PontRouteur } from '@/lib/routeur';
 import { useLangue } from '@/lib/i18n/contexte';
 import { versFR } from '@/lib/i18n/adresses';
 import { demarrerFinitions } from '@/lib/finitions';
-import '@/lib/leaflet-global';
 
 export default function Coquille({ children }) {
   const chemin = usePathname() || '/';
@@ -24,6 +23,13 @@ export default function Coquille({ children }) {
   const cheminFR = lang === 'en' ? versFR(chemin) : chemin;
   const [agent, setAgent] = useState(false);
   useEffect(() => { demarrerFinitions(); }, []);
+  /* Leaflet (cartes des logements, 145 Ko) : chargé en arrière-plan une fois la page affichée, plutôt qu'avec chaque page
+     (PageSpeed, 22 oct. 2026). Les cartes du prototype vérifient window.L avant de se monter; elles n'apparaissent qu'après
+     un geste (vue « Carte », défilement jusqu'à la fiche), une fois Leaflet déjà là. */
+  useEffect(() => {
+    const charger = () => (window.requestIdleCallback || setTimeout)(() => import('@/lib/leaflet-global'));
+    if (document.readyState === 'complete') charger(); else window.addEventListener('load', charger, { once: true });
+  }, []);
   /* Nouvelle page : retour en haut de la zone de défilement (le prototype le faisait à chaque changement d'adresse). */
   useEffect(() => {
     const sc = document.getElementById('ll-scroll');

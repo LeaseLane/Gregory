@@ -1,0 +1,6 @@
+/* PageSpeed (22 oct. 2026) : la bannière d'accueil prend la hauteur de l'écran dès le premier affichage (avant, le script
+   l'agrandissait après le chargement et tout le contenu glissait : décalage de mise en page). Même calcul que S1Skyline
+   (accueil-heros7.jsx) : hauteur visible moins la hauteur de l'en-tête (87 px jusqu'à 620 px de large, 109 px au-delà),
+   seulement si le résultat dépasse 420 px. Le script pose ensuite la même valeur en style en ligne : rien ne bouge. */
+@media (min-height: 530px) { #ll-page section.ll-sombre:has(> div > .h7-sky-texte) { min-height: calc(100vh - 109px); } }
+@media (max-width: 620px) and (min-height: 508px) { #ll-page section.ll-sombre:has(> div > .h7-sky-texte) { min-height: calc(100vh - 87px); } }
