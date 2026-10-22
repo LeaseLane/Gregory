@@ -5,10 +5,12 @@
    Source réelle aujourd'hui : les demandes des formulaires du site; visites, clics et conversion attendent Google Analytics 4. */
 import { useEffect, useRef, useState } from 'react';
 import { supabaseNavigateur } from '@/lib/supabase/client';
+import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
+import type { DonneesSite } from './Commun';
 
 type Point = { d: string; v: number };
-export type Activite = { jours: number; courant: Point[]; precedent: Point[] };
+export type Activite = { jours: number; courant: Point[]; precedent: Point[]; visites_logements?: { id: string; n: number; p: number }[]; ia?: { etape: string; appels: number; ti: number; to: number }[] };
 type Metrique = 'visites' | 'demandes' | 'clics' | 'conversion';
 
 const METRIQUES: { id: Metrique; nom: string; serie: string; icone: string; ga4: boolean }[] = [
@@ -100,7 +102,7 @@ function exemple(m: Metrique, L: Point[]): Point[] {
   });
 }
 
-export function ActiviteSite({ initial, demo = false }: { initial: Activite | null; demo?: boolean }) {
+export function ActiviteSite({ initial, demo = false, site }: { initial: Activite | null; demo?: boolean; site: DonneesSite }) {
   const [jours, setJours] = useState(initial?.jours ?? 30);
   const [donnees, setDonnees] = useState<Record<number, Activite>>(initial ? { [initial.jours]: initial } : {});
   const [erreur, setErreur] = useState('');
@@ -121,7 +123,7 @@ export function ActiviteSite({ initial, demo = false }: { initial: Activite | nu
   const unite = (m: Metrique) => (m === 'conversion' ? ' %' : '');
   const M = METRIQUES.find((m) => m.id === metrique)!, SM = serie(M);
   const moy = SM ? (M.id === 'conversion' ? valeur('conversion', SM.courant, A.courant) : total(SM.courant) / SM.jours) : 0, pk = SM?.courant.reduce((a, b) => (b.v > a.v ? b : a), SM.courant[0]);
-  return (
+  return (<>
     <section className="carte-l18 ga-carte" aria-labelledby="ga-titre">
       <div className="ga-tete">
         <div><h2 className="titre-carte" id="ga-titre" style={{ margin: 0 }}>Activité du site</h2><span className="gris texte-13">{jours} derniers jours</span></div>
@@ -156,5 +158,109 @@ export function ActiviteSite({ initial, demo = false }: { initial: Activite | nu
           : <p className="gris texte-13">Chargement…</p>}
       </div>
     </section>
+    {A && <Blocs A={A} site={site} demo={demo} />}
+  </>);
+}
+
+/* Blocs Contenus (Articles, Propriétés) et Référencement et IA (SEO et GEO, IA et crédits) du prototype vue-ensemble.jsx :
+   chiffres clés à gauche, palmarès ou répartition à droite, données réelles au pied (pastille « Réel »).
+   Réel : inventaire, scores SEO, demandes de visite par logement, appels à Cléo (ai_run_log). Vues, clics, Search Console et
+   citations IA : exemples sur la démo, « à brancher » ailleurs. */
+const nf = (n: number) => Math.round(n).toLocaleString('fr-CA'), pc = (x: number) => nb(Math.round(x * 1000) / 10) + ' %';
+const usd = (x: number) => x.toLocaleString('fr-CA', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const duree = (s: number) => Math.floor(s / 60) + ' min ' + String(Math.round(s % 60)).padStart(2, '0') + ' s';
+const TARIF = { i: 3 / 1e6, o: 15 / 1e6 }, BUDGET = 20;
+const ETAPES: [string, string][] = [['idees', 'Idées et stratégie'], ['redaction', 'Rédaction optimisée'], ['audit', 'Audit SEO / GEO'], ['ton', 'Ton naturel'], ['metadonnees', 'Métadonnées']];
+const GA4 = 'GA4 à brancher';
+type Mesure = [string, string, number | null, boolean?];
+
+function Delta({ v, inv }: { v: number; inv?: boolean }) {
+  const bon = inv ? v < 0 : v >= 0;
+  return <span className={bon ? 'ga-hausse' : 'ga-baisse'}>{(v >= 0 ? '+' : '−') + nb(Math.abs(Math.round(v * 1000) / 10))} %<span className="sr"> par rapport à la période précédente</span></span>;
+}
+function Mesures({ items, cols = 2 }: { items: Mesure[]; cols?: number }) {
+  return <dl className="vd-ms" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>{items.map(([t, v, d, inv]) => <div key={t}><dt>{t}</dt><dd><b>{v}</b>{d != null && <Delta v={d} inv={inv} />}</dd></div>)}</dl>;
+}
+function Palmares({ cap, cols, rows }: { cap: string; cols: [string, (r: Rang) => string][]; rows: Rang[] }) {
+  /* Sur mobile, la colonne du milieu (clics) est masquée, comme le prototype (vd-hm). */
+  const hm = (i: number) => (cols.length === 3 && i === 1 ? 'vd-n vd-hm' : 'vd-n');
+  return (
+    <table className="vd-t"><caption className="sr">{cap}, 5 premiers</caption>
+      <thead><tr><th scope="col" className="vd-rg"><span aria-hidden="true">#</span><span className="sr">Rang</span></th><th scope="col">{cap}</th>{cols.map(([t], i) => <th key={t} scope="col" className={hm(i)}>{t}</th>)}</tr></thead>
+      <tbody>{rows.length ? rows.slice(0, 5).map((r, i) => <tr key={r.id}><td className="vd-rg">{i + 1}</td><td className="vd-tn" title={r.n}>{r.n}</td>{cols.map(([t, f], i) => <td key={t} className={hm(i)}>{f(r)}</td>)}</tr>)
+        : <tr><td colSpan={cols.length + 2} className="gris">Aucune donnée pour cette période.</td></tr>}</tbody></table>
   );
+}
+function Barres({ lab, rows, fmt }: { lab: string; rows: { n: string; v: number }[]; fmt: (r: { n: string; v: number }) => string }) {
+  const m = Math.max(1e-9, ...rows.map((r) => r.v));
+  return <ul className="vd-bl" aria-label={lab}>{rows.map((r) => <li key={r.n}><span className="vd-bl-n">{r.n}</span><span className="vd-bl-b" aria-hidden="true"><i style={{ width: (r.v / m) * 100 + '%' }} /></span><span className="vd-bl-v">{fmt(r)}</span></li>)}</ul>;
+}
+function Bloc({ ic, id, t, href, lib, gauche, droite, pied }: { ic: string; id: string; t: string; href: string; lib: string; gauche: React.ReactNode; droite: React.ReactNode; pied: React.ReactNode }) {
+  return (
+    <section className="carte-l18 vd-blk" aria-labelledby={id}>
+      <div className="vd-bt"><span className="vd-h"><span className="ga-kpi-ic"><Icone nom={ic} taille={18} couleur="#0C2147" /></span><h3 id={id}>{t}</h3></span>
+        <Link className="bouton bouton-contour" href={href}><Icone nom="arrow" taille={16} couleur="#0C2147" />{lib}</Link></div>
+      <div className="vd-dom"><div>{gauche}</div><div>{droite}</div></div>
+      <p className="vd-foot"><span className="vd-reel">Réel</span>{pied}</p>
+    </section>
+  );
+}
+type Rang = { id: string; n: string; v: number; k: number; c: number; tm?: number; score?: number };
+
+function Blocs({ A, site, demo }: { A: Activite; site: DonneesSite; demo: boolean }) {
+  const P = A.jours, somme = <T,>(L: T[], f: (x: T) => number) => L.reduce((s, x) => s + f(x), 0);
+  const sv = somme(A.courant, (p) => visites(p.d)), dl = (k: string) => alea(k, P) * 0.26 - 0.08;
+  const pub = site.articles.filter((a) => a.statut === 'publie'), enl = site.logements.filter((l) => l.sur_le_site);
+  const moy = pub.length ? Math.round(somme(pub, (a) => a.score) / pub.length) : 0;
+  /* Articles : vues, lecture, clics et contacts par article (exemple sur la démo); hors démo, palmarès par score SEO. */
+  const arts: Rang[] = pub.map((a) => { const q = (s: number) => alea(a.id, P + s), v = Math.round((sv * 0.6 * (0.4 + q(1))) / Math.max(1, pub.length));
+    return { id: a.id, n: a.titre || 'Sans titre', v, tm: 90 + q(2) * 150, k: Math.round(v * (0.03 + q(3) * 0.05)), c: Math.round(v * (0.006 + q(4) * 0.01)), score: a.score }; })
+    .sort((x, y) => (demo ? y.v - x.v : (y.score ?? 0) - (x.score ?? 0)));
+  const tv = somme(arts, (x) => x.v), tm = tv ? somme(arts, (x) => (x.tm ?? 0) * x.v) / tv : 0;
+  /* Propriétés : demandes de visite réelles par logement; vues et clics « Contacter » en exemple sur la démo. */
+  const vl = new Map((A.visites_logements ?? []).map((x) => [x.id, x]));
+  const props: Rang[] = enl.map((l) => { const q = (s: number) => alea(l.id, P * 3 + s), v = Math.round((sv * 0.7 * (0.4 + q(1))) / Math.max(1, enl.length));
+    return { id: l.id, n: l.libelle, v, k: Math.round(v * (0.04 + q(2) * 0.05)), c: vl.get(l.id)?.n ?? 0 }; }).sort((x, y) => (demo ? y.v - x.v : y.c - x.c));
+  const pv = somme(props, (x) => x.v), pd = somme(props, (x) => x.c), pdPrec = somme(enl, (l) => vl.get(l.id)?.p ?? 0);
+  /* SEO et GEO (Search Console et citations IA) : exemple sur la démo seulement. */
+  const imp = Math.round(sv * (9 + alea('imp', P) * 3)), clic = Math.round(sv * 0.52);
+  const reqs = [...new Set([...pub.map((a) => a.mot_cle).filter(Boolean), 'logement à louer québec', '4 ½ à louer québec', 'gestion immobilière québec'])].slice(0, 7)
+    .map((q) => { const z = (s: number) => alea(q, P + s), i = Math.round(imp * (0.04 + z(1) * 0.12)); return { id: q, n: q, v: i, k: Math.round(i * (0.02 + z(2) * 0.06)), c: 3 + z(3) * 14 }; })
+    .sort((x, y) => y.k - x.k);
+  const geo = ([['ChatGPT', 0.42], ['Aperçus IA de Google', 0.31], ['Perplexity', 0.17], ['Copilot', 0.1]] as const).map(([n, f]) => ({ n, v: Math.max(1, Math.round(P * 0.9 * f * (0.8 + alea(n, P) * 0.4))) }));
+  /* IA et crédits : réel (ai_run_log, fonctions studio). Coût estimé au tarif public; budget du mois au prorata. */
+  const ia = ETAPES.map(([k, n]) => { const e = (A.ia ?? []).find((x) => x.etape === k); return { n, v: e ? e.ti * TARIF.i + e.to * TARIF.o : 0, c: e?.appels ?? 0 }; });
+  const autres = (A.ia ?? []).filter((x) => !ETAPES.some(([k]) => k === x.etape));
+  const cout = somme(A.ia ?? [], (e) => e.ti * TARIF.i + e.to * TARIF.o), appels = somme(A.ia ?? [], (e) => e.appels), jet = somme(A.ia ?? [], (e) => e.ti + e.to);
+  const mois = (cout / P) * new Date().getDate(), bud = Math.min(1, mois / BUDGET);
+  const pl = (n: number, a: string, b: string) => nf(n) + ' ' + (n > 1 ? b : a);
+  return (<>
+    <div className="vd-sec"><h2 className="sr">Contenus</h2>
+      <Bloc ic="file" id="vd-a" t="Articles" href="/studio/site/articles" lib="Articles"
+        gauche={<Mesures items={demo ? [['Vues', nf(tv), dl('a0')], ['Lecture moyenne', duree(tm), dl('a1')], ['Clics sur les boutons', nf(somme(arts, (x) => x.k)), dl('a2')], ['Contacts générés', nf(somme(arts, (x) => x.c)), dl('a3')]]
+          : [['Vues', '—', null], ['Lecture moyenne', '—', null], ['Clics sur les boutons', '—', null], ['Contacts générés', '—', null]]} />}
+        droite={<Palmares cap="Article" rows={arts} cols={demo ? [['Vues', (r) => nf(r.v)], ['Clics', (r) => nf(r.k)], ['Contacts', (r) => nf(r.c)]] : [['Score SEO', (r) => `${r.score} / 100`]]} />}
+        pied={<><span><b>{pub.length}</b> publiés sur {site.articles.length}</span><span>Score SEO moyen <b>{moy}</b> / 100</span>{!demo && <span className="gris">Vues et clics : {GA4}</span>}</>} />
+      <Bloc ic="building" id="vd-p" t="Propriétés" href="/studio/site/logements" lib="Logements"
+        gauche={<Mesures items={[['Vues des fiches', demo ? nf(pv) : '—', demo ? dl('p0') : null], ['Clics « Contacter »', demo ? nf(somme(props, (x) => x.k)) : '—', demo ? dl('p1') : null],
+          ['Demandes de visite', nf(pd), pdPrec ? pd / pdPrec - 1 : null], ['Taux de demande', demo ? pc(pv ? pd / pv : 0) : '—', demo ? dl('p3') : null]]} />}
+        droite={<Palmares cap="Logement" rows={props} cols={demo ? [['Vues', (r) => nf(r.v)], ['Clics', (r) => nf(r.k)], ['Demandes', (r) => nf(r.c)]] : [['Demandes de visite', (r) => nf(r.c)]]} />}
+        pied={<><span><b>{enl.length}</b> en ligne</span><span><b>{enl.filter((l) => l.etat === 'vacant').length}</b> libres maintenant</span><span><b>{site.logements.filter((l) => l.etat === 'loue').length}</b> loués</span>{!demo && <span className="gris">Vues et clics : {GA4}</span>}</>} />
+    </div>
+    <div className="vd-sec"><div className="vd-sec-t"><h2>Référencement et IA</h2><span className="gris texte-13">{P} derniers jours</span></div>
+      <Bloc ic="search" id="vd-s" t="SEO et GEO" href="/studio/site/seo" lib="SEO et mots-clés"
+        gauche={demo ? <><Mesures items={[['Impressions Google', nf(imp), dl('s0')], ['Clics organiques', nf(clic), dl('s1')], ['Taux de clic', pc(clic / imp), dl('s2')], ['Position moyenne', nb(Math.round((8 + alea('pos', P) * 6) * 10) / 10), -alea('dp', P) * 0.12, true]]} />
+            <div className="vd-sub"><h4>Citations par les moteurs IA</h4><Barres lab="Citations par les moteurs IA" rows={geo} fmt={(r) => pl(r.v, 'citation', 'citations')} /></div></>
+          : <div className="ga-vide"><Icone nom="search" taille={22} couleur="#2E5788" /><p><b>Search Console : {site.branchements.search_console}.</b><br />Impressions, clics organiques, position moyenne et citations par les moteurs IA s’afficheront ici une fois Search Console branché.</p></div>}
+        droite={demo ? <Palmares cap="Requête" rows={reqs} cols={[['Impressions', (r) => nf(r.v)], ['Clics', (r) => nf(r.k)], ['Position', (r) => nb(Math.round(r.c * 10) / 10)]]} /> : null}
+        pied={<><span>Audit technique : {site.branchements.audit_seo}</span><span>Score SEO moyen <b>{moy}</b> / 100</span></>} />
+      <Bloc ic="spark" id="vd-i" t="IA et crédits" href="/studio/site/articles" lib="Rédiger avec Cléo"
+        gauche={<><div className="vd-cout"><div className="vd-cout-v"><span>Coût estimé, {P} jours</span><b>{usd(cout)}</b></div>
+            <div className="vd-bud"><span className="vd-bud-h"><span>Budget du mois</span><span><b>{usd(mois)}</b> sur {usd(BUDGET)}</span></span>
+              <span className="vd-bud-b" data-w={bud > 0.8 ? 1 : 0} role="progressbar" aria-label="Budget du mois utilisé" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(bud * 100)}><i style={{ width: bud * 100 + '%' }} /></span></div></div>
+          <Mesures cols={3} items={[['Appels à Cléo', nf(appels), null], ['Jetons', nf(jet / 1000) + ' k', null], ['Coût par appel', usd(appels ? cout / appels : 0), null]]} /></>}
+        droite={<div className="vd-sub"><h4>Coût par étape du parcours</h4><Barres lab="Coût par étape du parcours" rows={ia} fmt={(r) => usd(r.v) + ' · ' + pl(ia.find((x) => x.n === r.n)!.c, 'appel', 'appels')} /></div>}
+        pied={<><span>{pl(appels, 'appel', 'appels')} sur {P} jours{autres.length ? ` (dont ${nf(somme(autres, (x) => x.appels))} hors parcours)` : ''}</span><span className="gris">Tarif estimé : 3 $ US par million de jetons en entrée, 15 $ US en sortie.</span></>} />
+    </div>
+  </>);
 }

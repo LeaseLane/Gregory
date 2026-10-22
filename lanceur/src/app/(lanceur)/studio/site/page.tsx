@@ -16,19 +16,9 @@ export default async function Page() {
     <CadreEspace icone="globe" nom="Studio" sous={SOUS_STUDIO} actif={0} onglets={ONGLETS_STUDIO}>
       <SousSite actif="/studio/site" />
       {!D ? <div className="bandeau erreur" role="alert">{error?.code === 'PT403' ? error.message : 'Le site n’a pas pu être lu.'}</div> : <>
-        <ActiviteSite initial={A as Activite | null} demo={process.env.LL_ENV === 'demo'} />
-        <div className="grille-2-1">
-          <section className="carte-l18"><h2 className="titre-carte">Contenus</h2>
-            <ul className="lo-docs">
-              <li><span className="a-faire-ic"><Icone nom="file" taille={18} couleur="#0C2147" /></span><div><Link className="fort" href="/studio/site/articles">Articles</Link><span className="gris texte-13">{pub.length} publiés · {D.articles.filter((a) => a.statut === 'revision').length} à réviser · {D.articles.filter((a) => a.statut === 'brouillon').length} brouillons</span></div></li>
-              <li><span className="a-faire-ic"><Icone nom="building" taille={18} couleur="#0C2147" /></span><div><Link className="fort" href="/studio/site/logements">Logements</Link><span className="gris texte-13">{D.logements.filter((l) => l.sur_le_site).length} sur le site · {D.logements.filter((l) => l.site_statut === 'brouillon' && l.etat !== 'loue').length} à compléter</span></div></li></ul></section>
-          <div className="po-colonne">
-            <section className="carte-l18"><h2 className="titre-carte">Référencement et IA</h2>
-              <p className="texte-13">Score SEO moyen des articles publiés : <b>{moy ?? '—'}</b> sur 100</p>
-              <p className="gris texte-13">Search Console {D.branchements.search_console} · audit technique : {D.branchements.audit_seo}</p></section>
-            <section className="carte-l18"><h2 className="titre-carte">IA et crédits · 30 jours</h2>
-              <p className="texte-13"><b>{D.activite.ia_appels_30}</b> appel{D.activite.ia_appels_30 > 1 ? 's' : ''} à Cléo pour la rédaction · {D.activite.ia_jetons_30.toLocaleString('fr-CA')} jetons</p></section>
-          </div></div></>}
+        <ActiviteSite initial={A as Activite | null} demo={process.env.LL_ENV === 'demo'} site={D} />
+
+</>}
     </CadreEspace>
   );
 }
