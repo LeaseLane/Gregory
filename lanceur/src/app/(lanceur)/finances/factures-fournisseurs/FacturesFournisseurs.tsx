@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { argent, jour } from '../onglets';
+import { adresse } from '@/lib/format';
+// Numéro de facture en tête de la description (« F-20931 · Panne d'éclairage », saisie de l'équipe) : colonne Facture de la maquette e44
+const numero = (d: string | null) => { const m = d?.match(/^([A-Z0-9][A-Z0-9-]{2,}) · (.*)$/); return m ? { no: m[1], reste: m[2] } : { no: null, reste: d }; };
 
 /* e44 · Factures fournisseurs : part planifiée / à approuver d'un même total = barre à deux segments; le reste en chiffres exacts.
    Vérification à trois : bon de travail réalisé, soumission retenue (ou urgence), montant de la facture contre la soumission ou l'estimé. Payer crée la dépense et son écriture. */
@@ -43,11 +46,11 @@ export function FacturesFournisseurs({ donnees: D, statut, choisie, erreurLectur
           <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Factures fournisseurs</h2><p className="gris texte-13" style={{ margin: 0 }}>{D.mois.n} facture{D.mois.n > 1 ? 's' : ''} ce mois-ci · {D.mois.a_approuver} à approuver · payées à l’échéance</p></div>
             <span className="ligne-ic"><div className="lo-segments">{SEG.map(([k, l]) => <button key={k} className={statut === k ? 'actif' : ''} onClick={() => router.push(k === 'toutes' ? '/finances/factures-fournisseurs' : `/finances/factures-fournisseurs?statut=${k}`)}>{l}</button>)}</div>
               {D.peut_ecrire && <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 14px' }} onClick={() => setNouvelle({ work_order_id: '', building_id: '', fournisseur: '', description: '', montant: '', echeance: '' })}><Icone nom="plus" taille={16} couleur="#0C2147" />Saisir</button>}</span></div>
-          <table className="tableau tab-fixe" style={{ marginTop: 12 }}><colgroup><col style={{ width: '28%' }} /><col style={{ width: '15%' }} /><col style={{ width: '15%' }} /><col style={{ width: '13%' }} /><col style={{ width: '12%' }} /><col /></colgroup>
-            <thead><tr><th>Fournisseur</th><th>Reçue</th><th>Bon de travail</th><th className="droite">Montant</th><th>Échéance</th><th>Statut</th></tr></thead>
+          <table className="tableau tab-fixe tab-factures" style={{ marginTop: 12 }}><colgroup><col style={{ width: '27%' }} /><col style={{ width: '15%' }} /><col style={{ width: '16%' }} /><col style={{ width: '13%' }} /><col style={{ width: '11%' }} /><col /></colgroup>
+            <thead><tr><th>Fournisseur</th><th>Facture</th><th>Bon de travail</th><th className="droite">Montant</th><th>Échéance</th><th>Statut</th></tr></thead>
             <tbody>{D.factures.map((f) => { const [l, k] = ST[f.statut] ?? [f.statut, 'neutral'];
-              return <tr key={f.id} className={`ligne-lien${F?.id === f.id ? ' sel' : ''}`} onClick={() => setSel(f.id)}><td className="fort">{f.fournisseur}<span className="sous gris">{f.description}{f.immeuble ? ` · ${f.immeuble}` : ''}</span></td>
-                <td className="texte-13">{jour(f.recue)}</td><td>{f.bon ? <Link href={`/maintenance/bons/${f.bon.id}`} onClick={(e) => e.stopPropagation()}>{f.bon.numero}</Link> : <span className="gris">—</span>}</td>
+              return <tr key={f.id} className={`ligne-lien${F?.id === f.id ? ' sel' : ''}`} onClick={() => setSel(f.id)}><td className="fort" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.fournisseur}<span className="sous gris" style={{ fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis' }}>{[numero(f.description).reste, f.immeuble && adresse(f.immeuble)].filter(Boolean).join(' · ')}</span></td>
+                <td className="texte-13"><span className="fort">{numero(f.description).no ?? '—'}</span><span className="sous gris">reçue le {jour(f.recue)}</span></td><td>{f.bon ? <Link className="lien-texte" href={`/maintenance/bons/${f.bon.id}`} onClick={(e) => e.stopPropagation()}>{f.bon.numero}</Link> : <span className="gris">—</span>}</td>
                 <td className="droite fort">{argent(f.montant, true)}</td><td>{jour(f.echeance)}</td><td><span className={`puce ${k}`}>{l}</span></td></tr>; })}
               {!D.factures.length && <tr><td colSpan={6} className="gris">Aucune facture.</td></tr>}</tbody></table>
         </section>

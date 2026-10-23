@@ -40,9 +40,9 @@ export function Fournisseurs({ donnees: D, q: q0, erreurLecture }: { donnees: Do
             <form className="lo-recherche" style={{ maxWidth: 264 }} onSubmit={(e) => { e.preventDefault(); router.push(q ? `/maintenance/fournisseurs?q=${encodeURIComponent(q)}` : '/maintenance/fournisseurs'); }}>
               <Icone nom="search" taille={18} couleur="#58697F" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Chercher un fournisseur" aria-label="Chercher un fournisseur" /></form>
             {D.peut_ecrire && <FournisseurTiroir compact />}</div>
-          <table className="tableau tab-fixe" style={{ marginTop: 16 }}><colgroup><col style={{ width: '26%' }} /><col style={{ width: '17%' }} /><col style={{ width: '7%' }} /><col style={{ width: '9%' }} /><col style={{ width: '19%' }} /><col style={{ width: '13%' }} /><col /></colgroup>
+          <table className="tableau tab-fixe tab-fournisseurs" style={{ marginTop: 16 }}><colgroup><col style={{ width: '26%' }} /><col style={{ width: '17%' }} /><col style={{ width: '7%' }} /><col style={{ width: '9%' }} /><col style={{ width: '19%' }} /><col style={{ width: '13%' }} /><col /></colgroup>
             <thead><tr><th>Fournisseur</th><th>Spécialités</th><th>Note</th><th className="droite">Réponse</th><th>Assurance</th><th>RBQ</th><th className="droite">Travaux</th></tr></thead>
-            <tbody>{L.map((f) => { const [ic, lib, cl] = etatAssurance(f), sp = f.specialites.filter(Boolean) as string[];
+            <tbody>{L.map((f) => { const [ic, lib, cl] = etatAssurance(f), sp = (f.specialites.filter(Boolean) as string[]).map((x) => x.charAt(0).toUpperCase() + x.slice(1));
               return <tr key={f.id} className="ligne-lien" style={f.actif ? undefined : { opacity: 0.55 }} onClick={() => router.push(`/maintenance/fournisseurs/${f.id}`)}>
                 <td><span className="cellule-ini"><span className="ini" style={{ width: 36, height: 36, fontSize: 12 }}>{initiales(f.nom)}</span><span><Link className="fort" href={`/maintenance/fournisseurs/${f.id}`} onClick={(e) => e.stopPropagation()}>{f.nom}</Link>
                   <span className="sous gris">{f.actif ? (f.zones?.length ? f.zones.join(' et ') : '—') : 'Désactivé'}</span></span></span></td>

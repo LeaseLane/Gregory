@@ -9,7 +9,7 @@ export default async function Page() {
   const l = (data as Ech[] | null) ?? [];
   const d = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' });
   return (
-    <CadreEspace icone="wrench" nom="Maintenance" sous={SOUS_MAINT} actif={2} onglets={ongletsMaint(l.filter((x) => x.jours < 0).length || undefined)}>
+    <CadreEspace icone="wrench" nom="Maintenance" sous={SOUS_MAINT} actif={2} onglets={ongletsMaint()}>
       {error && <div className="bandeau erreur" role="alert">{error.code === 'PT403' ? error.message : 'Les échéances n’ont pas pu être lues.'}</div>}
       <section className="carte-l18" aria-label="Échéances">
         <h2 className="titre-carte" style={{ marginBottom: 2 }}>RBQ et assurances qui expirent</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>Dans les 90 jours · un fournisseur expiré ne reçoit plus d’offres de travaux</p>

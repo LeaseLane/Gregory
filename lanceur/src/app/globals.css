@@ -1704,6 +1704,11 @@ input + .bouton { white-space: nowrap; } .bouton { overflow-wrap: normal; } .dea
 .mp-deux { display: grid; } .mp-deux small { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #58697F; }
 .mp-deux .okdot { width: 10px; height: 10px; margin: 0; }
 .espace-page .po-retour { display: none; } /* maquettes e22, e27, e33, e35 : pas de lien de retour, l'onglet actif ramène à la liste */
-.demi-tableaux td:first-child { white-space: nowrap; } .demi-tableaux .sous { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demi-tableaux .tableau.tab-fixe td:first-child { white-space: nowrap; } .demi-tableaux .sous { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .demi-tableaux td, .demi-tableaux th { padding-right: 10px; } .demi-tableaux .no-logement { margin-right: 8px; } .demi-tableaux td:first-child { text-overflow: clip; }
 .bt-pied { min-width: 0; } .bt-pied > .gris, .bt-pied > .rouge-txt { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Tableaux des maquettes e34 et e44 : une ligne par cellule (coupée par « … » au besoin), comme les maquettes */
+.tableau.tab-fournisseurs td, .tableau.tab-factures td { white-space: nowrap; overflow-wrap: normal; overflow: hidden; text-overflow: ellipsis; }
+.tab-fournisseurs td .sous, .tab-factures td .sous { overflow: hidden; text-overflow: ellipsis; }
+.tab-fournisseurs td .puce { padding: 0 8px; }
+.tableau.tab-fournisseurs td:first-child, .tableau.tab-factures td:first-child { white-space: normal; } .tableau.tab-factures td:first-child .sous { white-space: nowrap; }
