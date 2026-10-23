@@ -1706,3 +1706,4 @@ input + .bouton { white-space: nowrap; } .bouton { overflow-wrap: normal; } .dea
 .espace-page .po-retour { display: none; } /* maquettes e22, e27, e33, e35 : pas de lien de retour, l'onglet actif ramène à la liste */
 .demi-tableaux td:first-child { white-space: nowrap; } .demi-tableaux .sous { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .demi-tableaux td, .demi-tableaux th { padding-right: 10px; } .demi-tableaux .no-logement { margin-right: 8px; } .demi-tableaux td:first-child { text-overflow: clip; }
+.bt-pied { min-width: 0; } .bt-pied > .gris, .bt-pied > .rouge-txt { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

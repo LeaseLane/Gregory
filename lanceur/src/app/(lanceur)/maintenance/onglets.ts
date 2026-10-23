@@ -5,3 +5,8 @@ export const ongletsMaint = (fournisseurs?: Onglet['compte']): Onglet[] => [{ li
 export const SOUS_MAINT = 'Bons de travail, projets, soumissions et banque de fournisseurs';
 export const ETAPES: Record<string, string> = { a_planifier: 'À planifier', planifie: 'Planifiés', en_cours: 'En cours', a_verifier: 'À vérifier', termine: 'Terminé', annule: 'Annulé' };
 export const heure = (iso: string) => new Date(iso).toLocaleString('fr-CA', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).replace(':', ' h ').replace(' h 00', ' h');
+// Puce des cartes (maquette e32) : « mer. 9 h » dans la semaine, sinon « 14 oct. »
+export const heureCourte = (iso: string) => { const d = new Date(iso), z = { timeZone: 'America/Toronto' } as const;
+  return Math.abs(d.getTime() - Date.now()) < 6 * 864e5
+    ? `${d.toLocaleDateString('fr-CA', { weekday: 'short', ...z })} ${d.toLocaleTimeString('fr-CA', { hour: 'numeric', minute: '2-digit', ...z }).replace(/\s?h\s?00$/, ' h').replace(/\s?h\s?/, ' h ').trim()}`
+    : d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', ...z }); };

@@ -32,7 +32,7 @@ export function Rapprochement({ donnees: D, erreurLecture }: { donnees: DonneesR
       {ok && <div className="bandeau info" role="status">{ok}</div>}
       <div className="grille-2-1">
         <section className="carte-l18 e2" aria-label="Opérations à rapprocher">
-          <div className="tete-action" style={{ alignItems: 'flex-start' }}><div><p className="surtitre" style={{ margin: 0 }}>{D.comptes.length ? `Comptes : ${D.comptes.join(', ')}` : 'Comptes bancaires des propriétaires'}</p>
+          <div className="tete-action" style={{ alignItems: 'flex-start' }}><div><p className="surtitre" style={{ margin: 0 }}>{D.comptes.length > 2 ? `${D.comptes.length} comptes de propriétaires · ${new Date().toLocaleDateString('fr-CA', { month: 'long' })}` : D.comptes.length ? `Comptes : ${D.comptes.join(', ')}` : 'Comptes bancaires des propriétaires'}</p>
             <h2 className="releve-titre" style={{ margin: '4px 0' }}>{a ? `${a} opération${a > 1 ? 's' : ''} à rapprocher` : 'Tout est rapproché.'}</h2>
             <p className="gris texte-13" style={{ margin: 0 }}>{D.dernier_import ? `Dernier relevé importé le ${jour(D.dernier_import)}` : 'Aucun relevé importé : la synchronisation bancaire est à rebrancher'}{a ? ' · Cléo propose une correspondance pour chacune' : ''}</p></div>
             <div style={{ width: 260 }}><p className="surtitre gris" style={{ margin: 0 }}>Rapprochées ce mois-ci</p><b style={{ fontSize: 24 }}>{M.rapprochees} sur {M.total}</b>

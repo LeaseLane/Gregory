@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 import { Courbe } from '@/composants/Graphes';
-import { ETAPES, heure } from '../onglets';
+import { ETAPES, heureCourte } from '../onglets';
 import { adresse } from '@/lib/format';
 
 /* e32 · Bons de travail : bons ouverts = micro-colonnes (12 mois), délai = micro-courbe, coût du mois = jauge contre le budget; l'urgence seule en rouge, toujours étiquetée.
@@ -29,7 +29,7 @@ export function Bons({ donnees: D, filtres, maintenant, erreurLecture }: { donne
   const puce = (b: (typeof D.bons)[number]) => b.urgent && b.etape !== 'a_verifier' ? <span className="puce todo">Urgence</span>
     : b.etape === 'a_verifier' ? <span className="puce final">{b.fait_le ? `Réalisé ${new Date(b.fait_le).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })}` : 'Réalisé'}</span>
     : b.accord ? <span className="puce">accord attendu</span> : b.en_soumissions ? <span className="puce">soumissions · {b.soumissions}</span>
-    : b.rendez_vous ? <span className="puce">{heure(b.rendez_vous)}</span> : <span className="puce neutral">{b.fournisseur ? 'à planifier' : 'à assigner'}</span>;
+    : b.rendez_vous ? <span className="puce">{heureCourte(b.rendez_vous)}</span> : <span className="puce neutral">{b.fournisseur ? 'à planifier' : 'à assigner'}</span>;
   return (
     <>
       <div className="kpis" style={{ marginBottom: 24 }}>
