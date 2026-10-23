@@ -6,6 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import type { Carte } from '../Bons';
 import { heure } from '../../onglets';
+import { adresse } from '@/lib/format';
 
 /* e33 · Fiche bon de travail : étapes (créé → soumissions → accord → planifié → réalisé → facturé), détails, accès au logement (avis de 24 h, art. 1931 C.c.Q.),
    fil inscrit au journal, fournisseur, coûts avec taxes et honoraires (10 % au-delà de 1 000 $ avant taxes). */
@@ -46,7 +47,7 @@ export function FicheBon({ donnees: D, maintenant, erreurLecture }: { donnees: D
       <div className="grille-2-1">
         <div className="po-colonne">
           <section className="carte-l18 e2" aria-label="Bon de travail">
-            <div className="tete-action" style={{ alignItems: 'flex-start' }}><div><p className="surtitre" style={{ margin: 0 }}>Bon de travail {D.numero} · {D.logement}</p>
+            <div className="tete-action" style={{ alignItems: 'flex-start' }}><div><p className="surtitre" style={{ margin: 0 }}>Bon de travail {D.numero} · {adresse(D.logement)}</p>
               <h2 className="releve-titre" style={{ margin: '4px 0' }}>{D.titre}{D.urgent && <span className="puce todo" style={{ marginLeft: 12, verticalAlign: 'middle' }}>Urgence</span>}</h2>
               <p className="gris" style={{ margin: 0 }}>Signalé par {D.signale_par} le {jour(D.signale_le)} · {D.responsable_nom && D.responsable_nom !== 'une autre personne' ? `responsable : ${D.responsable_nom}` : 'sans responsable'}</p></div>
               <div className="droite">{D.rendez_vous ? <><b style={{ fontSize: 22 }}>{new Date(D.rendez_vous).toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'short' })}</b>

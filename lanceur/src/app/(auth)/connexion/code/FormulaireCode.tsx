@@ -10,7 +10,7 @@ import { executer } from '@/lib/ops';
 const ESSAIS = 5;
 const ATTENTE = 30;
 
-export function FormulaireCode({ apres = '/', inscription = '/connexion/inscription-2fa', sortie = '/connexion' }: { apres?: string; inscription?: string; sortie?: string } = {}) {
+export function FormulaireCode({ apres = '/', inscription = '/connexion/inscription-2fa', sortie = '/connexion', titre = 'Connexion à l’admin', rappel = 'Accès réservé à l’équipe Lease Lane. Chaque connexion est inscrite au journal.' }: { apres?: string; inscription?: string; sortie?: string; titre?: string; rappel?: string } = {}) {
   const [code, setCode] = useState('');
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState('');
@@ -73,7 +73,7 @@ export function FormulaireCode({ apres = '/', inscription = '/connexion/inscript
     <form className="auth-carte etape" onSubmit={(e) => { e.preventDefault(); verifier(); }}>
       <span className="pastille"><Icone nom="shield" taille={28} couleur="#0C2147" /></span>
       <p className="surtitre">Étape 2 sur 2</p>
-      <h2 className="e66">Connexion à l’admin</h2>
+      <h2 className="e66">{titre}</h2>
       <p className="consigne">
         Entrez le code à 6 chiffres affiché dans
         <b>votre application d’authentification.</b>
@@ -88,7 +88,7 @@ export function FormulaireCode({ apres = '/', inscription = '/connexion/inscript
       <div className="liens">
         <button type="button" onClick={changerDeCompte}><Icone nom="key" taille={16} couleur="#2E5788" />Changer de compte</button>
       </div>
-      <p className="rappel"><Icone nom="lock" taille={14} couleur="#58697F" />Accès réservé à l’équipe Lease Lane. Chaque connexion est inscrite au journal.</p>
+      <p className="rappel"><Icone nom="lock" taille={14} couleur="#58697F" />{rappel}</p>
     </form>
   );
 }

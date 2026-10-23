@@ -1385,7 +1385,7 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .carte-l18:has(> .demi-tableaux) { container-type: inline-size; }
 .demi-tableaux > .tableau { width: 100%; margin: 0; }
 .demi-tableaux .puce { white-space: nowrap; }
-@container (max-width: 1200px) { .demi-tableaux { grid-template-columns: minmax(0, 1fr); gap: 0; } .demi-tableaux > .tableau + .tableau thead { display: none; } }
+@container (max-width: 760px) { .demi-tableaux { grid-template-columns: minmax(0, 1fr); gap: 0; } .demi-tableaux > .tableau + .tableau thead { display: none; } }
 .grille-1-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 24px; align-items: start; }
 .mm-liste { list-style: none; margin: 0; padding: 0; } .mm-liste li { border-top: 1px solid #EEF1F5; } .mm-liste li:first-child { border-top: 0; }
 .mm-liste a { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 14px 12px; margin: 0 -12px; border-radius: 12px; color: inherit; text-decoration: none; } .mm-liste a > span:first-child { display: grid; gap: 2px; min-width: 0; }
@@ -1690,3 +1690,19 @@ input + .bouton { white-space: nowrap; } .bouton { overflow-wrap: normal; } .dea
 .at-arrive li { display: grid; grid-template-columns: 72px minmax(0, 1fr) 24px; gap: 12px; align-items: center; min-height: 52px; padding-left: 12px; border-left: 3px solid #0C2147; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #0C2147; }
 .at-arrive b { font-size: 13px; }
 @media (max-width: 1100px) { .at-tete { flex-direction: column; } .at-filtres { width: 100%; } .at-liste li { grid-template-columns: 44px minmax(0, 1fr) 104px; } .at-liste .puce { display: none; } }
+
+/* e04 · menu du profil */
+.menu.menu-profil { width: 360px; padding: 0 0 8px; }
+.mp-qui { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid #E1E6EC; margin-bottom: 4px; }
+.mp-qui .haut-moi { flex: none; position: static; display: grid; place-items: center; width: 44px; height: 44px; cursor: default; } .mp-qui strong { display: block; font-size: 14px; color: #0C2147; } .mp-qui span:not(.haut-moi) { font-size: 13px; color: #58697F; }
+.menu .mp-ligne { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 0 16px; border: 0; border-radius: 0; background: none; font: inherit; font-size: 14px; font-weight: 500; color: #0C2147; text-decoration: none; cursor: pointer; text-align: left; }
+.menu .mp-ligne:hover { background: #F3F6FA; }
+.mp-ligne > svg:last-child:not(:first-child), .mp-ligne > .touche, .mp-val { margin-left: auto; } .mp-val { font-size: 13px; color: #58697F; } .mp-val + svg { margin-left: 4px !important; }
+.mp-sur { margin: 8px 16px 0; font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #58697F; }
+.menu .mp-theme { flex-wrap: wrap; row-gap: 8px; padding-top: 12px; padding-bottom: 12px; cursor: default; } .menu .mp-theme:hover { background: none; } .mp-theme .lo-segments { flex-basis: 100%; margin-left: 30px; max-width: 216px; padding: 4px; } .menu .mp-theme .lo-segments button { width: auto; flex: 1; height: 32px; padding: 0 8px; font-size: 13px; font-weight: 500; border-radius: 8px; } .menu .mp-theme .lo-segments button.actif { font-weight: 600; background: #fff; } .mp-theme .lo-segments button:disabled { cursor: not-allowed; opacity: .55; }
+.mp-sep { border-top: 1px solid #E1E6EC; margin-top: 4px; padding-top: 4px; }
+.mp-deux { display: grid; } .mp-deux small { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #58697F; }
+.mp-deux .okdot { width: 10px; height: 10px; margin: 0; }
+.espace-page .po-retour { display: none; } /* maquettes e22, e27, e33, e35 : pas de lien de retour, l'onglet actif ramène à la liste */
+.demi-tableaux td:first-child { white-space: nowrap; } .demi-tableaux .sous { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demi-tableaux td, .demi-tableaux th { padding-right: 10px; } .demi-tableaux .no-logement { margin-right: 8px; } .demi-tableaux td:first-child { text-overflow: clip; }

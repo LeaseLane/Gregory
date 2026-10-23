@@ -7,6 +7,7 @@ import { Icone } from '@/composants/Icones';
 import { Courbe } from '@/composants/Graphes';
 import { argent, dateCourte } from '../onglets';
 import { LogementTiroir, type LogementEdit } from '../LogementTiroir';
+import { piece } from '@/lib/format';
 
 /* e27 · Fiche immeuble : identité, chiffres clés, logements en deux demi-tableaux, historique d'entretien (en cours d'abord), documents, revenu des loyers sur 12 mois.
    Le retard se dit en mots; le rouge reste à l'urgence. */
@@ -31,12 +32,12 @@ export function FicheImmeuble({ donnees: D, erreurLecture }: { donnees: DonneesI
     setEnvoi(false); if (error) return setBandeau(error.message); setEdit(false); setOk('Fiche mise à jour.'); router.refresh();
   }
   const statut = (u: Log) => u.retard ? <span className="puce todo">Retard · {u.retard} j</span> : u.etat === 'vacant' ? <span className="puce action">À louer</span> : u.etat === 'preavis' ? <span className="puce">À louer</span> : <span className="puce neutral">Loué</span>;
-  const demi = (part: Log[]) => <table className="tableau tab-fixe"><colgroup><col style={{ width: '22%' }} /><col style={{ width: '36%' }} /><col style={{ width: '14%' }} /><col /></colgroup>
+  const demi = (part: Log[]) => <table className="tableau tab-fixe"><colgroup><col style={{ width: '22%' }} /><col style={{ width: '33%' }} /><col style={{ width: '17%' }} /><col /></colgroup>
     <thead><tr><th>Logement</th><th>Locataire</th><th className="droite">Loyer</th><th>Statut</th></tr></thead>
-    <tbody>{part.map((u) => <tr key={u.id} className="ligne-lien" onClick={() => setLogement(u)}><td><span className="no-logement">{u.numero}</span>{u.type ?? '—'}</td>
+    <tbody>{part.map((u) => <tr key={u.id} className="ligne-lien" onClick={() => setLogement(u)}><td><span className="no-logement">{u.numero}</span>{piece(u.type) ?? '—'}</td>
       <td>{u.tenant_id ? <Link className="fort" href={`/clients/locataires/${u.tenant_id}`} onClick={(e) => e.stopPropagation()}>{u.locataire}</Link> : <span className="gris">Libre</span>}
         <span className="sous gris">{u.depart && u.fin ? `Part le ${dateCourte(u.fin)}` : u.fin ? `Fin : ${dateCourte(u.fin, true)}` : '—'}</span></td>
-      <td className="droite fort">{argent(u.loyer)}</td><td>{statut(u)}</td></tr>)}</tbody></table>;
+      <td className="droite fort" style={{ whiteSpace: 'nowrap' }}>{argent(u.loyer)}</td><td>{statut(u)}</td></tr>)}</tbody></table>;
   const champ = (k: keyof typeof f, l: string, num = false) => <div><label className="fenetre-lib" htmlFor={`fi-${k}`}>{l}</label><input id={`fi-${k}`} className="e70-raison" inputMode={num ? 'numeric' : undefined} value={f[k]} onChange={(e) => setF({ ...f, [k]: num ? e.target.value.replace(/\D/g, '') : e.target.value })} /></div>;
   return (
     <>
@@ -49,7 +50,7 @@ export function FicheImmeuble({ donnees: D, erreurLecture }: { donnees: DonneesI
             <div className="imm-photo"><Icone nom="building" taille={48} couleur="#2E5788" /><span className="medias"><Icone nom="camera" taille={16} couleur="#0C2147" />{L.reduce((s, u) => s + u.photos, 0)} photos</span></div>
             <div><div className="tete-action"><p className="surtitre" style={{ margin: 0 }}>Immeuble géré depuis {new Date(D.depuis).getFullYear()}</p>
               <button className="haut-ibtn" onClick={() => setEdit(true)} aria-label="Modifier la fiche"><Icone nom="pencil" taille={18} couleur="#0C2147" /></button></div>
-              <h2 className="releve-titre" style={{ margin: '4px 0' }}>{D.adresse}</h2>
+              <h2 className="releve-titre" style={{ margin: '4px 0' }}>{D.adresse.replace(/,\s*(Québec|Lévis)$/, '')}</h2>
               <p className="gris texte-13" style={{ margin: 0 }}>{[D.quartier, `${L.length} logement${L.length > 1 ? 's' : ''}`, D.annee && `construit en ${D.annee}`].filter(Boolean).join(' · ')}
                 {D.proprietaire && <> · propriétaire <Link href={`/clients/proprietaires/${D.proprietaire.id}`}>{D.proprietaire.nom}</Link></>}</p>
               <div className="imm-chiffres">

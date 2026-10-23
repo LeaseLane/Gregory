@@ -11,7 +11,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
    ⌘K ouvre la palette (e02 : actions, fiches, pages); « Demander à Cléo » ouvre la conversation (e03). */
 const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/ventes', 'Ventes'], ['/maintenance', 'Maintenance'], ['/clients', 'Clients'], ['/juridique', 'Juridique'], ['/studio', 'Studio'], ['/cleo-ia', 'Cléo et IA'], ['/finances', 'Finances'], ['/immeubles', 'Immeubles'], ['/reglages', 'Rapports et réglages']];
 
-export function BarreHaut({ initiales, courriel, nonLues: initial, moi }: { initiales: string; courriel: string; nonLues: number; moi: string }) {
+export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, moi }: { initiales: string; courriel: string; nom: string; role: string; nonLues: number; moi: string }) {
   const [nonLues, setNonLues] = useState(initial);
   const [tiroir, setTiroir] = useState(false);
   // Téléphone (x16) : un appel à moi qui sonne ou est en cours s'affiche partout, avec l'état de l'avis d'enregistrement.
@@ -70,10 +70,19 @@ export function BarreHaut({ initiales, courriel, nonLues: initial, moi }: { init
         <div className="haut-profil">
           <button type="button" className="haut-moi" onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Mon compte">{initiales}</button>
           {menu && (
-            <div className="menu" role="menu">
-              <p className="menu-qui">{courriel}</p>
-              <a href="/compte" role="menuitem">Mon compte</a>
-              <form action="/deconnexion" method="post"><button type="submit" role="menuitem">Me déconnecter</button></form>
+            // e04 : menu du profil (360 px) — qui, préférences, sécurité, raccourcis, aide; le thème sombre arrive plus tard (Clair seulement).
+            <div className="menu menu-profil" role="menu">
+              <div className="mp-qui"><span className="haut-moi" aria-hidden="true">{initiales}</span><div><strong>{nom}</strong><span>{role ? role.charAt(0).toUpperCase() + role.slice(1) : courriel}</span></div></div>
+              <a className="mp-ligne" href="/compte" role="menuitem"><Icone nom="user" taille={18} couleur="#0C2147" />Mon profil<Icone nom="chevron" taille={16} couleur="#78838F" /></a>
+              <p className="mp-sur">Préférences</p>
+              <a className="mp-ligne" href="/compte" role="menuitem"><Icone nom="globe" taille={18} couleur="#0C2147" />Langue<span className="mp-val">Français</span><Icone nom="chevron" taille={16} couleur="#78838F" /></a>
+              <div className="mp-ligne mp-theme"><Icone nom="spark" taille={18} couleur="#0C2147" />Thème
+                <span className="lo-segments"><button type="button" className="actif">Clair</button><button type="button" disabled title="Bientôt">Sombre</button><button type="button" disabled title="Bientôt">Système</button></span></div>
+              <a className="mp-ligne" href="/compte" role="menuitem"><Icone nom="bell" taille={18} couleur="#0C2147" />Notifications<Icone nom="chevron" taille={16} couleur="#78838F" /></a>
+              <a className="mp-ligne mp-sep" href="/compte" role="menuitem"><Icone nom="shieldc" taille={18} couleur="#0C2147" /><span className="mp-deux">Sécurité<small><i className="okdot" aria-hidden="true" />Double authentification activée</small></span><Icone nom="chevron" taille={16} couleur="#78838F" /></a>
+              <button type="button" className="mp-ligne" role="menuitem" onClick={() => { setMenu(false); setPalette(true); }}><Icone nom="command" taille={18} couleur="#0C2147" />Raccourcis clavier<kbd className="touche">⌘ K</kbd></button>
+              <a className="mp-ligne" href="/reglages" role="menuitem"><Icone nom="help" taille={18} couleur="#0C2147" />Aide et réglages<Icone nom="chevron" taille={16} couleur="#78838F" /></a>
+              <form action="/deconnexion" method="post" className="mp-sep"><button type="submit" className="mp-ligne" role="menuitem"><Icone nom="sortir" taille={18} couleur="#0C2147" />Se déconnecter</button></form>
             </div>
           )}
         </div>

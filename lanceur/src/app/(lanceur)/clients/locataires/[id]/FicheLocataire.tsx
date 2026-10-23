@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
+import { adresse, piece } from '@/lib/format';
 
 /* e22 · Fiche locataire : dossier de recouvrement ouvert en tête; paiements des 12 derniers mois (un carré par mois); demandes d'entretien;
    bail; documents et avis; consentements LCAP. Chaque ouverture est inscrite au journal (lecture sensible). */
@@ -44,7 +45,7 @@ export function FicheLocataire({ donnees: D, erreurLecture }: { donnees: Donnees
       <section className="carte-l18 fiche-tete" aria-label="Locataire">
         <span className="ini" style={{ width: 56, height: 56, fontSize: 18 }}>{initiales(D.nom)}</span>
         <div><div className="ligne-ic"><h2 className="releve-titre" style={{ margin: 0 }}>{D.nom}</h2>{D.dossier && <span className="puce todo">{ETAPE[D.dossier.etape] ?? 'Dossier ouvert'}</span>}{D.anonymise && <span className="puce neutral">Anonymisé</span>}</div>
-          <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{[B?.logement, D.depuis && `locataire depuis ${new Date(`${D.depuis}T12:00:00`).getFullYear()}`, D.courriel, D.telephone].filter(Boolean).join(' · ')}</p>
+          <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{[B?.logement && adresse(B.logement), D.depuis && `locataire depuis ${new Date(`${D.depuis}T12:00:00`).toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' })}`, D.courriel, D.telephone].filter(Boolean).join(' · ')}</p>
           <p className="ligne-ic texte-13" style={{ margin: '6px 0 0' }}><i className={`point-etat ${D.portail ? 'ok' : 'off'}`} />{D.portail ? 'Portail actif' : 'Sans portail'}<span className="gris">· consultation inscrite au journal</span></p></div>
         <div className="fiche-actions">
           {!D.portail && !D.anonymise && D.courriel && <button className="bouton bouton-contour" disabled={envoi} onClick={inviter}><Icone nom="send" taille={16} couleur="#0C2147" />Inviter au portail</button>}
@@ -68,7 +69,7 @@ export function FicheLocataire({ donnees: D, erreurLecture }: { donnees: Donnees
         </div>
         <div className="po-colonne">
           <section className="carte-l18 e2" aria-label="Bail"><h2 className="titre-carte">Bail</h2>
-            {B ? <dl className="fiche-dl"><div><dt>Logement</dt><dd>{B.logement}{B.type ? ` · ${B.type}` : ''}</dd></div><div><dt>Loyer</dt><dd>{argent(B.loyer)} / mois</dd></div>
+            {B ? <dl className="fiche-dl"><div><dt>Logement</dt><dd>{adresse(B.logement)}{B.type ? ` · ${piece(B.type)}` : ''}</dd></div><div><dt>Loyer</dt><dd>{argent(B.loyer)} / mois</dd></div>
               <div><dt>Période</dt><dd>{date(B.debut)} au {B.fin ? date(B.fin) : 'indéterminée'}</dd></div><div><dt>Paiement</dt><dd>{B.mode}</dd></div>
               {B.fenetre && <div><dt>Avis de modification</dt><dd>{(([a, b]) => b ? `du ${date(a)} au ${date(b)}` : B.fenetre)(B.fenetre.replace(/[\[\]()]/g, '').split(','))}</dd></div>}</dl> : <p className="gris" style={{ margin: 0 }}>Aucun bail actif.</p>}</section>
           <section className="carte-l18" aria-label="Documents"><h2 className="titre-carte">Documents</h2>

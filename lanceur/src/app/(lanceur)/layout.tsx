@@ -3,7 +3,7 @@ import { supabaseServeur } from '@/lib/supabase/serveur';
 import { destination } from '@/lib/acces';
 import { BarreHaut } from '@/composants/BarreHaut';
 import { AccesReserve } from '@/composants/AccesReserve';
-import { lireMoi } from '@/lib/moi';
+import { lireMoi, ROLES } from '@/lib/moi';
 import { Inactivite } from '@/composants/Inactivite';
 
 /* Coquille Lanceur. Revérifie côté serveur ce que le proxy a déjà filtré (session, 2FA), puis l'appartenance
@@ -23,7 +23,7 @@ export default async function LanceurLayout({ children }: { children: React.Reac
   return (
     <div className="coquille">
       {moi && <Inactivite minutes={Number((politique as { inactivite_minutes?: number } | null)?.inactivite_minutes ?? 0)} />}
-      <BarreHaut initiales={initiales} courriel={u.email ?? ''} nonLues={Number((notifs as { non_lues?: number } | null)?.non_lues ?? 0)} moi={u.id} />
+      <BarreHaut initiales={initiales} courriel={u.email ?? ''} nom={moi?.nom && !moi.nom.includes('@') ? moi.nom : (u.email ?? '')} role={moi ? (ROLES[moi.role] ?? moi.role) : ''} nonLues={Number((notifs as { non_lues?: number } | null)?.non_lues ?? 0)} moi={u.id} />
       {moi ? (
         children
       ) : (
