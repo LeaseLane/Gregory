@@ -28,7 +28,7 @@ export function Locataires({ donnees: D, filtres, erreurLecture }: { donnees: Do
         </div>
         <section className="carte-l18" aria-label="Locataires"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Locataires</h2>
           <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{D.locataires.length} {D.locataires.length > 1 ? 'baux actifs' : 'bail actif'} · ceux qui demandent une action d’abord</p>
-          <table className="tableau tab-fixe"><colgroup><col style={{ width: '26%' }} /><col style={{ width: '23%' }} /><col style={{ width: '13%' }} /><col style={{ width: '9%' }} /><col style={{ width: '15%' }} /><col /></colgroup>
+          <table className="tableau tab-fixe tab-locataires"><colgroup><col style={{ width: '26%' }} /><col style={{ width: '23%' }} /><col style={{ width: '13%' }} /><col style={{ width: '9%' }} /><col style={{ width: '15%' }} /><col /></colgroup>
             <thead><tr><th>Locataire</th><th>Logement</th><th>Fin du bail</th><th className="droite">Loyer</th><th>Paiement</th><th>Portail</th></tr></thead>
             <tbody>{L.map((t) => <tr key={t.lease_id} className="ligne-lien" onClick={() => router.push(`/clients/locataires/${t.id}`)}>
               <td><span className="cellule-ini"><span className="ini" style={{ width: 36, height: 36, fontSize: 12 }}>{initiales(t.nom)}</span><span><Link className="fort" href={`/clients/locataires/${t.id}`} onClick={(e) => e.stopPropagation()}>{t.nom}</Link>

@@ -1712,3 +1712,18 @@ input + .bouton { white-space: nowrap; } .bouton { overflow-wrap: normal; } .dea
 .tab-fournisseurs td .sous, .tab-factures td .sous { overflow: hidden; text-overflow: ellipsis; }
 .tab-fournisseurs td .puce { padding: 0 8px; }
 .tableau.tab-fournisseurs td:first-child, .tableau.tab-factures td:first-child { white-space: normal; } .tableau.tab-factures td:first-child .sous { white-space: nowrap; }
+.tableau.tab-locataires td + td + td { white-space: nowrap; overflow-wrap: normal; overflow: hidden; text-overflow: ellipsis; } .tableau.tab-locataires td + td + td .sous { overflow: hidden; text-overflow: ellipsis; } /* e21 : fin du bail, loyer, paiement, portail sur une ligne */
+
+/* ── Cléo et IA › Cléo (e56) ── */
+.grille-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 24px; }
+.ligne-entre { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.cleo-deux { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; }
+.cleo-gros { margin: 8px 0 16px; font-size: 14px; color: #3E4A59; } .cleo-gros b { margin-right: 8px; font-size: 28px; font-weight: 700; letter-spacing: -.6px; color: #0C2147; }
+.cleo-split { display: flex; gap: 2px; height: 12px; margin-bottom: 8px; } .cleo-split i:first-child { background: #4581CB; border-radius: 2px 0 0 2px; } .cleo-split i:last-child { flex: 1; background: #A6B1BE; border-radius: 0 2px 2px 0; }
+.cleo-canaux li { align-items: center; } .cleo-canaux .interrupteur { margin-left: auto; }
+.cleo-signature { display: flex; align-items: center; margin: 0 0 16px; background: #fff; }
+.cleo-apercu { margin: 8px 0 0; padding: 16px; border-radius: 12px; background: #ECF2F9; font-size: 13px; line-height: 1.5; color: #0C2147; }
+@media (max-width: 1100px) { .grille-3, .cleo-deux { grid-template-columns: minmax(0, 1fr); } }
+.ligne-entre span.interrupteur, .cleo-canaux span.interrupteur { opacity: 1; }
+.lo-docs .lo-lien { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; } .lo-docs .lo-lien > div { flex: 1; display: grid; min-width: 0; }
+.grille-2-1 + .grille-3 { margin-top: 0; }
