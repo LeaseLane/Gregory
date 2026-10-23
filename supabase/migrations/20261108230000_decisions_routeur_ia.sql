@@ -122,7 +122,7 @@ begin
       'portes', (select count(*) from public.units u join public.buildings b on b.id = u.building_id where b.owner_id is not null),
       'clients', (select count(*) from public.owners where archived_at is null),
       'modeles', (select jsonb_agg(k order by k) from jsonb_object_keys((select valeur from config.parametres where cle = 'ia_prix')) k where k <> 'defaut'),
-      'prix', (select valeur from config.parametres where cle = 'ia_prix'));
+      'prix', (select valeur from config.parametres where cle = 'ia_prix')));
 end $$;
 
 create or replace function public.lanceur_routeur_maj(p jsonb) returns void language plpgsql security definer set search_path = '' as $$
