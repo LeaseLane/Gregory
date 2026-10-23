@@ -1,3 +1,6 @@
+/* Page « Inscrire mon entreprise » : feuille complète d'origine (inscription.css), chargée par InscriptionEntreprise.jsx seulement
+   (PageSpeed, 23 oct. 2026). Les règles de la bande d'appel y figurent aussi, dans leur ordre d'origine : la cascade de la page
+   reste exactement celle d'avant; les autres pages ne chargent que inscription-appel.css. */
 /* Page « Inscrire mon entreprise » (src/components/InscriptionEntreprise.jsx) : CSS du prototype de la livraison design,
    classes préfixées ie- (aucune collision avec le site). Valeurs exactes du prototype; réactif à 1100 et 620 px.
    Aussi : bouton de l'en-tête (.ll-entete-inscrire, src/proto/chrome.jsx via posttraiter.py). */

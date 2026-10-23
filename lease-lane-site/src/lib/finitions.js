@@ -75,21 +75,26 @@ export function demarrerFinitions() {
     [].forEach.call(page.querySelectorAll('.ll-sans-puce'),function(e){if(!mq.matches)e.classList.remove('ll-sans-puce')});
     if(!mq.matches)return;
     /* Listes centrées : la puce ou le pictogramme de tête (fait pour un alignement à gauche) est masqué. */
+    /* Performance (PageSpeed, 23 oct. 2026, « forced reflow ») : lectures d'abord, écritures ensuite. Avant, chaque ajout de
+       classe invalidait la mise en page que la lecture suivante recalculait (une mise en page forcée par élément). */
+    var sansPuce=[];
     [].forEach.call(page.querySelectorAll('li'),function(li){
       var ic=li.firstElementChild;if(!ic||ic.getAttribute('aria-hidden')!=='true'||ic.offsetWidth>26||ic.classList.contains('pc-ic'))return;
       if(li.closest('nav,button,.ll-fl,.bl-corps,.ll-legal,form,.fp'))return;
       var cs=getComputedStyle(li);if(cs.textAlign!=='center'&&cs.justifyContent!=='center')return;
-      li.classList.add('ll-sans-puce');
-      [].forEach.call(li.querySelectorAll('.ll-a-cote'),function(x){x.classList.remove('ll-a-cote')});
+      sansPuce.push(li);
     });
+    sansPuce.forEach(function(li){li.classList.add('ll-sans-puce');[].forEach.call(li.querySelectorAll('.ll-a-cote'),function(x){x.classList.remove('ll-a-cote')})});
+    var aCote=[];
     [].forEach.call(page.querySelectorAll(':is(span,div,i):has(>svg,>img)'),function(p){
       if(p.closest('button,.ll-fl'))return;
       var t=p.nextElementSibling;if(!t||p.offsetWidth===0||p.offsetWidth>96||p.offsetHeight>96)return;
       if(getComputedStyle(t).textAlign!=='center'&&!t.classList.contains('ll-a-cote'))return;
       var a=p.getBoundingClientRect(),b=t.getBoundingClientRect();
       /* côte à côte : le pictogramme est à gauche du texte et chevauche sa hauteur */
-      if(a.right<=b.left+2&&a.bottom>b.top+4&&a.top<b.bottom-4)t.classList.add('ll-a-cote');
+      if(a.right<=b.left+2&&a.bottom>b.top+4&&a.top<b.bottom-4)aCote.push(t);
     });
+    aCote.forEach(function(t){t.classList.add('ll-a-cote')});
   }
   var t=0;new MutationObserver(function(){clearTimeout(t);t=setTimeout(balayer,300)}).observe(document.documentElement,{childList:true,subtree:true});
   mq.addEventListener('change',balayer);window.addEventListener('load',function(){setTimeout(balayer,600)});relanceurs.push(balayer);

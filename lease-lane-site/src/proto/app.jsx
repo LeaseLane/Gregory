@@ -14,19 +14,10 @@ import { __ssr } from '@/lib/hydratation';
 import { demanderCleo, envoyerDemande } from '@/lib/envoi';
 import { prochainsCreneaux } from '@/lib/creneaux';
 import { AUD, ORDRE, faqPour, normF, motsF, trouverFaq, cleScenario, decider, choisirDico } from '@/lib/cleo-routage';
+import { ICONES_BOUTON, FORME_VOIE, AVATAR_CLEO } from '@/proto/forme-voie';
 
 /* Repli si le paquet du système n'expose pas encore le contexte : la page s'affiche avec les pilules au lieu d'un écran blanc. */
 
-/* Boutons du site public : kit « Flèche ». Icône du segment choisie d'après le libellé quand la page n'en fournit pas. */
-const ICONES_BOUTON = [[/offre/i, 'file-text'], [/expertise|méthode/i, 'chart-column'], [/tarif|frais/i, 'tag'], [/recherch/i, 'search'], [/logement|propriét/i, 'house'], [/cléo|écrire|question/i, 'message-square'], [/appel|planifier|visite|rendez/i, 'calendar-check'], [/travaux/i, 'wrench'], [/connexion|connecter|accéder|espace|portail/i, 'key-round'], [/relais|personne|équipe/i, 'users'], [/étapes/i, 'layers'], [/envoyer/i, 'send'], [/photo/i, 'camera'], [/document/i, 'files'], [/gestion/i, 'building-2'], [/urgence|appeler/i, 'phone'], [/témoin|personnaliser/i, 'settings'], [/refuser/i, 'x'], [/accepter|enregistrer|confirmer|continuer|valider/i, 'check'], [/locataire|service/i, 'key-round']];
-const FORME_VOIE = {
-  forme: 'fleche',
-  icone: t => {
-    const m = ICONES_BOUTON.find(([r]) => r.test(t || ''));
-    return m ? m[1] : 'circle-check';
-  }
-};
-const AVATAR_CLEO = "/assets/img/cleo-avatar.png";
 /* Cléo — scénarios de conversation. Chaque réponse = suite de messages (texte ou carte), avec
    relances et créneaux optionnels. Ton : vouvoiement, phrases courtes, aucune promesse, escalade
    vers une personne dès qu'une décision légale ou financière est en jeu. */

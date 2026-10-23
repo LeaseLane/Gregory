@@ -1,0 +1,128 @@
+/* Bande d'appel « Inscrire mon entreprise » (AppelInscription.jsx : accueil et page d'inscription) : toute règle de
+   inscription.css qui touche une classe de la bande (ie-appel, ie-bande, ie-chevrons, ie-surtitre, ie-conteneur, ie-btn, ie-ic),
+   chargée sur toutes les pages; le reste (formulaire) ne charge que sur la page d'inscription. Découpe : voir le commit. */
+/* Page « Inscrire mon entreprise » (src/components/InscriptionEntreprise.jsx) : CSS du prototype de la livraison design,
+   classes préfixées ie- (aucune collision avec le site). Valeurs exactes du prototype; réactif à 1100 et 620 px.
+   Aussi : bouton de l'en-tête (.ll-entete-inscrire, src/proto/chrome.jsx via posttraiter.py). */
+.ie, .ie-appel {
+  --ie-marine: #0C2147; --ie-marine-2: #173A6E; --ie-bleu: #4581CB; --ie-bleu-600: #3767A2; --ie-bleu-700: #2E5788;
+  --ie-bleu-025: #ECF2F9; --ie-bleu-050: #C8DAF0; --ie-bleu-100: #B5CDEA; --ie-bleu-200: #91B5E0; --ie-bleu-300: #6A9AD5;
+  --ie-douce: #F5F8FC; --ie-texte: #3E4A59; --ie-discret: #58697F; --ie-indication: #6B7A8F; --ie-ligne: #DCE3EC; --ie-ligne-2: #C9D3E0;
+  --ie-succes: #0B7A55; --ie-succes-fond: #E7F4EE; --ie-erreur: #9B2E28; --ie-erreur-fond: #FBEDEC;
+  --ie-degrade: linear-gradient(135deg, #0C2147 0%, #122744 55%, #1C3053 100%);
+  --ie-ombre-carte: 0 2px 4px rgba(12,33,71,.05), 0 40px 80px -30px rgba(12,33,71,.30);
+  --ie-ombre-1: 0 1px 2px rgba(12,33,71,.06), 0 8px 24px rgba(12,33,71,.08);
+  --ie-anneau: 0 0 0 4px rgba(69,129,203,.18);
+  --ie-gouttiere: 80px;
+  font-family: var(--police-corps); font-size: 16px; line-height: normal; color: var(--ie-texte); background: #fff; -webkit-font-smoothing: antialiased;
+}
+.ie *, .ie-appel * { box-sizing: border-box; }
+.ie :is(h1, h2, h3, p), .ie-appel :is(h2, p) { margin: 0; font-family: var(--police-corps); }
+.ie-ic { width: 20px; height: 20px; flex: 0 0 auto; display: block; }
+.ie :focus-visible, .ie-appel :focus-visible { outline: 3px solid var(--ie-bleu); outline-offset: 2px; }
+.ie-conteneur { max-width: calc(1280px + 2 * var(--ie-gouttiere)); margin: 0 auto; padding: 0 var(--ie-gouttiere); }
+.ie-surtitre { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ie-bleu-600); }
+
+/* Boutons (liens ou boutons; couleurs gardées au survol malgré a:hover du site) */
+.ie-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 24px; border-radius: 12px; border: 0; font-size: 15px; font-weight: 600; line-height: 1.2; text-decoration: none; cursor: pointer; transition: background .15s, box-shadow .15s, transform .15s; }
+.ie .ie-btn-plein, .ie .ie-btn-plein:hover, .ll-entete-inscrire, .ll-entete-inscrire:hover { color: #fff; }
+.ie-btn-plein { background: var(--ie-marine); }
+.ie-btn-plein:hover { background: var(--ie-marine-2); }
+.ie .ie-btn-contour, .ie .ie-btn-contour:hover, .ie-appel .ie-btn-inverse, .ie-appel .ie-btn-inverse:hover { color: var(--ie-marine); }
+.ie-btn-contour { background: #fff; box-shadow: inset 0 0 0 1px var(--ie-ligne-2); }
+.ie-btn-contour:hover { box-shadow: inset 0 0 0 1px var(--ie-bleu); background: var(--ie-douce); }
+.ie-btn-inverse { background: #fff; }
+.ie-btn-inverse:hover { background: var(--ie-bleu-025); }
+.ie-btn-s { min-height: 44px; padding: 0 20px; font-size: 14px; }
+.ie-bandeau > .ie-chevrons { position: absolute; top: 0; right: -80px; height: 100%; width: 560px; pointer-events: none; }
+.ie-bandeau .ie-conteneur { position: relative; }
+.ie-bandeau .ie-surtitre { color: var(--ie-bleu-300); margin-top: 48px; display: block; }
+.ie-reperes .ie-ic { width: 18px; height: 18px; color: var(--ie-bleu-200); }
+.ie-colonne .ie-surtitre { color: var(--ie-bleu-300); }
+.ie-ensuite .ie-ic { width: 18px; height: 18px; color: var(--ie-bleu-300); }
+.ie-connexion .ie-ic { width: 18px; height: 18px; color: var(--ie-bleu-200); }
+.ie label:not(.ie-btn), .ie-libelle { font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--ie-marine); }
+.ie-boite .ie-ic { position: absolute; left: 16px; color: var(--ie-discret); pointer-events: none; }
+.ie .ie-boite .ie-ic + input { padding-left: 48px; }
+.ie-erreur .ie-ic { width: 16px; height: 16px; margin-top: 2px; }
+[data-invalide="true"] .ie-boite .ie-ic { color: var(--ie-erreur); }
+.ie-cercle .ie-ic { width: 22px; height: 22px; }
+.ie-etat .ie-ic { width: 16px; height: 16px; }
+.ie-confidentialite .ie-ic { color: var(--ie-bleu-600); margin-top: 2px; }
+.ie-message-erreur > .ie-ic { color: var(--ie-erreur); }
+.ie-message-info > .ie-ic { color: var(--ie-bleu-600); }
+.ie-cercle-ok .ie-ic { width: 40px; height: 40px; }
+.ie-confirmation .ie-btn { margin-top: 40px; }
+.ie-rond .ie-ic { width: 24px; height: 24px; }
+.ie-faq .ie-conteneur { display: grid; grid-template-columns: 440px minmax(0, 1fr); gap: 120px; align-items: start; }
+.ie-faq .ie-btn { margin-top: 32px; }
+.ie-plus .ie-ic { width: 16px; height: 16px; }
+
+/* Bande d'appel (bas de page et accueil) */
+.ie-appel { padding: 80px 0; background: #fff; }
+.ie-bande { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 56px; border-radius: 24px; background: var(--ie-degrade); color: #fff; }
+.ie-bande > div { position: relative; }
+.ie-appel .ie-surtitre { display: block; margin-bottom: 12px; color: var(--ie-bleu-300); }
+.ie-appel .ie-bande h2 { font-size: 30px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; color: #fff; }
+.ie-appel .ie-bande p { margin-top: 12px; font-size: 15px; line-height: 1.6; color: var(--ie-bleu-100); }
+.ie-bande > .ie-chevrons { position: absolute; right: -20px; top: 0; height: 100%; opacity: .9; pointer-events: none; }
+.ie-bande .ie-btn { position: relative; flex: none; margin-right: 260px; }
+
+/* Tablette (≤ 1100 px) : la colonne marine passe au-dessus du formulaire, avec ses 3 éléments seulement */
+@media (max-width: 1100px) {
+  .ie, .ie-appel { --ie-gouttiere: 40px; }
+  .ie-carte { grid-template-columns: minmax(0, 1fr); }
+  .ie-colonne { padding: 32px 40px; }
+  .ie-colonne .ie-ensuite, .ie-colonne hr, .ie-colonne .ie-ensuite-titre { display: none; }
+  .ie-demandes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+  .ie .ie-connexion { padding-top: 24px; }
+  .ie-faq .ie-conteneur { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .ie-bande .ie-btn { margin-right: 0; }
+}
+/* Mobile (≤ 620 px) : texte centré, sauf le formulaire */
+@media (max-width: 620px) {
+  .ie, .ie-appel { --ie-gouttiere: 16px; }
+  .ll-entete-inscrire { display: none; }
+  .ie-bandeau { padding: 28px 0 176px; text-align: center; }
+  .ie-fil { justify-content: center; font-size: 10px; gap: 6px; }
+  .ie-fil li + li::before { margin-right: 6px; }
+  .ie-bandeau .ie-surtitre { margin-top: 28px; font-size: 11px; }
+  .ie .ie-bandeau h1 { margin: 12px auto 0; font-size: 32px; letter-spacing: -0.025em; }
+  .ie .ie-chapeau { margin: 20px auto 0; font-size: 14px; }
+  .ie-reperes { justify-content: center; flex-direction: column; align-items: center; margin-top: 24px; }
+  .ie-reperes li:nth-child(2) { display: none; }
+  .ie-bandeau > .ie-chevrons { display: none; }
+  .ie-carte-zone { margin-top: -136px; padding-bottom: 64px; }
+  .ie-carte { border-radius: 20px; }
+  .ie-colonne { display: none; }
+  .ie-formulaire { padding: 28px 20px 32px; }
+  #ll-page .ie form { text-align: left; } /* le site centre le texte des blocs qui ont un h2 sur mobile; le formulaire reste à gauche */
+  .ie .ie-formulaire h2, .ie .ie-sous-titre { text-align: center; }
+  .ie .ie-formulaire h2 { font-size: 20px; }
+  .ie form { margin-top: 28px; gap: 28px; }
+  .ie-rangee { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .ie-depot { flex-direction: column; text-align: center; padding: 20px 16px 16px; }
+  .ie-depot .ie-glisser { display: none; }
+  .ie-depot .ie-photo-titre { display: block; }
+  .ie-depot .ie-photo { display: grid; gap: 8px; width: 100%; margin-top: 8px; }
+  .ie-depot .ie-photo .ie-btn { width: 100%; position: relative; z-index: 1; }
+  .ie-depot > input[type=file] { pointer-events: none; }
+  .ie-joint { grid-template-columns: 44px minmax(0, 1fr) 44px; }
+  .ie-joint .ie-lien-btn { display: none; }
+  .ie .ie-confidentialite { padding: 16px; }
+  .ie .ie-connexion-mobile { display: block; text-align: center; font-size: 14px; }
+  .ie-confirmation { padding: 40px 20px; }
+  .ie .ie-confirmation h2 { font-size: 24px; }
+  .ie .ie-parcours h2, .ie .ie-faq h2 { font-size: 26px; }
+  .ie-etapes { grid-template-columns: minmax(0, 1fr); gap: 40px; margin-top: 40px; }
+  .ie-etapes::before { display: none; }
+  .ie-etapes small { margin-top: 14px; }
+  .ie-faq { padding: 64px 0; text-align: center; }
+  .ie .ie-faq .ie-intro { margin: 16px auto 0; }
+  .ie-questions { text-align: left; }
+  .ie-appel { padding: 48px 0; }
+  .ie-bande { flex-direction: column; text-align: center; padding: 40px 24px; }
+  .ie-bande > .ie-chevrons { display: none; }
+}@media (prefers-reduced-motion: reduce) {
+  .ie *, .ie-appel *, .ll-entete-inscrire { transition: none !important; animation: none !important; }
+}

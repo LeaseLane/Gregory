@@ -232,6 +232,20 @@ def heros7_webp(s):
     assert s.count(a) == 1, 'heros7 IM'
     return s.replace(a, "  const IM = IMG + 'couverture-immeubles.webp',", 1)
 edit('accueil-heros7.jsx', heros7_webp)
+
+# Performance : ICONES_BOUTON et FORME_VOIE sortent de app.jsx (forme-voie.jsx) pour que la coquille ne charge pas l'agent Cléo.
+def app_forme_voie(s):
+    DEBUT = "/* Boutons du site public : kit « Flèche ». Icône du segment choisie d'après le libellé quand la page n'en fournit pas. */\n"
+    FIN = "    return m ? m[1] : 'circle-check';\n  }\n};\n"
+    anc = "import { AUD, ORDRE, faqPour, normF, motsF, trouverFaq, cleScenario, decider, choisirDico } from '@/lib/cleo-routage';\n"
+    i = s.index(DEBUT); j = s.index(FIN, i) + len(FIN); bloc = s[i:j]
+    assert "const ICONES_BOUTON" in bloc and "const FORME_VOIE" in bloc and s.count(anc) == 1, 'forme-voie'
+    open(D + '/forme-voie.jsx', 'w').write("/* Extrait de app.jsx par posttraiter.py : la coquille (Coquille.jsx) n'a besoin que du kit de boutons « Flèche », pas de\n   tout l'agent Cléo (chargé au premier geste de l'utilisateur, PageSpeed du 23 oct. 2026). */\n" + bloc + "export { ICONES_BOUTON, FORME_VOIE };\n")
+    av = 'const AVATAR_CLEO = "/assets/img/cleo-avatar.png";\n'
+    assert s.count(av) == 1, 'avatar cleo'
+    with open(D + '/forme-voie.jsx', 'a') as f: f.write(av + "export { AVATAR_CLEO };\n")
+    return (s[:i] + s[j:]).replace(av, '', 1).replace(anc, anc + "import { ICONES_BOUTON, FORME_VOIE, AVATAR_CLEO } from '@/proto/forme-voie';\n", 1)
+edit('app.jsx', app_forme_voie)
 def hausse_date_blogue(s):
     a = "  d: '2026-01-20',\n  m: '2026-10-08',"
     assert s.count(a) == 1, 'hausse 2026 blogue'
