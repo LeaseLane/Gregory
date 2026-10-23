@@ -9,7 +9,6 @@ import { Icon } from '@/components/ds';
 import { envoyerInscription } from '@/lib/envoi';
 import { useLangue } from '@/lib/i18n/contexte';
 import { AppelInscription } from '@/components/AppelInscription';
-import '@/styles/inscription-formulaire.css';
 export { AppelInscription };
 
 const MAX = 10 * 1024 * 1024, TYPES = ['application/pdf', 'image/jpeg', 'image/png'], EXT = /\.(pdf|jpe?g|png)$/i;

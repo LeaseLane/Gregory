@@ -3,10 +3,10 @@
 /* Gabarit commun de toutes les pages (repris de App, app.jsx du prototype) :
    lien d'évitement, en-tête et menu, contenu, pied de page, Cléo (bulle et panneau) et bandeau des témoins.
    La zone #ll-scroll garde le défilement du prototype (les composants l'écoutent). */
-import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { AIAgentLauncher, FormeBoutonContexte } from '@/components/ds';
-import { FORME_VOIE, AVATAR_CLEO } from '@/proto/forme-voie';
+import { FormeBoutonContexte } from '@/components/ds';
+import { FORME_VOIE, AgentIA } from '@/proto/app';
 import { Entete } from '@/proto/chrome';
 import { PiedRevue } from '@/proto/pied-options';
 import { CleoTemoins } from '@/proto/cleo-temoins';
@@ -16,45 +16,20 @@ import { useLangue } from '@/lib/i18n/contexte';
 import { versFR } from '@/lib/i18n/adresses';
 import { demarrerFinitions } from '@/lib/finitions';
 
-/* Agent Cléo (proto/app.jsx et ses scénarios, ≈ 90 Ko) : chargé au premier geste de l'utilisateur, à la fermeture de la bulle des
-   témoins, à l'appel d'un bouton « Écrire à Cléo », ou après 8 s — jamais avec la page (PageSpeed, 23 oct. 2026). D'ici là, le
-   bouton flottant est le même composant, rendu par le serveur; un clic charge l'agent et ouvre le panneau. */
-const AgentIAComplet = lazy(() => import('@/proto/app').then((m) => ({ default: m.AgentIA })));
-const GESTES = ['pointerdown', 'keydown', 'touchstart', 'wheel'];
-function Lanceur({ onClick }) {
-  return <div className="ll-cleo-flottant" data-ouvert={0} style={{ position: 'fixed', right: '24px', bottom: '24px', zIndex: 1200, display: 'grid', justifyItems: 'end', gap: '14px' }}>
-    <AIAgentLauncher className="cp-lanceur" avatar={AVATAR_CLEO} ouvert={false} pastille={0} onClick={onClick} etiquette="Parler à Cléo" /></div>;
-}
-/* Rejoue, une fois l'agent monté (ses écouteurs sont posés dans ses effets, avant celui-ci), les événements reçus avant son chargement. */
-function Relais({ attente, onMonte }) {
-  useEffect(() => { for (const [nom, detail] of attente.current) window.dispatchEvent(new CustomEvent(nom, { detail })); attente.current = []; onMonte(); }, [attente, onMonte]);
-  return null;
-}
-
 export default function Coquille({ children }) {
   const chemin = usePathname() || '/';
   const lang = useLangue();
   /* Les composants du prototype raisonnent en adresses françaises (lien actif, etc.). */
   const cheminFR = lang === 'en' ? versFR(chemin) : chemin;
   const [agent, setAgent] = useState(false);
-  const [cleoPret, setCleoPret] = useState(false);
-  /* Le bouton flottant servi par le serveur reste le même nœud jusqu'à ce que l'agent soit monté : un geste (pointerdown) lance le
-     chargement, et le clic qui suit doit tomber sur le même bouton, sinon il est perdu. */
-  const [cleoMonte, setCleoMonte] = useState(false);
-  const attente = useRef([]);
-  useEffect(() => {
-    if (cleoPret) return;
-    const charger = () => { setCleoPret(true); import('@/lib/leaflet-global'); };
-    const garder = (e) => { attente.current.push([e.type, e.detail]); charger(); };
-    const sc = document.getElementById('ll-scroll');
-    GESTES.forEach((g) => window.addEventListener(g, charger, { once: true, passive: true }));
-    sc && sc.addEventListener('scroll', charger, { once: true, passive: true });
-    window.addEventListener('ll-temoins-vue', charger, { once: true });
-    window.addEventListener('ll-cleo', garder); window.addEventListener('ll-cleo-profil', garder);
-    const t = setTimeout(charger, 8000);
-    return () => { GESTES.forEach((g) => window.removeEventListener(g, charger)); sc && sc.removeEventListener('scroll', charger); window.removeEventListener('ll-temoins-vue', charger); window.removeEventListener('ll-cleo', garder); window.removeEventListener('ll-cleo-profil', garder); clearTimeout(t); };
-  }, [cleoPret]);
   useEffect(() => { demarrerFinitions(); }, []);
+  /* Leaflet (cartes des logements, 145 Ko) : chargé en arrière-plan une fois la page affichée, plutôt qu'avec chaque page
+     (PageSpeed, 22 oct. 2026). Les cartes du prototype vérifient window.L avant de se monter; elles n'apparaissent qu'après
+     un geste (vue « Carte », défilement jusqu'à la fiche), une fois Leaflet déjà là. */
+  useEffect(() => {
+    const charger = () => (window.requestIdleCallback || setTimeout)(() => import('@/lib/leaflet-global'));
+    if (document.readyState === 'complete') charger(); else window.addEventListener('load', charger, { once: true });
+  }, []);
   /* Nouvelle page : retour en haut de la zone de défilement (le prototype le faisait à chaque changement d'adresse). */
   useEffect(() => {
     const sc = document.getElementById('ll-scroll');
@@ -72,8 +47,7 @@ export default function Coquille({ children }) {
         <Entete page={cheminFR} aller={naviguer} />
         <main id="ll-page" key={chemin}>{children}</main>
         <PiedRevue />
-        {!cleoMonte && <Lanceur onClick={() => { setAgent(true); setCleoPret(true); }} />}
-        {cleoPret && <Suspense fallback={null}><AgentIAComplet ouvert={agent} setOuvert={setAgent} aller={naviguer} /><Relais attente={attente} onMonte={() => setCleoMonte(true)} /></Suspense>}
+        <AgentIA ouvert={agent} setOuvert={setAgent} aller={naviguer} />
         <CleoTemoins />
         <PixelMeta />
       </div>

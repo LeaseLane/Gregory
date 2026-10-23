@@ -8,7 +8,6 @@ import React, { useEffect, useState } from 'react';
 import { Icon } from '@/components/ds';
 import { useLangue } from '@/lib/i18n/contexte';
 import { PARAMS, calculer, nombre, FAQ_2027 } from '@/lib/hausse-2027';
-import '@/styles/hausse-2027.css';
 
 const EXEMPLE = { loyer: '1 450', logements: '6', taxes1: '8 400', taxes2: '8 820', assu1: '3 600', assu2: '3 960', travaux: '12 000', service: '0' };
 const SECTIONS = [['courte', 'La réponse courte'], ['change', 'Ce qui change en 2027'], ['etapes', 'Le calcul en 4 étapes'], ['delais', 'Les délais de l’avis'], ['refus', 'Si le locataire refuse'], ['faq', 'Questions fréquentes'], ['sources', 'Sources']];
