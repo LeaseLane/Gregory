@@ -7,6 +7,7 @@ import { Icone } from '@/composants/Icones';
 import { BarresClassees, Courbe } from '@/composants/Graphes';
 import { initiales } from '@/lib/ventes';
 import { argent, jour, moisLong } from '../onglets';
+import { adresse } from '@/lib/format';
 
 /* l15 · Paiements : les loyers sont payés directement aux propriétaires; Lease Lane les suit et relance (jamais « encaissés »).
    Graphique : 2 séries de même unité sur un axe (mois en accent, précédent en gris), base 80 % étiquetée, survol jour par jour. */
@@ -82,7 +83,7 @@ export function Paiements({ donnees: D, filtres, erreurLecture }: { donnees: Don
           <section className="carte-l18" aria-label="Loyers à venir"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Loyers à venir · 30 jours</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>Inscrivez un loyer payé chez le propriétaire dès sa confirmation</p>
             <table className="tableau tab-fixe"><colgroup><col style={{ width: '28%' }} /><col style={{ width: '34%' }} /><col style={{ width: '12%' }} /><col style={{ width: '12%' }} /><col /></colgroup>
               <thead><tr><th>Locataire</th><th>Logement</th><th className="droite">Montant</th><th>Échéance</th><th /></tr></thead>
-              <tbody>{D.a_venir.slice(0, 12).map((a) => <tr key={a.id}><td className="fort">{a.locataire}<span className="sous gris">{a.pad ? 'Prélèvement' : 'Virement ou chèque'}</span></td><td>{a.logement}</td><td className="droite">{argent(a.montant)}</td><td>{jour(a.le)}</td>
+              <tbody>{D.a_venir.slice(0, 12).map((a) => <tr key={a.id}><td className="fort">{a.locataire}<span className="sous gris">{a.pad ? 'Prélèvement' : 'Virement ou chèque'}</span></td><td>{adresse(a.logement)}</td><td className="droite">{argent(a.montant)}</td><td>{jour(a.le)}</td>
                 <td className="droite">{D.peut_ecrire && <button className="lien" onClick={() => { setM({ montant: String(a.montant), le: '', mode: a.pad ? 'prelevement' : 'virement' }); setPayer(a); }}>Inscrire payé</button>}</td></tr>)}
                 {!D.a_venir.length && <tr><td colSpan={5} className="gris">Aucun loyer à venir.</td></tr>}</tbody></table></section>
         </div>
@@ -93,7 +94,7 @@ export function Paiements({ donnees: D, filtres, erreurLecture }: { donnees: Don
           <section className="carte-l18" aria-label="Relances en cours"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Relances en cours</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>Rappel J+1, courriel J+7, mise en demeure à approuver</p>
             <ul className="lo-docs">{D.relances.map((r) => <li key={r.id}><span className="ini" style={{ width: 36, height: 36, fontSize: 12 }}>{initiales(r.locataire)}</span>
               <div><span className="tete-action"><Link className="fort" href={`/clients/locataires/${r.tenant_id}`}>{r.locataire}</Link><b>{argent(r.montant)}</b></span>
-                <span className="gris texte-13">{r.logement} · {r.jours} j</span>
+                <span className="gris texte-13">{adresse(r.logement)} · {r.jours} j</span>
                 <span className={`texte-13 ${r.dossier?.brouillon || r.refus ? 'rouge-txt' : 'gris'}`}>{r.dossier ? <Link href={`/juridique?d=${r.dossier.id}`}>{etat(r)} · {r.dossier.numero}</Link> : etat(r)}</span>
                 {D.peut_ecrire && <span className="ligne-ic"><button className="lien" onClick={() => { setM({ montant: String(r.montant), le: '', mode: 'virement' }); setPayer(r); }}>Inscrire payé</button>
                   <button className="lien" onClick={() => r.pause ? rpc('lanceur_paiement_pause', { id: r.id, pause: false }, 'Relances reprises.') : (setRaison(''), setPause(r))}>{r.pause ? 'Reprendre les relances' : 'Mettre en pause'}</button></span>}</div></li>)}

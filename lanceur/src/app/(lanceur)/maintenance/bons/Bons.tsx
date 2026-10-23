@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 import { Courbe } from '@/composants/Graphes';
 import { ETAPES, heure } from '../onglets';
+import { adresse } from '@/lib/format';
 
 /* e32 · Bons de travail : bons ouverts = micro-colonnes (12 mois), délai = micro-courbe, coût du mois = jauge contre le budget; l'urgence seule en rouge, toujours étiquetée.
    Une carte = un bon : fournisseur, moment, responsable. Assurance échue avec travaux planifiés : seul autre cas rouge. */
@@ -37,7 +38,7 @@ export function Bons({ donnees: D, filtres, maintenant, erreurLecture }: { donne
         <div className="kpi"><span>Délai moyen</span><b>{I.delai != null ? `${String(I.delai).replace('.', ',')} j` : '—'}</b><span>de la demande au bon de travail</span><Courbe valeurs={I.delai_serie.filter((x): x is number => x != null).map(Number)} /></div>
         <div className="kpi"><span>Coût du mois</span><b>{argent(I.cout_mois)}</b>
           {I.budget ? <><span>{Math.round((100 * I.cout_mois) / I.budget)} % du budget de {argent(I.budget)}</span><span className="jauge"><i style={{ width: `${Math.min(100, (100 * I.cout_mois) / I.budget)}%` }} /></span></> : <span>Aucun budget mensuel fixé</span>}</div>
-        <div className="kpi"><span>Urgence en cours</span><b style={u ? { color: '#9B2E28' } : undefined}>{I.urgences.length}</b><span>{u ? <Link href={`/maintenance/bons/${u.id}`}>{u.titre} · {u.logement}</Link> : 'Aucune'}</span></div>
+        <div className="kpi"><span>Urgence en cours</span><b style={u ? { color: '#9B2E28' } : undefined}>{I.urgences.length}</b><span>{u ? <Link href={`/maintenance/bons/${u.id}`}>{u.titre} · {adresse(u.logement)}</Link> : 'Aucune'}</span></div>
       </div>
       {filtres.immeuble && <p className="ligne-ic texte-13">Immeuble : <b>{D.immeubles.find((b) => b.id === filtres.immeuble)?.adresse}</b><button className="lien" onClick={() => router.push('/maintenance/bons')}>Tout afficher</button></p>}
       <div className="kanban bt-kanban">{COLS.map((k) => { const l = D.bons.filter((b) => b.etape === k);
@@ -45,7 +46,7 @@ export function Bons({ donnees: D, filtres, maintenant, erreurLecture }: { donne
           <header><h2>{ETAPES[k]}</h2><span className="compte">{l.length}</span><p>{resume(k, l)}</p></header>
           <ul>{l.map((b) => <li key={b.id}><Link href={`/maintenance/bons/${b.id}`} className={`bt-carte${b.urgent ? ' urgent-bord' : ''}`}>
             <span className="tete-action"><strong>{b.titre}</strong><small>{b.numero}</small></span>
-            <span className="gris texte-13">{b.logement}{b.fournisseur ? ` · ${b.fournisseur}` : b.etape === 'a_planifier' ? ' · à assigner' : ''}</span>
+            <span className="gris texte-13">{adresse(b.logement)}{b.fournisseur ? ` · ${b.fournisseur}` : b.etape === 'a_planifier' ? ' · à assigner' : ''}</span>
             <span className="bt-pied">{puce(b)}{b.risque ? <span className="rouge-txt ligne-ic"><Icone nom="alert" taille={14} couleur="#9B2E28" />{b.risque}</span>
               : <span className="gris texte-12">{b.demande ? `via ${b.demande}` : b.depart ? 'départ annoncé' : b.photos ? 'photos reçues' : ''}</span>}
               {b.responsable && <span className="ini" style={{ width: 26, height: 26, fontSize: 10, marginLeft: 'auto' }}>{b.responsable}</span>}</span></Link></li>)}</ul>

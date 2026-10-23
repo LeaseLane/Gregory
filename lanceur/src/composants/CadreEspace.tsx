@@ -24,7 +24,7 @@ const lien = (href: string, libelle: string, icone: string, principal = false) =
 
 /* Boutons de la maquette par espace; un bouton dont l'écran n'existe pas encore n'est pas affiché. */
 const ACTIONS: Record<string, () => React.ReactNode> = {
-  'Opérations': () => <BoutonExporter nom="operations" />,
+  'Opérations': () => <><BoutonExporter nom="operations" />{lien('/operations?nouveau=1', 'Nouvelle demande', 'plus', true)}</>,
   'Ventes': () => <>{lien('/ventes/leads/import', 'Importer un CSV', 'upload')}{lien('/ventes/leads?nouveau=1', 'Nouveau lead', 'plus', true)}</>,
   'Clients': () => lien('/clients/proprietaires?nouveau=1', 'Nouveau client', 'plus', true),
   'Immeubles': () => lien('/immeubles?nouveau=1', 'Ajouter un immeuble', 'plus', true),

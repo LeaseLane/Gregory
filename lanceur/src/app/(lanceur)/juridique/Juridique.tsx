@@ -261,7 +261,7 @@ function VueMises({ D, ouvrirE50 }: { D: DonneesJur; ouvrirE50: (x: Dossier) => 
         </section>}
         <section className="carte-l18" aria-label="Statistiques">
           <header className="carte-tete sans-marge"><h2>{E.length ? `${payees} mise${payees > 1 ? 's' : ''} en demeure sur ${E.length} ${payees > 1 ? 'ont été payées' : 'a été payée'}` : 'Statistiques'}</h2><p>Depuis le début</p></header>
-          {E.length > 0 ? <div className="unites">{E.slice(0, 6).map((e) => <div key={e.id}><i className={e.resultat === 'paye' ? 'paye' : ''} /><span>{(e.locataire ?? '').split(' ')[0]} · {e.resultat === 'paye' ? 'payé' : e.resultat === 'tal' ? 'TAL' : 'en attente'}</span></div>)}</div>
+          {E.length > 0 ? <div className="unites-jur">{E.slice(0, 6).map((e) => <div key={e.id}><i className={e.resultat === 'paye' ? 'paye' : ''} /><span>{(e.locataire ?? '').split(' ')[0]} · {e.resultat === 'paye' ? 'payé' : e.resultat === 'tal' ? 'TAL' : 'en attente'}</span></div>)}</div>
             : <p className="gris texte-13">Les résultats apparaîtront après les premiers envois.</p>}
         </section>
       </div>

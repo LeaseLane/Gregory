@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
+const depuis = (iso: string) => Date.now() - new Date(iso).getTime() < 365 * 864e5 ? `depuis le ${new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })}` : `depuis ${new Date(iso).getFullYear()}`;
 
 /* e19 · Propriétaires : décisions attendues d'abord; loyers payés chez eux ce mois-ci (suivis par Lease Lane; jamais « encaissés » ni « versés »);
    approbations à relancer; relevés du mois précédent émis le 5. */
@@ -40,14 +41,14 @@ export function Proprietaires({ donnees: D, filtres, maintenant, erreurLecture }
           <section className="carte-l18" aria-label="Propriétaires"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Propriétaires</h2>
             <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{D.proprietaires.length} clients · {T.imm} immeubles · {T.portes} logements · décisions attendues d’abord</p>
             <table className="tableau tab-fixe"><colgroup><col style={{ width: '30%' }} /><col style={{ width: '24%' }} /><col style={{ width: '18%' }} /><col style={{ width: '16%' }} /><col /></colgroup>
-              <thead><tr><th>Propriétaire</th><th>Immeubles · portes</th><th className="droite">Loyers payés ce mois</th><th>Portail</th><th>Approbations</th></tr></thead>
+              <thead><tr><th>Propriétaire</th><th>Immeubles · portes</th><th className="droite">Revenus du mois</th><th>Portail</th><th>Approbations</th></tr></thead>
               <tbody>{P.map((p) => { const [l, t] = PORTAIL[p.portail] ?? PORTAIL.aucun;
                 return <tr key={p.id} className="ligne-lien" onClick={() => router.push(`/clients/proprietaires/${p.id}`)}>
-                  <td><span className="cellule-ini"><span className="ini" style={{ width: 36, height: 36, fontSize: 12 }}>{initiales(p.nom)}</span><span><Link className="fort" href={`/clients/proprietaires/${p.id}`} onClick={(e) => e.stopPropagation()}>{p.nom}</Link>
-                    <span className="sous gris">depuis {new Date(p.depuis).getFullYear()}{p.entreprise ? ` · ${p.entreprise}` : ''}</span></span></span></td>
+                  <td><span className="cellule-ini"><span className="ini" style={{ width: 36, height: 36, fontSize: 12 }}>{initiales(p.entreprise ?? p.nom)}</span><span><Link className="fort" href={`/clients/proprietaires/${p.id}`} onClick={(e) => e.stopPropagation()}>{p.entreprise ?? p.nom}</Link>
+                    <span className="sous gris">{depuis(p.depuis)}{p.entreprise ? ` · ${p.nom}` : ''}</span></span></span></td>
                   <td>{p.immeubles} immeuble{p.immeubles > 1 ? 's' : ''} · {p.portes} porte{p.portes > 1 ? 's' : ''}<span className="sous gris">{p.quartiers ?? '—'}</span></td>
                   <td className="droite"><b>{argent(p.payes_mois)}</b><span className={`sous ${p.loyers_payes < p.loyers ? 'fort' : 'gris'}`}>{p.loyers_payes} loyer{p.loyers_payes > 1 ? 's' : ''} sur {p.loyers}</span></td>
-                  <td><span className="ligne-ic"><i className={`point-etat ${t}`} />{l}</span></td><td>{p.approbations ? <span className="puce action">{p.approbations}</span> : <span className="gris">—</span>}</td></tr>; })}
+                  <td><span className="ligne-ic"><i className={`point-etat ${t}`} />{l}</span></td><td>{p.approbations ? <span className="compte">{p.approbations}</span> : <span className="gris">—</span>}</td></tr>; })}
                 {!D.proprietaires.length && <tr><td colSpan={5} className="gris">Aucun propriétaire. Convertissez un deal.</td></tr>}</tbody></table>
             {D.proprietaires.length > 8 && !tous && <button className="lien" onClick={() => setTous(true)}>Afficher les {D.proprietaires.length - 8} autres propriétaires</button>}
           </section>

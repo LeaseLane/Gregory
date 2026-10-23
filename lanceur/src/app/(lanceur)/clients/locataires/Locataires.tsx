@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
+import { adresse, piece } from '@/lib/format';
 
 /* e21 · Locataires : segments (tous, en retard, fin de bail dans 6 mois, sans portail); loyers du mois (un carré par loyer); fins de bail à venir. */
 type Loc = { id: string; nom: string; depuis: string | null; lease_id: string; logement: string; type: string | null; secteur: string | null; fin: string | null; fin_note: string | null; loyer: number; retard: number | null; pad_refuse: boolean; portail: boolean };
@@ -23,20 +24,20 @@ export function Locataires({ donnees: D, filtres, erreurLecture }: { donnees: Do
       <div className="po-colonne">
         <div className="filtres-ligne">
           <div className="lo-segments">{SEG.map(([k, l]) => <button key={k} className={filtre === k ? 'actif' : ''} onClick={() => aller('filtre', k)}>{l}</button>)}</div>
-          <form className="lo-recherche" style={{ maxWidth: 280, marginLeft: 'auto' }} onSubmit={(e) => { e.preventDefault(); aller('q', q); }}><Icone nom="search" taille={18} couleur="#58697F" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nom ou adresse" aria-label="Rechercher un locataire" /></form>
+          <form className="lo-recherche" style={{ flex: 1 }} onSubmit={(e) => { e.preventDefault(); aller('q', q); }}><Icone nom="search" taille={18} couleur="#58697F" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un locataire ou un logement" aria-label="Rechercher un locataire" /></form>
         </div>
         <section className="carte-l18" aria-label="Locataires"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Locataires</h2>
-          <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{D.locataires.length} bail{D.locataires.length > 1 ? 's' : ''} actif{D.locataires.length > 1 ? 's' : ''} · retards d’abord</p>
-          <table className="tableau tab-fixe"><colgroup><col style={{ width: '24%' }} /><col style={{ width: '26%' }} /><col style={{ width: '16%' }} /><col style={{ width: '11%' }} /><col style={{ width: '13%' }} /><col /></colgroup>
+          <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{D.locataires.length} {D.locataires.length > 1 ? 'baux actifs' : 'bail actif'} · ceux qui demandent une action d’abord</p>
+          <table className="tableau tab-fixe"><colgroup><col style={{ width: '26%' }} /><col style={{ width: '23%' }} /><col style={{ width: '13%' }} /><col style={{ width: '9%' }} /><col style={{ width: '15%' }} /><col /></colgroup>
             <thead><tr><th>Locataire</th><th>Logement</th><th>Fin du bail</th><th className="droite">Loyer</th><th>Paiement</th><th>Portail</th></tr></thead>
             <tbody>{L.map((t) => <tr key={t.lease_id} className="ligne-lien" onClick={() => router.push(`/clients/locataires/${t.id}`)}>
               <td><span className="cellule-ini"><span className="ini" style={{ width: 36, height: 36, fontSize: 12 }}>{initiales(t.nom)}</span><span><Link className="fort" href={`/clients/locataires/${t.id}`} onClick={(e) => e.stopPropagation()}>{t.nom}</Link>
-                <span className="sous gris">{t.depuis ? `depuis ${new Date(`${t.depuis}T12:00:00`).getFullYear()}` : '—'}</span></span></span></td>
-              <td>{t.logement}<span className="sous gris">{[t.type, t.secteur].filter(Boolean).join(' · ') || '—'}</span></td>
+                <span className="sous gris">{t.depuis ? `depuis ${new Date(`${t.depuis}T12:00:00`).toLocaleDateString('fr-CA', { month: 'short', year: 'numeric' })}` : '—'}</span></span></span></td>
+              <td>{adresse(t.logement)}<span className="sous gris">{[piece(t.type), t.secteur].filter(Boolean).join(' · ') || '—'}</span></td>
               <td>{t.fin ? date(t.fin) : '—'}{t.fin_note && <span className="sous gris">{t.fin_note}</span>}</td>
               <td className="droite">{argent(t.loyer)}</td>
-              <td>{t.retard ? <span className="puce todo">Retard · {t.retard} j</span> : t.pad_refuse ? <span className="puce todo">Prélèvement refusé</span> : <span className="puce info">À jour</span>}</td>
-              <td><span className="ligne-ic"><i className={`point-etat ${t.portail ? 'ok' : 'off'}`} />{t.portail ? 'Actif' : 'Aucun'}</span></td></tr>)}
+              <td>{t.retard ? <span className="puce todo">En retard · {t.retard} j</span> : t.pad_refuse ? <span className="puce todo">PAD refusé</span> : <span className="puce info">À jour</span>}</td>
+              <td><span className="ligne-ic"><i className={`point-etat ${t.portail ? 'ok' : 'off'}`} />{t.portail ? 'Actif' : 'Sans compte'}</span></td></tr>)}
               {!D.locataires.length && <tr><td colSpan={6} className="gris">Aucun locataire dans ce filtre.</td></tr>}</tbody></table>
           {D.locataires.length > 10 && !tous && <button className="lien" onClick={() => setTous(true)}>Afficher les {D.locataires.length - 10} autres</button>}
         </section>
@@ -50,7 +51,7 @@ export function Locataires({ donnees: D, filtres, erreurLecture }: { donnees: Do
         <section className="carte-l18" aria-label="Fins de bail à venir"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Fins de bail à venir</h2>
           <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{D.fins_total} dans les 6 prochains mois</p>
           <ul className="lo-docs">{D.fins.map((f) => <li key={f.id + f.fin}><span className="a-faire-ic"><Icone nom="calendar" taille={18} couleur="#0C2147" /></span>
-            <div><Link className="fort" href={`/clients/locataires/${f.id}`}>{f.nom}</Link><span className="gris texte-13">{f.logement} · {date(f.fin, false)}{f.note ? ` · ${f.note}` : ''}</span></div></li>)}
+            <div><Link className="fort" href={`/clients/locataires/${f.id}`}>{f.nom}</Link><span className="gris texte-13">{adresse(f.logement)} · {date(f.fin, false)}{f.note ? ` · ${f.note}` : ''}</span></div></li>)}
             {!D.fins.length && <li className="gris texte-13">Aucune fin de bail d’ici 6 mois.</li>}</ul></section>
       </div>
     </div>

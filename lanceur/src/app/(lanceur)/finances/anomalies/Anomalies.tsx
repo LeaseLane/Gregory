@@ -62,7 +62,7 @@ export function Anomalies({ donnees: D, erreurLecture }: { donnees: DonneesAnoma
         </div>
         <div className="po-colonne">
           <section className="carte-l18" aria-label="Règles de détection"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Règles de détection</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>Vérifiées chaque jour sur les dépenses et les loyers</p>
-            <ul className="lo-docs">{REGLES.map(([t, s]) => <li key={t}><div><strong>{t}</strong><span className="gris texte-13">{s}</span></div><span className="puce info">Active</span></li>)}</ul></section>
+            <ul className="lo-docs">{REGLES.map(([t, s]) => <li key={t}><div><strong>{t}</strong><span className="gris texte-13">{s}</span></div><span className="interrupteur on" role="img" aria-label="Règle active" /></li>)}</ul></section>
           <section className="carte-l18" aria-label="Anomalies par type"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{types[0] ? `${TYPE[types[0][0]] ?? types[0][0]} : le plus fréquent` : 'Anomalies par type'}</h2>
             <p className="gris texte-13" style={{ margin: '0 0 16px' }}>12 mois · {conf.length} anomalie{conf.length > 1 ? 's' : ''} confirmée{conf.length > 1 ? 's' : ''}, par type</p>
             {types.length ? <BarresClassees lignes={types.map(([k, n]) => ({ libelle: TYPE[k] ?? k, valeur: n, texte: String(n) }))} /> : <p className="gris texte-13">Rien à afficher.</p>}</section>

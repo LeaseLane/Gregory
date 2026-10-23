@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 import { Courbe } from '@/composants/Graphes';
+import { adresse } from '@/lib/format';
 
 /* e26 · Immeubles : le parc d'un coup d'œil. Occupation = jauge par immeuble; carte de chaleur à 5 classes avec légende; le rouge réservé à l'urgence. */
 type Imm = { id: string; adresse: string; quartier: string | null; proprietaire: string | null; owner_id: string | null; logements: number; occupes: number; demandes: number; urgentes: number };
@@ -36,13 +37,13 @@ export function Immeubles({ donnees: D, q: q0, erreurLecture }: { donnees: Donne
           <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Immeubles</h2><p className="gris texte-13" style={{ margin: 0 }}>{D.immeubles.length} immeubles · triés par demandes ouvertes</p></div>
             <form className="lo-recherche" style={{ maxWidth: 248 }} onSubmit={(e) => { e.preventDefault(); router.push(q ? `/immeubles?q=${encodeURIComponent(q)}` : '/immeubles'); }}>
               <Icone nom="search" taille={18} couleur="#58697F" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Chercher une adresse" aria-label="Chercher une adresse" /></form></div>
-          <table className="tableau tab-fixe" style={{ marginTop: 16 }}><colgroup><col style={{ width: '26%' }} /><col style={{ width: '14%' }} /><col style={{ width: '10%' }} /><col style={{ width: '20%' }} /><col style={{ width: '18%' }} /><col /></colgroup>
+          <table className="tableau tab-fixe" style={{ marginTop: 16 }}><colgroup><col style={{ width: '23%' }} /><col style={{ width: '13%' }} /><col style={{ width: '12%' }} /><col style={{ width: '20%' }} /><col style={{ width: '22%' }} /><col /></colgroup>
             <thead><tr><th>Adresse</th><th>Quartier</th><th className="droite">Logements</th><th>Occupation</th><th>Propriétaire</th><th className="droite">Demandes</th></tr></thead>
             <tbody>{L.map((b) => { const t = b.logements ? b.occupes / b.logements : 0;
               return <tr key={b.id} className="ligne-lien" onClick={() => router.push(`/immeubles/${b.id}`)}>
-                <td><Link className="fort" href={`/immeubles/${b.id}`} onClick={(e) => e.stopPropagation()}>{b.adresse}</Link></td><td>{b.quartier ?? '—'}</td><td className="droite">{b.logements}</td>
-                <td><span className="ligne-ic"><span className="jauge" style={{ width: 96, flex: 'none' }}><i style={{ width: `${t * 100}%` }} /></span><b>{Math.round(t * 100)} %</b></span></td>
-                <td>{b.owner_id ? <Link href={`/clients/proprietaires/${b.owner_id}`} onClick={(e) => e.stopPropagation()}>{b.proprietaire}</Link> : '—'}</td>
+                <td><Link className="fort" href={`/immeubles/${b.id}`} onClick={(e) => e.stopPropagation()}>{adresse(b.adresse)}</Link></td><td>{b.quartier ?? '—'}</td><td className="droite">{b.logements}</td>
+                <td><span className="ligne-ic" style={{ whiteSpace: 'nowrap' }}><span className="jauge" style={{ width: 88, flex: 'none' }}><i style={{ width: `${t * 100}%` }} /></span>{Math.round(t * 100)} %</span></td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.owner_id ? <Link className="lien-texte" href={`/clients/proprietaires/${b.owner_id}`} onClick={(e) => e.stopPropagation()}>{b.proprietaire}</Link> : '—'}</td>
                 <td className="droite">{b.urgentes ? <span className="urgent">{b.urgentes} urgente{b.urgentes > 1 ? 's' : ''}</span> : <span className={b.demandes ? 'fort' : 'gris'}>{b.demandes}</span>}</td></tr>; })}
               {!D.immeubles.length && <tr><td colSpan={6} className="gris">Aucun immeuble.</td></tr>}</tbody></table>
           {D.immeubles.length > 6 && !tous && <button className="lien" onClick={() => setTous(true)}>Afficher les {D.immeubles.length - 6} autres immeubles</button>}

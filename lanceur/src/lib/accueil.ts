@@ -3,7 +3,7 @@ import { peut, type Moi } from '@/lib/moi';
 
 /* Accueil (maquette l00) : chaque tuile porte un vrai chiffre, lu par l'opération héritée admin-api
    (vue d'ensemble, jeton de l'usager, 2FA exigée) et par health-check. Les chiffres de la maquette sont
-   des exemples : là où la donnée n'existe pas encore, la tuile le dit (« — » + tranche). */
+   des exemples. Les chiffres d'espace viennent des pastilles d'onglets (lanceur_pastilles) et de la file « À traiter » : même définition que les pages. */
 export type Puce = { texte: string; ton: 'todo' | 'action' | 'neutral' | 'info' };
 export type Viz = { type: 'unit'; n: number; k: number } | { type: 'meter'; ratio: number } | null;
 export type Tuile = { icone: string; nom: string; valeur: string; libelle: string; puce: Puce; viz: Viz; droit?: string; href?: string };
@@ -33,6 +33,14 @@ export async function lireAccueil(moi: Moi): Promise<Accueil> {
     erreur = 'Vue d’ensemble injoignable.';
   }
 
+  // Chiffres des espaces : les pastilles des onglets (même définition que chaque page) et la file « À traiter »
+  const [{ data: pastilles }, { data: file }] = await Promise.all([
+    supabase.rpc('lanceur_pastilles'),
+    peut(moi, 'operations.lire') ? supabase.rpc('lanceur_a_traiter') : Promise.resolve({ data: null }),
+  ]);
+  const P = (pastilles ?? {}) as Record<string, Record<string, { n: number; r?: boolean }>>;
+  const pn = (e: string, o: string) => P[e]?.[o]?.n ?? 0;
+  const items = ((file as { items?: { urgent: boolean }[] } | null)?.items) ?? null;
   const t = vue.totals ?? {};
   const cc = vue.command_center ?? {};
   const urgences = n(cc.urgences);
@@ -47,16 +55,20 @@ export async function lireAccueil(moi: Moi): Promise<Accueil> {
   const ok = !!vue.totals;
   const v = (x: number | string) => (ok ? String(x) : '—');
 
+  const fileN = items?.length ?? aTraiter, urg = items ? items.filter((i) => i.urgent).length : urgences;
+  const deals = pn('Ventes', 'Mandats propriétaires') + pn('Ventes', 'Location'), leads = pn('Ventes', 'Leads entrants');
+  const demandesClients = pn('Clients', 'Cessions et sous-locations') + pn('Clients', 'Solvabilité'), retardsP = pn('Finances', 'Paiements');
+  const moisNom = new Intl.DateTimeFormat('fr-CA', { month: 'long', timeZone: 'America/Toronto' }).format(new Date());
   const tuiles: Tuile[] = [
-    { icone: 'inbox', nom: 'Opérations', droit: 'operations.lire', href: '/operations/a-approuver', valeur: v(aTraiter), libelle: 'à traiter', puce: urgences ? { texte: pl(urgences, 'urgent', 'urgents'), ton: 'todo' } : { texte: 'Aucune urgence', ton: 'neutral' }, viz: ok && aTraiter ? { type: 'unit', n: Math.min(aTraiter, 10), k: Math.min(urgences, 10) } : null },
-    { icone: 'trend', nom: 'Ventes', droit: 'ventes.lire', href: '/ventes/mandats', valeur: v(n(cc.prospects_a_relancer)), libelle: 'prospects à relancer', puce: { texte: 'Pipelines · T3', ton: 'info' }, viz: null },
-    { icone: 'users', nom: 'Clients', droit: 'clients.lire', href: '/clients/processus', valeur: v(t.clients_count ?? 0), libelle: 'clients actifs', puce: t.new_inquiries ? { texte: pl(t.new_inquiries, 'demande', 'demandes'), ton: 'neutral' } : { texte: 'Aucune demande', ton: 'info' }, viz: null },
+    { icone: 'inbox', nom: 'Opérations', droit: 'operations.lire', href: '/operations', valeur: String(fileN), libelle: 'à traiter', puce: urg ? { texte: pl(urg, 'urgent', 'urgents'), ton: 'todo' } : { texte: 'Aucune urgence', ton: 'neutral' }, viz: fileN ? { type: 'unit', n: Math.min(fileN, 8), k: Math.min(urg, 8) } : null },
+    { icone: 'trend', nom: 'Ventes', droit: 'ventes.lire', href: '/ventes/mandats', valeur: String(deals), libelle: 'deals ouverts', puce: leads ? { texte: `${leads} à router`, ton: 'action' } : { texte: 'Aucun lead à router', ton: 'info' }, viz: null },
+    { icone: 'users', nom: 'Clients', droit: 'clients.lire', href: '/clients/proprietaires', valeur: String(pn('Clients', 'Propriétaires')), libelle: 'clients actifs', puce: demandesClients ? { texte: pl(demandesClients, 'demande', 'demandes'), ton: 'neutral' } : { texte: 'Aucune demande', ton: 'info' }, viz: null },
     { icone: 'building', nom: 'Immeubles', droit: 'immeubles.lire', href: '/immeubles', valeur: v(unites), libelle: 'logements gérés', puce: { texte: pl(unites - occupes, 'vacant', 'vacants'), ton: 'info' }, viz: ok && unites ? { type: 'meter', ratio: occupes / unites } : null },
-    { icone: 'wrench', nom: 'Maintenance', droit: 'maintenance.lire', href: '/maintenance/bons', valeur: v(travaux), libelle: 'travaux à suivre', puce: n(cc.decisions_requises) ? { texte: pl(n((cc.decisions_requises as CC)?.approbations_en_attente), 'approbation', 'approbations'), ton: 'action' } : { texte: 'Rien en attente', ton: 'info' }, viz: null },
-    { icone: 'dollar', nom: 'Finances', droit: 'finances.lire', href: '/finances/paiements', valeur: ok ? argent(t.monthly_revenue ?? 0) : '—', libelle: 'honoraires mensuels prévus', puce: retards ? { texte: pl(retards, 'loyer en retard', 'loyers en retard'), ton: 'todo' } : { texte: 'Aucun retard', ton: 'info' }, viz: null },
-    { icone: 'scale', nom: 'Juridique', droit: 'juridique.lire', href: '/juridique', valeur: '—', libelle: 'dossiers actifs', puce: { texte: 'Recouvrement · T8', ton: 'info' }, viz: null },
-    { icone: 'globe', nom: 'Studio', droit: 'studio.lire', href: '/studio/site', valeur: v(t.new_inquiries ?? 0), libelle: 'nouvelles demandes du site', puce: { texte: 'Site web · TS', ton: 'info' }, viz: null },
-    { icone: 'spark', nom: 'Cléo et IA', droit: 'ia.lire', href: '/cleo-ia/automatisations', valeur: v(iaReviser), libelle: 'décisions à réviser', puce: { texte: 'Propositions · T1', ton: 'neutral' }, viz: null },
+    { icone: 'wrench', nom: 'Maintenance', droit: 'maintenance.lire', href: '/maintenance/bons', valeur: String(pn('Maintenance', 'Bons de travail')), libelle: 'bons de travail', puce: pn('Maintenance', 'Soumissions') ? { texte: pl(pn('Maintenance', 'Soumissions'), 'soumission', 'soumissions'), ton: 'action' } : { texte: 'Aucune soumission', ton: 'info' }, viz: null },
+    { icone: 'dollar', nom: 'Finances', droit: 'finances.lire', href: '/finances/paiements', valeur: ok ? argent(t.monthly_revenue ?? 0) : '—', libelle: `revenu ${/^[aeiouéèh]/i.test(moisNom) ? 'd’' : 'de '}${moisNom}`, puce: retardsP ? { texte: pl(retardsP, 'loyer en retard', 'loyers en retard'), ton: 'todo' } : { texte: 'Aucun retard', ton: 'info' }, viz: null },
+    { icone: 'scale', nom: 'Juridique', droit: 'juridique.lire', href: '/juridique', valeur: String(pn('Juridique', 'Dossiers')), libelle: 'dossiers actifs', puce: pn('Juridique', 'Tribunal (TAL)') ? { texte: `${pn('Juridique', 'Tribunal (TAL)')} au TAL`, ton: 'todo' } : { texte: 'Aucun dossier au TAL', ton: 'info' }, viz: null },
+    { icone: 'globe', nom: 'Studio', droit: 'studio.lire', href: '/studio/site', valeur: v(t.new_inquiries ?? 0), libelle: 'nouvelles demandes du site', puce: pn('Studio', 'Site web') ? { texte: pl(pn('Studio', 'Site web'), 'article à relire', 'articles à relire'), ton: 'neutral' } : { texte: 'Aucun article à relire', ton: 'info' }, viz: null },
+    { icone: 'spark', nom: 'Cléo et IA', droit: 'ia.lire', href: '/cleo-ia/automatisations', valeur: String(pn('Opérations', 'À approuver')), libelle: 'décisions à réviser', puce: { texte: pl(pn('Cléo et IA', 'Décisions automatisées'), 'décision automatisée', 'décisions automatisées'), ton: 'neutral' }, viz: null },
     { icone: 'chart', nom: 'Rapports et réglages', droit: 'rapports.lire', href: '/reglages', valeur: issues.length ? pl(issues.length, 'alerte', 'alertes') : sante.healthy ? 'Tout va bien' : '—', libelle: 'santé des services', puce: issues.length ? { texte: issues[0].type === 'cron_http_failed' ? 'Tâche planifiée en échec' : 'Incident', ton: 'todo' } : { texte: 'Aucun incident', ton: 'info' }, viz: null },
   ];
 

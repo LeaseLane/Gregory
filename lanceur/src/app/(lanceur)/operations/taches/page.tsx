@@ -16,7 +16,7 @@ export default async function Page() {
       sous="Le quotidien de l’équipe : ce qui demande une action, vos tâches et vos messages"
       actif={2}
       onglets={[
-        { libelle: 'À traiter' },
+        { libelle: 'À traiter', href: '/operations' },
         { libelle: 'À approuver', href: '/operations/a-approuver', compte: (nb as number | null) ?? undefined },
         { libelle: 'Mes tâches', href: '/operations/taches' },
         { libelle: 'Inbox', href: '/operations/inbox', compte: nonLus || undefined },

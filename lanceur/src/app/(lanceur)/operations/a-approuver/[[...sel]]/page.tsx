@@ -20,7 +20,7 @@ export default async function Page({ params }: { params: Promise<{ sel?: string[
       sous="Le quotidien de l’équipe : ce qui demande une action, vos tâches et vos messages"
       actif={1}
       onglets={[
-        { libelle: 'À traiter' },
+        { libelle: 'À traiter', href: '/operations' },
         { libelle: 'À approuver', href: '/operations/a-approuver', compte: liste.length },
         { libelle: 'Mes tâches', href: '/operations/taches' },
         { libelle: 'Inbox', href: '/operations/inbox' },

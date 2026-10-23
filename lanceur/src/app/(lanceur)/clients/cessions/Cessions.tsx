@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
+import { adresse } from '@/lib/format';
 
 type Demande = { id: string; numero: string; kind: string; statut: string; logement: string; loyer: number; fin_bail: string | null; locataire: string | null; personne: string;
   courriel: string | null; telephone: string | null; emploi: string | null; revenu: string | null; debut: string; fin: string | null; pieces: string[]; source: string;
@@ -61,7 +62,7 @@ export function Cessions({ donnees, erreurLecture }: { donnees: DonneesCessions 
             {D.peut_ecrire && <button className="haut-ibtn" style={{ margin: 0 }} onClick={() => setNouvelle(true)} aria-label="Nouvelle demande"><Icone nom="plus" taille={20} couleur="#0C2147" /></button>}</header>
           <ul className="liste-demandes">{L.map((y) => { const [t, v] = etat(y); return (
             <li key={y.id}><button className={y.id === sel ? 'sel' : ''} onClick={() => setSel(y.id)}>
-              <span className={`puce ${y.id === sel ? 'action' : 'neutral'}`}>{TYPES[y.kind]}</span><strong>{y.logement}</strong><span className="gris">{phrase(y)}</span>
+              <span className={`puce ${y.id === sel ? 'action' : 'neutral'}`}>{TYPES[y.kind]}</span><strong>{adresse(y.logement)}</strong><span className="gris">{phrase(y)}</span>
               {v === 'meter' ? <span className="ligne-jauge"><span className="jauge"><i style={{ width: `${(100 * (J - restants(y))) / J}%` }} /></span><b>{t}</b></span>
                 : <span className="ligne-ic"><Icone nom={v === 'fin' ? 'check' : 'clock'} taille={16} couleur="#58697F" />{t}</span>}</button></li>); })}
             {!L.length && <li className="gris">Aucune demande. Elles arriveront du portail locataire; en attendant, saisissez-les avec +.</li>}</ul>
@@ -72,7 +73,7 @@ export function Cessions({ donnees, erreurLecture }: { donnees: DonneesCessions 
             <div className="cession-haut">
               <div><p className="surtitre">{TYPES[x.kind]} · demande n° {x.numero}</p>
                 <h2>{x.kind === 'cession' ? `${x.locataire ?? 'Le locataire'} cède son bail à ${x.personne}` : `${x.locataire ?? 'Le locataire'} sous-loue à ${x.personne}`}</h2>
-                <p className="gris">{argent(x.loyer)} par mois · {x.fin_bail ? `bail jusqu’au ${dLong(x.fin_bail)}` : 'bail sans date de fin'} · {x.logement}</p></div>
+                <p className="gris">{argent(x.loyer)} par mois · {x.fin_bail ? `bail jusqu’au ${dLong(x.fin_bail)}` : 'bail sans date de fin'} · {adresse(x.logement)}</p></div>
               <div className="delai"><p className="surtitre gris">Réponse due le {d(x.limite)}</p>
                 {ouverte ? <><b>{restants(x)} jour{restants(x) > 1 ? 's' : ''}</b><span className="jauge large"><i style={{ width: `${(100 * jour) / J}%` }} /></span>
                   <span className="gris">Jour {jour} sur {J} · sans réponse, la demande est réputée acceptée</span></> : <b className="petit">{etat(x)[0]}</b>}</div>

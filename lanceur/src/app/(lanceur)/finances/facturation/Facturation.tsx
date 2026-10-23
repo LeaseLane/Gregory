@@ -7,6 +7,7 @@ import { Icone } from '@/composants/Icones';
 import { BarresClassees, Courbe } from '@/composants/Graphes';
 import { initiales } from '@/lib/ventes';
 import { argent, jour } from '../onglets';
+import { adresse } from '@/lib/format';
 
 /* e40 · Facturation et PAD : la date du prochain prélèvement d'abord; l'échec en rouge (seule urgence de la page); mandats = jauge; factures = micro-courbe 12 mois.
    Les prélèvements passent par Optimal Paiement, pas encore branché : rien ne part d'ici. Les factures d'honoraires (PORT-) se marquent payées à la main. */
@@ -47,7 +48,7 @@ export function Facturation({ donnees: D, erreurLecture }: { donnees: DonneesFac
               <thead><tr><th>Locataire</th><th>Logement</th><th className="droite">Montant</th><th>Mandat</th><th>Statut</th></tr></thead>
               <tbody>{D.prelevements.map((p) => { const [l, k] = STATUT[p.statut] ?? [p.statut, 'neutral'];
                 return <tr key={p.id}><td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 11 }}>{initiales(p.locataire)}</span><Link className="fort" href={`/clients/locataires/${p.tenant_id}`}>{p.locataire}</Link></span></td>
-                  <td>{p.logement}</td><td className="droite fort">{argent(p.montant)}</td><td className="texte-13">{p.mandat?.processeur ?? 'Mandat'}{p.mandat?.depuis ? <span className="sous gris">depuis le {jour(p.mandat.depuis)}</span> : null}</td>
+                  <td>{adresse(p.logement)}</td><td className="droite fort">{argent(p.montant)}</td><td className="texte-13">{p.mandat?.processeur ?? 'Mandat'}{p.mandat?.depuis ? <span className="sous gris">depuis le {jour(p.mandat.depuis)}</span> : null}</td>
                   <td><span className={`puce ${k}`}>{l}</span></td></tr>; })}
                 {!D.prelevements.length && <tr><td colSpan={5} className="gris">Aucun loyer à prélever pour ce lot.</td></tr>}</tbody></table>
           </section>
