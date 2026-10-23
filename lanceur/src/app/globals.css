@@ -1798,3 +1798,69 @@ input + .bouton { white-space: nowrap; } .bouton { overflow-wrap: normal; } .dea
 .champ-texte { display: flex; align-items: center; justify-content: space-between; margin: 0; text-align: left; cursor: pointer; background: #fff; }
 .case-ligne { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; } .case-ligne input { flex: none; width: 20px; height: 20px; margin: 1px 0 0; accent-color: #0C2147; }
 .tableau.tab-tal td { white-space: nowrap; overflow-wrap: normal; overflow: hidden; text-overflow: ellipsis; } .tableau.tab-tal td .sous { overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Cléo et IA · Décisions (e57), Routeur (l19), accès réservé (e65) ── */
+.mini-colonnes { display: inline-flex; align-items: flex-end; gap: 3px; height: 24px; } .mini-colonnes i { width: 7px; border-radius: 2px 2px 0 0; background: #A6B1BE; } .mini-colonnes i.accent { background: #4581CB; }
+.jauge-trait { position: relative; display: inline-block; width: 64px; height: 4px; border-radius: 2px; background: #E1E6EC; } .jauge-trait i { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: #4581CB; }
+.jauge-trait b { position: absolute; top: -4px; width: 2px; height: 12px; background: #0C2147; }
+.tableau.tab-decisions td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.file-revision { list-style: none; margin: 0; padding: 0; } .file-revision li { display: grid; gap: 2px; padding: 16px 0; border-top: 1px solid #E1E6EC; } .file-revision li:first-child { border-top: 0; padding-top: 0; }
+.file-revision strong { font-size: 14px; color: #0C2147; }
+.deux-boutons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; } .deux-boutons .bouton { width: 100%; justify-content: center; }
+.budget-barre { position: relative; height: 12px; margin-top: 32px; border-radius: 6px; background: #C8DAF0; }
+.budget-barre i { position: absolute; inset: 0 auto 0 0; border-radius: 6px 0 0 6px; background: #4581CB; }
+.budget-barre s { position: absolute; top: 0; bottom: 0; border: 1px dashed #4581CB; background: repeating-linear-gradient(90deg, #ECF2F9 0 6px, #DCE7F5 6px 12px); }
+.budget-barre b { position: absolute; top: -6px; bottom: -6px; width: 2px; background: #3E4A59; } .budget-barre b span { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 12px; font-weight: 500; color: #3E4A59; }
+.budget-barre b.fort span { font-weight: 600; color: #0C2147; }
+.comparaison-modeles { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 13px; } .comparaison-modeles th { text-align: right; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #58697F; padding: 8px; }
+.comparaison-modeles th span { display: block; text-transform: none; letter-spacing: 0; font-weight: 400; } .comparaison-modeles td { padding: 8px; border-top: 1px solid #E1E6EC; text-align: right; } .comparaison-modeles td:first-child { text-align: left; color: #3E4A59; }
+.comparaison-modeles .leger { background: #ECF2F9; color: #0C2147; }
+.barre-cout { display: flex; align-items: center; gap: 8px; } .barre-cout i { height: 12px; min-width: 4px; background: #4581CB; } .barre-cout b { font-size: 13px; white-space: nowrap; }
+.modele-bouton { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; font: inherit; cursor: pointer; padding: 0; }
+.reserve-ia { max-width: 640px; margin: 24px auto; text-align: center; display: grid; justify-items: center; gap: 4px; }
+.tuile-ic { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: #ECF2F9; margin-bottom: 8px; }
+
+/* ── Rapports · Supervision (e67), incident (e68), comparaison (e69), améliorations (e75) ── */
+.tab-supervision td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.tab-supervision thead + tbody + thead th { border-top: 16px solid #fff; }
+.ligne-alerte td:first-child { box-shadow: inset 3px 0 0 #9B2E28; }
+.etat-service { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #0C2147; } .etat-service i { width: 14px; height: 14px; border-radius: 50%; background: #A6B1BE; }
+.etat-service.ok i { background: #12694F; } .etat-service.ko { color: #9B2E28; font-weight: 600; } .etat-service.ko i { background: #9B2E28; } .etat-service.attention i { background: #fff; border: 2px solid #4581CB; } .etat-service.gris { color: #58697F; }
+.dispo-jours { display: inline-flex; gap: 1px; } .dispo-jours i { width: 4px; height: 18px; border-radius: 1px; background: #E1E6EC; } .dispo-jours i.ok { background: #C8CDD4; } .dispo-jours i.ko { background: #4581CB; }
+.point-rouge { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: #9B2E28; vertical-align: middle; }
+.grille-captures { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 8px 0; } .grille-captures i { height: 10px; border-radius: 2px; background: #E1E6EC; } .grille-captures i.ecart { background: #4581CB; }
+.etapes-points { display: inline-flex; align-items: center; } .etapes-points i { width: 14px; height: 14px; border-radius: 50%; background: #4581CB; } .etapes-points i + i { margin-left: 14px; position: relative; }
+.etapes-points i + i::before { content: ""; position: absolute; right: 14px; top: 6px; width: 14px; height: 2px; background: #C8DAF0; } .etapes-points i.ko { background: #9B2E28; }
+.graphe-incident { width: 100%; height: auto; }
+.chronologie { list-style: none; margin: 0; padding: 0; } .chronologie li { display: grid; grid-template-columns: 72px 16px 32px minmax(0, 1fr); gap: 12px; align-items: center; min-height: 44px; font-size: 14px; color: #0C2147; position: relative; }
+.chronologie li > i { width: 10px; height: 10px; border-radius: 50%; background: #4581CB; justify-self: center; } .chronologie li.rouge > i { background: #9B2E28; } .chronologie li.avenir > i { background: #fff; border: 2px solid #A6B1BE; } .chronologie li.avenir b { color: #58697F; }
+.chronologie li + li::before { content: ""; position: absolute; left: 91px; top: -22px; height: 44px; width: 2px; background: #C8DAF0; z-index: 0; } .chronologie li > i { z-index: 1; }
+.a-faire-ic.petit { width: 32px; height: 32px; }
+.comparaison-grille { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.kpis-mini { display: grid; grid-template-columns: repeat(3, 1fr); margin-bottom: 16px; } .kpis-mini div { display: grid; padding-right: 12px; } .kpis-mini div + div { padding-left: 12px; border-left: 1px solid #E1E6EC; }
+.kpis-mini b { font-size: 22px; color: #0C2147; } .kpis-mini span { font-size: 13px; color: #58697F; } .lien-couleur { color: #2E5788 !important; }
+.matrice-captures th, .matrice-captures td { padding: 0 6px; } .matrice-captures td { height: 32px; } .matrice-captures th.centre, .matrice-captures td.centre { text-align: center; text-transform: none; letter-spacing: 0; font-size: 12px; }
+.case-capture { display: inline-grid; place-items: center; width: 34px; height: 20px; border-radius: 4px; background: #E1E6EC; } .case-capture.ecart { background: #4581CB; }
+.telephones { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; } .telephones.difference, .telephones.superposition { grid-template-columns: 1fr; justify-items: center; } .telephones > div { display: grid; gap: 8px; justify-items: start; }
+.telephone { position: relative; width: 180px; height: 380px; padding: 12px 14px; border: 6px solid #0C2147; border-radius: 28px; background: #fff; display: flex; flex-direction: column; gap: 10px; font-size: 12px; color: #0C2147; }
+.tel-haut { display: flex; justify-content: space-between; align-items: center; } .tel-haut i { width: 50px; height: 12px; border-radius: 6px; background: #0C2147; }
+.tel-titre { margin: 4px 0 0; font-weight: 700; font-size: 14px; } .tel-puce { align-self: flex-start; padding: 4px 10px; border-radius: 6px; background: #EEF1F5; font-weight: 600; }
+.tel-carte { display: grid; gap: 4px; padding: 12px; border-radius: 10px; background: #F3F6FA; } .tel-carte b { font-size: 20px; }
+.tel-compte { display: flex; gap: 6px; align-items: center; margin: 0; color: #3E4A59; }
+.tel-bouton { margin-top: auto; padding: 12px; border-radius: 10px; background: #0C2147; color: #fff; text-align: center; font-weight: 700; }
+.tel-barre { margin-top: auto; display: flex; justify-content: space-around; padding: 12px 4px; border-top: 1px solid #E1E6EC; outline: 2px solid #4581CB; outline-offset: 4px; border-radius: 8px; }
+.tel-zone { position: relative; } .tel-ecart { position: absolute; right: -10px; bottom: 72px; padding: 4px 8px; border-radius: 6px; background: #2E5788; color: #fff; font-size: 12px; font-weight: 600; }
+.historique-court { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; } .historique-court li { display: grid; grid-template-columns: 56px 1fr; font-size: 13px; color: #3E4A59; } .historique-court b { color: #0C2147; }
+.tab-ameliorations td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.puce.contour { background: #fff; border: 1px solid #4581CB; color: #2E5788; }
+.citation { margin: 8px 0 0; padding: 4px 0 4px 16px; border-left: 3px solid #4581CB; font-size: 14px; font-weight: 600; color: #0C2147; display: grid; gap: 4px; }
+.portee { display: grid; grid-template-columns: 110px 1fr; gap: 12px 16px; margin: 8px 0 0; font-size: 13px; } .portee dt { display: flex; gap: 8px; align-items: flex-start; font-weight: 600; color: #0C2147; } .portee dd { margin: 0; color: #3E4A59; }
+.carres-accord { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; } .carres-accord i { height: 16px; border-radius: 3px; background: #D1D6DB; } .carres-accord i.oui { background: #4581CB; }
+@media (max-width: 1100px) { .comparaison-grille { grid-template-columns: minmax(0, 1fr); } }
+/* e69 : nom de page sur une ligne, légende des cases; e75 : exigences, portée en tuiles, révision sous le report */
+.matrice-captures td:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; } .matrice-captures .case-capture { width: 28px; }
+.legende-captures { display: flex; align-items: center; gap: 8px; margin: 16px 0 0; font-size: 12px; color: #3E4A59; } .legende-captures .case-capture { width: 24px; } .legende-captures .case-capture + * , .legende-captures .case-capture.ecart { margin-left: 8px; }
+.exigences { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; } .exigences li { display: flex; gap: 12px; align-items: center; color: #0C2147; }
+.portee dt i { display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px; margin-top: -4px; border-radius: 8px; background: #EEF4FB; } .portee dt { gap: 12px; } .portee { grid-template-columns: 120px 1fr; gap: 16px 0; }
+.portee .revision { display: flex; gap: 6px; align-items: center; margin-top: 4px; font-size: 12px; font-weight: 600; color: #2C5A99; }
+.tab-ameliorations .pastille-ic { display: inline-grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 50%; background: #EEF4FB; }
