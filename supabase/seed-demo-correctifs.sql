@@ -16,3 +16,6 @@ from public.work_orders w join public.workers wk on wk.id = w.worker_id
 left join (values ('Électrique Duval', 1.2), ('Plomberie Capitale', 2.5), ('Thermo-Pro', 3.0), ('Les Plombiers de Lévis', 4.0), ('Toitures Beauport', 6.0),
                   ('Serrurerie Express', 9.0), ('Déneigement Côté', 14.0), ('Menuiserie Lauzon', 5.0)) as d(n, h) on d.n = wk.name
 where w.id::text ~ '^0[01][0-9]{2}' and not exists (select 1 from public.job_offers o where o.work_order_id = w.id);
+-- Propositions de la maquette l02 restées en attente (seed-propositions-maquettes) : expirées par l'horloge, remises en attente une semaine.
+update crm.proposals set status = 'pending', expires_at = now() + interval '7 days', apply_error = null
+where idempotency_key in ('maquette:roy-qualifie', 'maquette:mroy-suivi', 'maquette:beaulieu-contacte') and status = 'expired' and decided_at is null;
