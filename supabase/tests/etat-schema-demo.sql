@@ -8,7 +8,7 @@ where (c.table_schema, c.table_name) in (('public','owners'),('public','building
   ('crm','deals'),('crm','contacts'),('crm','deal_contacts'),('crm','stages'),('crm','pipelines'),('crm','sources'),('public','prospects'),('maint','quotes'),
   ('maint','supplier_candidates'),('public','visits'),('crm','assignments'),('crm','screenings'),('crm','signature_requests'),('crm','processes'),('jur','cases'),
   ('public','automated_decisions'),('crm','prospect_suggestions'),('public','inquiries'),('public','expenses'),('public','invoices'),('maint','projects'))
-group by 1 order by 1;
+group by c.table_schema, c.table_name order by 1;
 select conrelid::regclass || ' | ' || conname || ' | ' || pg_get_constraintdef(oid) from pg_constraint
 where contype = 'c' and connamespace in ('public'::regnamespace, 'crm'::regnamespace, 'maint'::regnamespace, 'jur'::regnamespace)
   and conrelid::regclass::text ~ '(owners|buildings|units|tenants|leases|payments|work_orders|workers|service_requests|bank_transactions|financial_anomalies|payables|deals|contacts|quotes|supplier_candidates|visits|assignments|screenings|signature_requests|processes|cases|automated_decisions|prospect_suggestions|prospects|expenses|projects)$';
