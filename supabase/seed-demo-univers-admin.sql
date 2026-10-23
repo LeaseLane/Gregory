@@ -54,7 +54,7 @@ do $$ declare t record; begin
 do $$
 begin
   perform pg_temp.purger('public.owners', $w$full_name like 'Préprod%' or full_name like 'TEST-%'$w$);
-  perform pg_temp.purger('public.buildings', $w$address like 'TEST-%' or address like '%Préprod%' or zone in ('Essai') or zone like 'TEST%'$w$);
+  perform pg_temp.purger('public.buildings', $w$address like 'TEST-%' or address like '%Préprod%' or address like '%(essai%' or zone in ('Essai') or zone like 'TEST%'$w$);
   perform pg_temp.purger('public.tenants', $w$full_name like 'TEST-%' or full_name like 'Préprod%'$w$);
   perform pg_temp.purger('public.workers', $w$name in ('Préprod Travailleur', 'Test QA') or name like 'À compléter (chedhly%'$w$);
   perform pg_temp.purger('public.work_orders', $w$description like 'TEST-%'$w$);
@@ -67,8 +67,11 @@ begin
   perform pg_temp.purger('crm.sources', $w$code like 'csv:test-%'$w$);
   perform pg_temp.purger('public.service_catalog', $w$label like 'TEST-%'$w$);
   perform pg_temp.purger('site.articles', $w$titre like 'TEST-%'$w$);
-  perform pg_temp.purger('public.building_submissions', $w$address like 'TEST-%'$w$);
-  perform pg_temp.purger('public.tenant_proposals', $w$full_name like 'TEST-%'$w$);
+  perform pg_temp.purger('public.building_submissions', $w$address like 'TEST-%' or address like '%(essai)%'$w$);
+  perform pg_temp.purger('crm.tasks', $w$title like '%(essai)%'$w$);
+  -- Tâches ouvertes en double (essais répétés du portail) : la plus ancienne reste
+  perform pg_temp.purger('crm.tasks', $w$id in (select id from (select id, row_number() over (partition by title order by created_at) rn from crm.tasks where status = 'open') z where rn > 1)$w$);
+  perform pg_temp.purger('public.tenant_proposals', $w$full_name like 'TEST-%' or full_name like '%(essai)%'$w$);
   perform pg_temp.purger('public.portal_invitations', $w$full_name like 'TEST-%' or email like 'test-%'$w$);
   perform pg_temp.purger('public.inscriptions_entreprises', $w$courriel like 'chedhly+%'$w$);
   perform pg_temp.purger('public.personal_data_requests', $w$row_to_json(personal_data_requests)::text like '%TEST-%'$w$);
@@ -439,7 +442,7 @@ declare
   v_ad uuid := (select user_id from crm.team_members where display_name = 'Admin Démo');
   r record; v_deal uuid; v_contact uuid; v_stage uuid; v_pl uuid; v_unite uuid;
 begin
-  if exists (select 1 from crm.deals where title = 'Investissements Roy') then raise notice 'Ventes déjà présentes.'; return; end if;
+  if exists (select 1 from crm.deals where title = 'Placements Gauthier') then raise notice 'Ventes déjà présentes.'; return; end if;
   insert into crm.sources (code, name) values ('marketplace', 'Marketplace'), ('kijiji', 'Kijiji') on conflict (code) do nothing;
   for r in select * from (values
     -- pipeline, étape (sort), titre, sous-titre, portes, $/mois, source, responsable, entré dans l'étape il y a (heures), créé il y a (heures), logement (location)
@@ -466,6 +469,13 @@ begin
     ('location', 5, 'William Fournier', '4½ · 420, Saint-Joseph E. — 5', null, 1240, 'site', 'CD', 330, 500, '420, rue Saint-Joseph Est, Québec|5')
   ) as x(pipe, etape, titre, sous, portes, valeur, source, resp, h_etape, h_cree, logement)
   loop
+    -- Deal déjà là (lié à un prospect et aux propositions de seed-propositions-maquettes) : aligné sur la maquette, pas recréé
+    if exists (select 1 from crm.deals where title = r.titre and merged_into is null) then
+      update crm.deals set subtitle = r.sous, doors = r.portes, monthly_value_cents = r.valeur * 100, source_id = (select id from crm.sources where code = r.source),
+        owner_user_id = case r.resp when 'LP' then v_lp when 'CD' then v_cd when 'JN' then v_jn when 'AD' then v_ad else owner_user_id end
+      where title = r.titre and merged_into is null;
+      continue;
+    end if;
     select id into v_pl from crm.pipelines where code = r.pipe;
     select id into v_stage from crm.stages where pipeline_id = v_pl and sort = r.etape;
     v_unite := null;
