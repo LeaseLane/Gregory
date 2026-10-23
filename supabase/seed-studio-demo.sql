@@ -45,6 +45,8 @@ begin
     end loop;
   end loop;
 end $$;
+-- Les dépenses des mois passés restent à la source (avant les campagnes) : le coût par lead d'une campagne ne compte que son mois.
+update crm.depenses_marketing set campagne_id = null where campagne_id is not null and jour < date_trunc('month', current_date)::date;
 update crm.sources set budget_mensuel_cents = v.b from (values ('google_ads', 60000), ('meta', 20000), ('marketplace', 15000)) v(code, b) where crm.sources.code = v.code and budget_mensuel_cents is null;
 
 -- Propositions de Cléo en attente (passent par « À approuver »)
