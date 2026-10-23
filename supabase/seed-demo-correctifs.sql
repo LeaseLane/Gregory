@@ -40,3 +40,10 @@ where x.d < now() and not exists (select 1 from crm.tasks where entity_type = 'd
 update public.payments pa set reminder_paused = true
 from public.leases l join public.tenants t on t.id = l.tenant_id
 where pa.lease_id = l.id and t.full_name in ('Olivier Dion', 'Josée Lemieux') and pa.due_date = date '2026-10-01' and pa.status <> 'paid' and not coalesce(pa.reminder_paused, false);
+-- e11 : la proposition de Cléo sur Investissements Roy porte aussi la valeur, la prochaine tâche, l'échéance et les portes.
+update crm.proposals pr set
+  after = jsonb_build_object('stage', 'interested', 'potential_monthly_revenue', 1140, 'next_action', 'Proposition de gestion',
+                             'next_followup_date', ((now() at time zone 'America/Toronto')::date + 5)::text, 'num_doors', 6),
+  before = (select jsonb_build_object('stage', p.stage, 'potential_monthly_revenue', p.potential_monthly_revenue, 'next_action', p.next_action,
+                                      'next_followup_date', p.next_followup_date, 'num_doors', p.num_doors) from public.prospects p where p.id = pr.target_id)
+where pr.idempotency_key = 'maquette:roy-qualifie' and pr.status = 'pending' and not pr.after ? 'num_doors';

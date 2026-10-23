@@ -68,6 +68,10 @@ export const REGISTRE = [
     champs: {
       stage: { type: "string", description: "Nouvelle étape", enum: ["new", "contacted", "interested", "proposal_sent", "signed", "lost"] },
       loss_reason: { type: "string", description: "Raison de la perte (obligatoire si stage = lost)" },
+      potential_monthly_revenue: { type: "number", description: "Valeur mensuelle du mandat ($), facultatif" },
+      next_action: { type: "string", description: "Prochaine tâche, une phrase, facultatif" },
+      next_followup_date: { type: "string", description: "Échéance de la prochaine tâche (AAAA-MM-JJ, aujourd'hui ou après), facultatif", format: "date" },
+      num_doors: { type: "number", description: "Nombre de portes, facultatif" },
     },
   }),
   defineOperation({
