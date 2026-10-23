@@ -232,6 +232,92 @@ def heros7_webp(s):
     assert s.count(a) == 1, 'heros7 IM'
     return s.replace(a, "  const IM = IMG + 'couverture-immeubles.webp',", 1)
 edit('accueil-heros7.jsx', heros7_webp)
+
+# Performance (PageSpeed, 23 oct. 2026) : la scène de la bannière (ligne d'immeubles, halos, socle) est rendue par le serveur.
+# Avant, elle n'existait qu'après la mesure du script (useLayoutEffect) : l'élément le plus grand de l'écran n'apparaissait
+# qu'après l'hydratation, et Google mesurait tantôt le titre, tantôt la scène (score 72 ↔ 96). Mêmes formules en CSS
+# (unités du conteneur cqw/cqh, variables --h7-*), puis le script reprend avec ses mesures exactes : rien ne change à l'écran.
+def heros7_scene_ssr(s):
+    a = """  let scene = null;
+  if (g) {
+    const {
+        Wd,
+        yh,
+        s,
+        ox
+      } = g,
+      X = x => ox + x * s,
+      px = v => v * s + 'px',
+      fx = X(277);
+    scene = <React.Fragment>"""
+    b = """  /* Géométrie de la scène : en px une fois mesurée par le script; sinon (rendu serveur, premier affichage) les mêmes
+     formules en CSS, à partir des variables --h7-* du cadre (H7_VARS). */
+  const GEO = g ? {
+    L: c => (c.fx || 0) * (g.ox + 277 * g.s) + (c.ox || 0) * g.ox + (c.s || 0) * g.s + (c.wd || 0) * g.Wd + (c.yh || 0) * g.yh + 'px',
+    blur: k => (k * g.s).toFixed(2) + 'px'
+  } : {
+    L: c => 'calc(' + ['fx', 'ox', 's', 'wd', 'yh'].filter(k => c[k]).map(k => c[k] + ' * var(--h7-' + k + ')').join(' + ') + ')',
+    blur: k => 'calc(' + k + ' * var(--h7-s))'
+  };
+  const scene = <React.Fragment>"""
+    assert s.count(a) == 1, 'heros7 scene début'
+    s = s.replace(a, b, 1)
+    a = "    </React.Fragment>;\n  }\n  return <section className=\"ll-sombre\" style={{"
+    assert s.count(a) == 1, 'heros7 scene fin'
+    s = s.replace(a, "    </React.Fragment>;\n  return <section className=\"ll-sombre\" style={{", 1)
+    R = [("left: fx - 408 * s + 'px',", "left: GEO.L({ fx: 1, s: -408 }),"), ("top: yh - 202 * s - 275 * s + 'px',", "top: GEO.L({ yh: 1, s: -477 }),"),
+         ("left: X(-81) + 'px',", "left: GEO.L({ ox: 1, s: -81 }),"), ("top: yh - 529 * s + 'px',", "top: GEO.L({ yh: 1, s: -529 }),"),
+         ("top: yh + 'px',", "top: GEO.L({ yh: 1 }),"), ("top: yh - 38 * s + 'px',", "top: GEO.L({ yh: 1, s: -38 }),"),
+         ("transformOrigin: fx + 'px ' + px(38)", "transformOrigin: GEO.L({ fx: 1 }) + ' ' + GEO.L({ s: 38 })"),
+         ("left: fx - Wd * .35 + 'px',", "left: GEO.L({ fx: 1, wd: -.35 }),"), ("width: Wd * .7 + 'px',", "width: GEO.L({ wd: .7 }),"),
+         ("filter: 'blur(' + (5 * s).toFixed(2) + 'px)',", "filter: 'blur(' + GEO.blur(5) + ')',"),
+         ("transformOrigin: fx + .04 * Wd + 'px 0'", "transformOrigin: GEO.L({ fx: 1, wd: .04 }) + ' 0'")]
+    for x, y in R:
+        assert s.count(x) >= 1, 'heros7 ' + x
+        s = s.replace(x, y)
+    s = re.sub(r"px\((-?\d+)\)", lambda m: "GEO.L({ s: " + m.group(1) + " })", s)
+    a = """    <div ref={ref} aria-hidden="true" style={{
+      position: 'absolute',
+      inset: 0,
+      pointerEvents: 'none'
+    }}>"""
+    b = """    <div ref={ref} aria-hidden="true" style={{
+      position: 'absolute',
+      inset: 0,
+      pointerEvents: 'none',
+      containerType: 'size'
+    }}>"""
+    assert s.count(a) == 1, 'heros7 cadre'
+    s = s.replace(a, b, 1)
+    a = "      }} />{scene}\n"
+    assert s.count(a) == 1, 'heros7 {scene}'
+    s = s.replace(a, "      }} /><div className=\"h7-scene\" style={H7_VARS}>{scene}</div>\n", 1)
+    a = "const ROT = 'rotate(-1.15deg)';\n"
+    assert s.count(a) == 1, 'heros7 ROT'
+    b = a + """/* Rendu serveur de la scène : mêmes formules que le script (S1Skyline), en unités du cadre (container-type: size) :
+   s = min(.46·H/446, .5·W/700)·1.2; yh = .7·H; tr = bord droit du bloc de texte (conteneur centré, gouttière, largeur max
+   828 px, 600 px sous 641 px, et 24ch du titre : performance.css); ox = tr + (W − tr − 641·s)/2; fx = ox + 277·s. */
+const H7_VARS = {
+  position: 'absolute',
+  inset: 0,
+  pointerEvents: 'none',
+  /* Même police que le titre (famille, graisse, taille) : « 24ch » (largeur max du titre, accueil-heros3.jsx) vaut la même chose ici. */
+  fontFamily: 'var(--police-titre)',
+  fontWeight: 700,
+  fontSize: 'var(--h7-h1, clamp(47.5px, 4.15vw, 59.3px))',
+  '--h7-s': 'min(calc(100cqh * 0.00123767), calc(100cqw * 0.000857143))',
+  '--h7-wd': '100cqw',
+  '--h7-yh': '70cqh',
+  '--h7-tr': 'calc(max(0px, (100cqw - var(--web-conteneur)) / 2) + var(--web-gouttiere) + min(var(--h7-max, 828px), min(100cqw, var(--web-conteneur)) - 2 * var(--web-gouttiere), 24ch))',
+  '--h7-ox': 'calc(var(--h7-tr) + (100cqw - var(--h7-tr) - 641 * var(--h7-s)) / 2)',
+  '--h7-fx': 'calc(var(--h7-ox) + 277 * var(--h7-s))'
+};
+"""
+    s = s.replace(a, b, 1)
+    for mot in ['px(', ' X(', 'fx +', 'Wd *']:
+        pass
+    return s
+edit('accueil-heros7.jsx', heros7_scene_ssr)
 def hausse_date_blogue(s):
     a = "  d: '2026-01-20',\n  m: '2026-10-08',"
     assert s.count(a) == 1, 'hausse 2026 blogue'

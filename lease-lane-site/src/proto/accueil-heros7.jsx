@@ -494,6 +494,24 @@ let H7SocleA = () => <nav aria-label="Accès rapides" className="h7-socle" style
 }}><GrilleA /></nav>;
 /* 1 · Skyline : la couverture de connexion en grand. Les immeubles posés sur l'horizon à droite, la voie de chevrons qui file vers la ville, les deux entrées sur la voie. */
 const ROT = 'rotate(-1.15deg)';
+/* Rendu serveur de la scène : mêmes formules que le script (S1Skyline), en unités du cadre (container-type: size) :
+   s = min(.46·H/446, .5·W/700)·1.2; yh = .7·H; tr = bord droit du bloc de texte (conteneur centré, gouttière, largeur max
+   828 px, 600 px sous 641 px, et 24ch du titre : performance.css); ox = tr + (W − tr − 641·s)/2; fx = ox + 277·s. */
+const H7_VARS = {
+  position: 'absolute',
+  inset: 0,
+  pointerEvents: 'none',
+  /* Même police que le titre (famille, graisse, taille) : « 24ch » (largeur max du titre, accueil-heros3.jsx) vaut la même chose ici. */
+  fontFamily: 'var(--police-titre)',
+  fontWeight: 700,
+  fontSize: 'var(--h7-h1, clamp(47.5px, 4.15vw, 59.3px))',
+  '--h7-s': 'min(calc(100cqh * 0.00123767), calc(100cqw * 0.000857143))',
+  '--h7-wd': '100cqw',
+  '--h7-yh': '70cqh',
+  '--h7-tr': 'calc(max(0px, (100cqw - var(--web-conteneur)) / 2) + var(--web-gouttiere) + min(var(--h7-max, 828px), min(100cqw, var(--web-conteneur)) - 2 * var(--web-gouttiere), 24ch))',
+  '--h7-ox': 'calc(var(--h7-tr) + (100cqw - var(--h7-tr) - 641 * var(--h7-s)) / 2)',
+  '--h7-fx': 'calc(var(--h7-ox) + 277 * var(--h7-s))'
+};
 function S1Skyline() {
   const [p, setP] = React.useState(false),
     ref = React.useRef(null),
@@ -564,52 +582,50 @@ function S1Skyline() {
       position: 'absolute',
       pointerEvents: 'none'
     };
-  let scene = null;
-  if (g) {
-    const {
-        Wd,
-        yh,
-        s,
-        ox
-      } = g,
-      X = x => ox + x * s,
-      px = v => v * s + 'px',
-      fx = X(277);
-    scene = <React.Fragment>
+  /* Géométrie de la scène : en px une fois mesurée par le script; sinon (rendu serveur, premier affichage) les mêmes
+     formules en CSS, à partir des variables --h7-* du cadre (H7_VARS). */
+  const GEO = g ? {
+    L: c => (c.fx || 0) * (g.ox + 277 * g.s) + (c.ox || 0) * g.ox + (c.s || 0) * g.s + (c.wd || 0) * g.Wd + (c.yh || 0) * g.yh + 'px',
+    blur: k => (k * g.s).toFixed(2) + 'px'
+  } : {
+    L: c => 'calc(' + ['fx', 'ox', 's', 'wd', 'yh'].filter(k => c[k]).map(k => c[k] + ' * var(--h7-' + k + ')').join(' + ') + ')',
+    blur: k => 'calc(' + k + ' * var(--h7-s))'
+  };
+  const scene = <React.Fragment>
       {/* Duotone de marque : netteté renforcée (convolution 3×3) et arêtes soulignées (détection de contours ajoutée à 22 %), immeubles en gris (55 %) mêlé au bleu du bouton Soumission #3767A2 (45 %), contraste +18 %, puis dégradé marine à 35 % vers le pied des tours. */}
       <svg aria-hidden="true" width="0" height="0" style={{
         position: 'absolute'
       }}><defs><filter id="h7-duo" colorInterpolationFilters="sRGB" x="0" y="0" width="100%" height="100%"><feConvolveMatrix in="SourceGraphic" order="3" kernelMatrix="0 -0.9 0 -0.9 4.6 -0.9 0 -0.9 0" preserveAlpha="true" edgeMode="duplicate" result="net" /><feConvolveMatrix in="SourceGraphic" order="3" kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" preserveAlpha="true" edgeMode="duplicate" result="bords" /><feComposite in="net" in2="bords" operator="arithmetic" k1="0" k2="1" k3=".22" k4="0" /><feColorMatrix type="matrix" values=".1169 .3934 .0397 0 .0971 .1169 .3934 .0397 0 .1818 .1169 .3934 .0397 0 .2859 0 0 0 1 0" /><feComponentTransfer><feFuncR type="linear" slope="1.18" intercept="-.05" /><feFuncG type="linear" slope="1.18" intercept="-.05" /><feFuncB type="linear" slope="1.18" intercept="-.05" /></feComponentTransfer></filter></defs></svg>
       <div style={{
         ...abs,
-        left: fx - 408 * s + 'px',
-        top: yh - 202 * s - 275 * s + 'px',
-        width: px(816),
-        height: px(550),
+        left: GEO.L({ fx: 1, s: -408 }),
+        top: GEO.L({ yh: 1, s: -477 }),
+        width: GEO.L({ s: 816 }),
+        height: GEO.L({ s: 550 }),
         background: 'radial-gradient(closest-side,rgba(255,255,255,.48) 0%,rgba(255,255,255,.264) 32%,rgba(255,255,255,.096) 62%,rgba(255,255,255,0) 100%)',
         WebkitMaskImage: 'linear-gradient(180deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.75) 28%,#000 66%)',
         maskImage: 'linear-gradient(180deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.75) 28%,#000 66%)'
       }} />
       <img src={IM} alt="" className="ll-auth-fondu" style={{
         ...abs,
-        left: X(-81) + 'px',
-        top: yh - 529 * s + 'px',
-        width: px(811),
-        height: px(611),
+        left: GEO.L({ ox: 1, s: -81 }),
+        top: GEO.L({ yh: 1, s: -529 }),
+        width: GEO.L({ s: 811 }),
+        height: GEO.L({ s: 611 }),
         filter: 'url(#h7-duo)',
         transform: ROT,
-        transformOrigin: px(401) + ' ' + px(529),
+        transformOrigin: GEO.L({ s: 401 }) + ' ' + GEO.L({ s: 529 }),
         WebkitMaskImage: 'linear-gradient(180deg,#000 86.58%,rgba(0,0,0,0) 86.58%)',
         maskImage: 'linear-gradient(180deg,#000 86.58%,rgba(0,0,0,0) 86.58%)'
       }} />
       <div className="ll-auth-fondu" style={{
         ...abs,
-        left: X(-81) + 'px',
-        top: yh - 529 * s + 'px',
-        width: px(811),
-        height: px(611),
+        left: GEO.L({ ox: 1, s: -81 }),
+        top: GEO.L({ yh: 1, s: -529 }),
+        width: GEO.L({ s: 811 }),
+        height: GEO.L({ s: 611 }),
         transform: ROT,
-        transformOrigin: px(401) + ' ' + px(529),
+        transformOrigin: GEO.L({ s: 401 }) + ' ' + GEO.L({ s: 529 }),
         background: 'linear-gradient(180deg,rgba(12,33,71,0) 12%,rgba(12,33,71,.35) 86.58%)',
         WebkitMaskImage: 'url(' + IM + '),linear-gradient(180deg,#000 86.58%,rgba(0,0,0,0) 86.58%)',
         WebkitMaskSize: '100% 100%',
@@ -620,22 +636,22 @@ function S1Skyline() {
       }} />
       <div style={{
         ...abs,
-        left: X(-81) + 'px',
-        top: yh + 'px',
-        width: px(811),
-        height: px(152),
+        left: GEO.L({ ox: 1, s: -81 }),
+        top: GEO.L({ yh: 1 }),
+        width: GEO.L({ s: 811 }),
+        height: GEO.L({ s: 152 }),
         overflow: 'hidden',
         opacity: .85,
         transform: ROT,
-        transformOrigin: px(401) + ' 0',
+        transformOrigin: GEO.L({ s: 401 }) + ' 0',
         WebkitMaskImage: 'linear-gradient(180deg,rgba(0,0,0,.62) 0%,rgba(0,0,0,.22) 46%,rgba(0,0,0,0) 88%)',
         maskImage: 'linear-gradient(180deg,rgba(0,0,0,.62) 0%,rgba(0,0,0,.22) 46%,rgba(0,0,0,0) 88%)'
       }}><img src={IM} alt="" style={{
           position: 'absolute',
           left: 0,
-          top: px(-82),
-          width: px(811),
-          height: px(611),
+          top: GEO.L({ s: -82 }),
+          width: GEO.L({ s: 811 }),
+          height: GEO.L({ s: 611 }),
           filter: 'url(#h7-duo)',
           transform: 'scaleY(-1)'
         }} /></div>
@@ -643,33 +659,33 @@ function S1Skyline() {
         ...abs,
         left: '-2%',
         width: '104%',
-        top: yh - 38 * s + 'px',
-        height: px(204),
+        top: GEO.L({ yh: 1, s: -38 }),
+        height: GEO.L({ s: 204 }),
         transform: ROT,
-        transformOrigin: fx + 'px ' + px(38)
+        transformOrigin: GEO.L({ fx: 1 }) + ' ' + GEO.L({ s: 38 })
       }}>
         <div style={{
           position: 'absolute',
           left: 0,
           right: 0,
-          top: px(28),
-          height: px(46),
+          top: GEO.L({ s: 28 }),
+          height: GEO.L({ s: 46 }),
           background: 'linear-gradient(180deg,rgba(18,41,74,0) 0%,rgba(18,41,74,.92) 14%,rgba(18,41,74,1) 19%,rgba(18,41,74,.94) 26%,rgba(18,41,74,.5) 46%,rgba(18,41,74,.14) 72%,rgba(18,41,74,0) 100%)'
         }} />
         <div style={{
           position: 'absolute',
-          left: fx - Wd * .35 + 'px',
-          width: Wd * .7 + 'px',
-          top: px(6),
-          height: px(64),
+          left: GEO.L({ fx: 1, wd: -.35 }),
+          width: GEO.L({ wd: .7 }),
+          top: GEO.L({ s: 6 }),
+          height: GEO.L({ s: 64 }),
           background: 'radial-gradient(ellipse 50% 54% at 50% 50%,rgba(205,228,255,.66) 0%,rgba(147,188,238,.2) 48%,rgba(147,188,238,0) 100%)'
         }} />
         <div style={{
           position: 'absolute',
           left: 0,
           right: 0,
-          top: px(31),
-          height: px(5),
+          top: GEO.L({ s: 31 }),
+          height: GEO.L({ s: 5 }),
           filter: 'blur(1.5px)',
           background: 'linear-gradient(90deg,rgba(4,7,13,0) 0%,#0B1728 30%,#12294A 60%,rgba(25,48,75,0) 100%)'
         }} />
@@ -677,19 +693,19 @@ function S1Skyline() {
           position: 'absolute',
           left: 0,
           right: 0,
-          top: px(38),
-          height: px(34),
-          filter: 'blur(' + (5 * s).toFixed(2) + 'px)',
+          top: GEO.L({ s: 38 }),
+          height: GEO.L({ s: 34 }),
+          filter: 'blur(' + GEO.blur(5) + ')',
           background: 'linear-gradient(180deg,rgba(69,125,194,.3) 0%,rgba(69,125,194,0) 100%)'
         }} /></div>
       <div style={{
         ...abs,
         left: '-4%',
         right: '-4%',
-        top: yh + 'px',
+        top: GEO.L({ yh: 1 }),
         bottom: 0,
         transform: ROT,
-        transformOrigin: fx + .04 * Wd + 'px 0'
+        transformOrigin: GEO.L({ fx: 1, wd: .04 }) + ' 0'
       }}><canvas ref={cv} className="ll-auth-fondu" style={{
           position: 'absolute',
           inset: 0,
@@ -700,7 +716,6 @@ function S1Skyline() {
           filter: 'blur(.35px)'
         }}></canvas></div>
     </React.Fragment>;
-  }
   return <section className="ll-sombre" style={{
     position: 'relative',
     isolation: 'isolate',
@@ -713,7 +728,8 @@ function S1Skyline() {
     <div ref={ref} aria-hidden="true" style={{
       position: 'absolute',
       inset: 0,
-      pointerEvents: 'none'
+      pointerEvents: 'none',
+      containerType: 'size'
     }}>
       {/* Fond « lignes néon » derrière toute la scène, à 2 % d'opacité. */}
       <img src={IMG + 'fond-lignes-neon.jpg'} alt="" style={{
@@ -723,7 +739,7 @@ function S1Skyline() {
         height: '100%',
         objectFit: 'cover',
         opacity: .02
-      }} />{scene}
+      }} /><div className="h7-scene" style={H7_VARS}>{scene}</div>
       <div style={{
         position: 'absolute',
         inset: 0,

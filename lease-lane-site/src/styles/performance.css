@@ -16,3 +16,7 @@
    insère la police de secours juste après Poppins. */
 @font-face { font-family: 'Poppins Fallback'; src: local('Arial'); size-adjust: 112.16%; ascent-override: 93.62%; descent-override: 31.21%; line-gap-override: 8.92%; }
 :root { --police-titre: 'Poppins', 'Poppins Fallback', 'Gilroy', 'Segoe UI', system-ui, sans-serif; --police-corps: 'Poppins', 'Poppins Fallback', 'Gilroy', 'Segoe UI', system-ui, sans-serif; }
+
+/* Scène de la bannière rendue par le serveur (accueil-heros7.jsx, H7_VARS) : sous 641 px, largeur max du bloc de texte 600 px
+   et taille du titre mobile (responsive.css / accueil-heros3.jsx), pour calculer le bord droit du texte sans attendre le script. */
+@media (max-width: 640px) { .h7-scene { --h7-max: 600px; --h7-h1: clamp(34.4px, 3.01vw, 43px); } }
