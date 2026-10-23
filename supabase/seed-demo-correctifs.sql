@@ -36,3 +36,7 @@ cross join generate_series(0, 11) s(sem)
 cross join lateral generate_series(1, greatest(1, p.base - 6 + s.sem / 2 + (abs(hashtext(p.nom || s.sem)) % 4))) k
 cross join lateral (select (date_trunc('week', now()) - make_interval(weeks => 11 - s.sem) + make_interval(hours => 9 + (k % 8), days => k % 5)) d) x
 where x.d < now() and not exists (select 1 from crm.tasks where entity_type = 'demo-e59');
+-- Olivier Dion et Josée Lemieux : versement d'octobre reçu à la banque, en attente de rapprochement (e42) : rappels de loyer en pause.
+update public.payments pa set reminder_paused = true
+from public.leases l join public.tenants t on t.id = l.tenant_id
+where pa.lease_id = l.id and t.full_name in ('Olivier Dion', 'Josée Lemieux') and pa.due_date = date '2026-10-01' and pa.status <> 'paid' and not coalesce(pa.reminder_paused, false);
