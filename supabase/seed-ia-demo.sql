@@ -41,7 +41,7 @@ update public.ai_run_log l set verified_at = least(now() - interval '5 minutes',
   human_correction = case when abs(hashtext(l.id::text || 'v')) % 25 = 0 then 'Avenant' end
 where l.prompt_version = 'demo-ia' and crm.a_verifier(l) and l.confidence >= 80 and l.verified_at is null;
 -- cinq vérifiées aujourd'hui
-update public.ai_run_log l set verified_at = now() - make_interval(mins => 20 * x.n), created_at = least(l.created_at, now() - make_interval(mins => 20 * x.n + 30))
+update public.ai_run_log l set verified_at = now() - make_interval(mins => (20 * x.n)::int), created_at = least(l.created_at, now() - make_interval(mins => (20 * x.n + 30)::int))
 from (select id, row_number() over (order by id) n from public.ai_run_log where prompt_version = 'demo-ia' and verdict is not null limit 5) x where l.id = x.id;
 
 -- ── Consommation du mois (Routeur IA) ──
