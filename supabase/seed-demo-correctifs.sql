@@ -47,3 +47,6 @@ update crm.proposals pr set
   before = (select jsonb_build_object('stage', p.stage, 'potential_monthly_revenue', p.potential_monthly_revenue, 'next_action', p.next_action,
                                       'next_followup_date', p.next_followup_date, 'num_doors', p.num_doors) from public.prospects p where p.id = pr.target_id)
 where pr.idempotency_key = 'maquette:roy-qualifie' and pr.status = 'pending' and not pr.after ? 'num_doors';
+-- Mise en demeure de démonstration : signée au nom d'Admin Démo plutôt que d'un compte de tests automatiques.
+update jur.notices set signer_name = 'Admin Démo', body = replace(body, signer_name, 'Admin Démo') where status = 'draft' and signer_name like '%@%';
+update crm.proposals pr set after = jsonb_set(after, '{body}', to_jsonb(n.body)) from jur.notices n where pr.id = n.proposal_id and pr.status = 'pending' and n.status = 'draft' and pr.after ->> 'body' <> n.body;
