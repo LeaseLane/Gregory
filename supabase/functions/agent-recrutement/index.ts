@@ -1,6 +1,6 @@
 import { corsHeadersFor } from "../_shared/auth.ts";
 import { estAppelInterneVerifie } from "../_shared/appel-interne.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, modelePour, avecContexte } from "../_shared/ia.ts";
 // agent-recrutement (T8b) : cherche des entreprises (spécialité, secteurs de la recherche active), vérifie la licence
 // RBQ au registre public de la RBQ, et DÉPOSE des candidats (maint.supplier_candidates). Jamais de fournisseur créé,
 // jamais d'invitation : une personne décide dans Lanceur (Maintenance › Recrutement). Coût IA mesuré par recherche.
@@ -59,7 +59,7 @@ Ne propose pas d'entreprises de gestion immobilière. Maximum ${MAX} entreprises
     ];
     const appeler = (model: string) => fetch(IA_MESSAGES_URL, { method: "POST", headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify(avecContexte({ model, max_tokens: 4096, tools, messages: [{ role: "user", content: prompt }] })) });
-    let aiRes = await appeler(Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5");
+    let aiRes = await appeler(await modelePour("recrutement", Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5"));
     let ai = await aiRes.json().catch(() => ({}));
     if (!aiRes.ok && /entitlement|model/i.test(JSON.stringify(ai?.error ?? ""))) { aiRes = await appeler(MODELE_RAPIDE); ai = await aiRes.json().catch(() => ({})); }
     const u = ai?.usage ?? {}, recherches = Number(u?.server_tool_use?.web_search_requests ?? 0);

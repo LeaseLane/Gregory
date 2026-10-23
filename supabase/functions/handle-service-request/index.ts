@@ -2,7 +2,7 @@ import { EXPEDITEUR } from "../_shared/branding.ts";
 import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { dimensionsImage } from "../_shared/image.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, MODELE_VIDEO, decrireVideo, decrireMedias, versBase64, type PartieGemini, avecContexte } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, modelePour, MODELE_VIDEO, decrireVideo, decrireMedias, versBase64, type PartieGemini, avecContexte } from "../_shared/ia.ts";
 import { refuserSiNonInterne } from "../_shared/appel-interne.ts";
 // Règles de sécurité déterministes : ne dépendent JAMAIS de l'IA.
 // Si l'une de ces situations est détectée dans la description du
@@ -24,6 +24,7 @@ function checkSafetyOverride(description: string) {
 }
 
 const MODEL_VERSION = MODELE_RAPIDE;
+let modeleUtilise = MODEL_VERSION;   // modèle routé (Routeur IA), inscrit au journal
 const PROMPT_VERSION = "service-request-v4-video";
 const MAX_VIDEOS = 2;
 // Envoi en ligne à la passerelle : au-delà, la vidéo est gardée pour
@@ -236,6 +237,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
   "risk_if_no_action": "le risque concret en une phrase si la situation n'est pas traitée rapidement"
 }`;
 
+      const modeleIA = await modelePour("handle-service-request", MODEL_VERSION); modeleUtilise = modeleIA;
       const appelIA = (avecPhotos: boolean) => fetch(IA_MESSAGES_URL, {
         method: "POST",
         headers: {
@@ -244,7 +246,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
           "content-type": "application/json",
         },
         body: JSON.stringify(avecContexte({
-          model: MODEL_VERSION,
+          model: modeleIA,
           max_tokens: 800,
           messages: [{ role: "user", content: avecPhotos && photoBlocks.length ? [...photoBlocks, { type: "text", text: prompt }] : prompt }],
         })),
@@ -382,7 +384,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après), avec ex
         entity_type: "service_requests",
         entity_id: record.id,
         prompt_version: PROMPT_VERSION,
-        model_version: MODEL_VERSION,
+        model_version: modeleUtilise,
         input_summary: (record.description ?? "").slice(0, 300),
         output_summary: aiCategory ? `${aiCategory}${aiSubcategory ? " / " + aiSubcategory : ""} / ${aiUrgency ?? "?"} / ${aiCost ?? "?"}$` : null,
         confidence: aiConfidence,

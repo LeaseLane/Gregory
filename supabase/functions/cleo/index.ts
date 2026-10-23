@@ -1,5 +1,5 @@
 import { corsHeadersFor } from "../_shared/auth.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, modelePour, avecContexte } from "../_shared/ia.ts";
 import { valider, type Fait, type Reponse } from "../_shared/cleo.ts";
 // cleo (T8c, e03) : une question en langage courant → réponse structurée qui cite ses sources, et au plus une action proposée.
 // Le contexte est lu AVEC LE JETON DE LA PERSONNE (lanceur_cleo_contexte) : Cléo ne voit que ce que la personne voit.
@@ -50,11 +50,12 @@ Deno.serve(async (req) => {
   const messages = [...(Array.isArray(historique) ? historique.slice(-6) : []).filter((m: { role?: string; content?: string }) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
       .map((m: { role: string; content: string }) => ({ role: m.role, content: m.content.slice(0, 1500) })),
     { role: "user", content: `Faits (lus à ${ctx.aujourdhui}, pour ${ctx.personne}, rôle ${ctx.role}) :\n${JSON.stringify(faits)}\n\nQuestion : ${question}` }];
+  const modele = await modelePour("cleo", MODELE_RAPIDE);
   const r = await fetch(IA_MESSAGES_URL, { method: "POST", headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify(avecContexte({ model: MODELE_RAPIDE, max_tokens: 1200, system: SYSTEME, tools: [OUTIL], tool_choice: { type: "tool", name: "repondre" }, messages })) });
+    body: JSON.stringify(avecContexte({ model: modele, max_tokens: 1200, system: SYSTEME, tools: [OUTIL], tool_choice: { type: "tool", name: "repondre" }, messages })) });
   const d = await r.json().catch(() => null);
   const u = d?.usage ?? {}, mesure = (erreur?: string) => fetch(`${url}/rest/v1/rpc/service_cleo_mesure`, { method: "POST", headers: { apikey: cle, Authorization: `Bearer ${cle}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ p: { par, faits: faits.length, modele: MODELE_RAPIDE, entree: u.input_tokens ?? 0, sortie: u.output_tokens ?? 0, cout: coutCents(u.input_tokens ?? 0, u.output_tokens ?? 0), erreur } }) }).catch(() => null);
+    body: JSON.stringify({ p: { par, faits: faits.length, modele, entree: u.input_tokens ?? 0, sortie: u.output_tokens ?? 0, cout: coutCents(u.input_tokens ?? 0, u.output_tokens ?? 0), erreur } }) }).catch(() => null);
   const appel = d?.content?.find((b: { type: string }) => b.type === "tool_use");
   if (!r.ok || !appel) { await mesure(`ia ${r.status}`); return json({ error: "Cléo ne répond pas pour l’instant. Vos actions restent possibles sans elle." }, 502); }
   await mesure();

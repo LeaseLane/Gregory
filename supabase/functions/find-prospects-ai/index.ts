@@ -1,6 +1,6 @@
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 import { estAppelInterneVerifie } from "../_shared/appel-interne.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, modelePour, avecContexte } from "../_shared/ia.ts";
 // find-prospects-ai : l'agent de prospection (T3b). Recherche web RÉELLE (jamais inventée) de propriétaires qui gèrent
 // eux-mêmes des immeubles à logements au Québec, via Claude + l'outil serveur web_search.
 //
@@ -84,7 +84,7 @@ Une fois ta recherche terminée, appelle l'outil "soumettre" avec ce que tu as t
       headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify(avecContexte({ model, max_tokens: 4096, tools, messages: [{ role: "user", content: prompt }] })),
     });
-    let aiRes = await appeler(Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5");
+    let aiRes = await appeler(await modelePour("prospection", Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5"));
     let ai = await aiRes.json().catch(() => ({}));
     // Passerelle sans prix pour ce modèle (Tonia : managed_model_price_missing) : on reprend avec le modèle rapide.
     if (!aiRes.ok && /entitlement|model/i.test(JSON.stringify(ai?.error ?? ""))) {

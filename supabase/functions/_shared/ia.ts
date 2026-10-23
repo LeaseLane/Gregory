@@ -35,6 +35,29 @@ export const IA_CLE = CLE;
 // ne dit pas toujours lequel des paramètres pose problème.
 export const MODELE_RAPIDE = Deno.env.get("IA_MODELE") || "claude-haiku-4-5";
 
+// Routeur IA (Lanceur · Cléo et IA · Routeur IA) : le modèle choisi pour un agent, lu dans config.parametres « ia_routes »
+// par la fonction de base service_ia_modele. Lu une fois par instance (le changement prend effet au prochain démarrage à froid,
+// au plus quelques minutes). Toute erreur ou absence de réglage rend le modèle par défaut de l'appelant : le routeur ne peut
+// jamais couper un agent.
+const ROUTES = new Map<string, string | null>();
+export async function modelePour(agent: string, defaut: string): Promise<string> {
+  if (ROUTES.has(agent)) return ROUTES.get(agent) || defaut;
+  const url = Deno.env.get("SUPABASE_URL"), cle = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !cle) return defaut;
+  try {
+    const r = await fetch(`${url}/rest/v1/rpc/service_ia_modele`, {
+      method: "POST", headers: { apikey: cle, Authorization: `Bearer ${cle}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_agent: agent }), signal: AbortSignal.timeout(1500),
+    });
+    const m = r.ok ? await r.json().catch(() => null) : null;
+    const ok = typeof m === "string" && /^[a-z0-9/.-]{3,80}$/i.test(m) && !/-\d{8}$/.test(m) ? m : null;
+    ROUTES.set(agent, ok);
+    return ok || defaut;
+  } catch {
+    return defaut;
+  }
+}
+
 export type ReponseIA = {
   ok: boolean;
   status: number;

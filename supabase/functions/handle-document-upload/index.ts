@@ -1,5 +1,6 @@
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, modelePour, avecContexte } from "../_shared/ia.ts";
 const MODEL_VERSION = MODELE_RAPIDE;
+let modeleUtilise = MODEL_VERSION;   // modèle routé (Routeur IA), inscrit au journal
 const PROMPT_VERSION = "document-extraction-v2-traceability";
 const CONFIDENCE_THRESHOLD = 85;
 
@@ -102,7 +103,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         "content-type": "application/json",
       },
       body: JSON.stringify(avecContexte({
-        model: MODEL_VERSION,
+        model: (modeleUtilise = await modelePour("handle-document-upload", MODEL_VERSION)),
         max_tokens: 800,
         messages: [{ role: "user", content: [contentBlock, { type: "text", text: prompt }] }],
       })),
@@ -115,7 +116,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         method: "POST", headers: adminHeaders,
         body: JSON.stringify({
           function_name: "handle-document-upload", trigger_source: "edge_function_call", entity_type: "documents", entity_id: document_id,
-          prompt_version: PROMPT_VERSION, model_version: MODEL_VERSION, input_summary: doc.title,
+          prompt_version: PROMPT_VERSION, model_version: modeleUtilise, input_summary: doc.title,
           duration_ms: Date.now() - aiStartedAt, error: `anthropic_api_error ${aiRes.status}`,
         }),
       }).catch(() => null);
@@ -138,7 +139,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         entity_type: "documents",
         entity_id: document_id,
         prompt_version: PROMPT_VERSION,
-        model_version: MODEL_VERSION,
+        model_version: modeleUtilise,
         input_summary: doc.title,
         output_summary: parsed.summary ?? null,
         confidence: parsed.confidence ?? null,
@@ -163,7 +164,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
         ai_confidence: parsed.confidence ?? null,
         ai_source_page: parsed.source_page ?? null,
         ai_source_excerpt: parsed.source_excerpt ?? null,
-        ai_model_version: MODEL_VERSION,
+        ai_model_version: modeleUtilise,
         ai_extracted_at: new Date().toISOString(),
         ai_readable: parsed.readable ?? null,
         ai_signature_present: parsed.signature_present ?? null,

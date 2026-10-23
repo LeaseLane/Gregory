@@ -19,3 +19,11 @@ Deno.test("sans IA_BASE_URL, on appelle Anthropic directement", async () => {
   // configuration couperait les dix-huit fonctions d'un coup.
   assertEquals(typeof mod.appelerIA, "function");
 });
+
+Deno.test("routeur : sans réglage ni accès à la base, le modèle par défaut de l'appelant", async () => {
+  const { modelePour } = await import("./ia.ts");
+  const avant = Deno.env.get("SUPABASE_URL");
+  Deno.env.delete("SUPABASE_URL");
+  try { assertEquals(await modelePour("cleo", "claude-haiku-4-5"), "claude-haiku-4-5"); }
+  finally { if (avant) Deno.env.set("SUPABASE_URL", avant); }
+});
