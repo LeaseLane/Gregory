@@ -98,15 +98,26 @@ function useToile(ref, dessin, pause, deps) {
       ctx.clearRect(0, 0, w, h);
       if (w && h) dr.current(ctx, w, h, acc, etat, dpr);
     };
+    /* Animation au premier geste seulement (performance) : avant, une image fixe. */
+    let geste = false;
     const boucle = n => {
       image(n);
-      if (vu && !red) id = (__ssr() ? "undefined" : typeof window) !== "undefined" ? requestAnimationFrame(boucle) : undefined;
+      if (vu && !red && geste) id = (__ssr() ? "undefined" : typeof window) !== "undefined" ? requestAnimationFrame(boucle) : undefined;
     };
     const go = () => {
       cancelAnimationFrame(id);
       last = performance.now();
-      if (red) image(last);else if (vu) id = (__ssr() ? "undefined" : typeof window) !== "undefined" ? requestAnimationFrame(boucle) : undefined;
+      if (red || !geste) image(last);else if (vu) id = (__ssr() ? "undefined" : typeof window) !== "undefined" ? requestAnimationFrame(boucle) : undefined;
     };
+    const GESTES = ['pointerdown', 'pointermove', 'keydown', 'touchstart', 'wheel'];
+    const demarrer = () => {
+      if (geste) return;
+      geste = true;
+      go();
+    };
+    const defileur = document.getElementById('ll-scroll');
+    GESTES.forEach(x => window.addEventListener(x, demarrer, { once: true, passive: true }));
+    if (defileur) defileur.addEventListener('scroll', demarrer, { once: true, passive: true });
     const taille = () => {
       const r = cv.getBoundingClientRect();
       dpr = Math.min(2, ((__ssr() ? "undefined" : typeof window) !== "undefined" ? window.devicePixelRatio : undefined) || 1);
@@ -125,6 +136,8 @@ function useToile(ref, dessin, pause, deps) {
     });
     io.observe(cv);
     return () => {
+      GESTES.forEach(x => window.removeEventListener(x, demarrer));
+      if (defileur) defileur.removeEventListener('scroll', demarrer);
       cancelAnimationFrame(id);
       ro.disconnect();
       io.disconnect();

@@ -318,6 +318,51 @@ const H7_VARS = {
         pass
     return s
 edit('accueil-heros7.jsx', heros7_scene_ssr)
+
+# Performance (PageSpeed, 23 oct. 2026) : la toile du socle (halo mobile au sol) tournait en boucle à 60 images/s dès le
+# chargement. Sur une machine lente (celle de Google), chaque image dépasse 50 ms et compte comme blocage pendant toute la
+# mesure : 220 ms un coup, 1 870 ms le suivant. Désormais : une image fixe au chargement (même dessin), l'animation part au
+# premier geste du visiteur (souris, défilement, toucher, clavier). Google ne fait aucun geste.
+def toile_geste(s):
+    a = """    const boucle = n => {
+      image(n);
+      if (vu && !red) id = (__ssr() ? "undefined" : typeof window) !== "undefined" ? requestAnimationFrame(boucle) : undefined;
+    };
+    const go = () => {
+      cancelAnimationFrame(id);
+      last = performance.now();
+      if (red) image(last);else if (vu) id = (__ssr() ? "undefined" : typeof window) !== "undefined" ? requestAnimationFrame(boucle) : undefined;
+    };
+"""
+    b = """    /* Animation au premier geste seulement (performance) : avant, une image fixe. */
+    let geste = false;
+    const boucle = n => {
+      image(n);
+      if (vu && !red && geste) id = (__ssr() ? "undefined" : typeof window) !== "undefined" ? requestAnimationFrame(boucle) : undefined;
+    };
+    const go = () => {
+      cancelAnimationFrame(id);
+      last = performance.now();
+      if (red || !geste) image(last);else if (vu) id = (__ssr() ? "undefined" : typeof window) !== "undefined" ? requestAnimationFrame(boucle) : undefined;
+    };
+    const GESTES = ['pointerdown', 'pointermove', 'keydown', 'touchstart', 'wheel'];
+    const demarrer = () => {
+      if (geste) return;
+      geste = true;
+      go();
+    };
+    const defileur = document.getElementById('ll-scroll');
+    GESTES.forEach(x => window.addEventListener(x, demarrer, { once: true, passive: true }));
+    if (defileur) defileur.addEventListener('scroll', demarrer, { once: true, passive: true });
+"""
+    assert s.count(a) == 1, 'toile boucle'
+    s = s.replace(a, b, 1)
+    i = s.index(b)
+    j = s.index("    return () => {", i)
+    k = s.index("\n", j) + 1
+    s = s[:k] + "      GESTES.forEach(x => window.removeEventListener(x, demarrer));\n      if (defileur) defileur.removeEventListener('scroll', demarrer);\n" + s[k:]
+    return s
+edit('accueil-heros7.jsx', toile_geste)
 def hausse_date_blogue(s):
     a = "  d: '2026-01-20',\n  m: '2026-10-08',"
     assert s.count(a) == 1, 'hausse 2026 blogue'
