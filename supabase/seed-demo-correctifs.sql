@@ -26,3 +26,13 @@ select l.id, l.monthly_rent, date '2026-11-01', 'pending', 0,
        case when exists (select 1 from public.tenant_pad_authorizations p where p.lease_id = l.id and p.status = 'active') then 'scheduled' else 'manual' end, now()
 from public.leases l where l.status = 'active' and not exists (select 1 from public.payments pa where pa.lease_id = l.id and pa.due_date = date '2026-11-01');
 alter table public.payments enable trigger notif_locataire;
+-- Rapports d'équipe (e59) : 12 semaines de tâches faites par l'équipe de démonstration (fictives, marquées demo-e59).
+insert into crm.tasks (title, context, due_at, due_all_day, assignee_user_id, status, done_at, done_by, source, entity_type, created_at)
+select (array['Relancer le locataire', 'Confirmer la visite', 'Envoyer le bail', 'Vérifier la facture', 'Appeler le fournisseur', 'Mettre à jour la fiche', 'Répondre au propriétaire', 'Planifier l’inspection'])[1 + (k % 8)],
+       'Démo · historique', d - interval '2 hours', false, tm.user_id, 'done', d, tm.user_id, 'manual', 'demo-e59', d - interval '1 day'
+from crm.team_members tm
+join (values ('Julie Normandeau', 20), ('Camille Desrosiers', 17), ('Laurence Pelletier', 13), ('Admin Démo', 6)) as p(nom, base) on p.nom = tm.display_name
+cross join generate_series(0, 11) s(sem)
+cross join lateral generate_series(1, greatest(1, p.base - 6 + s.sem / 2 + (abs(hashtext(p.nom || s.sem)) % 4))) k
+cross join lateral (select (date_trunc('week', now()) - make_interval(weeks => 11 - s.sem) + make_interval(hours => 9 + (k % 8), days => k % 5)) d) x
+where x.d < now() and not exists (select 1 from crm.tasks where entity_type = 'demo-e59');
