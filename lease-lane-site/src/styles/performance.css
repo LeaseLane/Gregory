@@ -5,11 +5,9 @@
 @media (min-height: 530px) { #ll-page section.ll-sombre:has(> div > .h7-sky-texte) { min-height: calc(100vh - 109px); } }
 @media (max-width: 620px) and (min-height: 508px) { #ll-page section.ll-sombre:has(> div > .h7-sky-texte) { min-height: calc(100vh - 87px); } }
 
-/* Sections sous la bannière et pied de page : le navigateur ne calcule leur mise en page et leur dessin qu'à l'approche de
-   l'écran (content-visibility). L'accueil fait 7 500 px et plus de 2 000 éléments; tout était mis en page au chargement
-   (PageSpeed ordinateur du 23 oct. 2026 : 280 ms de blocage). « auto 900px » : hauteur de réserve, puis la vraie hauteur
-   mémorisée une fois la section affichée. */
-#ll-page > div > section:not(:first-child), #ll-scroll > footer { content-visibility: auto; contain-intrinsic-size: auto 900px; }
+/* content-visibility: auto sur les sections (essayé le 23 oct. 2026) : RETIRÉ. Sur le site en ligne, le rendu à la demande des
+   sections ajoutait 5 tâches longues après le chargement (blocage 185-274 ms sans → 374-523 ms avec, 3 paires A/B en direct);
+   PageSpeed : blocage 280 → 450 ms. Les mesures locales ne le montraient pas. */
 
 /* Poppins arrive parfois après le premier affichage (font-display: swap) : le texte est d'abord dessiné en Arial, puis se
    recale (décalage de mise en page 0,067 mesuré par PageSpeed le 23 oct. 2026). « Poppins Fallback » est Arial ajusté aux
