@@ -1736,3 +1736,4 @@ input + .bouton { white-space: nowrap; } .bouton { overflow-wrap: normal; } .dea
 .legende-niveaux .niveau:first-child { margin-left: 0; }
 .loi-delais { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; } .loi-delais li { display: grid; gap: 4px; } .loi-delais .piste-h { width: 100%; }
 .tableau.matrice thead th.centre { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.petits-multiples { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; } .petits-multiples .mini-barres { gap: 3px; margin: 4px 0; } @media (max-width: 1100px) { .petits-multiples { grid-template-columns: repeat(2, minmax(0, 1fr)); } } /* e59 */
