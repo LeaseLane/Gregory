@@ -19,3 +19,6 @@ begin
 end $$;
 select full_name, company_name, (select count(*) from public.buildings b where b.owner_id = o.id) immeubles from public.owners o order by 1;
 select u.email, tm.display_name, tm.role, tm.active from crm.team_members tm left join auth.users u on u.id = tm.user_id order by 1;
+select p.code, s.sort, d.title, d.subtitle, d.doors, d.monthly_value_cents, so.code source, d.created_at::date from crm.deals d join crm.pipelines p on p.id = d.pipeline_id join crm.stages s on s.id = d.stage_id left join crm.sources so on so.id = d.source_id order by 1, 2;
+select o.full_name, b.address, b.zone, (select count(*) from public.units u where u.building_id = b.id) n from public.buildings b join public.owners o on o.id = b.owner_id where o.full_name = 'Marie-Josée Bérubé' order by 2;
+select title, status, created_at::date from crm.tasks where status = 'open' order by created_at desc limit 40;
