@@ -6,6 +6,7 @@ import { adresse } from '@/lib/format';
 import { titre, ESPACES, AGENTS, type Proposition } from '@/lib/propositions';
 import type { DonneesTaches } from './taches/Taches';
 import { NouvelleDemande } from './NouvelleDemande';
+import { AssignerDemande } from './AssignerDemande';
 
 /* l01 : file « À traiter » (2/3) par urgence puis ancienneté, filtrée Tout · Urgents · À moi · De Cléo; à droite, ce que les agents proposent et mes tâches.
    e64 : file vide → « Tout est traité », ce qui a été fait aujourd'hui et ce qui s'en vient. */
@@ -18,7 +19,7 @@ const heure = (iso: string) => new Date(iso).toLocaleTimeString('fr-CA', { hour:
 const jours = (iso: string) => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 864e5));
 
 export function ATraiter({ donnees: D, propositions, taches, ouvrir, erreurLecture }: { donnees: DonneesATraiter | null; propositions: Proposition[]; taches: DonneesTaches | null; ouvrir: boolean; erreurLecture: string | null }) {
-  const [filtre, setFiltre] = useState<(typeof FILTRES)[number][0]>('tout');
+  const [filtre, setFiltre] = useState<(typeof FILTRES)[number][0]>('tout'), [assigner, setAssigner] = useState<string | null>(null);
   if (!D) return <div className="bandeau erreur" role="alert">{erreurLecture ?? 'La file n’a pas pu être lue.'}</div>;
   const n = { tout: D.items.length, urgents: D.items.filter((i) => i.urgent).length, moi: D.items.filter((i) => i.moi).length, cleo: D.items.filter((i) => i.cleo).length };
   const L = D.items.filter((i) => filtre === 'tout' || (filtre === 'urgents' ? i.urgent : filtre === 'moi' ? i.moi : i.cleo));
@@ -41,7 +42,9 @@ export function ATraiter({ donnees: D, propositions, taches, ouvrir, erreurLectu
             <span className="at-ic"><Icone nom={i.icone} taille={20} couleur={i.urgent ? '#9B2E28' : '#0C2147'} /></span>
             <div className="at-texte"><strong>{i.titre}</strong><span>{adresse(i.sous)}</span></div>
             <span className={`puce ${i.ton}`}>{i.puce}</span>
-            <Link className={'bouton ' + (k === 0 ? 'bouton-principal' : 'bouton-contour')} href={i.href}>{i.action}</Link>
+            {i.id.startsWith('dem:') && D.peut_ecrire
+              ? <button className={'bouton ' + (k === 0 ? 'bouton-principal' : 'bouton-contour')} onClick={() => setAssigner(i.id.slice(4))}>{i.action}</button>
+              : <Link className={'bouton ' + (k === 0 ? 'bouton-principal' : 'bouton-contour')} href={i.href}>{i.action}</Link>}
           </li>))}</ul>
           : <div className="at-vide"><div><span className="at-vide-ic"><Icone nom="check" taille={24} couleur="#0C2147" /></span>
               <strong>{D.items.length ? 'Rien dans ce filtre' : 'Tout est traité'}</strong>
@@ -74,6 +77,7 @@ export function ATraiter({ donnees: D, propositions, taches, ouvrir, erreurLectu
         </>}
       </div>
       {D.peut_ecrire && <NouvelleDemande ouvrir={ouvrir} />}
+      {assigner && <AssignerDemande demande={assigner} fermer={() => setAssigner(null)} />}
     </div>
   );
 }

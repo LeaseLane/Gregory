@@ -167,12 +167,15 @@ function Edition({ p, envoi, bandeau, approuver, annuler }: { p: Proposition; en
     const entree = k === 'stage' ? <select {...commun}>{Object.entries(ETAPES).map(([c, l]) => <option key={c} value={c}>{l}</option>)}</select>
       : k === 'interest_level' ? <select {...commun}>{Object.entries(INTERETS).map(([c, l]) => <option key={c} value={c}>{l}</option>)}</select>
       : k === 'next_followup_date' ? <input type="date" {...commun} />
+      : k === 'potential_monthly_revenue' || k === 'num_doors' ? <input type="number" inputMode="numeric" min={k === 'num_doors' ? 1 : 0} {...commun} />
+      : k === 'body' ? <textarea rows={12} className="e11-texte" value={v[k] ?? ''} onChange={(e) => setV({ ...v, [k]: e.target.value })} id={`c-${k}`} />
+      : k === 'amount' ? <input type="number" inputMode="decimal" min={0} step="0.01" {...commun} />
       : <input type="text" {...commun} />;
     return (
-      <div key={k} className={'e11-champ ' + (modifie ? 'vous' : 'agent')}>
+      <div key={k} className={'e11-champ ' + (modifie ? 'vous' : 'agent') + (k === 'body' ? ' large' : '')}>
         <label htmlFor={`c-${k}`}><i aria-hidden="true" />{p.labels[k] ?? k}</label>
         <div className="e11-saisie">{entree}</div>
-        <p>{modifie ? <><b>Modifié par vous</b> · {auteur} proposait {valeur(k, p.after[k])}</> : `Avant : ${valeur(k, p.before[k])}`}</p>
+        <p>{k === 'body' ? (modifie ? <b>Modifié par vous</b> : `Rédigé par ${auteur} à partir du modèle révisé`) : modifie ? <><b>Modifié par vous</b> · {auteur} proposait {valeur(k, p.after[k])}</> : `Avant : ${valeur(k, p.before[k])}`}</p>
       </div>
     );
   };

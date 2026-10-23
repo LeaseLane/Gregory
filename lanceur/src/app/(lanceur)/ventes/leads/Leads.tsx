@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
+import { FusionnerFiches } from './FusionnerFiches';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
 
@@ -21,7 +22,7 @@ const tel = (e?: string) => e ? e.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, '$1 $2-$
 
 export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null; erreurLecture: string | null }) {
   const router = useRouter();
-  const [tiroir, setTiroir] = useState(false), [survivant, setSurvivant] = useState<'a' | 'b'>('a');
+  const [tiroir, setTiroir] = useState(false), [survivant, setSurvivant] = useState<'a' | 'b'>('a'), [fusion, setFusion] = useState(false);
   // Bouton « Nouveau lead » de l'en-tête des Ventes (CadreEspace) : ?nouveau=1 ouvre le tiroir à l'arrivée.
   useEffect(() => { if (new URLSearchParams(window.location.search).get('nouveau') === '1') setTiroir(true); }, []);
   const [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null), [envoi, setEnvoi] = useState(false);
@@ -40,6 +41,7 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
 
   return (
     <>
+      {fusion && dbl && <FusionnerFiches a={dbl[survivant].id} b={dbl[survivant === 'a' ? 'b' : 'a'].id} fermer={() => setFusion(false)} fait={(m) => { setToast(m); router.refresh(); }} />}
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       <div className="studio">
         <div className="colonne-l18">
@@ -91,7 +93,7 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
               <p className="surtitre gris">Garder comme fiche principale</p>
               <fieldset className="durees">{(['a', 'b'] as const).map((k) => <label key={k} className={survivant === k ? 'choisi' : ''}><input type="radio" name="surv" checked={survivant === k} onChange={() => setSurvivant(k)} />{dbl[k].nom} · {dbl[k].detail}</label>)}</fieldset>
               <div className="studio-actions sans-marge" style={{ gridTemplateColumns: '140px 1fr' }}>
-                <button className="bouton bouton-principal" disabled={envoi} onClick={() => agir(() => sb().rpc('lanceur_fusionner_contacts', { p_survivant: dbl[survivant].id, p_perdant: dbl[survivant === 'a' ? 'b' : 'a'].id }), 'Fiches fusionnées.')}>Fusionner</button>
+                <button className="bouton bouton-principal" disabled={envoi} onClick={() => setFusion(true)}>Fusionner</button>
                 <button className="bouton bouton-contour" disabled={envoi} onClick={() => agir(() => sb().rpc('lanceur_garder_les_deux', { p_a: dbl.a.id, p_b: dbl.b.id }), 'Les deux fiches sont gardées.')}>Garder les deux fiches</button>
               </div>
             </>}

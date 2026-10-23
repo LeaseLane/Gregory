@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
@@ -24,14 +25,18 @@ function Colonnes({ v }: { v: number[] }) {
   return <span className="micro" aria-label={`7 jours : ${v.join(', ')}`}>{v.map((x, i) => <i key={i} className={i === v.length - 1 ? 'auj' : ''} style={{ height: `${Math.max(2, (24 * x) / max)}px` }} />)}</span>;
 }
 
-export function Automatisations({ etat, erreurLecture }: { etat: Etat | null; erreurLecture: string | null }) {
+export type Regle = { code: string; nom: string; declencheur: string; lien: string | null; pilotable: boolean; active: boolean; existe: boolean;
+  pause: { par: string | null; le: string; raison: string | null } | null; jours: number[]; reussite: number | null; executions_30j: number };
+export type DonneesAuto = { regles: Regle[]; echec: { fonction: string; le: string; erreur: string | null; entite: string | null; resume: string | null } | null; peut_piloter: boolean };
+const ECHEC: Record<string, [string, string, string, string]> = { 'handle-document-upload': ['Classement des pièces', 'Lecture', 'Classement', '/clients/documents'], 'handle-service-request': ['Analyse des demandes', 'Analyse', 'Classement', '/operations'] };
+export function Automatisations({ etat, auto, erreurLecture }: { etat: Etat | null; auto: DonneesAuto | null; erreurLecture: string | null }) {
   const router = useRouter();
   const [ouvert, setOuvert] = useState(false);
   const [raison, setRaison] = useState('');
   const [duree, setDuree] = useState<(typeof DUREES)[number][0]>('reactivation');
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null), [tout, setTout] = useState(false), [pause, setPause] = useState<Regle | null>(null), [raisonP, setRaisonP] = useState('');
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   useEffect(() => { if (!ouvert) return; const f = (e: KeyboardEvent) => e.key === 'Escape' && setOuvert(false); addEventListener('keydown', f); return () => removeEventListener('keydown', f); }, [ouvert]);
 
@@ -45,10 +50,17 @@ export function Automatisations({ etat, erreurLecture }: { etat: Etat | null; er
     router.refresh();
   }
 
+  async function piloter(r: Regle, active: boolean, raisonPause?: string) {
+    setEnvoi(true); setErreur(null);
+    const { error } = await supabaseNavigateur().rpc('lanceur_automatisation_maj', { p: { code: r.code, active, raison: raisonPause } });
+    setEnvoi(false); if (error) { setErreur(error.message); return; }
+    setPause(null); setRaisonP(''); setToast(active ? `${r.nom} reprise.` : `${r.nom} en pause.`); router.refresh();
+  }
   if (erreurLecture || !etat) return <div className="bandeau erreur" role="alert">{erreurLecture} <button className="lien" onClick={() => router.refresh()}>Réessayer</button></div>;
-  const k = etat.coupe_circuit, actives = etat.regles.filter((r) => r.active);
-  const envoyes = etat.regles.reduce((a, r) => a + r.envoyes_30j, 0), echecs = etat.regles.reduce((a, r) => a + r.echecs_30j, 0);
-  const taux = envoyes + echecs ? Math.round((1000 * envoyes) / (envoyes + echecs)) / 10 : null;
+  const k = etat.coupe_circuit, R = (auto?.regles ?? []).filter((r) => r.existe), actives = R.filter((r) => r.active);
+  const execs = R.reduce((a, r) => a + r.executions_30j, 0), avecTaux = R.filter((r) => r.reussite !== null && r.executions_30j);
+  const taux = avecTaux.length ? Math.round((10 * avecTaux.reduce((a, r) => a + r.reussite! * r.executions_30j, 0)) / Math.max(1, avecTaux.reduce((a, r) => a + r.executions_30j, 0))) / 10 : null;
+  const L = tout ? R : R.slice(0, 6), E = auto?.echec, ech = E ? ECHEC[E.fonction] : null;
   return (
     <>
       {k.active && (
@@ -64,32 +76,51 @@ export function Automatisations({ etat, erreurLecture }: { etat: Etat | null; er
         <section className="studio-liste" aria-label="Automatisations">
           <header className="carte-tete studio-tete">
             <div><h2>Automatisations</h2>
-              <p>{pluriel(etat.regles.length, 'règle')} · {pluriel(actives.length, 'active')}{envoyes + echecs ? ` · ${pluriel(envoyes + echecs, 'exécution')} en 30 jours${taux !== null ? `, ${String(taux).replace('.', ',')} % réussies` : ''}` : ' · aucune exécution en 30 jours'}</p></div>
+              <p>{pluriel(R.length, 'règle')} · {pluriel(actives.length, 'active')}{execs ? ` · ${pluriel(execs, 'exécution')} en 30 jours${taux !== null ? `, ${String(taux).replace('.', ',')} % réussies` : ''}` : ' · aucune exécution en 30 jours'}</p></div>
             {etat.peut_suspendre && !k.active && <button className="bouton coupe-circuit" onClick={() => { setErreur(null); setOuvert(true); }}><Icone nom="pause" taille={20} couleur="#9B2E28" trait={2.4} />Suspendre tous les envois</button>}
           </header>
           <table className="tableau regles">
             <colgroup><col style={{ width: 252 }} /><col style={{ width: 88 }} /><col style={{ width: 88 }} /><col style={{ width: 116 }} /><col /><col style={{ width: 60 }} /></colgroup>
             <thead><tr><th>Règle</th><th>7 jours</th><th className="droite">Réussite</th><th>Déploiement</th><th>État</th><th><span className="sr">Interrupteur</span></th></tr></thead>
             <tbody>
-              {etat.regles.map((r) => {
-                const t = r.envoyes_30j + r.echecs_30j;
+              {L.map((r) => {
+                const on = r.active && !k.active;
                 return (
-                  <tr key={r.nom}>
-                    <td><strong className="fort">{r.nom}</strong><span className="sous">{r.resume}</span></td>
+                  <tr key={r.code}>
+                    <td><strong className="fort">{r.lien ? <Link className="lien-texte" href={r.lien}>{r.nom}</Link> : r.nom}</strong><span className="sous">{r.declencheur}</span></td>
                     <td><Colonnes v={r.jours} /></td>
-                    <td className={'droite ' + (t ? 'fort' : 'gris')}>{t ? `${Math.round((100 * r.envoyes_30j) / t)} %` : '—'}</td>
+                    <td className={'droite ' + (r.reussite !== null ? 'fort' : 'gris')}>{r.reussite !== null ? `${r.reussite} %` : '—'}</td>
                     <td className={r.active ? '' : 'gris'}>{r.active ? '100 %' : '—'}</td>
-                    <td>{k.active ? <><strong className="fort">En pause · {k.par ?? 'coupe-circuit'}</strong><span className="sous">« {k.reason} »</span></> : r.active ? 'Active' : <><strong>Désactivée</strong><span className="sous">Pas encore en production : les anciens rappels de loyer y tournent encore</span></>}</td>
-                    <td><span className={'interrupteur' + (r.active && !k.active ? ' on' : '')} role="img" aria-label={r.active && !k.active ? 'Active' : 'Arrêtée'} /></td>
+                    <td>{k.active ? <><strong className="fort">En pause · {k.par ?? 'coupe-circuit'}</strong><span className="sous">« {k.reason} »</span></>
+                      : r.pause ? <><strong className="fort">En pause · {r.pause.par ?? '—'} · {heure(r.pause.le)}</strong><span className="sous">« {r.pause.raison} »</span></>
+                      : r.active ? 'Active' : r.code === 'rappels_loyer' ? <><strong>Désactivée</strong><span className="sous">Pas encore en production : les anciens rappels de loyer y tournent encore</span></> : <><strong>Désactivée</strong><span className="sous">Tâche planifiée arrêtée</span></>}</td>
+                    <td>{r.pilotable && auto?.peut_piloter && !k.active
+                      ? <button className={'interrupteur' + (on ? ' on' : '')} role="switch" aria-checked={on} aria-label={`${r.nom} : ${on ? 'active' : 'en pause'}`} disabled={envoi} onClick={() => on ? (setPause(r), setRaisonP('')) : piloter(r, true)} />
+                      : <span className={'interrupteur' + (on ? ' on' : '')} role="img" aria-label={on ? 'Active' : 'Arrêtée'} title={r.pilotable ? undefined : 'Se règle à sa source'} />}</td>
                   </tr>
                 );
               })}
+              {!R.length && <tr><td colSpan={6} className="gris">Aucune automatisation.</td></tr>}
             </tbody>
           </table>
+          {R.length > 6 && <div className="ligne-entre" style={{ margin: '0 24px' }}><span /><button className="lien" onClick={() => setTout(!tout)}>{tout ? 'Afficher moins' : `Afficher les ${R.length - 6} autres règles`}</button></div>}
           <p className="note-journal"><Icone nom="history" taille={18} couleur="#58697F" />Chaque pause, reprise ou déploiement est inscrit au Journal avec son auteur et sa raison.</p>
         </section>
 
         <div className="colonne-l18">
+          {E && ech && (
+            <section className="carte-l18" aria-label="Échec à traiter">
+              <div className="echec-tete"><span className="tuile-rouge"><Icone nom="alert" taille={20} couleur="#9B2E28" /></span>
+                <div><h2>{ech[0]}</h2><p>Échec {depuis(E.le)}{E.resume ? ` · ${E.resume}` : ''}</p></div></div>
+              <p className="echec-texte">{E.erreur ?? 'Erreur inconnue'}. Rien n’a été classé ni supprimé.</p>
+              <ol className="echec-etapes">
+                <li className="ok"><i /><strong>Reçu</strong><span>{heure(E.le)}</span></li>
+                <li className="echec"><i /><strong>{ech[1]}</strong><span>échec</span></li>
+                <li><i /><strong>{ech[2]}</strong><span>pas exécuté</span></li>
+              </ol>
+              <div className="studio-actions sans-marge" style={{ marginTop: 16 }}><Link className="bouton bouton-principal" href={ech[3]}>Ouvrir le dossier</Link><Link className="bouton bouton-contour" href={ech[3]}>Classer à la main</Link></div>
+            </section>
+          )}
           {etat.dernier_echec && (
             <section className="carte-l18" aria-label="Échec à traiter">
               <div className="echec-tete"><span className="tuile-rouge"><Icone nom="alert" taille={20} couleur="#9B2E28" /></span>
@@ -131,6 +162,20 @@ export function Automatisations({ etat, erreurLecture }: { etat: Etat | null; er
               <button className="bouton bouton-contour" onClick={() => setOuvert(false)}>Annuler</button>
               <button className="bouton bouton-danger" disabled={envoi || !raison.trim()} onClick={() => basculer(true)}>{envoi ? 'Suspension…' : 'Suspendre les envois'}</button>
             </div>
+          </div>
+        </div>
+      )}
+      {pause && (
+        <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setPause(null)}>
+          <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="pa-t">
+            <div className="fenetre-tete"><h2 id="pa-t">Mettre « {pause.nom} » en pause?</h2>
+              <button className="fermer" onClick={() => setPause(null)} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
+            <p className="fenetre-texte">La tâche planifiée s’arrête tout de suite et reste arrêtée jusqu’à ce qu’une personne la reprenne. Les autres automatisations continuent.</p>
+            <label className="fenetre-lib" htmlFor="pa-r">Raison<span>obligatoire</span></label>
+            <input id="pa-r" className="e70-raison" value={raisonP} onChange={(e) => setRaisonP(e.target.value)} placeholder="Ex. : éviter les doublons au retour du service" autoFocus />
+            {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
+            <div className="fenetre-actions"><button className="bouton bouton-contour" onClick={() => setPause(null)}>Annuler</button>
+              <button className="bouton bouton-principal" disabled={envoi || raisonP.trim().length < 5} onClick={() => piloter(pause, false, raisonP.trim())}>{envoi ? 'Pause…' : 'Mettre en pause'}</button></div>
           </div>
         </div>
       )}

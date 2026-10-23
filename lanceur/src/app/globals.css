@@ -1737,3 +1737,64 @@ input + .bouton { white-space: nowrap; } .bouton { overflow-wrap: normal; } .dea
 .loi-delais { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; } .loi-delais li { display: grid; gap: 4px; } .loi-delais .piste-h { width: 100%; }
 .tableau.matrice thead th.centre { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
 .petits-multiples { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; } .petits-multiples .mini-barres { gap: 3px; margin: 4px 0; } @media (max-width: 1100px) { .petits-multiples { grid-template-columns: repeat(2, minmax(0, 1fr)); } } /* e59 */
+
+/* ── Fenêtres de choix (e07, e18, e39, e50) : cartes radio, recommandation, case en interrupteur ── */
+.fenetre.fenetre-640 { width: min(640px, 100%); }
+.choix-liste { display: grid; gap: 8px; }
+.choix { display: flex; align-items: center; gap: 16px; width: 100%; min-height: 72px; padding: 12px 16px; border: 1px solid #D1D6DB; border-radius: 12px; background: #fff; font: inherit; text-align: left; cursor: pointer; }
+.choix.choisi { border: 2px solid #4581CB; background: #ECF2F9; padding: 11px 15px; }
+.choix .radio { flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #78838F; background: #fff; }
+.choix.choisi .radio { border: 6px solid #0C2147; }
+.choix-texte { flex: 1; display: grid; gap: 2px; min-width: 0; } .choix-texte strong { font-size: 14px; color: #0C2147; }
+.choix-reco { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 4px; border-radius: 6px; background: #fff; font-size: 12px; font-weight: 600; color: #2E5788; }
+.champ-ic { position: relative; } .champ-ic > svg { position: absolute; left: 16px; top: 14px; pointer-events: none; } .champ-ic .e70-raison { margin: 0; padding-left: 48px; }
+.carte-case { gap: 16px; padding: 16px; border-radius: 12px; background: #F3F6FA; cursor: pointer; }
+.interrupteur-case { appearance: none; flex: none; position: relative; width: 44px; height: 24px; margin: 0; border-radius: 12px; background: #C8CDD4; cursor: pointer; transition: background .15s; }
+.interrupteur-case::after { content: ""; position: absolute; left: 2px; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .15s; }
+.interrupteur-case:checked { background: #0C2147; } .interrupteur-case:checked::after { left: 22px; } .interrupteur-case:disabled { opacity: .5; cursor: default; }
+.interrupteur-case:focus-visible { outline: 2px solid #4581CB; outline-offset: 2px; }
+
+/* e18 · fusion champ par champ */
+.fenetre.fusion { width: min(720px, 100%); }
+.fusion-grille { display: grid; grid-template-columns: 120px minmax(0, 1fr) minmax(0, 1fr); gap: 8px 12px; align-items: center; }
+.fusion-ligne { display: contents; }
+.fusion-lib { display: grid; font-size: 13px; color: #3E4A59; } .fusion-lib b { font-weight: 600; } .fusion-lib small { font-size: 12px; color: #58697F; }
+.fusion-grille > .choix { min-height: 56px; }
+.fusion-val { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 8px 12px; border: 0; border-radius: 8px; background: none; font: inherit; font-size: 13px; color: #3E4A59; text-align: left; cursor: pointer; }
+.fusion-val .radio { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #78838F; background: #fff; }
+.fusion-val.choisi { color: #0C2147; font-weight: 600; } .fusion-val.choisi .radio { border: 5px solid #0C2147; }
+.fusion-val:disabled { cursor: default; } .fusion-val:disabled .radio { opacity: .4; }
+.fusion-note { margin: 16px 0 24px; padding: 12px 16px; border-radius: 12px; background: #F3F6FA; }
+
+/* ── Juridique · TAL (e48) et Modèles (e49) ── */
+.segments { display: flex; gap: 3px; margin-top: 6px; width: 72px; } .segments i { flex: 1; height: 4px; border-radius: 2px; background: #E1E6EC; } .segments i.on { background: #4581CB; }
+.audiences { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.audiences button { width: 100%; display: flex; gap: 16px; align-items: flex-start; padding: 16px; border: 1px solid #E1E6EC; border-radius: 12px; background: #fff; font: inherit; text-align: left; cursor: pointer; }
+.audiences button > span:last-child { display: grid; gap: 2px; } .audiences strong { font-size: 14px; color: #0C2147; }
+.date-bloc { flex: none; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 10px; background: #ECF2F9; color: #0C2147; } .date-bloc small { font-size: 11px; font-weight: 600; letter-spacing: 1px; } .date-bloc b { font-size: 22px; line-height: 1; }
+.gros-montant { display: block; font-size: 28px; font-weight: 700; letter-spacing: -.6px; color: #0C2147; }
+.tal-maj { margin-top: 24px; padding-top: 24px; border-top: 1px solid #E1E6EC; } .tal-maj .e70-raison { margin-bottom: 16px; }
+.pieces-coches { list-style: none; margin: 0; padding: 0; } .pieces-coches li { display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 14px; color: #0C2147; }
+.pieces-coches li > span:not(.okdot) { flex: 1; } .pieces-coches i.vide { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #4581CB; }
+.modeles-grille { grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr); }
+.modeles .modele-ligne { padding: 14px 16px; margin: 0; border-radius: 12px; } .modeles .modele-ligne > div span { font-size: 12px; color: #58697F; }
+.modeles .modele-ligne.sel { box-shadow: inset 3px 0 0 #0C2147; }
+.version { flex: none; padding: 2px 8px; border-radius: 6px; background: #ECF2F9; font-size: 12px; font-weight: 600; color: #2E5788; } .version.sel { background: #0C2147; color: #fff; }
+.modele-apercu { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.variables { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; } .variables li { display: flex; gap: 10px; } .variables i { flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: #C8DAF0; }
+.variables div { display: grid; } .variables strong { font-size: 13px; color: #0C2147; } .variables span { font-size: 12px; color: #58697F; }
+@media (max-width: 1100px) { .modeles-grille, .modele-apercu { grid-template-columns: minmax(0, 1fr); } }
+/* e31 · suggestions d'adresse, champ rempli automatiquement, zone de dépôt */
+.suggestions-champ { position: relative; } .suggestions-champ .e70-raison { margin: 0; }
+.suggestions { position: absolute; left: 0; right: 0; top: 52px; z-index: 5; list-style: none; margin: 0; padding: 4px; background: #fff; border: 1px solid #E1E6EC; border-radius: 12px; box-shadow: 0 8px 24px rgba(12,33,71,.09); }
+.suggestions button { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 8px; background: none; font: inherit; font-size: 14px; color: #0C2147; text-align: left; cursor: pointer; }
+.suggestions button:hover, .suggestions button:focus-visible { background: #ECF2F9; outline: none; }
+.e70-raison.rempli-auto { background: #ECF2F9; border-color: #C8DAF0; }
+.zone-depot { display: grid; justify-items: center; gap: 4px; padding: 20px; border: 1.5px dashed #A6B1BE; border-radius: 12px; background: #fff; text-align: center; font-size: 13px; color: #3E4A59; cursor: pointer; }
+.zone-depot.survol { border-color: #4581CB; background: #ECF2F9; } .zone-depot b { color: #2E5788; }
+.cleo-note { margin-top: 16px; padding: 12px 16px; border-radius: 12px; background: #ECF2F9; color: #0C2147; }
+
+.e11-champ.large { grid-column: 1 / -1; } .e11-texte { width: 100%; padding: 12px 16px; border: 1px solid #D1D6DB; border-radius: 12px; font: inherit; font-size: 13px; line-height: 1.55; color: #0C2147; resize: vertical; }
+.champ-texte { display: flex; align-items: center; justify-content: space-between; margin: 0; text-align: left; cursor: pointer; background: #fff; }
+.case-ligne { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; } .case-ligne input { flex: none; width: 20px; height: 20px; margin: 1px 0 0; accent-color: #0C2147; }
+.tableau.tab-tal td { white-space: nowrap; overflow-wrap: normal; overflow: hidden; text-overflow: ellipsis; } .tableau.tab-tal td .sous { overflow: hidden; text-overflow: ellipsis; }

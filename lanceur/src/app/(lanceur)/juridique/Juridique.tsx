@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
+import { adresse } from '@/lib/format';
 
 export type Vue = 'dossiers' | 'rappels' | 'mises' | 'tal' | 'modeles';
 type MED = { id: string; statut: string; texte: string; montant: number; version: number; modele: string; revise_par: string | null; revise_le: string | null; proposition: string | null;
@@ -269,63 +270,138 @@ function VueMises({ D, ouvrirE50 }: { D: DonneesJur; ouvrirE50: (x: Dossier) => 
   );
 }
 
-// e48 · Tribunal (TAL)
+// e48 · Tribunal (TAL) : dossiers déposés (étape, prochaine date), audiences à venir, un dossier mis en avant (ligne du temps, pièces).
+type Tal = { motif: string; avis_audience: string | null; mode: string | null; note_audience: string | null; decision: string | null; decision_texte: string | null;
+  pieces: { icone: string; texte: string; ok: boolean }[]; payes_depuis: number; en_retard_depuis: number };
+type Extras = { dossiers: Record<string, Tal>; modeles: Record<string, { prochaine_revision: string | null; remplace: string | null }> };
+function useExtras() {
+  const [x, setX] = useState<Extras | null>(null);
+  useEffect(() => { supabaseNavigateur().rpc('lanceur_juridique_tal').then(({ data }) => setX((data as Extras | null) ?? { dossiers: {}, modeles: {} })); }, []);
+  return x;
+}
+const jourHeure = (iso: string) => new Date(iso).toLocaleString('fr-CA', { weekday: 'long', hour: 'numeric', minute: '2-digit', timeZone: 'America/Toronto' }).replace(':', ' h ');
 function VueTal({ D, envoi, rpc }: { D: DonneesJur; envoi: boolean; rpc: (n: string, a: Record<string, unknown>, ok: string) => Promise<unknown> }) {
+  const X = useExtras();
   const tal = D.dossiers.filter((x) => x.etape === 'tal' || x.tal), aDeposer = D.dossiers.filter((x) => x.etape === 'mise_en_demeure' && x.mise_en_demeure?.statut === 'sent');
-  const [sel, setSel] = useState<string | null>(tal[0]?.id ?? aDeposer[0]?.id ?? null), [f, setF] = useState<Record<string, string>>({});
-  const x = D.dossiers.find((y) => y.id === sel) ?? null;
-  const etapeTal = (y: Dossier) => y.etape !== 'tal' ? (y.raison ? 3 : 0) : y.audience ? 2 : 1;
+  const liste = [...tal, ...aDeposer];
+  const [sel, setSel] = useState<string | null>(liste[0]?.id ?? null), [f, setF] = useState<Record<string, string>>({}), [maj, setMaj] = useState(false);
+  const x = D.dossiers.find((y) => y.id === sel) ?? null, ex = x ? X?.dossiers[x.id] : undefined;
+  const etape = (y: Dossier) => { const e = X?.dossiers[y.id]; return e?.decision ? 3 : y.audience ? 2 : y.depot ? 1 : 0; };
+  const ETAPES = ['À déposer', 'Demande déposée', 'Audience fixée', 'Décision rendue'];
+  const prochaine = (y: Dossier) => { const e = X?.dossiers[y.id];
+    if (e?.decision) return ['Aucune', e.decision_texte ?? `décision du ${d(e.decision)}`];
+    if (y.audience && new Date(y.audience) > new Date()) return [d(y.audience), jourHeure(y.audience)];
+    return y.depot ? ['À fixer', 'audience à venir'] : ['À déposer', 'mise en demeure envoyée']; };
+  const audiences = liste.filter((y) => y.audience && new Date(y.audience) > new Date() && !X?.dossiers[y.id]?.decision).sort((a, b) => a.audience!.localeCompare(b.audience!));
+  const decisions = liste.filter((y) => X?.dossiers[y.id]?.decision && new Date(X!.dossiers[y.id].decision!).getFullYear() === new Date().getFullYear()).length;
+  const ligne = x ? [['Mise en demeure', x.mise_en_demeure?.envoyee], ['Demande déposée', x.depot], ['Avis d’audience', ex?.avis_audience], ['Audience', x.audience], ['Décision', ex?.decision]] as [string, string | null | undefined][] : [];
+  const fait = ligne.filter(([, q]) => q && new Date(q) <= new Date()).length;
   return (
-    <div className="studio">
-      <section className="studio-liste" aria-label="Dossiers au TAL">
-        <header className="carte-tete"><h2>Dossiers au TAL</h2><p>{tal.filter((y) => y.etape === 'tal').length} en cours{aDeposer.length ? ` · ${aDeposer.length} à déposer (mise en demeure envoyée)` : ''}</p></header>
-        <table className="tableau">
-          <thead><tr><th>Dossier</th><th>Locataire</th><th>Motif</th><th>Étape</th></tr></thead>
-          <tbody>{[...tal, ...aDeposer].map((y) => { const e = etapeTal(y); return (
-            <tr key={y.id} className={y.id === sel ? 'sel' : ''} onClick={() => setSel(y.id)}>
-              <td><span className="cellule-doc"><strong className="fort">{y.numero}</strong><span className="gris">{y.tal ? `TAL n° ${y.tal}` : 'à déposer'}</span></span></td>
-              <td><span className="cellule-doc"><strong className="fort">{y.locataire}</strong><span className="gris">{y.logement}</span></span></td>
-              <td><span className="cellule-doc"><span>Non-paiement de loyer</span><span className="gris">{argent(y.montant)}</span></span></td>
-              <td><span className="ligne-jauge"><span className="jauge" style={{ width: 60 }}><i style={{ width: `${(100 * e) / 3}%` }} /></span><b>{['À déposer', 'Demande déposée', 'Audience fixée', 'Décision'][e]}</b></span>{y.audience && <span className="sous gris">{new Date(y.audience).toLocaleString('fr-CA', { weekday: 'long', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</span>}</td></tr>); })}
-            {!tal.length && !aDeposer.length && <tr><td colSpan={4} className="gris">Aucun dossier au TAL.</td></tr>}</tbody>
-        </table>
-      </section>
-      <div className="colonne-l18">
-        {x ? <section className="carte-l18 e2" aria-label="Dossier au TAL">
-          <header className="carte-tete sans-marge"><h2>{x.numero} · non-paiement de loyer</h2><p>{x.locataire} · {x.logement}</p></header>
-          <p className="texte-13">Montant réclamé : {argent(x.montant)}, intérêts et frais{x.premiere && joursDe(x.premiere) > 21 ? ' · résiliation du bail possible (art. 1971 C.c.Q.)' : ''}</p>
-          <ol className="etapes-proc" style={{ marginTop: 16 }}>{[['Mise en demeure envoyée', x.mise_en_demeure?.envoyee], ['Demande déposée au TAL', x.depot], ['Audience', x.audience]].map(([t, q]) => <li key={t as string} className={q ? 'fait' : ''}><i>{q && <Icone nom="check" taille={12} couleur="#fff" trait={2.6} />}</i>{t}{q ? ` · ${d(q as string)}` : ''}</li>)}</ol>
-          {D.peut_ecrire && x.etape !== 'ferme' && x.etape !== 'regle' && <div style={{ marginTop: 8 }}>
-            <label className="fenetre-lib" htmlFor="tal-n">Numéro du TAL</label><input id="tal-n" className="e70-raison" defaultValue={x.tal ?? ''} onChange={(e) => setF({ ...f, numero: e.target.value })} />
-            <label className="fenetre-lib" htmlFor="tal-d">Dépôt</label><input id="tal-d" type="date" className="e70-raison" defaultValue={x.depot ?? ''} onChange={(e) => setF({ ...f, depot: e.target.value })} />
-            <label className="fenetre-lib" htmlFor="tal-a">Audience</label><input id="tal-a" type="datetime-local" className="e70-raison" defaultValue={x.audience ? x.audience.slice(0, 16) : ''} onChange={(e) => setF({ ...f, audience: e.target.value ? new Date(e.target.value).toISOString() : '' })} />
-            <button className="bouton bouton-principal" style={{ marginTop: 16 }} disabled={envoi} onClick={() => rpc('lanceur_dossier_tal', { p: { case_id: x.id, ...f } }, x.etape === 'tal' ? 'Dossier mis à jour.' : 'Dossier déposé au TAL.')}>{x.etape === 'tal' ? 'Enregistrer' : 'Déposer au TAL'}</button>
-          </div>}
-        </section> : <section className="carte-l18"><p className="gris" style={{ margin: 0 }}>Choisissez un dossier.</p></section>}
+    <>
+      <div className="grille-2-1">
+        <section className="carte-l18" aria-label="Dossiers au TAL">
+          <h2 className="titre-carte" style={{ marginBottom: 2 }}>Dossiers au TAL</h2>
+          <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{tal.filter((y) => y.etape === 'tal').length} en cours{aDeposer.length ? ` · ${aDeposer.length} à déposer` : ''}{decisions ? ` · ${decisions} décision${decisions > 1 ? 's' : ''} rendue${decisions > 1 ? 's' : ''} en ${new Date().getFullYear()}` : ''}</p>
+          <table className="tableau tab-fixe tab-tal"><colgroup><col style={{ width: '16%' }} /><col style={{ width: '28%' }} /><col style={{ width: '22%' }} /><col style={{ width: '17%' }} /><col /></colgroup>
+            <thead><tr><th>Dossier</th><th>Partie</th><th>Motif</th><th>Étape</th><th>Prochaine date</th></tr></thead>
+            <tbody>{liste.map((y) => { const e = etape(y), [p1, p2] = prochaine(y); return (
+              <tr key={y.id} className={'ligne-lien' + (y.id === sel ? ' sel' : '')} onClick={() => { setSel(y.id); setMaj(false); setF({}); }}>
+                <td><b className="fort">{y.numero}</b><span className="sous gris">{y.tal ? `TAL n° ${y.tal}` : 'à déposer'}</span></td>
+                <td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 11 }}>{initiales(y.locataire ?? '?')}</span><span><b className="fort">{y.locataire}</b><span className="sous gris">{adresse(y.logement)}</span></span></span></td>
+                <td>{X?.dossiers[y.id]?.motif ?? 'Non-paiement de loyer'}<span className="sous gris">{argent(y.montant)}{y.premiere ? ` · ${Math.max(1, Math.round(joursDe(y.premiere) / 30))} mois` : ''}</span></td>
+                <td><b className="fort">{ETAPES[e]}</b><span className="segments" aria-hidden="true">{[1, 2, 3].map((k) => <i key={k} className={k <= e ? 'on' : ''} />)}</span></td>
+                <td><b className="fort">{p1}</b><span className="sous gris">{p2}</span></td></tr>); })}
+              {!liste.length && <tr><td colSpan={5} className="gris">Aucun dossier au TAL.</td></tr>}</tbody></table>
+        </section>
+        <section className="carte-l18" aria-label="Audiences à venir"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Audiences à venir</h2>
+          <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{audiences.length ? `${audiences.length} d’ici le ${d(audiences[audiences.length - 1].audience!)}` : 'Aucune audience fixée'}</p>
+          <ul className="audiences">{audiences.slice(0, 4).map((y) => { const a = new Date(y.audience!), e = X?.dossiers[y.id]; return <li key={y.id}><button onClick={() => setSel(y.id)}>
+            <span className="date-bloc"><small>{a.toLocaleDateString('fr-CA', { month: 'short', timeZone: 'America/Toronto' }).replace('.', '').toUpperCase()}.</small><b>{a.toLocaleDateString('fr-CA', { day: 'numeric', timeZone: 'America/Toronto' })}</b></span>
+            <span><strong>{y.locataire} · {(e?.motif ?? 'non-paiement').toLowerCase()}</strong><span className="gris texte-13">{jourHeure(y.audience!)}{e?.mode ? ` · ${e.mode}` : ''}</span>{e?.note_audience && <span className="gris texte-13">{e.note_audience}</span>}</span></button></li>; })}</ul>
+        </section>
       </div>
-    </div>
+      {x && <div className="grille-2-1" style={{ marginTop: 24 }}>
+        <section className="carte-l18" aria-label="Dossier mis en avant">
+          <div className="tete-action"><div><p className="surtitre" style={{ margin: 0 }}>{x.numero} · {(ex?.motif ?? 'non-paiement de loyer').toLowerCase()}</p>
+            <h2 className="releve-titre" style={{ margin: '4px 0' }}>{x.locataire} · {adresse(x.logement)}</h2>
+            <p className="gris texte-13" style={{ margin: 0 }}>Montant réclamé : {argent(x.montant)}, intérêts et frais{x.premiere && joursDe(x.premiere) > 21 ? ' · résiliation du bail possible (art. 1971 C.c.Q.)' : ''}</p></div>
+            <div style={{ textAlign: 'right' }}><b className="gros-montant">{argent(x.montant)}</b><span className="sous gris">réclamés au TAL</span></div></div>
+          <ol className="etapes-bt" style={{ margin: '24px 0' }}>{ligne.map(([t, q], k) => { const passe = !!q && new Date(q) <= new Date(), actuel = k === fait;
+            return <li key={t} className={passe ? 'fait' : actuel ? 'actuel' : ''}><i>{passe ? <Icone nom="check" taille={14} couleur="#fff" trait={2.6} /> : k + 1}</i>{t}<small>{q ? (t === 'Audience' ? `${d(q)} · ${new Date(q).toLocaleTimeString('fr-CA', { hour: 'numeric', minute: '2-digit' }).replace(':', ' h ')}` : d(q)) : 'à venir'}</small></li>; })}</ol>
+          <div className="ligne-entre"><p className="ligne-ic texte-13" style={{ margin: 0 }}><img src="/img/cleo.png" alt="" className="avatar-cleo" style={{ width: 24, height: 24 }} />
+            {ex ? ex.en_retard_depuis ? `${ex.en_retard_depuis} loyer${ex.en_retard_depuis > 1 ? 's' : ''} en retard depuis le dépôt.` : ex.payes_depuis ? `${ex.payes_depuis} loyer${ex.payes_depuis > 1 ? 's' : ''} payé${ex.payes_depuis > 1 ? 's' : ''} à temps depuis le dépôt · ${argent(x.montant)} toujours dus.` : `${argent(x.montant)} toujours dus.` : '…'}</p>
+            {D.peut_ecrire && x.etape !== 'ferme' && x.etape !== 'regle' && <button className="bouton bouton-principal" onClick={() => setMaj(!maj)}><Icone nom="folder" taille={18} couleur="#fff" />{x.etape === 'tal' ? 'Préparer l’audience' : 'Déposer au TAL'}</button>}</div>
+          {maj && <div className="tal-maj">
+            <div className="po-deux"><div><label className="fenetre-lib" htmlFor="tal-n">Numéro du TAL</label><input id="tal-n" className="e70-raison" defaultValue={x.tal ?? ''} onChange={(e) => setF({ ...f, numero: e.target.value })} /></div>
+              <div><label className="fenetre-lib" htmlFor="tal-d">Dépôt de la demande</label><input id="tal-d" type="date" className="e70-raison" defaultValue={x.depot ?? ''} onChange={(e) => setF({ ...f, depot: e.target.value })} /></div>
+              <div><label className="fenetre-lib" htmlFor="tal-v">Avis d’audience reçu le</label><input id="tal-v" type="date" className="e70-raison" defaultValue={ex?.avis_audience ?? ''} onChange={(e) => setF({ ...f, avis_audience: e.target.value })} /></div>
+              <div><label className="fenetre-lib" htmlFor="tal-a">Audience</label><input id="tal-a" type="datetime-local" className="e70-raison" defaultValue={x.audience ? x.audience.slice(0, 16) : ''} onChange={(e) => setF({ ...f, audience: e.target.value ? new Date(e.target.value).toISOString() : '' })} /></div>
+              <div><label className="fenetre-lib" htmlFor="tal-m">Mode</label><input id="tal-m" className="e70-raison" placeholder="Visioconférence, TAL Québec…" defaultValue={ex?.mode ?? ''} onChange={(e) => setF({ ...f, mode: e.target.value })} /></div>
+              <div><label className="fenetre-lib" htmlFor="tal-p">Qui y assiste</label><input id="tal-p" className="e70-raison" placeholder="Ex. : Julie N. représente le locateur" defaultValue={ex?.note_audience ?? ''} onChange={(e) => setF({ ...f, note_audience: e.target.value })} /></div>
+              <div><label className="fenetre-lib" htmlFor="tal-c">Décision rendue le</label><input id="tal-c" type="date" className="e70-raison" defaultValue={ex?.decision ?? ''} onChange={(e) => setF({ ...f, decision: e.target.value })} /></div>
+              <div><label className="fenetre-lib" htmlFor="tal-t">Décision</label><input id="tal-t" className="e70-raison" placeholder="Ex. : payé le 9 sept." defaultValue={ex?.decision_texte ?? ''} onChange={(e) => setF({ ...f, decision_texte: e.target.value })} /></div></div>
+            <button className="bouton bouton-principal" disabled={envoi} onClick={async () => {
+              const base = Object.fromEntries(Object.entries(f).filter(([k]) => ['numero', 'depot', 'audience'].includes(k)));
+              const plus = Object.fromEntries(Object.entries(f).filter(([k]) => !['numero', 'depot', 'audience'].includes(k)));
+              if (Object.keys(base).length || x.etape !== 'tal') await rpc('lanceur_dossier_tal', { p: { case_id: x.id, ...base } }, x.etape === 'tal' ? 'Dossier mis à jour.' : 'Dossier déposé au TAL.');
+              if (Object.keys(plus).length) await rpc('lanceur_tal_details', { p: { case_id: x.id, ...plus } }, 'Dossier mis à jour.');
+              setMaj(false); }}>{x.etape === 'tal' ? 'Enregistrer' : 'Déposer au TAL'}</button></div>}
+        </section>
+        <section className="carte-l18" aria-label="Pièces"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Pièces · {x.numero}</h2>
+          <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{ex ? `${ex.pieces.filter((p) => p.ok).length} sur ${ex.pieces.length} prêtes pour l’audience` : '…'}</p>
+          <ul className="pieces-coches">{(ex?.pieces ?? []).map((p) => <li key={p.texte}><Icone nom={p.icone} taille={18} couleur="#3E4A59" /><span>{p.texte}</span>
+            {p.ok ? <span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span> : <i className="vide" aria-label="à fournir" />}</li>)}</ul>
+        </section>
+      </div>}
+    </>
   );
 }
 
-// e49 · Modèles
+// e49 · Modèles : la bibliothèque (version, révision par l'avocate, utilisations) et l'aperçu rempli avec un vrai dossier, variables surlignées.
+const VARIABLES: Record<string, [string, string]> = { date_lettre: ['Date d’envoi', 'automatique'], nom: ['Locataire et adresse', 'bail signé'], adresse: ['Locataire et adresse', 'bail signé'],
+  de_mois: ['Mois impayé', 'registre des loyers'], montant: ['Montant dû', 'registre des loyers'], delai: ['Délai de paiement', 'fixé par le modèle'], signataire: ['Signataire', 'la personne qui approuve l’envoi'],
+  fournisseur: ['Fournisseur', 'bon de travail'], quand: ['Date et plage', 'bon de travail'], demande: ['Numéro de demande', 'demande'], nouveau_loyer: ['Nouveau loyer', 'avis de modification'],
+  cessionnaire: ['Cessionnaire', 'demande de cession'], motif: ['Motif', 'saisi par l’équipe'] };
 function VueModeles({ D, envoi, rpc }: { D: DonneesJur; envoi: boolean; rpc: (n: string, a: Record<string, unknown>, ok: string) => Promise<unknown> }) {
-  const [sel, setSel] = useState<string | null>(D.modeles[0]?.id ?? null), [rev, setRev] = useState({ avocate: '', le: '' }), [edit, setEdit] = useState<string | null>(null);
-  const m = D.modeles.find((x) => x.id === sel) ?? null;
+  const X = useExtras();
+  const M = [...D.modeles].sort((a, b) => b.utilisations - a.utilisations || a.titre.localeCompare(b.titre));
+  const [sel, setSel] = useState<string | null>(M[0]?.id ?? null), [rev, setRev] = useState({ avocate: '', le: '' }), [edit, setEdit] = useState<string | null>(null);
+  const m = D.modeles.find((x) => x.id === sel) ?? null, ex = m ? X?.modeles[m.id] : undefined;
+  const ex1 = D.dossiers.find((x) => x.mise_en_demeure) ?? D.dossiers[0];
+  const valeurs: Record<string, string> = ex1 ? { date_lettre: new Date().toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' }), nom: ex1.locataire ?? '', adresse: adresse(ex1.logement),
+    de_mois: ex1.premiere ? new Date(`${ex1.premiere}T12:00:00`).toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' }) : '', montant: argent(ex1.montant), delai: '10 jours',
+    signataire: ex1.mise_en_demeure?.approuvee_par ?? 'Julie Normandeau' } : {};
+  const vars = m ? [...new Set([...m.texte.matchAll(/\{([a-z_]+)\}/g)].map((x) => x[1]))] : [];
+  const groupes = [...new Set(vars.map((v) => VARIABLES[v]?.[0] ?? v))];
   return (
-    <div className="studio">
+    <div className="studio modeles-grille">
       <section className="carte-l18" aria-label="Modèles juridiques">
-        <header className="carte-tete sans-marge"><h2>Modèles juridiques</h2><p>{D.modeles.length} modèle{D.modeles.length > 1 ? 's' : ''} · inutilisable tant que l’avocate ne l’a pas révisé</p></header>
-        <ul className="modeles">{D.modeles.map((x) => <li key={x.id}><button className={`modele-ligne${x.id === sel ? ' sel' : ''}`} onClick={() => { setSel(x.id); setEdit(null); }}>
-          <span className="appel-ic"><Icone nom="file" taille={20} couleur="#0C2147" /></span><div><strong>{x.titre} · v{x.version}</strong><span>{x.avocate ? `Révisé par ${x.avocate} le ${d(x.le!)}` : 'Non révisé · inutilisable'} · utilisé {x.utilisations} fois</span></div>
-          {x.avocate ? <span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span> : <span className="puce todo">À réviser</span>}</button></li>)}</ul>
+        <h2 className="titre-carte" style={{ marginBottom: 2 }}>Modèles juridiques</h2>
+        <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{D.modeles.length} modèle{D.modeles.length > 1 ? 's' : ''} · {D.modeles.every((x) => x.avocate) ? `révisés par ${D.modeles[0]?.avocate ?? 'l’avocate'}` : 'inutilisable tant que l’avocate ne l’a pas révisé'}</p>
+        <ul className="modeles">{M.map((x) => <li key={x.id}><button className={`modele-ligne${x.id === sel ? ' sel' : ''}`} onClick={() => { setSel(x.id); setEdit(null); }}>
+          <div><strong>{x.titre}</strong><span>{x.avocate ? `Révisé par ${x.avocate} le ${d(x.le!)}` : 'Non révisé · inutilisable'}</span><span>Utilisé {x.utilisations} fois</span></div>
+          {x.avocate ? <span className={'version' + (x.id === sel ? ' sel' : '')}>v{x.version}</span> : <span className="puce todo">À réviser</span>}</button></li>)}</ul>
       </section>
       {m && <section className="carte-l18" aria-label="Aperçu du modèle">
-        <header className="carte-tete sans-marge tete-action"><div><h2>{m.titre} v{m.version}</h2><p>Les valeurs surlignées viennent du dossier au moment de l’envoi</p></div>
-          {D.peut_ecrire && <button className="lien" onClick={() => setEdit(edit === null ? m.texte : null)}>{edit === null ? 'Nouvelle version' : 'Annuler'}</button>}</header>
+        <p className="surtitre" style={{ margin: 0 }}>Aperçu · exemple rempli avec le dossier de {ex1?.locataire ?? '…'}</p>
+        <div className="tete-action"><h2 className="releve-titre" style={{ margin: '4px 0 2px' }}>{m.titre} v{m.version}</h2>
+          {D.peut_ecrire && <button className="lien" onClick={() => setEdit(edit === null ? m.texte : null)}>{edit === null ? 'Nouvelle version' : 'Annuler'}</button>}</div>
+        <p className="gris texte-13" style={{ margin: '0 0 16px' }}>Les valeurs surlignées viennent du dossier au moment de l’envoi</p>
         {edit !== null ? <><textarea className="lettre-edition" value={edit} onChange={(e) => setEdit(e.target.value)} aria-label="Texte du modèle" />
             <p className="gris texte-13">La nouvelle version repartira non révisée : l’avocate devra la réviser avant qu’elle serve.</p>
             <button className="bouton bouton-principal" disabled={envoi} onClick={async () => { if (await rpc('lanceur_nouvelle_version_modele', { p: { id: m.id, body: edit } }, 'Nouvelle version créée : à faire réviser.')) setEdit(null); }}>Créer la version {m.version + 1}</button></>
-          : <div className="lettre">{m.texte.split('\n').map((l, i) => <p key={i} className={/^Objet/.test(l) ? 'objet' : ''}>{!l ? '\u00a0' : l.split(/(\{[a-z_]+\})/).map((s, k) => /^\{/.test(s) ? <mark key={k}>{s}</mark> : s)}</p>)}</div>}
+          : <div className="modele-apercu">
+            <div className="lettre">{m.texte.split('\n').map((l, i) => <p key={i} className={/^Objet/.test(l) ? 'objet' : ''}>{!l ? ' ' : l.split(/(\{[a-z_]+\})/).map((s, k) => { const v = s.match(/^\{([a-z_]+)\}$/)?.[1]; return v ? <mark key={k}>{valeurs[v] || s}</mark> : s; })}</p>)}</div>
+            <div className="modele-cote">
+              <p className="surtitre gris">Variables du modèle</p>
+              <ul className="variables">{groupes.map((g) => { const v = vars.find((x) => (VARIABLES[x]?.[0] ?? x) === g)!; return <li key={g}><i /><div><strong>{g}</strong><span>{VARIABLES[v]?.[1] ?? 'dossier'}</span></div></li>; })}</ul>
+              <p className="surtitre gris" style={{ marginTop: 20 }}>Révision juridique</p>
+              {m.avocate ? <div className="ligne-ic texte-13" style={{ alignItems: 'flex-start' }}><Icone nom="shieldc" taille={18} couleur="#0C2147" /><div><strong>{m.avocate} · {d(m.le!)}</strong>
+                {ex?.prochaine_revision && <span className="sous gris">Prochaine révision : {d(ex.prochaine_revision)}</span>}{ex?.remplace && <span className="sous gris">{ex.remplace} · remplacée</span>}</div></div>
+                : <p className="texte-13 rouge-txt" style={{ margin: 0 }}>Pas encore révisé : inutilisable.</p>}
+              {D.peut_ecrire && <><a className="bouton bouton-principal" href="/juridique?ouvrir=1" style={{ width: '100%', marginTop: 20 }}>Utiliser le modèle</a>
+                <button className="bouton bouton-contour" style={{ width: '100%', marginTop: 8 }} onClick={() => setEdit(m.texte)}><Icone nom="pencil" taille={18} couleur="#0C2147" />Modifier le modèle</button></>}
+            </div></div>}
         {!m.avocate && D.est_admin && edit === null && <div className="revision"><p className="surtitre gris">Consigner la révision de l’avocate</p>
           <div className="ligne-champ"><input className="e70-raison" placeholder="Me …" value={rev.avocate} onChange={(e) => setRev({ ...rev, avocate: e.target.value })} aria-label="Avocate" />
             <input className="e70-raison" type="date" value={rev.le} onChange={(e) => setRev({ ...rev, le: e.target.value })} aria-label="Date de la révision" style={{ width: 170 }} />

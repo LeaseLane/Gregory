@@ -13,6 +13,7 @@ type Ctx = { demandes: { id: string; numero: string; titre: string; unit_id: str
 export function NouveauBon({ ouvrir = false, demande, fournisseur }: { ouvrir?: boolean; demande?: string; fournisseur?: string }) {
   const router = useRouter();
   const [ouvert, setOuvert] = useState(ouvrir), [ctx, setCtx] = useState<Ctx | null>(null), [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
+  const [avis, setAvis] = useState<{ locataire: string | null; creneau: string; urgent: boolean; on: boolean } | null>(null), [suggeres, setSuggeres] = useState<string[]>([]);
   const [f, setF] = useState({ service_request_id: demande ?? '', unit_id: '', travaux: '', mode: fournisseur ? 'soumissions' : 'assigner', worker_id: '', invites: fournisseur ? [fournisseur] : [] as string[],
     budget: '', service_catalog_id: '', acces: '', urgent: false });
   useEffect(() => {
@@ -21,7 +22,7 @@ export function NouveauBon({ ouvrir = false, demande, fournisseur }: { ouvrir?: 
       if (error) return setErreur(error.message);
       const c = data as Ctx; setCtx(c);
       const d = c.demandes.find((x) => x.id === demande);
-      if (d) setF((v) => ({ ...v, unit_id: d.unit_id, travaux: d.titre, urgent: d.urgence === 'urgence', budget: d.cout_max ? String(Math.round(d.cout_max)) : v.budget }));
+      if (d) { setF((v) => ({ ...v, unit_id: d.unit_id, travaux: d.titre, urgent: d.urgence === 'urgence', budget: d.cout_max ? String(Math.round(d.cout_max)) : v.budget })); preremplir(d.id, c); }
     });
   }, [ouvert, ctx, demande]);
   const L = ctx?.logements.find((l) => l.id === f.unit_id), D = ctx?.demandes.find((d) => d.id === f.service_request_id), cat = ctx?.catalogue.find((c) => c.id === f.service_catalog_id);
@@ -29,12 +30,25 @@ export function NouveauBon({ ouvrir = false, demande, fournisseur }: { ouvrir?: 
   const suggestion = D?.metier ? conformes.filter((x) => x.specialites.some((s) => s && D.metier!.toLowerCase().includes(s.toLowerCase().slice(0, 5)))).slice(0, 2) : [];
   async function creer() {
     setEnvoi(true); setErreur(null);
-    const { data, error } = await supabaseNavigateur().rpc('lanceur_bon_creer', { p: { ...f, service_request_id: f.service_request_id || null } });
+    const acces = avis?.on && avis.locataire && !f.acces ? `Aviser ${avis.locataire} 24 h avant la visite` : f.acces;
+    const { data, error } = await supabaseNavigateur().rpc('lanceur_bon_creer', { p: { ...f, acces, service_request_id: f.service_request_id || null } });
     setEnvoi(false); if (error) return setErreur(error.message);
     setOuvert(false); router.push(`/maintenance/bons/${(data as { id: string }).id}`);
   }
   const choisirDemande = (id: string) => { const d = ctx?.demandes.find((x) => x.id === id);
-    setF({ ...f, service_request_id: id, unit_id: d?.unit_id ?? f.unit_id, travaux: d && !f.travaux ? d.titre : f.travaux, urgent: d ? d.urgence === 'urgence' : f.urgent, budget: d?.cout_max && !f.budget ? String(Math.round(d.cout_max)) : f.budget }); };
+    setF({ ...f, service_request_id: id, unit_id: d?.unit_id ?? f.unit_id, travaux: d && !f.travaux ? d.titre : f.travaux, urgent: d ? d.urgence === 'urgence' : f.urgent, budget: d?.cout_max && !f.budget ? String(Math.round(d.cout_max)) : f.budget });
+    if (d && ctx) preremplir(d.id, ctx); };
+  // e38 : depuis une demande, mode « soumissions » avec les deux fournisseurs les mieux placés (même classement que « Assigner »), référence du catalogue,
+  // et avis de 24 h au locataire sur le premier créneau qui le respecte.
+  async function preremplir(id: string, c: Ctx) {
+    const { data } = await supabaseNavigateur().rpc('lanceur_assigner_contexte', { p_demande: id });
+    const a = data as { urgent: boolean; creneau: string; locataire: { nom: string } | null; fournisseurs: { id: string }[] } | null;
+    if (!a) return;
+    const conf = new Set(c.fournisseurs.filter((x) => !x.conformite).map((x) => x.id)), deux = a.fournisseurs.map((x) => x.id).filter((x) => conf.has(x)).slice(0, 2);
+    setAvis({ locataire: a.locataire?.nom ?? null, creneau: a.creneau, urgent: a.urgent, on: !!a.locataire });
+    setF((v) => ({ ...v, mode: deux.length > 1 && !a.urgent ? 'soumissions' : v.mode, invites: deux.length > 1 && !a.urgent ? deux : v.invites, worker_id: v.worker_id || deux[0] || '' }));
+    setSuggeres(deux);
+  }
   return (
     <>
       <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setOuvert(true)}><Icone nom="plus" taille={16} couleur="#fff" />Nouveau bon de travail</button>
@@ -66,6 +80,7 @@ export function NouveauBon({ ouvrir = false, demande, fournisseur }: { ouvrir?: 
                   <select className="e70-raison" value="" onChange={(e) => e.target.value && setF({ ...f, invites: [...f.invites, e.target.value] })} aria-label="Ajouter un fournisseur"><option value="">Ajouter un fournisseur</option>
                     {conformes.filter((w) => !f.invites.includes(w.id)).map((w) => <option key={w.id} value={w.id}>{w.nom} · {w.specialites.filter(Boolean).join(', ')}</option>)}</select>
                   {!!suggestion.length && !f.invites.length && <p className="gris texte-12">Suggérés pour « {D?.metier} » : {suggestion.map((s) => <button type="button" key={s.id} className="lien" onClick={() => setF({ ...f, invites: [...f.invites, s.id] })}>{s.nom}</button>)}</p>}
+                  {!!suggeres.length && suggeres.every((x) => f.invites.includes(x)) && <p className="gris texte-12">Choisis par Cléo : les mieux notés pour ce métier dans ce secteur.</p>}
                   <p className="gris texte-12">Une tâche vous rappelle d’envoyer la demande de soumission à chacun.</p></>}
               <div className="po-deux" style={{ marginTop: 16 }}><div><label className="fenetre-lib" htmlFor="nb-b">Budget <span className="gris texte-12">obligatoire</span></label>
                 <input id="nb-b" className="e70-raison" inputMode="decimal" value={f.budget} onChange={(e) => setF({ ...f, budget: e.target.value.replace(/[^\d.]/g, '') })} /></div>
@@ -73,6 +88,9 @@ export function NouveauBon({ ouvrir = false, demande, fournisseur }: { ouvrir?: 
                   <option value="">Aucun</option>{ctx.catalogue.map((c) => <option key={c.id} value={c.id}>{c.libelle}</option>)}</select></div></div>
               {cat?.reference && <p className="gris texte-13">Référence du catalogue : {Math.round(cat.reference)} $</p>}
               <p className="ligne-ic texte-12" style={{ color: '#2E5788', fontWeight: 600 }}><Icone nom="info" taille={16} couleur="#2E5788" />Au-delà de {Math.round(plafond)} $, l’accord du propriétaire est requis.</p>
+              {avis?.locataire && <label className="ligne-entre carte-case" style={{ marginTop: 16 }}>
+                <span><strong>Aviser {avis.locataire} 24 h avant la visite</strong><span className="gris texte-13" style={{ display: 'block' }}>Créneau proposé : {new Date(avis.creneau).toLocaleString('fr-CA', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).replace(':', ' h ')}{avis.urgent ? ' · urgence : sans délai' : ''}</span></span>
+                <input type="checkbox" className="interrupteur-case" checked={avis.on} onChange={(e) => setAvis({ ...avis, on: e.target.checked })} /></label>}
               <label className="fenetre-lib" htmlFor="nb-a" style={{ marginTop: 16 }}>Accès au logement</label>
               <input id="nb-a" className="e70-raison" value={f.acces} onChange={(e) => setF({ ...f, acces: e.target.value })} placeholder={L?.locataire ? `Ex. : ${L.locataire} présente, ou clé au bureau` : 'Ex. : clé au bureau'} />
               <p className="gris texte-12">Le rendez-vous se fixe sur la fiche du bon : le locataire doit être avisé au moins 24 h avant (sauf urgence).</p>

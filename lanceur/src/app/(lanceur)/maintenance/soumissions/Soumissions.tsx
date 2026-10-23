@@ -6,7 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
 
-type Soum = { id: string; fournisseur: string; rbq: string | null; montant: number; disponible: string | null; note: number | null; statut: string; meme_portee: boolean; conformite: string | null; remarque: string | null };
+type Soum = { id: string; fournisseur: string; rbq: string | null; montant: number; disponible: string | null; note: number | null; statut: string; retenue: string | null; meme_portee: boolean; conformite: string | null; remarque: string | null };
 type Bon = { id: string; numero: string; description: string; cree: string; logement: string; urgent: boolean; budget: number | null; plafond: number; accord: number | null; proprio: string | null;
   accord_demande: string | null; urgence_note: string | null; signale_par: string | null; signale_le: string | null; accords: { montant: number; moyen: string; le: string }[] | null;
   choisie: string | null; soumissions: Soum[] | null; recommandee: string | null };
@@ -26,7 +26,7 @@ export function Soumissions({ bt, donnees, erreurLecture }: { bt?: string; donne
   const S = bon?.soumissions ?? [];
   const [sel, setSel] = useState<string | null>(bon?.choisie ?? bon?.recommandee ?? S[0]?.id ?? null);
   const [envoi, setEnvoi] = useState(false), [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null);
-  const [accord, setAccord] = useState({ montant: '', moyen: '' }), [urg, setUrg] = useState(''), [ajout, setAjout] = useState(false), [nv, setNv] = useState({ worker_id: '', montant: '', disponible: '' });
+  const [accord, setAccord] = useState({ montant: '', moyen: '' }), [urg, setUrg] = useState(''), [fen, setFen] = useState(false), [voie, setVoie] = useState<'attendre' | 'urgence'>('attendre'), [ajout, setAjout] = useState(false), [nv, setNv] = useState({ worker_id: '', montant: '', disponible: '' });
   useEffect(() => { setSel(bon?.choisie ?? bon?.recommandee ?? bon?.soumissions?.[0]?.id ?? null); }, [bon?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   if (erreurLecture || !donnees) return <div className="bandeau erreur" role="alert">{erreurLecture}</div>;
@@ -96,15 +96,35 @@ export function Soumissions({ bt, donnees, erreurLecture }: { bt?: string; donne
                     <div className="ligne-champ"><input className="e70-raison" type="number" placeholder={`Montant accordé (≥ ${Math.round(q.montant)})`} value={accord.montant} onChange={(e) => setAccord({ ...accord, montant: e.target.value })} aria-label="Montant accordé" />
                       <input className="e70-raison" placeholder="Courriel du 11 oct., appel…" value={accord.moyen} onChange={(e) => setAccord({ ...accord, moyen: e.target.value })} aria-label="Moyen" />
                       <button className="bouton bouton-contour" disabled={envoi || !(Number(accord.montant) > 0) || !accord.moyen.trim()} onClick={async () => { if (await rpc('lanceur_accord_soumission', { p: { work_order_id: bon.id, montant: Number(accord.montant), moyen: accord.moyen } }, 'Accord consigné.')) setAccord({ montant: '', moyen: '' }); }}>Consigner</button></div>
-                    {bon.urgent && <><p className="surtitre gris" style={{ margin: '12px 0 8px' }}>Ou urgence documentée</p>
-                      <input className="e70-raison" value={urg} onChange={(e) => setUrg(e.target.value)} placeholder="Ex. : fuite active, eau coupée au logement depuis ce matin." aria-label="Justification de l’urgence" /></>}
                   </div>}
                   <div className="studio-actions sans-marge" style={{ marginTop: 20 }}>
-                    <button className="bouton bouton-principal" disabled={envoi || (faut && !(bon.urgent && urg.trim().length >= 20))} onClick={() => rpc('lanceur_choisir_soumission', { p: faut ? { quote_id: q.id, urgence: urg } : { quote_id: q.id } }, `${q.fournisseur} choisi.`)}>Choisir {q.fournisseur}</button>
+                    {q.retenue ? <span className="puce" style={{ alignSelf: 'center' }}>{q.fournisseur} retenu · accord attendu</span>
+                      : <button className="bouton bouton-principal" disabled={envoi} onClick={() => faut ? (setVoie('attendre'), setFen(true)) : rpc('lanceur_choisir_soumission', { p: { quote_id: q.id } }, `${q.fournisseur} choisi.`)}>Choisir {q.fournisseur}</button>}
                     <button className="bouton bouton-contour" disabled={S.length < 2} onClick={() => { const i = S.findIndex((x) => x.id === q.id); setSel(S[(i + 1) % S.length].id); }}>Autre fournisseur</button></div></>}
               </div>
             </div>
           </section></>}
+          {fen && q && bon && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setFen(false)}>
+            <div className="fenetre" role="dialog" aria-modal="true" aria-labelledby="cs-t">
+              <div className="fenetre-tete"><h2 id="cs-t">Choisir {q.fournisseur} pour {argent(q.montant)}?</h2>
+                <button className="fermer" onClick={() => setFen(false)} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
+              <p className="fenetre-texte">{bon.proprio ?? 'Le propriétaire'} n’a pas encore donné son accord. Au-delà de {argent(bon.plafond)}, il est requis avant de planifier les travaux.</p>
+              <div className="choix-liste" role="radiogroup" aria-label="Voie">
+                <button type="button" role="radio" aria-checked={voie === 'attendre'} className={'choix' + (voie === 'attendre' ? ' choisi' : '')} onClick={() => setVoie('attendre')}>
+                  <i className="radio" aria-hidden="true" /><span className="choix-texte"><strong>Attendre l’accord du propriétaire (recommandé)</strong>
+                    <span className="gris texte-13">{q.fournisseur} est retenu. Relance dans 4 h; le choix se fait seul dès que l’accord est consigné.</span></span></button>
+                <button type="button" role="radio" aria-checked={voie === 'urgence'} className={'choix' + (voie === 'urgence' ? ' choisi' : '')} onClick={() => setVoie('urgence')} disabled={!bon.urgent}>
+                  <i className="radio" aria-hidden="true" /><span className="choix-texte"><strong>Urgence : planifier maintenant et aviser le propriétaire</strong>
+                    <span className="gris texte-13">{bon.urgent ? `Réservé à une urgence. ${bon.proprio ?? 'Le propriétaire'} reçoit un avis et le motif est inscrit au journal.` : 'Ce bon n’est pas marqué urgent : cette voie n’est pas possible.'}</span></span></button>
+              </div>
+              {voie === 'urgence' && <><label className="fenetre-lib" htmlFor="cs-u" style={{ marginTop: 16 }}>Motif de l’urgence <span>20 caractères au moins</span></label>
+                <textarea id="cs-u" className="e70-raison" rows={2} value={urg} onChange={(e) => setUrg(e.target.value)} placeholder="Ex. : fuite active, eau coupée au logement depuis ce matin." /></>}
+              <div className="fenetre-actions" style={{ marginTop: 24 }}><button className="bouton bouton-contour" onClick={() => setFen(false)}>Annuler</button>
+                <button className="bouton bouton-principal" disabled={envoi || (voie === 'urgence' && urg.trim().length < 20)} onClick={async () => {
+                  const ok = voie === 'attendre' ? await rpc('lanceur_retenir_soumission', { p_quote: q.id }, `${q.fournisseur} retenu · relance de l’accord dans 4 h.`)
+                    : await rpc('lanceur_choisir_soumission', { p: { quote_id: q.id, urgence: urg } }, `${q.fournisseur} choisi en urgence.`);
+                  if (ok) setFen(false); }}>Choisir {q.fournisseur}</button></div>
+            </div></div>}
         </div>
 
         <div className="colonne-l18">
