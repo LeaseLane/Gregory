@@ -45,6 +45,12 @@ begin
   execute format('delete from %s where %s', p_tab, p_where);
 end $$;
 
+-- Le grand livre refuse toute suppression (prevent_gl_mutation) : levé dans cette transaction seulement, pour les écritures
+-- des propriétaires d'essai; rétabli plus bas, avant la fin de la transaction.
+do $$ declare t record; begin
+  for t in select tgrelid::regclass tab, tgname from pg_trigger tr join pg_proc p on p.oid = tr.tgfoid where p.proname = 'prevent_gl_mutation' and not tgisinternal loop
+    execute format('alter table %s disable trigger %I', t.tab, t.tgname); end loop; end $$;
+
 do $$
 begin
   perform pg_temp.purger('public.owners', $w$full_name like 'Préprod%' or full_name like 'TEST-%'$w$);
@@ -69,6 +75,10 @@ begin
   perform pg_temp.purger('crm.notifications', $w$row_to_json(notifications)::text like '%TEST-%'$w$);
   raise notice 'Restes d''essais purgés.';
 end $$;
+
+do $$ declare t record; begin
+  for t in select tgrelid::regclass tab, tgname from pg_trigger tr join pg_proc p on p.oid = tr.tgfoid where p.proname = 'prevent_gl_mutation' and not tgisinternal loop
+    execute format('alter table %s enable trigger %I', t.tab, t.tgname); end loop; end $$;
 
 -- ── 2. Déclencheurs coupés pendant la création ──
 alter table public.units disable trigger on_unit_listing_change;
