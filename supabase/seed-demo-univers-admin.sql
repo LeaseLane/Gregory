@@ -336,17 +336,17 @@ begin
   insert into public.bank_transactions (owner_id, transaction_date, description, amount, match_status, matched_payment_id, match_confidence, reconciled_by, reconciled_at,
                                         created_at, external_id, compte, lease_id, unit_id)
   select b.owner_id, pa.paid_date, case when pa.collection_status = 'collected' then 'PRÉLÈVEMENT PAD · ' else 'VIREMENT INTERAC · ' end || upper(t.full_name), pa.amount_received,
-         'matched', pa.id, 0.99, case when row_number() over (order by pa.id) % 10 = 0 then v_mt end, case when row_number() over (order by pa.id) % 10 = 0 then now() - interval '5 days' end,
+         'matched', pa.id, 99, case when row_number() over (order by pa.id) % 10 = 0 then v_mt end, case when row_number() over (order by pa.id) % 10 = 0 then now() - interval '5 days' end,
          timestamptz '2026-10-02 12:00-04', 'DEMO-' || pa.id, 'proprietaire', l.id, u.id
   from public.payments pa join public.leases l on l.id = pa.lease_id join public.tenants t on t.id = l.tenant_id join public.units u on u.id = l.unit_id join public.buildings b on b.id = u.building_id
   where pa.due_date = date '2026-10-01' and pa.status = 'paid';
   -- 3 opérations à rapprocher, avec la suggestion de Cléo
   insert into public.bank_transactions (owner_id, transaction_date, description, amount, match_status, ai_suggested_tenant_id, ai_suggestion_note, ai_confidence, created_at, external_id, compte)
   values ((select b.owner_id from public.tenants t join public.leases l on l.tenant_id = t.id join public.units u on u.id = l.unit_id join public.buildings b on b.id = u.building_id where t.full_name = 'Olivier Dion'),
-          date '2026-10-09', 'VIREMENT INTERAC · O. DION', 1310.00, 'suggested', (select id from public.tenants where full_name = 'Olivier Dion'), 'même montant, même payeur', 0.97, now() - interval '3 hours', 'DEMO-4471-0920', 'proprietaire'),
+          date '2026-10-09', 'VIREMENT INTERAC · O. DION', 1310.00, 'suggested', (select id from public.tenants where full_name = 'Olivier Dion'), 'même montant, même payeur', 97, now() - interval '3 hours', 'DEMO-4471-0920', 'proprietaire'),
          ((select b.owner_id from public.tenants t join public.leases l on l.tenant_id = t.id join public.units u on u.id = l.unit_id join public.buildings b on b.id = u.building_id where t.full_name = 'Josée Lemieux'),
-          date '2026-10-06', 'DÉPÔT MOBILE · CHÈQUE 118', 1100.00, 'suggested', (select id from public.tenants where full_name = 'Josée Lemieux'), 'écart de 5,00 $ avec le loyer', 0.74, now() - interval '3 hours', 'DEMO-0118-3304', 'proprietaire'),
-         (v_mj, date '2026-10-03', 'Hydro-Québec, paiement facture 6 152 873 412', -342.18, 'unmatched', null, 'Déjà rapprochée avec le paiement de 9 h 12 : paiement en double possible', 0.38, now() - interval '3 hours', 'DEMO-HQ-0914', 'proprietaire');
+          date '2026-10-06', 'DÉPÔT MOBILE · CHÈQUE 118', 1100.00, 'suggested', (select id from public.tenants where full_name = 'Josée Lemieux'), 'écart de 5,00 $ avec le loyer', 74, now() - interval '3 hours', 'DEMO-0118-3304', 'proprietaire'),
+         (v_mj, date '2026-10-03', 'Hydro-Québec, paiement facture 6 152 873 412', -342.18, 'unmatched', null, 'Déjà rapprochée avec le paiement de 9 h 12 : paiement en double possible', 38, now() - interval '3 hours', 'DEMO-HQ-0914', 'proprietaire');
 
   -- Anomalie ouverte : Hydro-Québec payé deux fois (deux dépenses identiques à 2 minutes d'intervalle)
   insert into public.expenses (building_id, description, amount, expense_date, vendor_name, category, created_at)
