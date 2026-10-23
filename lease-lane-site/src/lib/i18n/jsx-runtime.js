@@ -13,9 +13,10 @@ const PRECHARGEE = /leaselane-horizontal-blanc\.svg/;
    images aussi pauvres en détail, et c'est le titre, affiché dès le premier rendu, qui devient l'élément principal. */
 const LCP = /fond-lignes-neon\.jpg/;
 /* La ligne d'immeubles de la bannière (couverture-immeubles.png) devient alors l'élément principal sur ordinateur : servie
-   en WebP (35 Ko au lieu de 70 Ko, transparence conservée). Elle reste en différé : en priorité haute, elle retarde le
-   mobile (mesuré, Lighthouse 22 oct. 2026). */
-const PRIORITAIRE = /couverture-immeubles\.png/;
+   en WebP (35 Ko au lieu de 70 Ko, transparence conservée). Sur ordinateur, elle est préchargée dans le <head>
+   (Prechargements.tsx, ≥ 1024 px). Elle reste en différé ici : chargée tout de suite, elle devient sur mobile l'élément
+   principal (LCP) peint au moment de l'hydratation (4,6 s mesuré le 23 oct. 2026) au lieu du titre (2,4 s). */
+const PRIORITAIRE = /couverture-immeubles\.(png|webp)/;
 const img = (type, props) => (type !== 'img' || !props || props.loading != null || props.fetchPriority != null ? props
   : LCP.test(String(props.src || '')) ? { ...props, src: String(props.src).replace('fond-lignes-neon.jpg', 'fond-lignes-neon-leger.jpg') }
   : PRIORITAIRE.test(String(props.src || '')) ? { ...props, src: String(props.src).replace(/\.png$/, '.webp'), loading: 'lazy', decoding: props.decoding || 'async' }

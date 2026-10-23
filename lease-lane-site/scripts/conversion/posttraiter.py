@@ -224,6 +224,14 @@ def heros3_lead(s):
     assert m, 'PPC.gestion.lead'
     return s.replace(a, "/* Seule la phrase d'accroche de PPC.gestion sert ici : copiée de pages-proprietaires.jsx par posttraiter.py au lieu d'importer\n   tout le module (≈ 170 Ko avec ses dépendances, chargés sinon sur l'accueil; PageSpeed, 22 oct. 2026). */\nconst PPC = { gestion: { lead: " + m.group(1) + " } };", 1)
 edit('accueil-heros3.jsx', heros3_lead)
+
+# Performance : la ligne d'immeubles de la bannière en WebP (35 Ko) partout — <img> et masque CSS (mask-image) : en PNG,
+# le masque faisait télécharger une seconde copie de 70 Ko (PageSpeed, 23 oct. 2026). Même couche alpha, masque identique.
+def heros7_webp(s):
+    a = "  const IM = IMG + 'couverture-immeubles.png',"
+    assert s.count(a) == 1, 'heros7 IM'
+    return s.replace(a, "  const IM = IMG + 'couverture-immeubles.webp',", 1)
+edit('accueil-heros7.jsx', heros7_webp)
 def hausse_date_blogue(s):
     a = "  d: '2026-01-20',\n  m: '2026-10-08',"
     assert s.count(a) == 1, 'hausse 2026 blogue'

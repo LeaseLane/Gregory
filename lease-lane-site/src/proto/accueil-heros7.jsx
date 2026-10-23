@@ -559,7 +559,7 @@ function S1Skyline() {
     };
   }
   useToile(cv, voieSol(() => vxr.current, .845, .22, () => limr.current, 1.25), p, [!!g]);
-  const IM = IMG + 'couverture-immeubles.png',
+  const IM = IMG + 'couverture-immeubles.webp',
     abs = {
       position: 'absolute',
       pointerEvents: 'none'
