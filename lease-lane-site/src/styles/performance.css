@@ -10,3 +10,11 @@
    (PageSpeed ordinateur du 23 oct. 2026 : 280 ms de blocage). « auto 900px » : hauteur de réserve, puis la vraie hauteur
    mémorisée une fois la section affichée. */
 #ll-page > div > section:not(:first-child), #ll-scroll > footer { content-visibility: auto; contain-intrinsic-size: auto 900px; }
+
+/* Poppins arrive parfois après le premier affichage (font-display: swap) : le texte est d'abord dessiné en Arial, puis se
+   recale (décalage de mise en page 0,067 mesuré par PageSpeed le 23 oct. 2026). « Poppins Fallback » est Arial ajusté aux
+   mesures de Poppins (valeurs calculées par next/font pour Poppins) : même largeur de texte, mêmes hauteurs de ligne, donc
+   aucun recalage visible au moment de l'échange. Les variables viennent de tokens/fonts.css; cette feuille, lue en dernier,
+   insère la police de secours juste après Poppins. */
+@font-face { font-family: 'Poppins Fallback'; src: local('Arial'); size-adjust: 112.16%; ascent-override: 93.62%; descent-override: 31.21%; line-gap-override: 8.92%; }
+:root { --police-titre: 'Poppins', 'Poppins Fallback', 'Gilroy', 'Segoe UI', system-ui, sans-serif; --police-corps: 'Poppins', 'Poppins Fallback', 'Gilroy', 'Segoe UI', system-ui, sans-serif; }

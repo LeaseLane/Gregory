@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import '../feuilles';
 import Coquille from '@/components/Coquille';
 import BalisesAccueil from '@/components/BalisesAccueil';
+import Prechargements from '@/components/Prechargements';
 import { LL_SITE } from '@/proto/routes';
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export const viewport: Viewport = { width: 'device-width', initialScale: 1, them
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr-CA" data-site="principal">
+      <head><Prechargements /></head>
       <body>
         <BalisesAccueil />
         <Coquille>{children}</Coquille>
