@@ -484,4 +484,4 @@ select (select count(*) from public.owners) proprietaires, (select count(*) from
        (select count(*) from public.leases where status = 'active') baux, (select count(*) from public.work_orders) bons, (select count(*) from public.workers) fournisseurs,
        (select count(*) from public.bank_transactions) operations, (select count(*) from crm.deals) deals;
 
-rollback; -- ESSAI
+commit;
