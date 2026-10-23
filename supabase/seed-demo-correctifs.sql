@@ -19,3 +19,10 @@ where w.id::text ~ '^0[01][0-9]{2}' and not exists (select 1 from public.job_off
 -- Propositions de la maquette l02 restées en attente (seed-propositions-maquettes) : expirées par l'horloge, remises en attente une semaine.
 update crm.proposals set status = 'pending', expires_at = now() + interval '7 days', apply_error = null
 where idempotency_key in ('maquette:roy-qualifie', 'maquette:mroy-suivi', 'maquette:beaulieu-contacte') and status = 'expired' and decided_at is null;
+-- Loyers de novembre (e40 « Prochains prélèvements », portails « Prochain loyer ») : à venir pour chaque bail actif qui n'en a pas.
+alter table public.payments disable trigger notif_locataire;
+insert into public.payments (lease_id, amount, due_date, status, amount_received, collection_status, created_at)
+select l.id, l.monthly_rent, date '2026-11-01', 'pending', 0,
+       case when exists (select 1 from public.tenant_pad_authorizations p where p.lease_id = l.id and p.status = 'active') then 'scheduled' else 'manual' end, now()
+from public.leases l where l.status = 'active' and not exists (select 1 from public.payments pa where pa.lease_id = l.id and pa.due_date = date '2026-11-01');
+alter table public.payments enable trigger notif_locataire;
