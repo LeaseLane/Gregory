@@ -3,3 +3,9 @@
 \set ON_ERROR_STOP on
 update public.bank_transactions set ai_confidence = ai_confidence * 100 where external_id like 'DEMO-%' and ai_confidence <= 1;
 update public.bank_transactions set match_confidence = match_confidence * 100 where external_id like 'DEMO-%' and match_confidence <= 1;
+-- Contacts des deals de la démo : un numéro chacun (le seed tirait le numéro de la longueur du nom : faux doublons dans « Leads entrants »).
+update crm.contacts c set phones_e164 = array['+1418556' || lpad((1000 + z.rn)::text, 4, '0')], updated_at = now()
+from (select c2.id, row_number() over (order by c2.created_at, c2.id) rn from crm.contacts c2
+      where exists (select 1 from crm.deal_contacts dc where dc.contact_id = c2.id)
+        and exists (select 1 from crm.contacts c3 where c3.id <> c2.id and c3.phones_e164 && c2.phones_e164 and cardinality(c2.phones_e164) > 0)) z
+where c.id = z.id;

@@ -424,7 +424,7 @@ begin
     insert into crm.contacts (kind, full_name, emails, phones_e164, language, company, created_at)
     values (case when r.titre ~ '^(Gestion|Placements|Immeubles|Investissements|Société)' then 'entreprise' else 'personne' end, r.titre,
             array[lower(translate(replace(r.titre, ' ', '.'), 'éèêëàâîïôöûüçÉÈ', 'eeeeaaiioouuceE')) || '@courriel.test'],
-            array['+1418555' || lpad((300 + length(r.titre) * 7 + r.etape)::text, 4, '0')], 'fr', null, now() - make_interval(hours => r.h_cree))
+            array['+1418556' || lpad((abs(hashtext(r.titre)) % 9000 + 1000)::text, 4, '0')], 'fr', null, now() - make_interval(hours => r.h_cree))
     returning id into v_contact;
     insert into crm.deals (pipeline_id, stage_id, title, subtitle, source_id, owner_user_id, monthly_value_cents, doors, unit_id, created_at, updated_at,
                            loss_reason_code, close_date, converted_at, converted_owner_id)
