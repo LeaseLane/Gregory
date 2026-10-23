@@ -13,6 +13,13 @@ const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/vent
 
 export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, moi }: { initiales: string; courriel: string; nom: string; role: string; nonLues: number; moi: string }) {
   const [nonLues, setNonLues] = useState(initial);
+  // Thème (e04, l00d) : mémorisé dans ce navigateur; « Système » suit le réglage de l'appareil. Le sombre ne couvre que l'accueil pour l'instant (seule maquette sombre).
+  const [theme, setTheme] = useState('clair');
+  useEffect(() => { try { setTheme(localStorage.getItem('ll-theme') ?? 'clair'); } catch {} }, []);
+  function choisirTheme(t: string) {
+    setTheme(t); try { localStorage.setItem('ll-theme', t); } catch {}
+    document.documentElement.dataset.theme = t === 'systeme' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'sombre' : 'clair') : t;
+  }
   const [tiroir, setTiroir] = useState(false);
   // Téléphone (x16) : un appel à moi qui sonne ou est en cours s'affiche partout, avec l'état de l'avis d'enregistrement.
   const [appel, setAppel] = useState<{ id: string; to_e164: string | null; status: string; consent_announced: boolean } | null>(null);
@@ -45,7 +52,7 @@ export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, mo
   return (
     <>
       <header className="haut">
-        <img className="haut-logo" src="/img/logo-sur-blanc.svg" alt="Lease Lane" />
+        <img className="haut-logo logo-clair" src="/img/logo-sur-blanc.svg" alt="Lease Lane" /><img className="haut-logo logo-sombre" src="/img/logo-sur-marine.svg" alt="" aria-hidden="true" />
         <span className="haut-filet" aria-hidden="true" />
         {espace ? (
           <nav className="haut-fil" aria-label="Fil d’Ariane">
@@ -70,14 +77,15 @@ export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, mo
         <div className="haut-profil">
           <button type="button" className="haut-moi" onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Mon compte">{initiales}</button>
           {menu && (
-            // e04 : menu du profil (360 px) — qui, préférences, sécurité, raccourcis, aide; le thème sombre arrive plus tard (Clair seulement).
+            // e04 : menu du profil (360 px) — qui, préférences, sécurité, raccourcis, aide.
             <div className="menu menu-profil" role="menu">
               <div className="mp-qui"><span className="haut-moi" aria-hidden="true">{initiales}</span><div><strong>{nom}</strong><span>{role ? role.charAt(0).toUpperCase() + role.slice(1) : courriel}</span></div></div>
               <a className="mp-ligne" href="/compte" role="menuitem"><Icone nom="user" taille={18} couleur="#0C2147" />Mon profil<Icone nom="chevron" taille={16} couleur="#78838F" /></a>
               <p className="mp-sur">Préférences</p>
               <a className="mp-ligne" href="/compte" role="menuitem"><Icone nom="globe" taille={18} couleur="#0C2147" />Langue<span className="mp-val">Français</span><Icone nom="chevron" taille={16} couleur="#78838F" /></a>
               <div className="mp-ligne mp-theme"><Icone nom="spark" taille={18} couleur="#0C2147" />Thème
-                <span className="lo-segments"><button type="button" className="actif">Clair</button><button type="button" disabled title="Bientôt">Sombre</button><button type="button" disabled title="Bientôt">Système</button></span></div>
+                <span className="lo-segments">{[['clair', 'Clair'], ['sombre', 'Sombre'], ['systeme', 'Système']].map(([k, l]) => <button key={k} type="button" className={theme === k ? 'actif' : ''} aria-pressed={theme === k}
+                  title={k === 'clair' ? undefined : 'Le thème sombre s’applique à l’accueil pour l’instant'} onClick={() => choisirTheme(k)}>{l}</button>)}</span></div>
               <a className="mp-ligne" href="/compte" role="menuitem"><Icone nom="bell" taille={18} couleur="#0C2147" />Notifications<Icone nom="chevron" taille={16} couleur="#78838F" /></a>
               <a className="mp-ligne mp-sep" href="/compte" role="menuitem"><Icone nom="shieldc" taille={18} couleur="#0C2147" /><span className="mp-deux">Sécurité<small><i className="okdot" aria-hidden="true" />Double authentification activée</small></span><Icone nom="chevron" taille={16} couleur="#78838F" /></a>
               <button type="button" className="mp-ligne" role="menuitem" onClick={() => { setMenu(false); setPalette(true); }}><Icone nom="command" taille={18} couleur="#0C2147" />Raccourcis clavier<kbd className="touche">⌘ K</kbd></button>

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { Colonnes } from '@/composants/Graphes';
 
 type Ligne = { id: string; type: string; ref: string | null; decision: string | null; detail: string | null; confiance: number | null; le: string };
 type Verif = Ligne & { correction: string | null; verdict: 'confirmee' | 'corrigee'; par: string | null; par_nom: string | null };
@@ -12,7 +13,6 @@ const pct = (a: number, b: number) => (b ? Math.round((100 * a) / b) : 0);
 const age = (iso: string) => { const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000); return m < 60 ? `${Math.max(1, m)} min` : m < 1440 ? `${Math.round(m / 60)} h` : `${Math.round(m / 1440)} j`; };
 const heure = (iso: string) => new Date(iso).toLocaleTimeString('fr-CA', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Toronto' }).replace(':', ' h ');
 
-function Colonnes({ v }: { v: number[] }) { const m = Math.max(1, ...v); return <span className="mini-colonnes" aria-hidden="true">{v.map((x, i) => <i key={i} className={i === v.length - 1 ? 'accent' : ''} style={{ height: `${Math.max(3, (24 * x) / m)}px` }} />)}</span>; }
 function Courbe({ v }: { v: number[] }) {
   if (v.length < 2) return null;
   const lo = Math.min(...v) - 2, hi = Math.max(...v) + 2, w = 110, h = 26, pts = v.map((x, i) => `${(i * w) / (v.length - 1)},${h - ((x - lo) / Math.max(1, hi - lo)) * h}`);
@@ -33,7 +33,7 @@ export function Decisions({ donnees: D, erreurLecture }: { donnees: DonneesDecis
   return (
     <>
       {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
-      <div className="kpis" style={{ marginBottom: 24 }}>
+      <div className="kpis graphe-droite" style={{ marginBottom: 24 }}>
         <div className="kpi"><span>Décisions de Cléo</span><b>{D.total.toLocaleString('fr-CA')}</b><span>30 jours{D.types ? ` · ${D.types}` : ''}</span><Colonnes v={D.serie} /></div>
         <div className="kpi"><span>Exactitude</span><b>{D.verifiees ? `${exact} %` : '—'}</b><span>{D.verifiees ? `sur l’échantillon vérifié (${D.verifiees})` : 'aucune décision vérifiée encore'}</span><Courbe v={D.exactitude_serie ?? []} /></div>
         <div className="kpi"><span>Vérifiées par une personne</span><b>{pct(D.verifiees, D.total)} %</b><span>{D.verifiees} sur {D.total} · au hasard et sous 80 %</span><span className="jauge"><i style={{ width: `${pct(D.verifiees, D.total)}%` }} /></span></div>

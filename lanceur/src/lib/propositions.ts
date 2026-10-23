@@ -15,7 +15,7 @@ export const AGENTS: Record<string, { nom: string; icone: string }> = {
   cleo: { nom: 'Cléo', icone: 'cleo' }, analyse_appel: { nom: 'l’analyse d’appel', icone: 'phone' }, prospection: { nom: 'l’agent de prospection', icone: 'rocket' },
   redaction: { nom: 'la rédaction juridique', icone: 'file' }, rapprochement: { nom: 'le rapprochement', icone: 'dollar' }, recrutement: { nom: 'le recrutement', icone: 'users' }, mise_en_marche: { nom: 'la mise en marché', icone: 'building' },
 };
-export const ESPACES: Record<string, string> = { ventes: 'Mandats propriétaires', operations: 'Opérations', clients: 'Clients', immeubles: 'Immeubles', maintenance: 'Maintenance', finances: 'Finances', juridique: 'Juridique' };
+export const ESPACES: Record<string, string> = { ventes: 'Mandats propriétaires', operations: 'Opérations', clients: 'Clients', immeubles: 'Immeubles', maintenance: 'Maintenance', finances: 'Finances', juridique: 'Juridique', studio: 'Studio' };
 export const SOURCES: Record<string, { libelle: string; icone: string }> = {
   courriel: { libelle: 'Courriel', icone: 'mail' }, sms: { libelle: 'SMS', icone: 'message' }, conversation: { libelle: 'Conversation', icone: 'message' },
   appel: { libelle: 'Appel', icone: 'phone' }, document: { libelle: 'Document', icone: 'file' }, systeme: { libelle: 'Système', icone: 'spark' },
@@ -32,6 +32,8 @@ export function valeur(champ: string, v: unknown): string {
   if (champ === 'next_followup_date') return date(String(v));
   if (champ === 'potential_monthly_revenue') return `${Math.round(Number(v)).toLocaleString('fr-CA').replace(/[\u202f\u00a0]/g, ' ')} $`;
   if (champ === 'amount') return `${Number(v).toLocaleString('fr-CA', { minimumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, ' ')} $`;
+  if (champ.endsWith('_cents')) return `${(Number(v) / 100).toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, ' ')} $`;
+  if (champ === 'statut') return ({ active: 'Active', pause: 'En pause', terminee: 'Terminée' } as Record<string, string>)[String(v)] ?? String(v);
   if (champ === 'num_doors') return `${v} porte${Number(v) > 1 ? 's' : ''}`;
   return String(v);
 }
@@ -41,6 +43,8 @@ export function titre(p: Proposition, court = false): string {
   if (p.operation === 'move-prospect-stage') return court ? `${cible} · vers « ${valeur('stage', p.after.stage)} »` : `${cible} : passer à « ${valeur('stage', p.after.stage)} »`;
   if (p.operation === 'update-prospect-followup') return court ? `${cible} · suivi après ${p.source_type === 'appel' ? 'l’appel' : 'échange'}` : `${cible} : mettre à jour le suivi`;
   if (p.operation === 'approve-formal-notice') { const qui = String(p.after.body ?? '').match(/\n\n([^\n]+)\n/)?.[1] ?? p.source_ref ?? cible; return court ? `Mise en demeure · ${qui}` : `Mise en demeure à ${qui} : approuver l’envoi`; }
+  if (p.operation === 'adjust-campaign') return court ? `Campagne · ${cible}` : `Campagne « ${cible} » : ${p.after.statut === 'active' ? 'relancer' : 'ajuster'}`;
+  if (p.operation === 'adjust-source-budget') return court ? `Budget · ${cible}` : `Budget de ${cible} : ${p.after.transfert_vers ? 'déplacer vers une autre source' : 'ajuster'}`;
   return `${cible} · ${p.operation}`;
 }
 

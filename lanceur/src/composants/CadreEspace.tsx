@@ -30,6 +30,7 @@ const ACTIONS: Record<string, () => React.ReactNode> = {
   'Immeubles': () => lien('/immeubles?nouveau=1', 'Ajouter un immeuble', 'plus', true),
   'Maintenance': () => lien('/maintenance/bons?nouveau=1', 'Nouveau bon de travail', 'plus', true),
   'Finances': () => <BoutonExporter nom="finances" />,
+  'Studio': () => lien('/studio/campagnes?nouvelle=1', 'Nouvelle campagne', 'plus', true),
   'Rapports et réglages': () => <BoutonExporter nom="rapports" />,
 };
 

@@ -20,7 +20,9 @@ export const metadata: Metadata = {
 
 export default function RacineLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr-CA" className={poppins.variable}>
+    <html lang="fr-CA" className={poppins.variable} suppressHydrationWarning>
+      {/* Thème choisi dans le menu du profil, appliqué avant l'affichage (pas d'éclair blanc) */}
+      <head><script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('ll-theme');if(t==='systeme')t=matchMedia('(prefers-color-scheme: dark)').matches?'sombre':'clair';if(t)document.documentElement.dataset.theme=t}catch(e){}" }} /></head>
       <body>{children}</body>
     </html>
   );

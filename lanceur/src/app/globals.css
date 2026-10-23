@@ -1864,3 +1864,64 @@ input + .bouton { white-space: nowrap; } .bouton { overflow-wrap: normal; } .dea
 .portee dt i { display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px; margin-top: -4px; border-radius: 8px; background: #EEF4FB; } .portee dt { gap: 12px; } .portee { grid-template-columns: 120px 1fr; gap: 16px 0; }
 .portee .revision { display: flex; gap: 6px; align-items: center; margin-top: 4px; font-size: 12px; font-weight: 600; color: #2C5A99; }
 .tab-ameliorations .pastille-ic { display: inline-grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 50%; background: #EEF4FB; }
+/* Studio · Campagnes (l17) et Sources (e53) */
+.champs-campagne { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 16px; margin: 16px 0 8px; }
+.multiples { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 20px; } .multiple { display: grid; align-content: start; min-width: 0; }
+.colonnes-semaines { display: flex; align-items: flex-end; gap: 4px; height: 56px; margin-top: 20px; padding-bottom: 0; border-bottom: 1px solid #C8CDD4; } .colonnes-semaines i { flex: 1; border-radius: 2px 2px 0 0; background: #4581CB; }
+.liens-multiple { display: flex; gap: 16px; margin: 8px 0 0; font-size: 13px; } .depense-ligne { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-top: 8px; }
+.proposition-studio { display: flex; flex-direction: column; min-height: 100%; } .lignes-proposition { display: grid; grid-template-columns: auto 1fr; margin: 24px 0 16px; font-size: 13px; }
+.lignes-proposition dt, .lignes-proposition dd { margin: 0; padding: 10px 0; border-top: 1px solid #EEF1F5; } .lignes-proposition dt { color: #58697F; } .lignes-proposition dd { text-align: right; font-weight: 600; color: #0C2147; }
+.tab-sources td { height: 60px; } .tab-sources tfoot td { border-top: 2px solid #0C2147; font-weight: 700; color: #0C2147; padding-top: 16px; padding-bottom: 16px; }
+.tuile-source { display: inline-grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 8px; background: #EEF4FB; }
+.bande-cleo { display: flex; gap: 16px; align-items: center; margin-top: 24px; padding: 16px; border-radius: 12px; background: #EEF4FB; } .bande-cleo > div { flex: 1; } .bande-cleo .bouton { flex: none; width: 188px; justify-content: center; }
+.lien-genere { margin: 8px 0 16px; padding: 12px 16px; border-radius: 12px; background: #F3F6FA; font-size: 12px; font-weight: 500; color: #0C2147; overflow-wrap: anywhere; }
+.qr-zone { display: flex; gap: 16px; align-items: center; margin: 0 0 16px; } .qr-zone img { border: 1px solid #E1E6EC; border-radius: 8px; }
+@media (max-width: 900px) { .champs-campagne, .multiples { grid-template-columns: 1fr; } .bande-cleo { flex-wrap: wrap; } }
+.multiple .puce { flex: none; } .multiple .bloc { display: block; margin-top: 2px; } .pages-leads .barres-classees li { grid-template-columns: 240px minmax(0, 1fr) 24px; } .pages-leads .piste i { background: #4581CB; }
+/* Maintenance · Projets (e74) */
+.projet-tete { display: grid; grid-template-columns: 276px 1fr; gap: 24px; align-items: center; } .projet-tete > div:first-child { padding-right: 24px; border-right: 1px solid #EEF1F5; }
+.projet-titre { margin: 4px 0 0; font-size: 24px; font-weight: 700; letter-spacing: -0.3px; color: #0C2147; } .texte-14 { font-size: 14px; } .texte-16 { font-size: 16px; }
+.stepper-projet small { font-size: 12px; font-weight: 600; color: #58697F; } .stepper-projet li.actuel small { color: #2C5A99; } .stepper-projet button { cursor: default; }
+.comparaison-portee { display: grid; margin-top: 24px; position: relative; } .cp-tete { background: #F3F6FA; border-radius: 8px; }
+.cp-cel { display: flex; flex-direction: column; justify-content: center; gap: 4px; min-height: 52px; padding: 8px 12px; border-top: 1px solid #EEF1F5; font-size: 14px; color: #0C2147; min-width: 0; }
+.cp-cel.cp-h { min-height: 64px; border-top: 0; } .cp-cel.haut { min-height: 64px; } .cp-lib { padding-left: 16px; } .cp-cel .bloc, .cadrage .bloc { display: block; }
+.non-couvert { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #A6B1BE; flex: none; }
+.piste-budget { position: relative; display: block; width: calc(100% - 56px); max-width: 160px; height: 8px; margin-top: 8px; border-radius: 4px; background: #ECF2F9; }
+.piste-budget i { display: block; height: 100%; border-radius: 4px; background: #A6B1BE; } .piste-budget i.accent { background: #4581CB; } .piste-budget b { position: absolute; top: -4px; width: 2px; height: 16px; margin-left: -1px; border-radius: 1px; background: #0C2147; }
+.budget-lib { position: relative; top: -14px; left: min(calc(100% - 50px), 168px); height: 0; }
+.cp-attente { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; margin: 8px 0 8px 12px; padding: 16px 12px; border: 1px dashed #C8CDD4; border-radius: 12px; background: #fff; text-align: center; }
+.rond-attente { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: #EEF4FB; margin-bottom: 8px; }
+.saisie-soumission { display: grid; gap: 8px; width: 100%; text-align: left; } .choix-soumission { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.cadrage { display: grid; align-content: start; gap: 0; } .cadrage .surtitre { margin: 24px 0 8px; }
+.puces-grises { margin: 0; padding: 0 0 0 16px; display: grid; gap: 6px; font-size: 13px; color: #0C2147; line-height: 1.45; } .puces-grises li::marker { color: #A6B1BE; }
+.portee-projet { display: grid; grid-template-columns: 104px 1fr; gap: 12px 0; margin: 0; font-size: 13px; } .portee-projet dt { display: flex; gap: 8px; align-items: flex-start; font-weight: 600; color: #0C2147; } .portee-projet dd { margin: 0; color: #3E4A59; line-height: 1.45; }
+.arbitrage-projet { display: flex; gap: 12px; align-items: flex-start; } .arbitrage-projet > div { display: grid; gap: 2px; }
+@media (max-width: 900px) { .projet-tete { grid-template-columns: 1fr; } .projet-tete > div:first-child { border-right: 0; padding-right: 0; } .comparaison-portee { overflow-x: auto; } }
+.projet-tete { grid-template-columns: minmax(0, 300px) 1fr; } .projet-titre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .stepper-projet button:disabled { opacity: 1; }
+.stepper-projet li.fait strong { color: #0C2147; }
+/* Indicateurs (e57, e67, l17) : le petit graphique à droite du chiffre */
+.kpis.graphe-droite .kpi { position: relative; } .kpis.graphe-droite .kpi > .mini-colonnes, .kpis.graphe-droite .kpi > svg, .kpis.graphe-droite .kpi > .jauge { position: absolute; right: 24px; top: 50px; margin: 0; } .kpis.graphe-droite .kpi > .jauge { width: 38%; }
+/* Thème sombre de l'accueil (l00d, penpot dark.tpl.js : chaque couleur remplacée selon son rôle). Les autres écrans restent clairs (pas de maquette sombre). */
+.logo-sombre { display: none; }
+html[data-theme="sombre"]:has(main.accueil) { color-scheme: dark; }
+html[data-theme="sombre"]:has(main.accueil) :is(body, .coquille) { background: #071A2E; color: #fff; }
+html[data-theme="sombre"]:has(main.accueil) .logo-clair { display: none; } html[data-theme="sombre"]:has(main.accueil) .logo-sombre { display: block; }
+html[data-theme="sombre"]:has(main.accueil) :is(.haut, .haut-cherche, .haut-ibtn, .brief, .espace, .recents-vide) { background: #0D233B; border-color: #1C3053; box-shadow: 0 2px 6px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2); }
+html[data-theme="sombre"]:has(main.accueil) .haut-filet { background: #1C3053; }
+html[data-theme="sombre"]:has(main.accueil) :is(.haut-lieu, .haut-fil a, .accueil-tete h1, .espace h2, .espace-val, .brief-texte, .recents-vide strong, .astuce b) { color: #fff; }
+html[data-theme="sombre"]:has(main.accueil) :is(.haut-cherche, .accueil-tete .date, .espace-lib, .recents-vide span, .astuce) { color: #C8DAF0; }
+html[data-theme="sombre"]:has(main.accueil) .accueil .surtitre { color: #91B5E0; }
+html[data-theme="sombre"]:has(main.accueil) .haut-moi { background: #3767A2; }
+html[data-theme="sombre"]:has(main.accueil) .touche { background: #122744; color: #C8DAF0; } html[data-theme="sombre"]:has(main.accueil) .touche.blanche { background: #0D233B; border-color: #24405F; }
+html[data-theme="sombre"]:has(main.accueil) :is(.espace-ic, .recent-ic) { background: #172C49; }
+html[data-theme="sombre"]:has(main.accueil) :is(.haut, .accueil) svg[stroke="#0C2147"] { stroke: #fff; } html[data-theme="sombre"]:has(main.accueil) .accueil svg[stroke="#2E5788"] { stroke: #91B5E0; }
+html[data-theme="sombre"]:has(main.accueil) .accueil :is(svg[stroke="#58697F"], svg[stroke="#3E4A59"]) { stroke: #91B5E0; }
+html[data-theme="sombre"]:has(main.accueil) .espace:is(:hover, :focus-visible) { border-color: #3767A2; } html[data-theme="sombre"]:has(main.accueil) .espace:focus-visible { box-shadow: 0 0 0 4px #122744, 0 0 0 6px #6A9AD5; }
+html[data-theme="sombre"]:has(main.accueil) .espace:is(:hover, :focus-visible) .espace-ic { background: #3767A2; }
+html[data-theme="sombre"]:has(main.accueil) .accueil .puce { background: #172C49; color: #91B5E0; } html[data-theme="sombre"]:has(main.accueil) .accueil .puce.todo { background: #3A1F2A; color: #EF7A73; }
+html[data-theme="sombre"]:has(main.accueil) .accueil .puce.action { background: #3767A2; color: #fff; } html[data-theme="sombre"]:has(main.accueil) .accueil .puce.neutral { background: #122744; color: #C8DAF0; }
+html[data-theme="sombre"]:has(main.accueil) .accueil .jauge { background: #172C49; } html[data-theme="sombre"]:has(main.accueil) .accueil .jauge i { background: #6A9AD5; }
+html[data-theme="sombre"]:has(main.accueil) .unites i { background: #1C3053; } html[data-theme="sombre"]:has(main.accueil) .unites i.rouge { background: #C8433B; }
+html[data-theme="sombre"]:has(main.accueil) .accueil :is(.mini-colonnes i, .barres i) { background: #58697F; } html[data-theme="sombre"]:has(main.accueil) .accueil :is(.mini-colonnes i.accent, .barres i.accent) { background: #6A9AD5; }
+html[data-theme="sombre"]:has(main.accueil) .accueil polyline { stroke: #58697F; } html[data-theme="sombre"]:has(main.accueil) .accueil circle[fill="#0C2147"] { fill: #6A9AD5; }
+html[data-theme="sombre"]:has(main.accueil) .astuce { background: #172C49; } html[data-theme="sombre"]:has(main.accueil) .brief-av i { box-shadow: 0 0 0 2px #0D233B; }

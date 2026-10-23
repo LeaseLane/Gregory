@@ -16,3 +16,5 @@ export function BarresClassees({ lignes, accent = 0 }: { lignes: { libelle: stri
 export function JaugeSeuil({ valeur, cible, max, largeur = 96 }: { valeur: number; cible: number; max: number; largeur?: number }) {
   return <span className="jauge-seuil" style={{ width: largeur }} aria-hidden="true"><i style={{ width: `${Math.min(100, (100 * valeur) / max)}%` }} /><b style={{ left: `${Math.min(100, (100 * cible) / max)}%` }} /></span>;
 }
+/* Mini-colonnes d'un indicateur : la dernière période en accent. */
+export function Colonnes({ v }: { v: number[] }) { const m = Math.max(1, ...v); return <span className="mini-colonnes" aria-hidden="true">{v.map((x, i) => <i key={i} className={i === v.length - 1 ? 'accent' : ''} style={{ height: `${Math.max(3, (24 * x) / m)}px` }} />)}</span>; }

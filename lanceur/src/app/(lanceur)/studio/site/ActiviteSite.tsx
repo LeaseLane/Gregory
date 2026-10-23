@@ -94,7 +94,7 @@ function Graphique({ points, prec, titre, type, hauteur = 300 }: { points: Point
 /* demo.leaselane.ca seulement : séries d'exemple pour les indicateurs GA4, stables d'un affichage à l'autre (tirées de la date).
    Les conversions réelles (demandes ÷ visites) suivent les demandes fictives de la préproduction. */
 const alea = (d: string, sel: number) => { let h = sel; for (const c of d) h = Math.imul(h ^ c.charCodeAt(0), 2654435761); h = Math.imul(h ^ (h >>> 16), 0x85ebca6b); h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35); return ((h ^ (h >>> 16)) >>> 0) / 2 ** 32; };
-const visites = (d: string) => Math.round((new Date(d + 'T12:00').getDay() % 6 ? 160 : 105) * (0.75 + 0.5 * alea(d, 7)));
+export const visites = (d: string) => Math.round((new Date(d + 'T12:00').getDay() % 6 ? 160 : 105) * (0.75 + 0.5 * alea(d, 7)));
 function exemple(m: Metrique, L: Point[]): Point[] {
   return L.map((p) => {
     const v = visites(p.d);

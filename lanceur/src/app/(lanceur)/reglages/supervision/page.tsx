@@ -36,7 +36,7 @@ export default async function Page() {
   return (
     <CadreEspace icone="chart" nom="Rapports et réglages" sous={SOUS_REG} actif={6} onglets={ONGLETS_REG}>
       {!X ? <div className="bandeau erreur" role="alert">{error?.code === 'PT403' ? error.message : 'La supervision n’a pas pu être lue.'}</div> : <>
-        <div className="kpis" style={{ marginBottom: 24 }}>
+        <div className="kpis graphe-droite" style={{ marginBottom: 24 }}>
           <div className="kpi"><span>Disponibilité 30 jours</span><b>{dispo !== null ? `${String(Math.round(dispo * 100) / 100).replace('.', ',')} %` : '—'}</b><span>moyenne des {mesures.length} services mesurés</span></div>
           <div className="kpi"><span>Parcours critiques</span><b>{P.length ? `${normaux} sur ${P.length}` : '—'}</b><span>{P.length ? `normaux${P.length - normaux ? ` · ${P.length - normaux} ralenti${P.length - normaux > 1 ? 's' : ''}` : ''}` : 'pas encore rejoués'}</span></div>
           <div className="kpi"><span>{X.incident && <i className="point-rouge" />}Incidents ce mois</span><b className={X.incident ? 'rouge-txt' : ''}>{X.incidents_mois}</b><span className={X.incident ? 'rouge-txt' : ''}>{X.incident ? `dont 1 en cours · ${X.incident.titre}` : 'aucun en cours'}</span></div>
