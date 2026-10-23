@@ -1727,3 +1727,12 @@ input + .bouton { white-space: nowrap; } .bouton { overflow-wrap: normal; } .dea
 .ligne-entre span.interrupteur, .cleo-canaux span.interrupteur { opacity: 1; }
 .lo-docs .lo-lien { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; } .lo-docs .lo-lien > div { flex: 1; display: grid; min-width: 0; }
 .grille-2-1 + .grille-3 { margin-top: 0; }
+
+/* ── Équipe et permissions · vue d'ensemble (l21) ── */
+.tableau.matrice th.centre, .tableau.matrice td.centre { text-align: center; padding-right: 0; }
+.niveau { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E1E6EC; background: #fff; vertical-align: middle; }
+.niveau.approuver { background: #0C2147; border-color: #0C2147; }
+.legende-niveaux { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 24px; color: #3E4A59; } .legende-niveaux .niveau { width: 24px; height: 24px; border-radius: 6px; margin-left: 8px; }
+.legende-niveaux .niveau:first-child { margin-left: 0; }
+.loi-delais { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; } .loi-delais li { display: grid; gap: 4px; } .loi-delais .piste-h { width: 100%; }
+.tableau.matrice thead th.centre { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
