@@ -22,6 +22,8 @@ const tel = (e?: string) => e ? e.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, '$1 $2-$
 export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null; erreurLecture: string | null }) {
   const router = useRouter();
   const [tiroir, setTiroir] = useState(false), [survivant, setSurvivant] = useState<'a' | 'b'>('a');
+  // Bouton « Nouveau lead » de l'en-tête des Ventes (CadreEspace) : ?nouveau=1 ouvre le tiroir à l'arrivée.
+  useEffect(() => { if (new URLSearchParams(window.location.search).get('nouveau') === '1') setTiroir(true); }, []);
   const [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null), [envoi, setEnvoi] = useState(false);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   if (erreurLecture || !donnees) return <div className="bandeau erreur" role="alert">{erreurLecture}</div>;
@@ -44,8 +46,7 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
           <section className="studio-liste" aria-label="Leads à traiter">
             <header className="carte-tete studio-tete">
               <div><h2>Leads à traiter</h2><p>{auj ? `${auj} reçu${auj > 1 ? 's' : ''} aujourd’hui` : 'Aucun lead entrant aujourd’hui.'} · routés dès leur arrivée</p></div>
-              <div className="taches-actions"><Link className="bouton bouton-contour" style={{ height: 44, fontSize: 14 }} href="/ventes/leads/import"><Icone nom="file" taille={20} />Importer un CSV</Link>
-              <button className="bouton bouton-principal" style={{ width: 'auto', height: 44, fontSize: 14 }} onClick={() => setTiroir(true)}><Icone nom="plus" taille={20} couleur="#fff" />Nouveau lead</button></div>
+              {/* Importer un CSV et Nouveau lead : dans l'en-tête des Ventes (maquette l07), Nouveau lead ouvre ce tiroir par ?nouveau=1. */}
             </header>
             <table className="tableau leads-table">
               <colgroup><col style={{ width: '32%' }} /><col style={{ width: '20%' }} /><col style={{ width: '15%' }} /><col style={{ width: '20%' }} /><col style={{ width: '13%' }} /></colgroup>

@@ -215,14 +215,14 @@ a { color: var(--ll-b700); }
 a.haut-ibtn { text-decoration: none; }
 .espace-page { padding: 24px; display: grid; gap: 24px; }
 .espace-tete { background: #fff; border: 1px solid #C8DAF0; border-radius: 16px; box-shadow: 0 8px 24px rgba(12,33,71,.09), 0 2px 6px rgba(12,33,71,.05); padding: 24px 24px 0; }
-.espace-tete-haut { display: flex; gap: 24px; align-items: flex-start; padding-bottom: 16px; border-bottom: 1px solid #E1E6EC; }
+.espace-tete-haut { display: flex; gap: 24px; align-items: flex-start; padding-bottom: 12px; border-bottom: 1px solid #E1E6EC; } /* filet à HY+96 (blk.js B.space) */
 .espace-pastille { width: 56px; height: 56px; border-radius: 16px; background: #0C2147; display: grid; place-items: center; flex: none; }
 .espace-tete h1 { margin: 0; font-size: 28px; line-height: 38px; font-weight: 700; letter-spacing: -0.4px; }
 .espace-tete-haut p { margin: 0; font-size: 14px; color: #58697F; }
-.onglets { display: flex; gap: 8px; padding: 12px 0; overflow-x: auto; }
+.onglets { display: flex; gap: 8px; padding: 12px 0 23px; overflow-x: auto; } /* onglets à HY+108, bas de l'en-tête à HY+176 */
 .onglet { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 600; color: #3E4A59; text-decoration: none; white-space: nowrap; }
 .onglet.actif { background: #ECF2F9; color: #0C2147; }
-.onglet.actif::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: -12px; height: 3px; border-radius: 1.5px; background: #4581CB; }
+.onglet.actif::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: -4px; height: 3px; border-radius: 1.5px; background: #4581CB; } /* trait à HY+HH−23 */
 .onglet.inactif { color: #A6B1BE; cursor: default; }
 .compte { min-width: 22px; height: 20px; padding: 0 6px; border-radius: 6px; background: #C8DAF0; color: #0C2147; font-size: 12px; font-weight: 600; display: inline-grid; place-items: center; }
 .compte.rouge { background: #9B2E28; color: #fff; }
@@ -881,7 +881,7 @@ button.deal { border: 0; font: inherit; text-align: left; cursor: pointer; min-h
 .pieces { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; } .pieces span { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 8px; background: #F5F7FA; font-size: 13px; font-weight: 500; }
 .personne-ligne { display: flex; gap: 12px; align-items: center; } .personne-ligne > div { display: grid; gap: 2px; } .personne-ligne strong { font-size: 14px; font-weight: 600; } .personne-ligne .gris { font-size: 13px; }
 .liste-demandes li.gris { padding: 12px; font-size: 13px; }
-.espace-actions { margin-left: auto; display: flex; gap: 12px; } .espace-actions .bouton { height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 20px; font-size: 14px; width: auto; }
+.espace-actions { margin-left: auto; margin-top: 6px; display: flex; gap: 12px; } .espace-actions .bouton { height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; font-size: 14px; width: auto; white-space: nowrap; } /* B.btn : y = HY+30, icône 20 + 6, largeurs de B.SP.actions */
 /* l16, e46–e51 · Juridique */
 .dossier-haut { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 24px; } .dossier-haut h2 { margin: 0 0 8px; font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
 .dossier-haut .gris { margin: 0; font-size: 14px; } .choix-dossier { margin-left: 12px; border: 0; background: none; font: inherit; color: #2E5788; cursor: pointer; }

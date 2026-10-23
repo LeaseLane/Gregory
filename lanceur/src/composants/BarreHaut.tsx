@@ -9,7 +9,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 
 /* Barre du haut (maquette l00) : logo · Accueil · « Demandez à Cléo ou cherchez… » ⌘K · cloche · profil.
    ⌘K ouvre la palette (e02 : actions, fiches, pages); « Demander à Cléo » ouvre la conversation (e03). */
-const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/ventes', 'Ventes'], ['/maintenance', 'Maintenance'], ['/clients', 'Clients'], ['/juridique', 'Juridique'], ['/studio', 'Studio'], ['/cleo-ia', 'Cléo et IA']];
+const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/ventes', 'Ventes'], ['/maintenance', 'Maintenance'], ['/clients', 'Clients'], ['/juridique', 'Juridique'], ['/studio', 'Studio'], ['/cleo-ia', 'Cléo et IA'], ['/finances', 'Finances'], ['/immeubles', 'Immeubles'], ['/reglages', 'Rapports et réglages']];
 
 export function BarreHaut({ initiales, courriel, nonLues: initial, moi }: { initiales: string; courriel: string; nonLues: number; moi: string }) {
   const [nonLues, setNonLues] = useState(initial);

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
@@ -10,6 +10,9 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
   const router = useRouter();
   const vide = { type: type0, nom: '', entreprise: '', courriel: '', telephone: '', langue: 'fr', consentement_courriel: false, consentement_sms: false, inviter: true };
   const [ouvert, setOuvert] = useState(false), [f, setF] = useState(vide), [imm, setImm] = useState<{ adresse: string; logements: string; secteur: string }[]>([]);
+
+  // Bouton d'en-tête d'espace (CadreEspace) : ?nouveau=1 ouvre le tiroir à l'arrivée.
+  useEffect(() => { if (new URLSearchParams(window.location.search).get('nouveau') === '1') setOuvert(true); }, []);
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
   async function creer() {
     setEnvoi(true); setErreur(null);

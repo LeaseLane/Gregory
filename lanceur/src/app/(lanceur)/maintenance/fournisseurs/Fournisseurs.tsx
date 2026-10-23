@@ -6,6 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { BarresClassees } from '@/composants/Graphes';
 import { initiales } from '@/lib/ventes';
+import { FournisseurTiroir } from './FournisseurTiroir';
 
 /* e34 · Fournisseurs : délai de première réponse = barres classées (emphase sur le plus rapide). Assurance : rouge seulement si elle est échue ET que des travaux sont prévus;
    sinon gris ou bleu, toujours avec un libellé. Aucun bon n'est confirmé sans attestation valide. */
@@ -37,7 +38,8 @@ export function Fournisseurs({ donnees: D, q: q0, erreurLecture }: { donnees: Do
         <section className="carte-l18" aria-label="Fournisseurs">
           <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Fournisseurs</h2><p className="gris texte-13" style={{ margin: 0 }}>{D.fournisseurs.length} fournisseurs · triés par travaux des 12 derniers mois</p></div>
             <form className="lo-recherche" style={{ maxWidth: 264 }} onSubmit={(e) => { e.preventDefault(); router.push(q ? `/maintenance/fournisseurs?q=${encodeURIComponent(q)}` : '/maintenance/fournisseurs'); }}>
-              <Icone nom="search" taille={18} couleur="#58697F" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Chercher un fournisseur" aria-label="Chercher un fournisseur" /></form></div>
+              <Icone nom="search" taille={18} couleur="#58697F" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Chercher un fournisseur" aria-label="Chercher un fournisseur" /></form>
+            {D.peut_ecrire && <FournisseurTiroir compact />}</div>
           <table className="tableau tab-fixe" style={{ marginTop: 16 }}><colgroup><col style={{ width: '26%' }} /><col style={{ width: '17%' }} /><col style={{ width: '7%' }} /><col style={{ width: '9%' }} /><col style={{ width: '19%' }} /><col style={{ width: '13%' }} /><col /></colgroup>
             <thead><tr><th>Fournisseur</th><th>Spécialités</th><th>Note</th><th className="droite">Réponse</th><th>Assurance</th><th>RBQ</th><th className="droite">Travaux</th></tr></thead>
             <tbody>{L.map((f) => { const [ic, lib, cl] = etatAssurance(f), sp = f.specialites.filter(Boolean) as string[];

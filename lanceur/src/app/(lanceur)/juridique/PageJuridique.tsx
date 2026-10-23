@@ -1,5 +1,6 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
-import { CadreEspace } from '@/composants/CadreEspace';
+import { CadreEspace, LARGEURS } from '@/composants/CadreEspace';
+import { Icone } from '@/composants/Icones';
 import { Juridique, type DonneesJur, type Vue } from './Juridique';
 
 /* Espace Juridique (maquettes l16, e46–e51) : une lecture (lanceur_juridique), cinq vues. */
@@ -15,7 +16,7 @@ export async function PageJuridique({ vue, id, ouvrir }: { vue: Vue; id?: string
   return (
     <CadreEspace icone="scale" nom="Juridique" sous="Rappels, mises en demeure et dossiers au TAL : rédigés par l’IA, approuvés par une personne" actif={ONGLETS.findIndex(([v]) => v === vue)}
       onglets={ONGLETS.map(([v, l, href]) => ({ libelle: l, href, compte: comptes[v] || undefined, rouge: v === 'mises' && comptes.mises > 0 }))}
-      actions={d?.peut_ecrire ? <a className="bouton bouton-principal" href={`${ici}?ouvrir=1`}>+ Ouvrir un dossier</a> : null}>
+      actions={d?.peut_ecrire ? <a className="bouton bouton-principal" href={`${ici}?ouvrir=1`} style={{ width: LARGEURS['Ouvrir un dossier'] }}><Icone nom="plus" taille={20} couleur="#fff" />Ouvrir un dossier</a> : null}>
       <Juridique vue={vue} id={id} ouvrir={ouvrir} donnees={d} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Le juridique n’a pas pu être lu.') : null} />
     </CadreEspace>
   );

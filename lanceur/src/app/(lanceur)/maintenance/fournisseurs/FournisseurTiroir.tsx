@@ -7,7 +7,7 @@ import { Icone } from '@/composants/Icones';
 /* Ajouter ou modifier un fournisseur : identité, spécialités, zones, licence RBQ, assurance. Un nouveau fournisseur reste « à vérifier » jusqu'à la vérification de ses documents. */
 export type FournEdit = { id: string; nom: string; entreprise: string | null; contact: string; specialites: (string | null)[]; zones: string[] | null; courriel: string | null; telephone: string | null;
   rbq: string | null; rbq_requise: boolean; rbq_expiration: string | null; assurance: string | null; actif: boolean };
-export function FournisseurTiroir({ fournisseur, libelle }: { fournisseur?: FournEdit; libelle?: string }) {
+export function FournisseurTiroir({ fournisseur, libelle, compact }: { fournisseur?: FournEdit; libelle?: string; compact?: boolean }) {
   const router = useRouter();
   const init = () => ({ nom: fournisseur?.contact ?? '', entreprise: fournisseur?.entreprise ?? '', specialites: (fournisseur?.specialites.filter(Boolean) ?? []).join(', '), zones: (fournisseur?.zones ?? []).join(', '),
     courriel: fournisseur?.courriel ?? '', telephone: fournisseur?.telephone ?? '', rbq: fournisseur?.rbq ?? '', rbq_requise: fournisseur?.rbq_requise ?? false, rbq_expiration: fournisseur?.rbq_expiration ?? '', assurance: fournisseur?.assurance ?? '', actif: fournisseur?.actif ?? true });
@@ -24,6 +24,7 @@ export function FournisseurTiroir({ fournisseur, libelle }: { fournisseur?: Four
   return (
     <>
       {fournisseur ? <button className="haut-ibtn" onClick={() => { setF(init()); setOuvert(true); }} aria-label="Modifier le fournisseur"><Icone nom="pencil" taille={18} couleur="#0C2147" /></button>
+        : compact ? <button className="haut-ibtn" onClick={() => setOuvert(true)} aria-label="Ajouter un fournisseur" title="Ajouter un fournisseur"><Icone nom="plus" taille={20} couleur="#0C2147" /></button>
         : <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setOuvert(true)}><Icone nom="plus" taille={16} couleur="#fff" />{libelle ?? 'Ajouter un fournisseur'}</button>}
       {ouvert && <div className="voile tiroir-voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setOuvert(false)}>
         <form className="tiroir tiroir-large" role="dialog" aria-modal="true" aria-labelledby="fo-t" onSubmit={(e) => { e.preventDefault(); enregistrer(); }}>

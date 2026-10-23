@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
@@ -10,6 +10,9 @@ export function AjouterImmeuble({ proprietaires, quartiers, adresses }: { propri
   const router = useRouter();
   const vide = { adresse: '', owner_id: '', logements: '', annee: '', quartier: '', creer_logements: true };
   const [ouvert, setOuvert] = useState(false), [f, setF] = useState(vide), [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
+
+  // Bouton d'en-tête d'espace (CadreEspace) : ?nouveau=1 ouvre le tiroir à l'arrivée.
+  useEffect(() => { if (new URLSearchParams(window.location.search).get('nouveau') === '1') setOuvert(true); }, []);
   const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim(), doublon = f.adresse.trim().length > 4 && adresses.some((a) => norm(a) === norm(f.adresse));
   const proches = f.adresse.trim().length > 2 ? adresses.filter((a) => norm(a).includes(norm(f.adresse)) && norm(a) !== norm(f.adresse)).slice(0, 3) : [];
   async function ajouter() {
