@@ -1956,3 +1956,5 @@ html[data-theme="sombre"]:has(main.accueil) .astuce { background: #172C49; } htm
 .regles-rappels { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; } .regles-rappels li { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: #0C2147; } .regles-rappels .bloc { display: block; }
 .barres-rappels .barres-classees li { grid-template-columns: 188px minmax(0, 1fr) 40px; } .barres-rappels .piste i { background: #A6B1BE; } .barres-rappels li:first-child .piste i { background: #4581CB; }
 .voile:has(> .fenetre-invit) { align-content: center; padding-top: 16px; } .tab-rappels .puce { max-width: 100%; }
+.e11-champ.inchange .e11-saisie select, .e11-champ.inchange .e11-saisie input { background: #fff; border: 1px solid #D1D6DB; font-weight: 400; } .e11-champ.inchange label i { background: transparent; }
+.avec-suffixe { position: relative; display: block; } .avec-suffixe input { padding-right: 36px; } .avec-suffixe span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-weight: 600; color: #0C2147; pointer-events: none; }

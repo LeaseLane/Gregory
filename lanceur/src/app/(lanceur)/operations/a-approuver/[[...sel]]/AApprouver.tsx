@@ -156,26 +156,29 @@ function Detail({ p, envoi, bandeau, approuver, modifier, rejeter }: { p: Propos
   );
 }
 
+// Ordre des champs de la maquette e11 (les autres suivent)
+const ORDRE_E11 = ['stage', 'potential_monthly_revenue', 'next_action', 'next_followup_date', 'num_doors', 'interest_level', 'amount', 'body'];
 function Edition({ p, envoi, bandeau, approuver, annuler }: { p: Proposition; envoi: boolean; bandeau: { ton: string; texte: string } | null; approuver: (edited: Record<string, unknown>) => void; annuler: () => void }) {
   const [v, setV] = useState<Record<string, string>>(() => Object.fromEntries(Object.entries(p.after).map(([k, x]) => [k, x == null ? '' : String(x)])));
   const proposeePar = AGENTS[p.agent]?.nom ?? 'l’agent';
   const ecarts = useMemo(() => Object.keys(p.after).filter((k) => (v[k] ?? '') !== String(p.after[k] ?? '')), [v, p.after]);
   const auteur = p.agent === 'cleo' ? 'Cléo' : proposeePar.charAt(0).toUpperCase() + proposeePar.slice(1);
   const champ = (k: string) => {
-    const modifie = ecarts.includes(k);
+    const modifie = ecarts.includes(k), inchange = !modifie && String(p.before[k] ?? '') === String(p.after[k] ?? '');
     const commun = { id: `c-${k}`, value: v[k] ?? '', onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setV({ ...v, [k]: e.target.value }) };
     const entree = k === 'stage' ? <select {...commun}>{Object.entries(ETAPES).map(([c, l]) => <option key={c} value={c}>{l}</option>)}</select>
       : k === 'interest_level' ? <select {...commun}>{Object.entries(INTERETS).map(([c, l]) => <option key={c} value={c}>{l}</option>)}</select>
       : k === 'next_followup_date' ? <input type="date" {...commun} />
-      : k === 'potential_monthly_revenue' || k === 'num_doors' ? <input type="number" inputMode="numeric" min={k === 'num_doors' ? 1 : 0} {...commun} />
+      : k === 'potential_monthly_revenue' ? <span className="avec-suffixe"><input type="number" inputMode="numeric" min={0} {...commun} /><span>$</span></span>
+      : k === 'num_doors' ? <input type="number" inputMode="numeric" min={1} {...commun} />
       : k === 'body' ? <textarea rows={12} className="e11-texte" value={v[k] ?? ''} onChange={(e) => setV({ ...v, [k]: e.target.value })} id={`c-${k}`} />
       : k === 'amount' ? <input type="number" inputMode="decimal" min={0} step="0.01" {...commun} />
       : <input type="text" {...commun} />;
     return (
-      <div key={k} className={'e11-champ ' + (modifie ? 'vous' : 'agent') + (k === 'body' ? ' large' : '')}>
+      <div key={k} className={'e11-champ ' + (modifie ? 'vous' : inchange ? 'inchange' : 'agent') + (k === 'body' ? ' large' : '')}>
         <label htmlFor={`c-${k}`}><i aria-hidden="true" />{p.labels[k] ?? k}</label>
         <div className="e11-saisie">{entree}</div>
-        <p>{k === 'body' ? (modifie ? <b>Modifié par vous</b> : `Rédigé par ${auteur} à partir du modèle révisé`) : modifie ? <><b>Modifié par vous</b> · {auteur} proposait {valeur(k, p.after[k])}</> : `Avant : ${valeur(k, p.before[k])}`}</p>
+        <p>{k === 'body' ? (modifie ? <b>Modifié par vous</b> : `Rédigé par ${auteur} à partir du modèle révisé`) : modifie ? <><b>Modifié par vous</b> · {auteur} proposait {valeur(k, p.after[k])}</> : inchange ? 'Inchangé' : `Avant : ${valeur(k, p.before[k])}`}</p>
       </div>
     );
   };
@@ -188,7 +191,7 @@ function Edition({ p, envoi, bandeau, approuver, annuler }: { p: Proposition; en
         <span><i className="agent" aria-hidden="true" />Proposé par {auteur}</span>
         <span><i className="vous" aria-hidden="true" />Modifié par vous</span>
       </div>
-      <div className="e11-grille">{Object.keys(p.after).map(champ)}</div>
+      <div className="e11-grille">{Object.keys(p.after).sort((a, b) => ORDRE_E11.indexOf(a) - ORDRE_E11.indexOf(b)).map(champ)}</div>
       <div className="e11-ecart">
         <Icone nom="shieldc" taille={20} couleur="#0C2147" />
         <div>
