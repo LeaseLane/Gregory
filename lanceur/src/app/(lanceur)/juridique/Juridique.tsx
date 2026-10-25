@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { BarresClassees } from '@/composants/Graphes';
 import { initiales } from '@/lib/ventes';
 import { adresse } from '@/lib/format';
 
@@ -192,29 +193,56 @@ function Fermer({ id, envoi, rpc }: { id: string; envoi: boolean; rpc: (n: strin
       <button className="bouton bouton-contour" disabled={envoi || !r.trim()} onClick={() => rpc('lanceur_fermer_dossier', { p: { case_id: id, raison: r } }, 'Dossier fermé.')}>Fermer</button></div>;
 }
 
-// e46 · Rappels : loyers en retard, où en est chaque séquence
+// e46 · Rappels : séquences de la semaine (en cours et arrêtées), étape du paiement sur 12 mois, règles (lanceur_rappels)
+type LigneRappel = { lease_id: string; locataire: string | null; logement: string; montant: number; jours: number | null; pause: boolean | null; essai: string | null; paye_le: string | null;
+  paye_jours: number | null; dossier: string | null; dossier_etape: string | null; med: string | null };
+type Rappels = { lignes: LigneRappel[]; etapes: { total: number; sms: number; courriel: number; med: number; tal: number }; semaine: { payes: number; ententes: number }; auto: boolean };
+const REGLES_RAPPELS: [string, string][] = [['Entre 8 h et 22 h seulement', 'Aucun envoi la nuit; le rappel part à 9 h'], ['Ton respectueux', 'Rappel factuel : montant, date, moyens de payer'],
+  ['Arrêt dès le paiement ou une entente', 'Vérifié juste avant chaque envoi'], ['5 rappels au plus par loyer', 'Ensuite, une personne prend le relais'],
+  ['Sans cellulaire, le rappel part par courriel', 'Un « STOP » arrête les SMS pour de bon'], ['Une personne approuve la mise en demeure', 'Cléo la rédige, vous la signez']];
+// État des 3 étapes : 2 faite, 1 à approuver, 0 à venir, 3 en pause
+function etatsRappel(l: LigneRappel): number[] {
+  const j = l.jours ?? l.paye_jours ?? 0, pause = !!l.pause || !!l.essai;
+  const e = [j >= 1 ? 2 : 0, j >= 7 ? 2 : 0, l.med === 'sent' || l.dossier_etape === 'tal' ? 2 : l.med === 'draft' || (j >= 12 && !l.paye_le) ? 1 : 0];
+  return pause ? e.map((x) => (x === 2 ? 2 : 3)) : l.paye_le ? e.map((x) => (x === 1 ? 0 : x)) : e;
+}
 function VueRappels({ D }: { D: DonneesJur }) {
-  const etapeDe = (j: number, dossier: string | null) => dossier ? 3 : j >= 12 ? 2 : j >= 7 ? 1 : 0;
+  const [R, setR] = useState<Rappels | null>(null), [erreur, setErreur] = useState<string | null>(null);
+  useEffect(() => { supabaseNavigateur().rpc('lanceur_rappels').then(({ data, error }) => error ? setErreur(error.message) : setR(data as Rappels)); }, []);
+  if (erreur) return <div className="bandeau erreur" role="alert">{erreur}</div>;
+  if (!R) return <p className="gris">Chargement…</p>;
+  const enCours = R.lignes.filter((l) => !l.paye_le && !l.pause && !l.essai), arretees = R.lignes.length - enCours.length, E = R.etapes, pct = (n: number) => (E.total ? Math.round((100 * n) / E.total) : 0);
+  const suite = (l: LigneRappel): [string, string, string, string] => l.paye_le ? ['Payé', `le ${d(l.paye_le)}`, 'Arrêtée', 'final'] : l.essai ? ['Nouvel essai', `prélèvement prévu`, 'Arrêtée', 'neutral']
+    : l.pause ? ['Entente', 'rappels en pause', 'Arrêtée', 'neutral'] : l.med === 'draft' ? ['Mise en demeure', 'à approuver', 'À approuver', 'action']
+    : l.dossier ? [`Dossier ${l.dossier}`, l.dossier_etape === 'tal' ? 'au TAL' : 'mise en demeure envoyée', 'En cours', 'contour']
+    : (l.jours ?? 0) >= 12 ? ['Mise en demeure', `à préparer · J+${l.jours}`, 'À préparer', 'action'] : (l.jours ?? 0) >= 7 ? ['Mise en demeure à J+12', `dans ${12 - (l.jours ?? 0)} j`, 'En cours', 'contour']
+    : ['Courriel de relance', `à J+7 · dans ${7 - (l.jours ?? 0)} j`, 'En cours', 'contour'];
   return (
-    <div className="studio">
-      <section className="studio-liste" aria-label="Séquences de rappel">
-        <header className="carte-tete"><h2>Séquences de rappel</h2><p>{D.retards.length} loyer{D.retards.length > 1 ? 's' : ''} en retard · SMS à J+1, courriel à J+7, mise en demeure à J+12</p></header>
-        <table className="tableau">
-          <colgroup><col style={{ width: '30%' }} /><col style={{ width: '27%' }} /><col style={{ width: '13%' }} /><col /></colgroup>
-          <thead><tr><th>Locataire</th><th>Étapes</th><th className="droite" style={{ paddingRight: 24 }}>Montant</th><th>Prochaine action</th></tr></thead>
-          <tbody>{D.retards.map((r) => { const e = etapeDe(r.jours, r.dossier); return (
-            <tr key={r.lease_id}><td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 12 }}>{initiales(r.locataire ?? '?')}</span><span><strong className="fort">{r.locataire}</strong><span className="sous gris">{r.logement}</span></span></span></td>
-              <td><span className="pastilles-etapes">{[['message', 'J+1'], ['mail', 'J+7'], ['scale', 'J+12']].map(([ic, j], i) => <span key={j} className={i < e ? 'fait' : i === e ? 'actuel' : ''} title={j}><Icone nom={ic} taille={14} couleur={i < e ? '#fff' : '#3E4A59'} />{j}</span>)}</span></td>
-              <td className="droite fort" style={{ paddingRight: 24 }}>{argent(r.montant)}</td>
-              <td style={{ whiteSpace: 'normal' }}>{r.dossier ? <Link className="lien" href="/juridique">Dossier {r.dossier}</Link> : r.jours >= 12 ? <span className="fort">Mise en demeure à préparer · J+{r.jours}</span> : <span className="gris">{r.jours >= 7 ? `Mise en demeure à J+12 (${12 - r.jours} j)` : `Courriel à J+7 (${7 - r.jours} j)`}</span>}</td></tr>); })}
-            {!D.retards.length && <tr><td colSpan={4} className="gris">Aucun loyer en retard.</td></tr>}</tbody>
-        </table>
+    <div className="grille-2-1">
+      <section className="carte-l18" aria-label="Séquences de rappel"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Séquences de rappel · cette semaine</h2>
+        <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{enCours.length} en cours, {arretees} arrêtée{arretees > 1 ? 's' : ''} · SMS à J+1, courriel à J+7, mise en demeure à J+12</p>
+        <table className="tableau tab-fixe tab-rappels"><colgroup><col style={{ width: '27%' }} /><col style={{ width: '11%' }} /><col style={{ width: '17%' }} /><col style={{ width: '27%' }} /><col /></colgroup>
+          <thead><tr><th>Locataire</th><th className="droite">Montant</th><th>Étapes</th><th>Prochaine action</th><th>Statut</th></tr></thead>
+          <tbody>{R.lignes.map((l) => { const [a, s2, st, ton] = suite(l), e = etatsRappel(l); return <tr key={l.lease_id}>
+            <td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 12 }}>{initiales(l.locataire ?? '?')}</span><span><strong className="fort">{l.locataire ?? 'Logement'}</strong><span className="sous gris">{adresse(l.logement)}</span></span></span></td>
+            <td className="droite fort">{argent(l.montant)}</td>
+            <td><span className="etapes-rappel">{([['message', 'J+1'], ['mail', 'J+7'], ['file', 'J+12']] as const).map(([ic, j], i) => <span key={j} className={'e' + e[i]} title={`${j} · ${['à venir', 'à approuver', 'faite', 'en pause'][e[i]]}`}>
+              <i><Icone nom={ic} taille={13} couleur={e[i] === 2 ? '#fff' : e[i] === 1 ? '#2C5A99' : '#78838F'} trait={2} /></i><small>{j}</small></span>)}</span></td>
+            <td><b className="fort">{a}</b><span className="sous gris">{s2}</span></td>
+            <td><span className={'puce ' + ton}>{st}</span></td></tr>; })}
+            {!R.lignes.length && <tr><td colSpan={5} className="gris">Aucun loyer en retard ni séquence arrêtée cette semaine.</td></tr>}</tbody></table>
+        {(R.semaine.payes > 0 || R.semaine.ententes > 0) && <div className="bande-arrets"><span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>
+          <span>{R.semaine.payes + R.semaine.ententes} séquence{R.semaine.payes + R.semaine.ententes > 1 ? 's' : ''} arrêtée{R.semaine.payes + R.semaine.ententes > 1 ? 's' : ''} cette semaine : {R.semaine.payes} paiement{R.semaine.payes > 1 ? 's' : ''} reçu{R.semaine.payes > 1 ? 's' : ''}, {R.semaine.ententes} entente{R.semaine.ententes > 1 ? 's' : ''}.</span>
+          <Link className="lien" href="/reglages/journal">Voir l’historique</Link></div>}
       </section>
       <div className="colonne-l18">
-        <section className="carte-l18"><h2 className="titre-carte">Règles d’envoi</h2>
-          <ul className="garde-fous">{['SMS de rappel à J+1 (courriel s’il n’y a pas de cellulaire), à 9 h', 'Courriel de relance à J+7', 'Mise en demeure à J+12 : rédigée par l’IA, approuvée par une personne, jamais automatique', 'Arrêt dès que le loyer est payé', 'Envoi d’un avis légal : jour ouvrable, 9 h–17 h'].map((t) => <li key={t}><span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>{t}</li>)}</ul></section>
-        <section className="carte-l18"><h2 className="titre-carte">Ouverture automatique des dossiers</h2>
-          <p className="texte-13">{D.auto ? 'Active : à J+12, un dossier s’ouvre et la mise en demeure est proposée dans « À approuver ».' : 'Désactivée : les dossiers s’ouvrent à la main (« Ouvrir un dossier »). Elle s’active quand les anciens rappels sont retirés, pour ne pas doubler les envois.'}</p></section>
+        <section className="carte-l18" aria-label="Efficacité des rappels"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{E.total ? `${pct(E.sms)} % paient après le premier rappel` : 'Pas encore de loyer payé en retard'}</h2>
+          <p className="gris texte-13" style={{ margin: '0 0 16px' }}>12 mois · {E.total} loyer{E.total > 1 ? 's' : ''} en retard, selon le moment du paiement</p>
+          {E.total > 0 && <div className="pages-leads barres-rappels"><BarresClassees lignes={[['Après le SMS (J+1)', E.sms], ['Après le courriel (J+7)', E.courriel], ['Après la mise en demeure', E.med], ['Au TAL', E.tal]].map(([l, n]) => ({ libelle: l as string, valeur: pct(n as number), texte: `${pct(n as number)} %` }))} /></div>}
+        </section>
+        <section className="carte-l18" aria-label="Règles des rappels"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Règles des rappels</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>S’appliquent à chaque séquence, sans exception</p>
+          <ul className="regles-rappels">{REGLES_RAPPELS.map(([t, s2]) => <li key={t}><span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span><span><b>{t}</b><span className="bloc gris texte-13">{s2}</span></span></li>)}</ul>
+          <p className="gris texte-12" style={{ margin: '16px 0 0' }}>Ouverture automatique des dossiers à J+12 : {R.auto ? 'active' : 'désactivée (dossiers ouverts à la main)'}.</p></section>
       </div>
     </div>
   );

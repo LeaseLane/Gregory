@@ -10,6 +10,10 @@ type Compte = { user_id: string; nom: string; initiales: string; role: string; r
   depuis: string; titre: string | null; updated_at: string; activite: { action: string; le: string }[] | null };
 type Invit = { id: string; nom: string; courriel: string; role: string; role_libelle: string; expire: string; expiree: boolean; par: string };
 export type DonneesComptes = { comptes: Compte[]; invitations: Invit[]; roles: { role: string; libelle: string; permissions: string[] }[]; moi: string };
+// e63 : rôles en tuiles (les 4 de la maquette d'abord), et les pipelines que chaque rôle ouvre
+const TUILES_ROLE: [string, string, string][] = [['gestionnaire', 'Gestionnaire', 'Tout, y compris approuver'], ['location', 'Location', 'Ventes, Clients et Immeubles'], ['comptabilite', 'Comptabilité', 'Finances et rapports'],
+  ['lecture', 'Lecture', 'Consulte sans rien modifier'], ['prospection', 'Prospection', 'Mandats et prospection IA'], ['admin', 'Administrateur', 'Tout, y compris l’équipe']];
+const PIPELINES: [string, string][] = [['ventes.mandats.lire', 'Mandats propriétaires'], ['ventes.location.lire', 'Location'], ['ventes.lire', 'Leads entrants'], ['ventes.prospection.lire', 'Prospection IA']];
 const ROLES: [string, string][] = [['gestionnaire', 'Gestionnaire'], ['location', 'Location'], ['prospection', 'Prospection'], ['comptabilite', 'Comptabilité (externe)'], ['lecture', 'Lecture seule'], ['admin', 'Administrateur']];
 const date = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Jamais');
 
@@ -90,16 +94,24 @@ export function Comptes({ donnees: D, erreurLecture }: { donnees: DonneesComptes
             <ul className="lo-docs">{(fiche.activite ?? []).map((a, i) => <li key={i} className="texte-13"><div><strong>{a.action}</strong><span className="gris">{date(a.le)}</span></div></li>)}{!fiche.activite?.length && <li className="gris texte-13">Aucune action inscrite.</li>}</ul>
           </div></div></div>}
       {inviter && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setInviter(false)}>
-        <form className="fenetre" role="dialog" aria-modal="true" aria-labelledby="iv-t" style={{ width: 460 }} onSubmit={async (e) => { e.preventDefault();
+        <form className="fenetre fenetre-invit" role="dialog" aria-modal="true" aria-labelledby="iv-t" onSubmit={async (e) => { e.preventDefault();
           const faire = async () => { if (await rpc('lanceur_inviter_equipe', f, `Invitation envoyée à ${f.courriel} (valable 72 heures).`)) { setInviter(false); setF({ nom: '', courriel: '', role: 'gestionnaire' }); } };
           if (f.role === 'admin') setConfirmer({ texte: `Inviter ${f.nom} comme Administrateur? Il pourra tout voir et gérer l’équipe.`, faire }); else await faire(); }}>
-          <h2 id="iv-t" style={{ marginTop: 0, fontSize: 20 }}>Inviter une personne</h2>
-          <label className="fenetre-lib" htmlFor="iv-n">Nom complet</label><input id="iv-n" className="e70-raison" value={f.nom} onChange={(e) => setF({ ...f, nom: e.target.value })} autoComplete="off" />
-          <label className="fenetre-lib" htmlFor="iv-c" style={{ marginTop: 12 }}>Courriel</label><input id="iv-c" type="email" className="e70-raison" value={f.courriel} onChange={(e) => setF({ ...f, courriel: e.target.value })} autoComplete="off" />
-          <label className="fenetre-lib" htmlFor="iv-r" style={{ marginTop: 12 }}>Rôle</label><select id="iv-r" className="e70-raison" value={f.role} onChange={(e) => setF({ ...f, role: e.target.value })}>{ROLES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
-          <p className="gris texte-12">Un courriel avec un code personnel part tout de suite; la double authentification s’active à la première connexion.</p>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 16 }}><button type="button" className="bouton bouton-contour" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setInviter(false)}>Annuler</button>
-            <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 20px' }} disabled={envoi || f.nom.trim().split(/\s+/).length < 2 || !f.courriel.includes('@')}>Inviter</button></div>
+          <div className="ligne-entre" style={{ alignItems: 'flex-start' }}><h2 id="iv-t" className="fenetre-titre">Inviter une personne dans l’équipe?</h2>
+            <button type="button" className="fenetre-x" onClick={() => setInviter(false)} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
+          <p className="texte-14" style={{ margin: '4px 0 20px', color: '#3E4A59' }}>Elle recevra un courriel pour créer son accès. Vous pourrez changer son rôle en tout temps.</p>
+          <label className="fenetre-lib" htmlFor="iv-c">Courriel <span className="gris texte-12">obligatoire</span></label><input id="iv-c" type="email" className="e70-raison" value={f.courriel} onChange={(e) => setF({ ...f, courriel: e.target.value })} autoComplete="off" autoFocus />
+          <label className="fenetre-lib" htmlFor="iv-n" style={{ marginTop: 16 }}>Nom complet <span className="gris texte-12">pour le courriel d’invitation</span></label><input id="iv-n" className="e70-raison" value={f.nom} onChange={(e) => setF({ ...f, nom: e.target.value })} autoComplete="off" />
+          <p className="fenetre-lib" style={{ marginTop: 16 }}>Rôle</p>
+          <div className="tuiles-role" role="radiogroup" aria-label="Rôle">{TUILES_ROLE.map(([k, l, d]) => <label key={k} className={f.role === k ? 'choisi' : ''}>
+            <input type="radio" name="iv-role" checked={f.role === k} onChange={() => setF({ ...f, role: k })} /><span><b>{l}</b><span className="bloc gris texte-12">{d}</span></span></label>)}</div>
+          <p className="fenetre-lib" style={{ marginTop: 16 }}>Accès par pipeline <span className="gris texte-12">selon le rôle</span></p>
+          <div className="pipelines-role">{PIPELINES.map(([perm, l]) => { const permis = D.roles.find((r) => r.role === f.role)?.permissions ?? []; return <label key={perm} className="ligne-ic texte-14">
+            <input type="checkbox" checked={f.role === 'admin' || permis.includes('*') || permis.includes(perm)} disabled readOnly />{l}</label>; })}</div>
+          <p className="gris texte-12" style={{ margin: '4px 0 0' }}>L’accès suit le rôle choisi; un accès sur mesure par pipeline n’est pas encore offert.</p>
+          <div className="note-securite"><Icone nom="lock" taille={20} couleur="#0C2147" /><span><b>La double authentification sera exigée.</b><span className="bloc">L’invitation expire dans 72 heures.</span></span></div>
+          <div className="fenetre-boutons"><button type="button" className="bouton bouton-contour" onClick={() => setInviter(false)}>Annuler</button>
+            <button className="bouton bouton-principal" disabled={envoi || f.nom.trim().split(/\s+/).length < 2 || !f.courriel.includes('@')}><Icone nom="send" taille={18} couleur="#fff" />Envoyer l’invitation</button></div>
         </form></div>}
       {confirmer && <div className="voile" role="presentation" style={{ zIndex: 60 }}><div className="fenetre" role="alertdialog" aria-modal="true" aria-labelledby="cf-t" style={{ width: 440 }}>
         <h2 id="cf-t" style={{ marginTop: 0, fontSize: 18 }}>Confirmer</h2><p>{confirmer.texte}</p>

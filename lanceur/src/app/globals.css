@@ -1934,3 +1934,25 @@ html[data-theme="sombre"]:has(main.accueil) .astuce { background: #172C49; } htm
 .bascule:checked { background: #0C2147; } .bascule:checked::after { left: 22px; } .bascule:disabled { opacity: .5; cursor: not-allowed; } .bascule:focus-visible { outline: 2px solid #4581CB; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .bascule, .bascule::after { transition: none; } }
 .cleo-suggere { display: flex; gap: 16px; align-items: flex-start; margin-top: 24px; padding: 16px; border-radius: 12px; background: #ECF2F9; font-size: 13px; color: #0C2147; } .cleo-suggere .bloc { display: block; margin-top: 2px; color: #3E4A59; } .cleo-suggere .lien { margin-top: 6px; padding: 0; }
+/* Inviter une personne (e63) */
+.fenetre-invit { width: 560px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); overflow-y: auto; padding: 24px; }
+.fenetre-titre { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.2px; line-height: 1.3; color: #0C2147; }
+.fenetre-x { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border: 0; border-radius: 8px; background: #F7F9FB; cursor: pointer; }
+.tuiles-role { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .tuiles-role label { display: flex; gap: 12px; align-items: center; min-height: 56px; padding: 8px 16px; border: 1px solid #E1E6EC; border-radius: 12px; cursor: pointer; }
+.tuiles-role label.choisi { border: 2px solid #4581CB; background: #EEF4FB; padding: 7px 15px; } .tuiles-role input { width: 20px; height: 20px; margin: 0; flex: none; accent-color: #0C2147; } .tuiles-role .bloc { display: block; }
+.pipelines-role { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; } .pipelines-role input { width: 18px; height: 18px; margin: 0; accent-color: #0C2147; } .pipelines-role label { gap: 12px; color: #0C2147; }
+.note-securite { display: flex; gap: 12px; align-items: flex-start; margin-top: 20px; padding: 12px 16px; border-radius: 12px; background: #F7F9FB; font-size: 13px; color: #0C2147; } .note-securite .bloc { display: block; color: #3E4A59; }
+.fenetre-boutons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; } .fenetre-boutons .bouton { width: auto; padding: 0 20px; } .fenetre-boutons .bouton-principal { min-width: 208px; justify-content: center; }
+@media (max-width: 560px) { .tuiles-role, .pipelines-role { grid-template-columns: 1fr; } }
+/* Rappels (e46) : pastilles d'étape (icône + jour), arrêts de la semaine, règles */
+.etapes-rappel { display: inline-flex; gap: 0; } .etapes-rappel > span { position: relative; display: grid; justify-items: center; gap: 2px; width: 44px; }
+.etapes-rappel > span + span::before { content: ""; position: absolute; top: 11px; right: 33px; width: 22px; height: 2px; background: #E1E6EC; }
+.etapes-rappel > span.e2 + span.e2::before { background: #0C2147; }
+.etapes-rappel i { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #C8CDD4; background: #fff; z-index: 1; }
+.etapes-rappel .e2 i { background: #0C2147; border-color: #0C2147; } .etapes-rappel .e1 i { border: 3px solid #4581CB; } .etapes-rappel .e3 i { background: #EEF1F5; border-color: #EEF1F5; }
+.etapes-rappel small { font-size: 12px; color: #58697F; } .etapes-rappel .e1 small { font-weight: 600; color: #0C2147; }
+.tab-rappels td { height: 76px; }
+.bande-arrets { display: flex; gap: 12px; align-items: center; margin-top: 20px; padding: 16px; border-radius: 12px; background: #F7F9FB; font-size: 13px; color: #3E4A59; } .bande-arrets > span:nth-child(2) { flex: 1; }
+.regles-rappels { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; } .regles-rappels li { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: #0C2147; } .regles-rappels .bloc { display: block; }
+.barres-rappels .barres-classees li { grid-template-columns: 188px minmax(0, 1fr) 40px; } .barres-rappels .piste i { background: #A6B1BE; } .barres-rappels li:first-child .piste i { background: #4581CB; }
+.voile:has(> .fenetre-invit) { align-content: center; padding-top: 16px; } .tab-rappels .puce { max-width: 100%; }
