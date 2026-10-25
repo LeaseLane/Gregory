@@ -1925,3 +1925,12 @@ html[data-theme="sombre"]:has(main.accueil) .unites i { background: #1C3053; } h
 html[data-theme="sombre"]:has(main.accueil) .accueil :is(.mini-colonnes i, .barres i) { background: #58697F; } html[data-theme="sombre"]:has(main.accueil) .accueil :is(.mini-colonnes i.accent, .barres i.accent) { background: #6A9AD5; }
 html[data-theme="sombre"]:has(main.accueil) .accueil polyline { stroke: #58697F; } html[data-theme="sombre"]:has(main.accueil) .accueil circle[fill="#0C2147"] { fill: #6A9AD5; }
 html[data-theme="sombre"]:has(main.accueil) .astuce { background: #172C49; } html[data-theme="sombre"]:has(main.accueil) .brief-av i { box-shadow: 0 0 0 2px #0D233B; }
+/* Nouvelle demande (e08) : catégorie suggérée, dépôt de photos, avis SMS, suggestion de Cléo */
+.champ-cleo { position: relative; } .champ-cleo.par-cleo select { background-color: #ECF2F9; border-color: #91B5E0; } .champ-cleo-ic { position: absolute; right: 44px; top: 50%; transform: translateY(-50%); display: flex; pointer-events: none; }
+.zone-depot.inactive { opacity: .55; cursor: not-allowed; }
+.ligne-sms { display: flex; gap: 16px; align-items: center; margin-top: 24px; cursor: pointer; } .ligne-sms .bloc { display: block; }
+.bascule { appearance: none; flex: none; position: relative; width: 44px; height: 24px; margin: 0; border-radius: 12px; background: #C8CDD4; cursor: pointer; transition: background .15s; }
+.bascule::after { content: ""; position: absolute; left: 2px; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .15s; }
+.bascule:checked { background: #0C2147; } .bascule:checked::after { left: 22px; } .bascule:disabled { opacity: .5; cursor: not-allowed; } .bascule:focus-visible { outline: 2px solid #4581CB; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .bascule, .bascule::after { transition: none; } }
+.cleo-suggere { display: flex; gap: 16px; align-items: flex-start; margin-top: 24px; padding: 16px; border-radius: 12px; background: #ECF2F9; font-size: 13px; color: #0C2147; } .cleo-suggere .bloc { display: block; margin-top: 2px; color: #3E4A59; } .cleo-suggere .lien { margin-top: 6px; padding: 0; }
