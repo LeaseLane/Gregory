@@ -8,12 +8,13 @@ import { BandeauLocataire } from '@/composants/portail/CoquilleLocataire';
 import { ouvrirFichier } from '@/composants/portail/fichiers';
 import { argent, dateCourte, dateLongue, moisAnnee } from '@/composants/portail/format';
 
-/* Locataire · 08 Paiements, 09 Reçu de loyer (art. 1568 C.c.Q.), 10 Changer de mode de paiement. Les loyers sont déposés directement
-   chez le propriétaire (décision du 13 oct.). Carte de crédit : hors lancement, non offerte. États « en retard » et « prélèvement
+/* Locataire · 08 Paiements, 09 Reçu de loyer (art. 1568 C.c.Q.), 10 Changer de mode de paiement. Prélèvement automatique : accord de DPA
+   signé ici (règle H1 de Paiements Canada), débité par Lease Lane dans son compte en fidéicommis. Carte de crédit : processeur à choisir, non offerte. États « en retard » et « prélèvement
    refusé » sans blâme, avec la marche à suivre (CONCORDANCE 2.10, 2.14). */
 export type PaiementsLoc = { prochain: { echeance: string; montant: number; en_retard: boolean; jours: number; echec: boolean } | null; annee: { paye: number; loyers: number; prevus: number };
   retards: number; en_retard: number; historique: { id: string; periode: string; recu_le: string | null; mode: string | null; montant: number; statut: string }[];
-  mode: { type: string; depuis?: string; compte?: string | null }; interac: string | null; reference: string | null; releve31: { id: string; annee: number } | null };
+  mode: { type: string; depuis?: string; compte?: string | null; montant?: number | null; premier?: string | null; accord?: boolean }; interac: string | null; reference: string | null; releve31: { id: string; annee: number } | null };
+type Dpa = { actif: false; montant: number; premier: string; modele: string } | { actif: true; montant: number; premier: string; texte: string; signe_le: string; compte: string };
 export type RL31 = { id: string; annee: number; code: string; remis_le: string; donnees: { numero_logement: string; logement: { adresse: string; ville: string | null; code_postal: string | null };
   locateur: { nom: string; adresse: string | null }; mandataire: { nom: string; neq: string | null } | null; occupant: { nom: string }; motif_correction?: string } };
 export type Recu = { numero: string; emis_le: string; periode: string; montant: number; mode: string; emetteur: { nom: string; pour: string; neq: string | null; adresse: string | null };
@@ -31,6 +32,27 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
     setFenetreMode(false); setToast('Demande transmise : l’équipe vous écrit pour finaliser le changement.');
   }
   const fermerRecu = () => router.replace('/locataire/paiements', { scroll: false });
+  // Accord de DPA : modèle à remplir (pas encore de prélèvement) ou accord signé (lecture, fin du prélèvement).
+  const [dpa, setDpa] = useState<Dpa | null>(null), [f, setF] = useState({ titulaire: '', institution: '', transit: '', compte: '', accepte: false }), [envoi, setEnvoi] = useState(false);
+  async function ouvrirDpa() {
+    const { data, error } = await supabaseNavigateur().rpc('portail_locataire_dpa');
+    if (error) return setBandeau(error.message);
+    setFenetreMode(false); setDpa(data as Dpa);
+  }
+  async function signerDpa() {
+    setEnvoi(true);
+    const { data, error } = await supabaseNavigateur().rpc('portail_locataire_dpa_signer', { p: f }); setEnvoi(false);
+    if (error) return setBandeau(error.message);
+    setDpa(null); setToast(`Prélèvement en place : premier débit le ${dateLongue((data as { premier: string }).premier)}.`); router.refresh();
+  }
+  async function annulerDpa() {
+    if (!window.confirm('Mettre fin au prélèvement automatique ? Vous paierez ensuite par virement Interac.')) return;
+    const { error } = await supabaseNavigateur().rpc('portail_locataire_dpa_annuler');
+    if (error) return setBandeau(error.message);
+    setDpa(null); setToast('Prélèvement arrêté. Un débit déjà transmis à la banque peut encore passer.'); router.refresh();
+  }
+  const apercu = dpa && !dpa.actif ? dpa.modele.replace('{titulaire}', f.titulaire || '…').replace('{institution}', f.institution || '…').replace('{transit}', f.transit || '…')
+    .replace('se terminant par 000', `se terminant par ${f.compte.slice(-3) || '…'}`) : '';
 
   return (
     <>
@@ -68,7 +90,9 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
             <div className="lo-mode"><span className="a-faire-ic"><Icone nom={pad ? 'card' : 'send'} taille={18} couleur="#0C2147" /></span>
               <div><strong>{pad ? 'Prélèvement automatique' : 'Virement Interac'}</strong><span className="gris texte-13">{pad ? `${D.mode.compte ? `${D.mode.compte} · ` : ''}le 1er du mois` : D.interac ? `À chaque terme, à ${D.interac}` : 'À chaque terme, au propriétaire'}</span></div></div>
             {!pad && D.reference && <p className="texte-13">Référence à écrire dans le message du virement : <b>{D.reference}</b></p>}
-            <p className="gris texte-12">Les loyers sont déposés directement dans le compte du propriétaire. Lease Lane n’a pas accès à vos identifiants bancaires.</p>
+            {pad && D.mode.accord && <button className="lien ligne-ic" onClick={ouvrirDpa}>Mon accord de prélèvement<Icone nom="arrow" taille={16} couleur="#2E5788" /></button>}
+            <p className="gris texte-12">{pad ? 'Prélevé par Lease Lane, mandataire de votre propriétaire, dans son compte en fidéicommis. Lease Lane n’a pas accès à vos identifiants bancaires.'
+              : 'Les loyers sont déposés directement dans le compte du propriétaire. Lease Lane n’a pas accès à vos identifiants bancaires.'}</p>
           </section>
           <section className="carte-l18" aria-label="Relevé 31"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Relevé 31 — {D.releve31?.annee ?? annee}</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>Relevé fiscal annuel</p>
             {D.releve31 ? <Link className="bouton bouton-contour" style={{ width: 'auto', display: 'inline-flex', padding: '0 20px' }} scroll={false} href={`/locataire/paiements?rl31=${D.releve31.id}`}><Icone nom="download" taille={16} couleur="#0C2147" />Voir et télécharger</Link> : <span className="puce neutral">Disponible en février</span>}
@@ -111,11 +135,35 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
             <button className="haut-ibtn" onClick={() => setFenetreMode(false)} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
           {([['prelevement', 'card', 'Prélèvement automatique', 'Le 1er du mois, depuis votre compte bancaire'], ['interac', 'send', 'Virement Interac', D.interac ? `À chaque terme, à ${D.interac}` : 'À chaque terme'],
             ['cheque', 'file', 'Chèque à chaque terme', '']] as const).map(([k, ic, t, s]) => { const actuel = (k === 'prelevement') === pad && k !== 'cheque';
-            return <button key={k} className={`lo-mode-choix ${actuel ? 'actuel' : ''}`} disabled={actuel} onClick={() => demanderMode(k)}><span className="a-faire-ic"><Icone nom={ic} taille={18} couleur="#0C2147" /></span>
+            return <button key={k} className={`lo-mode-choix ${actuel ? 'actuel' : ''}`} disabled={actuel} onClick={() => k === 'prelevement' ? ouvrirDpa() : demanderMode(k)}><span className="a-faire-ic"><Icone nom={ic} taille={18} couleur="#0C2147" /></span>
               <div><strong>{t}</strong>{s && <span className="gris texte-13">{s}</span>}</div>{actuel && <span className="puce info">Actuel</span>}</button>; })}
           <p className="bandeau info"><Icone nom="info" taille={16} couleur="#2E5788" />Le prélèvement automatique est optionnel. Vous pouvez y mettre fin en tout temps avec un préavis de 10 jours.</p>
           <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><button className="bouton bouton-contour" onClick={() => setFenetreMode(false)}>Fermer</button></div>
         </div></div>}
+      {dpa && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setDpa(null)}>
+        <form className="modale lo-modes" role="dialog" aria-modal="true" aria-labelledby="dpa-t" onSubmit={(e) => { e.preventDefault(); signerDpa(); }}>
+          <header className="tete-action"><div><p className="surtitre">Paiements</p><h2 id="dpa-t" style={{ margin: 0 }}>{dpa.actif ? 'Mon accord de prélèvement' : 'Prélèvement automatique'}</h2></div>
+            <button type="button" className="haut-ibtn" onClick={() => setDpa(null)} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
+          {dpa.actif ? <>
+            <p className="texte-13">{argent(dpa.montant)} le 1er du mois, compte {dpa.compte} · signé le {dateLongue(dpa.signe_le)}</p>
+            <pre className="lo-dpa">{dpa.texte}</pre>
+            <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><button type="button" className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="printer" taille={16} couleur="#0C2147" />Imprimer</button>
+              <button type="button" className="bouton bouton-contour" onClick={annulerDpa}>Mettre fin au prélèvement</button></div>
+          </> : <>
+            <p className="texte-13">{argent(dpa.montant)} le 1er du mois, à compter du {dateLongue(dpa.premier)}. Les numéros sont sur un spécimen de chèque ou dans votre application bancaire.</p>
+            <label className="fenetre-lib" htmlFor="dpa-n">Titulaire du compte</label>
+            <input id="dpa-n" className="e70-raison" maxLength={30} autoComplete="name" value={f.titulaire} onChange={(e) => setF({ ...f, titulaire: e.target.value })} />
+            <div className="po-deux"><div><label className="fenetre-lib" htmlFor="dpa-i">Institution (3 chiffres)</label><input id="dpa-i" className="e70-raison" inputMode="numeric" maxLength={3} value={f.institution} onChange={(e) => setF({ ...f, institution: e.target.value.replace(/\D/g, '') })} /></div>
+              <div><label className="fenetre-lib" htmlFor="dpa-t2">Transit (5 chiffres)</label><input id="dpa-t2" className="e70-raison" inputMode="numeric" maxLength={5} value={f.transit} onChange={(e) => setF({ ...f, transit: e.target.value.replace(/\D/g, '') })} /></div></div>
+            <label className="fenetre-lib" htmlFor="dpa-c">Numéro de compte</label>
+            <input id="dpa-c" className="e70-raison" inputMode="numeric" maxLength={12} autoComplete="off" value={f.compte} onChange={(e) => setF({ ...f, compte: e.target.value.replace(/\D/g, '') })} />
+            <pre className="lo-dpa">{apercu}</pre>
+            <label className="ligne-sms"><input type="checkbox" checked={f.accepte} onChange={(e) => setF({ ...f, accepte: e.target.checked })} />
+              <span>J’ai lu l’accord et j’autorise Lease Lane à débiter ce compte. Ma signature électronique est mon nom ci-dessus.</span></label>
+            <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><button type="button" className="bouton bouton-contour" onClick={() => setDpa(null)}>Annuler</button>
+              <button className="bouton bouton-principal" disabled={envoi || !f.accepte || f.titulaire.trim().length < 2 || f.institution.length !== 3 || f.transit.length !== 5 || f.compte.length < 5}>{envoi ? 'Signature…' : 'Signer l’accord'}</button></div>
+          </>}
+        </form></div>}
       {toast && <div className="toast" role="status"><Icone nom="check" taille={18} couleur="#fff" />{toast}</div>}
     </>
   );
