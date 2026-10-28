@@ -134,7 +134,7 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
           <header className="tete-action"><div><p className="surtitre">Paiements</p><h2 id="mode-t" style={{ margin: 0 }}>Changer de mode de paiement</h2></div>
             <button className="haut-ibtn" onClick={() => setFenetreMode(false)} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
           {([['prelevement', 'card', 'Prélèvement automatique', 'Le 1er du mois, depuis votre compte bancaire'], ['interac', 'send', 'Virement Interac', D.interac ? `À chaque terme, à ${D.interac}` : 'À chaque terme'],
-            ['cheque', 'file', 'Chèque à chaque terme', '']] as const).map(([k, ic, t, s]) => { const actuel = (k === 'prelevement') === pad && k !== 'cheque';
+            ['cheque', 'file', 'Chèque à chaque terme', '']] as const).map(([k, ic, t, s]) => { const actuel = k === 'prelevement' ? pad && !!D.mode.accord : k === 'interac' && !pad;   // un ancien prélèvement sans accord signé ici : à re-signer
             return <button key={k} className={`lo-mode-choix ${actuel ? 'actuel' : ''}`} disabled={actuel} onClick={() => k === 'prelevement' ? ouvrirDpa() : demanderMode(k)}><span className="a-faire-ic"><Icone nom={ic} taille={18} couleur="#0C2147" /></span>
               <div><strong>{t}</strong>{s && <span className="gris texte-13">{s}</span>}</div>{actuel && <span className="puce info">Actuel</span>}</button>; })}
           <p className="bandeau info"><Icone nom="info" taille={16} couleur="#2E5788" />Le prélèvement automatique est optionnel. Vous pouvez y mettre fin en tout temps avec un préavis de 10 jours.</p>
