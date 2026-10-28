@@ -1,9 +1,8 @@
 -- Tests pgTAP · prélèvements BMO (règle H1, norme 005) : accord de DPA signé dans le portail (coordonnées validées, texte avec recours et
 -- coordonnées de Lease Lane, premier débit à 10 jours au moins), comptes jamais lisibles par le locataire ou le propriétaire, lot d'une
 -- échéance (exclusions motivées, un seul lot), fichier (numéro stable), refus motivé, encaissement (loyer payé + registre), révocation,
--- droits. Préproduction; annulée. La migration est rejouée dans la transaction pour tester avant le déploiement.
+-- droits. Préproduction; annulée.
 begin;
-\i supabase/migrations/20261109160000_prelevements_bmo.sql
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
 select plan(21);
