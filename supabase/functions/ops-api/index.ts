@@ -4,6 +4,7 @@ import { courrielTravailleur } from "../_shared/journal-travailleur.ts";
 import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.ts";
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 import { montantSigne } from "../_shared/fiducie.ts";
+import { fichierCpa005 } from "../_shared/cpa005.ts";
 import { classer, type Bail } from "../_shared/rapprochement-fiducie.ts";
 import { enTetesAppelInterne } from "../_shared/appel-interne.ts";
 import { notifierEquipe } from "../_shared/inscription.ts";
@@ -522,13 +523,37 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ lots: await res.json().catch(() => []) }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Fichier du lot pour la banque (CSV). Le format exact du dépôt direct BMO
-    // sera ajusté à l'ouverture du compte; colonnes standard d'ici là.
+    // Fichier du lot pour la banque : CPA 005 (dépôt de fichier TFE dans les Services bancaires en ligne pour entreprises
+    // de BMO) dès que l'ID d'émetteur BMO est inscrit dans company_settings; CSV générique d'ici là.
     if (action === "fiducie_lot_fichier") {
       if (!idValide(body.lot_id)) return new Response(JSON.stringify({ error: "Lot invalide" }), { status: 400, headers: corsHeaders });
       const [lot] = await fetch(`${supabaseUrl}/rest/v1/fiducie_lots?id=eq.${body.lot_id}&select=date_versement,statut,fiducie_lot_lignes(nom_compte,institution,transit,compte,montant)`, { headers: adminHeaders }).then((r) => r.json());
       if (!lot) return new Response(JSON.stringify({ error: "Lot introuvable" }), { status: 404, headers: corsHeaders });
       if (lot.statut === "annule") return new Response(JSON.stringify({ error: "Lot annulé : aucun fichier" }), { status: 409, headers: corsHeaders });
+      const [bmo] = await fetch(`${supabaseUrl}/rest/v1/company_settings?id=eq.true&select=bmo_originateur,bmo_centre,fiducie_institution,fiducie_transit,fiducie_compte`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+      if (bmo?.bmo_originateur) {
+        const creation = new Date().toLocaleDateString("en-CA", { timeZone: "America/Toronto" });
+        // Norme 005 : fonds disponibles au plus 14 jours après la création du fichier.
+        if ((Date.parse(lot.date_versement) - Date.parse(creation)) / 86400000 > 14) {
+          return new Response(JSON.stringify({ error: "Générez le fichier au plus 14 jours avant la date du versement" }), { status: 409, headers: corsHeaders });
+        }
+        if (!bmo.bmo_centre || !bmo.fiducie_institution || !bmo.fiducie_transit || !bmo.fiducie_compte) {
+          return new Response(JSON.stringify({ error: "Réglages BMO incomplets : centre de traitement et compte en fidéicommis requis" }), { status: 409, headers: corsHeaders });
+        }
+        try {
+          const numero = await rpcFiducie("fiducie_lot_numero_cpa005", { p_lot: body.lot_id });
+          const contenu = fichierCpa005({
+            originateur: bmo.bmo_originateur, centre: bmo.bmo_centre, numero, creation, nomCourt: "LEASE LANE", nomLong: "Solutions Locatives LeaseLane",
+            retour: { institution: bmo.fiducie_institution, transit: bmo.fiducie_transit, compte: bmo.fiducie_compte },
+            operations: (lot.fiducie_lot_lignes || []).map((l: any) => ({ sens: "C" as const, code: "450", cents: Math.round(Number(l.montant) * 100), date: lot.date_versement,
+              institution: l.institution, transit: l.transit, compte: l.compte, nom: l.nom_compte, reference: `LL ${String(lot.date_versement).replace(/-/g, "")}` })),
+          });
+          await logAudit("fiducie.lot_fichier", "fiducie_lots", body.lot_id, { format: "cpa005", numero });
+          return new Response(JSON.stringify({ nom: `versements-${lot.date_versement}-cpa005-${String(numero).padStart(4, "0")}.txt`, contenu, type: "text/plain" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        } catch (e) {
+          return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders });
+        }
+      }
       const champ = (x: unknown) => `"${String(x ?? "").replace(/"/g, '""')}"`;
       const ref = `LEASELANE ${String(lot.date_versement).replace(/-/g, "")}`;
       const lignes = [["Nom du bénéficiaire", "Institution", "Transit", "Compte", "Montant", "Référence"].map(champ).join(",")]
