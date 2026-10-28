@@ -20,10 +20,9 @@ const ASSETS = `${SITE_BASE_URL}/assets/courriel`;
 const ico = (nom: string, couleur: "" | "-rouge" | "-blanc" = "", taille = 24) =>
   `<img src="${ASSETS}/icones/${esc(nom)}${couleur}.png" width="${taille}" height="${taille}" alt="" style="display:block;border:0;width:${taille}px;height:${taille}px;">`;
 
-// Adresse postale du bureau : exigée par la LCAP dans tout message commercial. Aucune adresse n'est publiée
-// pour l'instant (décision du 11 oct. 2026) : la ligne s'en passe, et les gabarits commerciaux ne doivent pas
-// être activés avant qu'elle soit fixée ici.
-export const ADRESSE_BUREAU = "";
+// Adresse postale du bureau : exigée par la LCAP dans tout message commercial (spécimen de chèque BMO de
+// Solutions Locatives LeaseLane inc., 28 oct. 2026).
+export const ADRESSE_BUREAU = "1516, rue du Layon, Lévis (Québec) G7A 0E6";
 
 export type Signature = { ini?: string; cleo?: boolean; name: string; role: string };
 export type Contenu = {

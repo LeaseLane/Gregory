@@ -77,7 +77,7 @@ export function Recrutement({ donnees, erreurLecture }: { donnees: DonneesRecrut
           </section>
           <section className="carte-l18" aria-label="Règle de contact">
             <div className="regle-contact"><span className="appel-ic"><Icone nom="shieldc" taille={20} couleur="#0C2147" /></span><strong>Aucun contact avant la vérification de la licence RBQ</strong></div>
-            <p className="note">L’agent vérifie au registre de la RBQ; une personne approuve chaque invitation. {d.gabarit_actif ? '' : 'Les invitations FOU-05 attendent l’activation du gabarit (adresse du bureau requise par la LCAP).'}</p>
+            <p className="note">L’agent vérifie au registre de la RBQ; une personne approuve chaque invitation. {d.gabarit_actif ? '' : 'Les invitations FOU-05 attendent l’activation du gabarit, une fois son texte approuvé (Studio › Gabarits).'}</p>
           </section>
         </div>
       </div>

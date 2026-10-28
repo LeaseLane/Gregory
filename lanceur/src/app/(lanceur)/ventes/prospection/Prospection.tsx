@@ -78,7 +78,7 @@ export function Prospection({ donnees, erreurLecture }: { donnees: DonneesProspe
 
         <section className="carte-l18" aria-label="Séquence">
           <header className="carte-tete sans-marge"><h2>Séquence « Immeubles {portes} portes et + »</h2><p>{d.en_sequence} propriétaire{d.en_sequence > 1 ? 's' : ''} en cours</p></header>
-          {d.gabarits_actifs < 3 && <p className="bandeau info" style={{ fontSize: 13 }}>Envois en attente : les courriels PSP-02 à PSP-04 restent inactifs tant que l’adresse du bureau n’est pas fixée (obligatoire par la LCAP) et que leurs textes ne sont pas validés. Les inscriptions attendent sans rien envoyer.</p>}
+          {d.gabarits_actifs < 3 && <p className="bandeau info" style={{ fontSize: 13 }}>Envois en attente : les courriels PSP-02 à PSP-04 restent inactifs tant que leurs textes ne sont pas approuvés (Studio › Gabarits). Les inscriptions attendent sans rien envoyer.</p>}
           <ol className="chrono seq">{ETAPES.map(([ic, j, t, s]) => <li key={j}><span className="chrono-ic recent"><Icone nom={ic} taille={20} couleur="#0C2147" /></span><div><p className="surtitre">{j}</p><strong>{t}</strong><p>{s}</p></div></li>)}</ol>
           <hr className="filet" /><p className="surtitre gris">Garde-fous</p>
           <ul className="garde-fous">{GARDE_FOUS.map((t) => <li key={t}><span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>{t}</li>)}</ul>
