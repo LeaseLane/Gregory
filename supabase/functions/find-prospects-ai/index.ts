@@ -59,19 +59,23 @@ Deno.serve(async (req) => {
       body: JSON.stringify(avecContexte({ model, max_tokens: 2048, tools: outils, ...(forcer ? { tool_choice: { type: "tool", name: "soumettre" } } : {}), messages })) });
     let modele = await modelePour("prospection", Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5");
     const messages: unknown[] = [{ role: "user", content: prompt }];
-    let res = await appeler(modele, messages), ai = await res.json().catch(() => ({}));
-    if (!res.ok && /entitlement|model/i.test(JSON.stringify(ai?.error ?? ""))) { modele = MODELE_RAPIDE; res = await appeler(modele, messages); ai = await res.json().catch(() => ({})); }
+    let brut = "";
+    const lire = async (r: Response) => { brut = await r.text().catch(() => ""); try { return JSON.parse(brut); } catch { return {}; } };
+    let res = await appeler(modele, messages), ai = await lire(res);
+    if (!res.ok && /entitlement|model/i.test(JSON.stringify(ai?.error ?? ""))) { modele = MODELE_RAPIDE; res = await appeler(modele, messages); ai = await lire(res); }
     const usage = { in: 0, out: 0, rech: 0 };
     const compter = (x: any) => { usage.in += Number(x?.usage?.input_tokens ?? 0); usage.out += Number(x?.usage?.output_tokens ?? 0); usage.rech += Number(x?.usage?.server_tool_use?.web_search_requests ?? 0); };
     const outil = (x: any) => (x?.content || []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === "soumettre");
     compter(ai);
     // Recherche suspendue (pause_turn) : on la laisse finir; terminée sans l'outil : on exige la soumission (null si rien de vérifiable).
-    for (let tour = 0; res.ok && !outil(ai) && tour < 3; tour++) {
+    for (let tour = 0; res.ok && Array.isArray(ai.content) && !outil(ai) && tour < 3; tour++) {
       messages.push({ role: "assistant", content: ai.content });
       if (ai.stop_reason !== "pause_turn") messages.push({ role: "user", content: "Appelle maintenant l'outil « soumettre » avec ce que tu as trouvé et vérifié (null pour ce qui manque, sources vides si rien)." });
-      res = await appeler(modele, messages, ai.stop_reason !== "pause_turn"); ai = await res.json().catch(() => ({})); compter(ai);
+      res = await appeler(modele, messages, ai.stop_reason !== "pause_turn"); ai = await lire(res); compter(ai);
     }
     const u = { input_tokens: usage.in, output_tokens: usage.out }, recherches = usage.rech, cout = coutCents(usage.in, usage.out, recherches);
+    // Réponse « 200 » sans contenu (passerelle) : le corps brut va au journal de la recherche.
+    if (res.ok && !Array.isArray(ai.content)) ai = { error: { message: `Réponse sans contenu : ${brut.slice(0, 200) || "(vide)"}` } };
     return { res, ai, u, recherches, cout, bloc: res.ok ? outil(ai) : null };
   }
   async function coordonnees(cle: string, par: string | null) {
@@ -128,8 +132,8 @@ RÈGLES STRICTES :
 Une fois la recherche terminée, appelle l'outil "soumettre".`;
     const { res, ai, u, recherches, cout, bloc } = await rechercher(prompt, OUTIL_PROPRIETAIRE);
     await rpc("agent_prospection_fin", { p_run: idRun, p_items: null, p_trouves: bloc?.input?.proprietaire ? 1 : 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null,
-      p_recherches: recherches, p_cout: cout, p_erreur: res.ok ? (bloc ? null : "Aucun résultat soumis") : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
-    if (!res.ok) return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
+      p_recherches: recherches, p_cout: cout, p_erreur: res.ok && !ai?.error ? (bloc ? null : "Aucun résultat soumis") : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
+    if (!res.ok || ai?.error) return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
     // Rien de vérifiable : l'immeuble est quand même marqué « cherché » (pas de seconde recherche payante).
     await rpc("service_role_immeuble_propose", { p_id: id, p: bloc?.input ?? { proprietaire: null, sources: [], raison: "Aucun résultat soumis" } });
     return json({ ok: true, proprietaire: bloc?.input?.proprietaire ?? null, confiance: bloc?.input?.confiance ?? null, cout_cents: cout });
