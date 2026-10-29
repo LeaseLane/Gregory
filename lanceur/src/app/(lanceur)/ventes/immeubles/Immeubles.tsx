@@ -29,13 +29,13 @@ export function Immeubles({ filtres: F, donnees: D, erreurLecture }: { filtres: 
   async function enregistrer() {
     if (!edit) return;
     setOccupe(true); setBandeau(null);
-    const { error } = await supabaseNavigateur().rpc('lanceur_immeuble_proprietaire', { p: { id: edit.i.id, proprietaire: edit.proprietaire, groupe: edit.groupe, neq: edit.neq, ecarte: edit.ecarte, note: edit.note } });
+    const { error } = await supabaseNavigateur().rpc('lanceur_role_proprietaire', { p: { id: edit.i.id, proprietaire: edit.proprietaire, groupe: edit.groupe, neq: edit.neq, ecarte: edit.ecarte, note: edit.note } });
     setOccupe(false); if (error) return setBandeau(error.message);
     setEdit(null); setOk('Immeuble mis à jour.'); router.refresh();
   }
   async function proposer(g: Groupe) {
     setOccupe(true); setBandeau(null); setOk(null);
-    const { error } = await supabaseNavigateur().rpc('lanceur_groupe_proposer', { p: { cle: g.cle } });
+    const { error } = await supabaseNavigateur().rpc('lanceur_role_proposer', { p: { cle: g.cle } });
     setOccupe(false); if (error) return setBandeau(error.message);
     setOk(`${g.nom} proposé : la suggestion attend sa révision dans Prospection IA.`); router.refresh();
   }

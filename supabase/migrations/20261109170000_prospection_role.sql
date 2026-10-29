@@ -25,7 +25,7 @@ create or replace function crm.cle_proprietaire(p_groupe text, p_nom text) retur
     '\m(inc|ltee|ltd|limitee|enr|senc|corp|corporation|compagnie|cie)\M', '', 'g'), '[^a-z0-9]', '', 'g'), '');
 $$;
 
-create or replace function public.lanceur_immeubles(p jsonb) returns jsonb language plpgsql stable security definer set search_path = '' as $$
+create or replace function public.lanceur_role_immeubles(p jsonb) returns jsonb language plpgsql stable security definer set search_path = '' as $$
 declare v_min int := coalesce(nullif(p ->> 'min', '')::int, 12); v_ville text := nullif(p ->> 'ville', ''); v_q text := nullif(btrim(p ->> 'q'), '');
   v_vue text := coalesce(nullif(p ->> 'vue', ''), 'a_identifier');
 begin
@@ -53,7 +53,7 @@ begin
     'peut_ecrire', crm.can('ventes.prospection.ecrire'));
 end $$;
 
-create or replace function public.lanceur_immeuble_proprietaire(p jsonb) returns void language plpgsql security definer set search_path = '' as $$
+create or replace function public.lanceur_role_proprietaire(p jsonb) returns void language plpgsql security definer set search_path = '' as $$
 declare v_id uuid := (p ->> 'id')::uuid; v_neq text := nullif(regexp_replace(coalesce(p ->> 'neq', ''), '\D', '', 'g'), '');
 begin
   perform crm.require_aal2();
@@ -67,7 +67,7 @@ begin
 end $$;
 
 -- Un propriétaire connu devient une suggestion de l'agent (révision humaine dans Prospection IA avant tout contact).
-create or replace function public.lanceur_groupe_proposer(p jsonb) returns uuid language plpgsql security definer set search_path = '' as $$
+create or replace function public.lanceur_role_proposer(p jsonb) returns uuid language plpgsql security definer set search_path = '' as $$
 declare v_cle text := p ->> 'cle'; g record; v_id uuid;
 begin
   perform crm.require_aal2();
@@ -88,5 +88,5 @@ begin
   perform crm.journal('prospect_suggestion.from_roll', 'crm.prospect_suggestions', v_id, null, jsonb_build_object('cle', v_cle, 'logements', g.logements), 'propose-roll-owner');
   return v_id;
 end $$;
-revoke all on function public.lanceur_immeubles(jsonb), public.lanceur_immeuble_proprietaire(jsonb), public.lanceur_groupe_proposer(jsonb) from public, anon;
-grant execute on function public.lanceur_immeubles(jsonb), public.lanceur_immeuble_proprietaire(jsonb), public.lanceur_groupe_proposer(jsonb) to authenticated;
+revoke all on function public.lanceur_role_immeubles(jsonb), public.lanceur_role_proprietaire(jsonb), public.lanceur_role_proposer(jsonb) from public, anon;
+grant execute on function public.lanceur_role_immeubles(jsonb), public.lanceur_role_proprietaire(jsonb), public.lanceur_role_proposer(jsonb) to authenticated;
