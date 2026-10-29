@@ -89,11 +89,12 @@ export function Immeubles({ filtres: F, donnees: D, erreurLecture }: { filtres: 
           <tbody>{D.groupes.map((g) => <tr key={g.cle}><td className="fort">{g.nom} {g.cible && <span className="puce ok">Cible</span>}</td><td className="droite">{g.immeubles}</td>
             <td className="droite fort">{nb(g.logements)}</td><td>{g.villes}</td>
             <td className="texte-13">{g.coordonnees ? <>
-                {g.coordonnees.decideur && <strong className="bloc">{g.coordonnees.decideur}</strong>}
-                {[g.coordonnees.telephone, g.coordonnees.refus ? null : g.coordonnees.courriel].filter(Boolean).join(' · ') || <span className="gris">Aucune coordonnée publiée</span>}
-                {g.coordonnees.site && <a className="lien bloc" href={g.coordonnees.site} target="_blank" rel="noreferrer">{g.coordonnees.site.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}</a>}
+                {g.coordonnees.decideur && <strong style={{ display: 'block' }}>{g.coordonnees.decideur}</strong>}
+                <span style={{ display: 'block' }}>{[g.coordonnees.telephone, g.coordonnees.refus ? null : g.coordonnees.courriel].filter(Boolean).join(' · ') || <span className="gris">Aucune coordonnée publiée</span>}</span>
+                {g.coordonnees.site && <a className="lien" style={{ display: 'block' }} href={g.coordonnees.site} target="_blank" rel="noreferrer">{g.coordonnees.site.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}</a>}
                 <span className="sous gris">{g.coordonnees.gestionnaire ? `Géré par ${g.coordonnees.gestionnaire}` : 'Gestionnaire externe non trouvé'}{g.coordonnees.refus ? ' · refuse les sollicitations' : ''} · {g.coordonnees.sources.length} source{g.coordonnees.sources.length > 1 ? 's' : ''}</span>
-                {g.coordonnees.sources.slice(0, 2).map((s) => <a key={s.url} className="lien sous" href={s.url} target="_blank" rel="noreferrer" title={s.extrait}>{new URL(s.url).hostname.replace(/^www\./, '')}</a>)}</>
+                <span className="sous">{g.coordonnees.sources.filter((s, k, t) => t.findIndex((x) => new URL(x.url).hostname === new URL(s.url).hostname) === k).slice(0, 3).map((s) =>
+                  <a key={s.url} className="lien" style={{ marginRight: 8 }} href={s.url} target="_blank" rel="noreferrer" title={s.extrait}>{new URL(s.url).hostname.replace(/^www\./, '')}</a>)}</span></>
               : D.peut_ecrire && <button className="lien" disabled={!!cherche} onClick={() => trouver(g)}>{cherche === g.cle ? 'Recherche… (environ 1 min)' : 'Trouver les coordonnées'}</button>}</td>
             <td className="droite">{g.suggestion ? <span className="puce neutral">{g.suggestion === 'approved' ? 'Approuvé' : g.suggestion === 'rejected' ? 'Écarté' : 'Proposé'}</span>
               : D.peut_ecrire && <button className="lien" disabled={occupe} onClick={() => proposer(g)}>Proposer</button>}</td></tr>)}
