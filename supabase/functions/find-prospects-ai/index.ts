@@ -62,14 +62,25 @@ RÈGLES STRICTES :
 - Indique refus_sollicitation = true si une page mentionne un refus des sollicitations.
 
 Une fois la recherche terminée, appelle l'outil "soumettre".`;
-    const appeler = (model: string) => fetch(IA_MESSAGES_URL, { method: "POST", headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify(avecContexte({ model, max_tokens: 2048, tools: [{ type: "web_search_20260209", name: "web_search", allowed_callers: ["direct"] }, OUTIL_COORDONNEES],
-        messages: [{ role: "user", content: prompt }] })) });
-    let res = await appeler(await modelePour("prospection", Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5"));
-    let ai = await res.json().catch(() => ({}));
-    if (!res.ok && /entitlement|model/i.test(JSON.stringify(ai?.error ?? ""))) { res = await appeler(MODELE_RAPIDE); ai = await res.json().catch(() => ({})); }
-    const u = ai?.usage ?? {}, recherches = Number(u?.server_tool_use?.web_search_requests ?? 0), cout = coutCents(Number(u.input_tokens ?? 0), Number(u.output_tokens ?? 0), recherches);
-    const bloc = res.ok ? (ai.content || []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === "soumettre") : null;
+    const outils = [{ type: "web_search_20260209", name: "web_search", allowed_callers: ["direct"] }, OUTIL_COORDONNEES];
+    const appeler = (model: string, messages: unknown[], forcer = false) => fetch(IA_MESSAGES_URL, { method: "POST", headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify(avecContexte({ model, max_tokens: 2048, tools: outils, ...(forcer ? { tool_choice: { type: "tool", name: "soumettre" } } : {}), messages })) });
+    let modele = await modelePour("prospection", Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5");
+    const messages: unknown[] = [{ role: "user", content: prompt }];
+    let res = await appeler(modele, messages), ai = await res.json().catch(() => ({}));
+    if (!res.ok && /entitlement|model/i.test(JSON.stringify(ai?.error ?? ""))) { modele = MODELE_RAPIDE; res = await appeler(modele, messages); ai = await res.json().catch(() => ({})); }
+    const usage = { in: 0, out: 0, rech: 0 };
+    const compter = (x: any) => { usage.in += Number(x?.usage?.input_tokens ?? 0); usage.out += Number(x?.usage?.output_tokens ?? 0); usage.rech += Number(x?.usage?.server_tool_use?.web_search_requests ?? 0); };
+    const outil = (x: any) => (x?.content || []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === "soumettre");
+    compter(ai);
+    // Recherche suspendue (pause_turn) : on la laisse finir; terminée sans l'outil : on exige la soumission (null si rien de vérifiable).
+    for (let tour = 0; res.ok && !outil(ai) && tour < 3; tour++) {
+      messages.push({ role: "assistant", content: ai.content });
+      if (ai.stop_reason !== "pause_turn") messages.push({ role: "user", content: "Appelle maintenant l'outil « soumettre » avec ce que tu as trouvé et vérifié (null pour ce qui manque, sources vides si rien)." });
+      res = await appeler(modele, messages, ai.stop_reason !== "pause_turn"); ai = await res.json().catch(() => ({})); compter(ai);
+    }
+    const u = { input_tokens: usage.in, output_tokens: usage.out }, recherches = usage.rech, cout = coutCents(usage.in, usage.out, recherches);
+    const bloc = res.ok ? outil(ai) : null;
     await rpc("agent_prospection_fin", { p_run: idRun, p_items: null, p_trouves: bloc ? 1 : 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null,
       p_recherches: recherches, p_cout: cout, p_erreur: res.ok ? (bloc ? null : "Aucun résultat soumis") : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
     if (!res.ok) return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
