@@ -45,11 +45,11 @@ export function Immeubles({ filtres: F, donnees: D, erreurLecture }: { filtres: 
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       {ok && <div className="bandeau info" role="status">{ok} <Link className="lien" href="/ventes/prospection">Ouvrir Prospection IA</Link></div>}
       <section className="carte-l18" aria-label="Rôle d’évaluation">
-        <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>Immeubles de {F.min} logements et plus</h2>
+        <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>Immeubles de {F.min} à 200 logements</h2>
           <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{nb(C.immeubles)} immeubles · {nb(C.logements)} logements · {nb(C.identifies)} propriétaires inscrits · {nb(C.a_identifier)} à identifier · {nb(C.ecartes)} écartés.
             Source : rôle d’évaluation foncière en format ouvert (MAMH, CC-BY 4.0).</p></div></header>
         <div className="a-faire-actions" style={{ flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>
-          <div className="lo-segments">{VUES.map(([k, l]) => <button key={k} className={F.vue === k ? 'actif' : ''} onClick={() => aller({ vue: k })}>{l}</button>)}</div>
+          <div className="lo-segments" style={{ alignSelf: 'center' }}>{VUES.map(([k, l]) => <button key={k} className={F.vue === k ? 'actif' : ''} onClick={() => aller({ vue: k })}>{l}</button>)}</div>
           <select className="e70-raison" style={{ width: 'auto' }} value={F.ville} onChange={(e) => aller({ ville: e.target.value })} aria-label="Ville">
             <option value="">Toutes les villes</option>{(D.villes ?? []).map((v) => <option key={v}>{v}</option>)}</select>
           <select className="e70-raison" style={{ width: 'auto' }} value={F.min} onChange={(e) => aller({ min: e.target.value })} aria-label="Logements au moins">
@@ -62,7 +62,7 @@ export function Immeubles({ filtres: F, donnees: D, erreurLecture }: { filtres: 
             <td className="droite fort">{i.logements}</td>
             <td>{i.proprietaire ? <><strong>{i.proprietaire}</strong>{i.groupe && <span className="sous gris">Groupe : {i.groupe}</span>}</>
               : <span className="gris texte-13">{i.statut === 'morale' ? 'Entreprise' : i.statut === 'physique' ? 'Particulier' : 'Mixte'} · à identifier</span>}{i.note && <span className="sous gris">{i.note}</span>}</td>
-            <td className="texte-13">{i.matricule}<span className="sous gris">lot {i.lots ?? '—'}</span></td>
+            <td className="texte-13">{i.matricule}<span className="sous gris">lot {(i.lots ?? '—').split(' ').slice(0, 2).join(' ')}{(i.lots ?? '').split(' ').length > 2 ? ` +${(i.lots ?? '').split(' ').length - 2}` : ''}</span></td>
             <td className="texte-13">{i.inscrit_le ?? '—'}</td>
             <td className="droite">{D.peut_ecrire && <button className="lien" onClick={() => setEdit({ i, proprietaire: i.proprietaire ?? '', groupe: i.groupe ?? '', neq: i.neq ?? '', ecarte: i.ecarte, note: i.note ?? '' })}>{i.proprietaire ? 'Modifier' : 'Inscrire'}</button>}</td></tr>)}
             {!D.immeubles.length && <tr><td colSpan={6} className="gris">Aucun immeuble pour ces filtres.</td></tr>}</tbody></table>
