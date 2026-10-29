@@ -4,9 +4,10 @@ il donne l'adresse, les lots (pour le Registre foncier), le nombre de logements,
 (1 personne physique, 2 personne morale) et la date d'inscription de chaque propriétaire.
 
 usage : python3 -I scripts/prospection/role.py RL23027_2026.xml [RL25213_2026.xml …] --min 12 > immeubles.csv
+        python3 -I scripts/prospection/role.py Roles_Donnees_Ouvertes_2026.zip --index indexRole2026.csv --min 12 > immeubles.csv   (tout le Québec, lu dans l'archive)
 Index des fichiers : https://donneesouvertes.affmunqc.net/role/indexRole2026.csv
 """
-import csv, sys, xml.etree.ElementTree as ET
+import csv, sys, zipfile, xml.etree.ElementTree as ET
 
 NOMS = {'23027': 'Québec', '25213': 'Lévis'}   # ponytail: ajouter les codes géographiques au besoin (indexRole2026.csv)
 
@@ -37,7 +38,7 @@ def unites(fichier):
         dates = sorted(texte(p, 'RL0201Gx') for p in proprios if texte(p, 'RL0201Gx'))
         m = e.find('RL0104')
         yield {
-            'municipalite': NOMS.get(muni, muni),
+            'municipalite': NOMS.get(muni.lstrip('0'), NOMS.get(muni, muni)),   # le XML écrit 08053, l'index 8053
             'matricule': '-'.join(x for x in (texte(m, 'RL0104' + c) for c in 'ABCDEFGH') if x) if m is not None else '',   # D à H : bâtiment, local
             'adresse': adresse(e),
             'lots': ' '.join(texte(l, 'RL0103Ax') for l in e.findall('RL0103/RL0103x')),
@@ -53,12 +54,26 @@ def unites(fichier):
         e.clear()
 
 
+def sources(args):
+    """Les fichiers XML donnés, ou ceux d'une archive .zip (lus sans extraction : 5,6 Go décompressés pour tout le Québec)."""
+    for a in args:
+        if a.endswith('.xml'):
+            yield a
+        elif a.endswith('.zip'):
+            z = zipfile.ZipFile(a)
+            for n in sorted(z.namelist()):
+                if n.endswith('.xml'):
+                    with z.open(n) as f:
+                        yield f
+
+
 if __name__ == '__main__':
     args = sys.argv[1:]
     minimum = int(args[args.index('--min') + 1]) if '--min' in args else 12
-    fichiers = [a for a in args if a.endswith('.xml')]
+    if '--index' in args:   # code géographique → nom de la municipalité
+        NOMS.update({l['code géographique']: l['nom du territoire'] for l in csv.DictReader(open(args[args.index('--index') + 1], encoding='utf-8-sig'))})
     w = None
-    for f in fichiers:
+    for f in sources(args):
         for u in unites(f):
             if u['logements'] < minimum:
                 continue
