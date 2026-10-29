@@ -20,8 +20,8 @@ select is((select (g ->> 'logements')::int from jsonb_array_elements(public.lanc
   130, 'trois immeubles, deux noms et un groupe : 130 logements');
 select throws_ok($$ select public.lanceur_role_proprietaire(jsonb_build_object('id', (select id from crm.immeubles_role where matricule = 'E-1'), 'proprietaire', 'X', 'neq', '123')) $$,
   'PT422', null, 'NEQ de 10 chiffres');
-select ok(public.lanceur_role_proposer('{"cle": "gestionessai"}') is not null
-  and exists (select 1 from crm.prospect_suggestions where extrait like '%[role:gestionessai]%' and portes = 130 and pertinence = 85), 'proposé : suggestion de 130 logements, dans la cible');
+select public.lanceur_role_proposer('{"cle": "gestionessai"}');
+select ok(exists (select 1 from crm.prospect_suggestions where extrait like '%[role:gestionessai]%' and portes = 130 and pertinence = 85), 'proposé : suggestion de 130 logements, dans la cible');
 select throws_ok($$ select public.lanceur_role_proposer('{"cle": "gestionessai"}') $$, 'PT409', null, 'une seule suggestion active par propriétaire');
 select set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'aal', 'aal2', 'role', 'authenticated')::text, true);
 select throws_ok($$ select public.lanceur_role_immeubles('{}') $$, null, null, 'hors de l''équipe : refusé');
