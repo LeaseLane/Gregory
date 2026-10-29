@@ -10,7 +10,8 @@ import { Icone } from '@/composants/Icones';
    « Groupe » réunit les sociétés d'un même décideur (ex. : deux numéros d'entreprise du même administrateur au REQ). */
 type Imm = { id: string; municipalite: string; matricule: string; adresse: string; lots: string | null; logements: number; statut: string | null; inscrit_le: string | null;
   annee: number | null; valeur: number | null; proprietaire: string | null; neq: string | null; groupe: string | null; ecarte: boolean; note: string | null };
-type Groupe = { cle: string; nom: string; immeubles: number; logements: number; villes: string; cible: boolean; suggestion: string | null };
+type Coord = { site: string | null; telephone: string | null; courriel: string | null; decideur: string | null; gestionnaire: string | null; refus: boolean; sources: { url: string; extrait: string }[]; trouve_le: string };
+type Groupe = { cle: string; nom: string; immeubles: number; logements: number; villes: string; cible: boolean; suggestion: string | null; coordonnees: Coord | null };
 export type DonneesImmeubles = { compteurs: { immeubles: number; logements: number; identifies: number; a_identifier: number; ecartes: number }; villes: string[] | null;
   immeubles: Imm[]; groupes: Groupe[]; peut_ecrire: boolean };
 type Filtres = { vue: string; ville: string; min: string; q: string };
@@ -26,6 +27,7 @@ const nb = (n: number) => n.toLocaleString('fr-CA').replace(/[  ,]/g, ' ');
 export function Immeubles({ filtres: F, donnees: D, erreurLecture }: { filtres: Filtres; donnees: DonneesImmeubles | null; erreurLecture: string | null }) {
   const router = useRouter();
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [occupe, setOccupe] = useState(false);
+  const [cherche, setCherche] = useState<string | null>(null);
   const [edit, setEdit] = useState<{ i: Imm; proprietaire: string; groupe: string; neq: string; ecarte: boolean; note: string } | null>(null), [q, setQ] = useState(F.q);
   if (!D) return <div className="bandeau erreur" role="alert">{bandeau}</div>;
   const aller = (x: Partial<Filtres>) => router.push('/ventes/immeubles?' + new URLSearchParams({ ...F, ...x }).toString());
@@ -41,6 +43,14 @@ export function Immeubles({ filtres: F, donnees: D, erreurLecture }: { filtres: 
     const { error } = await supabaseNavigateur().rpc('lanceur_role_proposer', { p: { cle: g.cle } });
     setOccupe(false); if (error) return setBandeau(error.message);
     setOk(`${g.nom} proposé : la suggestion attend sa révision dans Prospection IA.`); router.refresh();
+  }
+  // Agent de prospection : coordonnées d'affaires publiées et indice de gestion externe (recherche web, environ une minute, quelques cents).
+  async function trouver(g: Groupe) {
+    setCherche(g.cle); setBandeau(null); setOk(null);
+    const r = await fetch('/api/prospection', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'coordonnees', cle: g.cle }) });
+    const d = await r.json().catch(() => ({ error: 'Réponse illisible.' })); setCherche(null);
+    if (!r.ok) return setBandeau(d.error);
+    setOk(`Coordonnées de ${g.nom} : recherche terminée (${(d.cout_cents / 100).toFixed(2)} $ US).`); router.refresh();
   }
   const C = D.compteurs, cibles = D.groupes.filter((g) => g.cible);
   return (
@@ -75,12 +85,19 @@ export function Immeubles({ filtres: F, donnees: D, erreurLecture }: { filtres: 
       <section className="carte-l18" aria-label="Propriétaires">
         <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>Propriétaires connus</h2>
           <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{D.groupes.length} propriétaire{D.groupes.length > 1 ? 's' : ''} · {cibles.length} dans la cible de 100 à 200 logements (tous leurs immeubles du rôle additionnés)</p></div></header>
-        <table className="tableau"><thead><tr><th>Propriétaire ou groupe</th><th className="droite">Immeubles</th><th className="droite">Logements</th><th>Villes</th><th /></tr></thead>
+        <table className="tableau"><thead><tr><th>Propriétaire ou groupe</th><th className="droite">Immeubles</th><th className="droite">Logements</th><th>Villes</th><th>Coordonnées publiées</th><th /></tr></thead>
           <tbody>{D.groupes.map((g) => <tr key={g.cle}><td className="fort">{g.nom} {g.cible && <span className="puce ok">Cible</span>}</td><td className="droite">{g.immeubles}</td>
             <td className="droite fort">{nb(g.logements)}</td><td>{g.villes}</td>
+            <td className="texte-13">{g.coordonnees ? <>
+                {g.coordonnees.decideur && <strong className="bloc">{g.coordonnees.decideur}</strong>}
+                {[g.coordonnees.telephone, g.coordonnees.refus ? null : g.coordonnees.courriel].filter(Boolean).join(' · ') || <span className="gris">Aucune coordonnée publiée</span>}
+                {g.coordonnees.site && <a className="lien bloc" href={g.coordonnees.site} target="_blank" rel="noreferrer">{g.coordonnees.site.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}</a>}
+                <span className="sous gris">{g.coordonnees.gestionnaire ? `Géré par ${g.coordonnees.gestionnaire}` : 'Gestionnaire externe non trouvé'}{g.coordonnees.refus ? ' · refuse les sollicitations' : ''} · {g.coordonnees.sources.length} source{g.coordonnees.sources.length > 1 ? 's' : ''}</span>
+                {g.coordonnees.sources.slice(0, 2).map((s) => <a key={s.url} className="lien sous" href={s.url} target="_blank" rel="noreferrer" title={s.extrait}>{new URL(s.url).hostname.replace(/^www\./, '')}</a>)}</>
+              : D.peut_ecrire && <button className="lien" disabled={!!cherche} onClick={() => trouver(g)}>{cherche === g.cle ? 'Recherche… (environ 1 min)' : 'Trouver les coordonnées'}</button>}</td>
             <td className="droite">{g.suggestion ? <span className="puce neutral">{g.suggestion === 'approved' ? 'Approuvé' : g.suggestion === 'rejected' ? 'Écarté' : 'Proposé'}</span>
               : D.peut_ecrire && <button className="lien" disabled={occupe} onClick={() => proposer(g)}>Proposer</button>}</td></tr>)}
-            {!D.groupes.length && <tr><td colSpan={5} className="gris">Inscrivez des propriétaires : ils se regroupent ici.</td></tr>}</tbody></table>
+            {!D.groupes.length && <tr><td colSpan={6} className="gris">Inscrivez des propriétaires : ils se regroupent ici.</td></tr>}</tbody></table>
       </section>
 
       {edit && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setEdit(null)}>

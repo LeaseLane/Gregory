@@ -15,6 +15,19 @@ const MAX_PAR_RECHERCHE = 5;
 // Prix publics approximatifs (USD) : entrée 3 $/M jetons, sortie 15 $/M, recherche web 10 $/1 000. Pour l'ordre de grandeur.
 const coutCents = (entree: number, sortie: number, recherches: number) => Math.round((entree * 3 + sortie * 15) / 10_000 + recherches * 1);
 
+// Prospection par le rôle (étape 3) : coordonnées d'affaires PUBLIÉES par un propriétaire déjà identifié au rôle d'évaluation, et indice
+// d'une gestion externe. Chaque élément porte sa page source; rien n'est deviné. Résultat dans crm.role_coordonnees.
+const OUTIL_COORDONNEES = { name: "soumettre", description: "Soumet les coordonnées réellement trouvées, avec leurs sources.", input_schema: { type: "object",
+  required: ["sources", "refus_sollicitation"], properties: {
+    site: { type: ["string", "null"], description: "Site web de l'entreprise propriétaire" },
+    telephone: { type: ["string", "null"], description: "Téléphone d'affaires publié par l'entreprise" },
+    courriel: { type: ["string", "null"], description: "Courriel publié tel quel sur une page de l'entreprise ou un annuaire d'affaires; jamais déduit" },
+    decideur: { type: ["string", "null"], description: "Nom du dirigeant ou propriétaire, s'il est publié" },
+    gestionnaire: { type: ["string", "null"], description: "Entreprise de gestion immobilière qui gère ses immeubles, si une page le montre; sinon null" },
+    refus_sollicitation: { type: "boolean", description: "Vrai si une page mentionne un refus des sollicitations" },
+    sources: { type: "array", items: { type: "object", required: ["url", "extrait"], properties: { url: { type: "string" }, extrait: { type: "string", description: "Passage exact de la page" } } } },
+  } } };
+
 Deno.serve(async (req) => {
   const corsHeaders = corsHeadersFor(req.headers.get("origin"));
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
@@ -28,6 +41,42 @@ Deno.serve(async (req) => {
     if (!r.ok) throw new Error(`${nom} : ${r.status} ${await r.text()}`);
     return r.json();
   };
+  async function coordonnees(cle: string, par: string | null) {
+    if (!par) return json({ error: "Réservé à une personne de l'équipe." }, 403);
+    const g = await rpc("service_role_groupe", { p_cle: cle });
+    if (!g) return json({ error: "Propriétaire introuvable au rôle." }, 404);
+    const idRun = await rpc("agent_prospection_debut", { p_par: par, p_criteres: { mode: "coordonnees", cle } });
+    const prompt = `Tu aides "Lease Lane", une entreprise québécoise de gestion immobilière, à joindre un propriétaire d'immeubles locatifs.
+
+Propriétaire inscrit au rôle d'évaluation : ${JSON.stringify(g.noms)}${g.neq ? ` (NEQ ${g.neq})` : ""}.
+Immeubles : ${(g.adresses ?? []).join("; ")} — ${g.logements} logements au total (${g.villes}).
+
+Avec l'outil de recherche web, trouve :
+1. les coordonnées d'AFFAIRES que cette entreprise publie elle-même (site web, téléphone, courriel) et le nom de son dirigeant s'il est publié;
+2. si une entreprise de gestion immobilière gère ses immeubles (page d'un gestionnaire, annonce de location à ces adresses, témoignage).
+
+RÈGLES STRICTES :
+- N'invente et ne déduis JAMAIS une coordonnée (pas de courriel construit comme prenom.nom@…). Absente des pages : null.
+- Attention aux homonymes : ne garde une coordonnée que si la page la relie clairement à cette entreprise ou à ces adresses.
+- Chaque élément retenu doit apparaître dans "sources" (url réelle + passage exact).
+- Indique refus_sollicitation = true si une page mentionne un refus des sollicitations.
+
+Une fois la recherche terminée, appelle l'outil "soumettre".`;
+    const appeler = (model: string) => fetch(IA_MESSAGES_URL, { method: "POST", headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify(avecContexte({ model, max_tokens: 2048, tools: [{ type: "web_search_20260209", name: "web_search", allowed_callers: ["direct"] }, OUTIL_COORDONNEES],
+        messages: [{ role: "user", content: prompt }] })) });
+    let res = await appeler(await modelePour("prospection", Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5"));
+    let ai = await res.json().catch(() => ({}));
+    if (!res.ok && /entitlement|model/i.test(JSON.stringify(ai?.error ?? ""))) { res = await appeler(MODELE_RAPIDE); ai = await res.json().catch(() => ({})); }
+    const u = ai?.usage ?? {}, recherches = Number(u?.server_tool_use?.web_search_requests ?? 0), cout = coutCents(Number(u.input_tokens ?? 0), Number(u.output_tokens ?? 0), recherches);
+    const bloc = res.ok ? (ai.content || []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === "soumettre") : null;
+    await rpc("agent_prospection_fin", { p_run: idRun, p_items: null, p_trouves: bloc ? 1 : 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null,
+      p_recherches: recherches, p_cout: cout, p_erreur: res.ok ? (bloc ? null : "Aucun résultat soumis") : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
+    if (!res.ok) return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
+    if (!bloc) return json({ error: "La recherche n'a rien donné de vérifiable." }, 422);
+    await rpc("service_role_coordonnees", { p_cle: cle, p_run: idRun, p: { ...bloc.input, nom: g.nom } });
+    return json({ ok: true, coordonnees: bloc.input, cout_cents: cout });
+  }
   let run: string | null = null;
   try {
     let par: string | null = null;
@@ -48,6 +97,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
+    if (body.action === "coordonnees") return await coordonnees(String(body.cle || ""), par);
     if ((body.action || "run") !== "run") return json({ error: "Action inconnue" }, 400);
     const territoire = String(body.territoire || "Québec et Lévis").slice(0, 80);
     const portesMin = Math.max(2, Math.min(100, Number(body.portes_min) || 4));

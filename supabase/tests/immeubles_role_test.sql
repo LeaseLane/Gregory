@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(6);
+select plan(7);
 
 create function pg_temp.equipe(p_courriel text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = p_courriel), 'aal', 'aal2', 'role', 'authenticated')::text, true);
@@ -20,7 +20,11 @@ select is((select (g ->> 'logements')::int from jsonb_array_elements(public.lanc
   130, 'trois immeubles, deux noms et un groupe : 130 logements');
 select throws_ok($$ select public.lanceur_role_proprietaire(jsonb_build_object('id', (select id from crm.immeubles_role where matricule = 'E-1'), 'proprietaire', 'X', 'neq', '123')) $$,
   'PT422', null, 'NEQ de 10 chiffres');
+select public.service_role_coordonnees('gestionessai', null, '{"telephone": "418 555-0100", "courriel": "info@essai.test", "decideur": "Paul Essai", "refus_sollicitation": true,
+  "sources": [{"url": "https://essai.test/contact", "extrait": "Téléphone : 418 555-0100"}]}');
 select public.lanceur_role_proposer('{"cle": "gestionessai"}');
+select ok(exists (select 1 from crm.prospect_suggestions where extrait like '%[role:gestionessai]%' and nom = 'Paul Essai' and telephone = '418 555-0100' and courriel is null
+  and source_url = 'https://essai.test/contact'), 'coordonnées trouvées reprises; courriel retiré quand la page refuse les sollicitations');
 select ok(exists (select 1 from crm.prospect_suggestions where extrait like '%[role:gestionessai]%' and portes = 130 and pertinence = 85), 'proposé : suggestion de 130 logements, dans la cible');
 select throws_ok($$ select public.lanceur_role_proposer('{"cle": "gestionessai"}') $$, 'PT409', null, 'une seule suggestion active par propriétaire');
 select set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'aal', 'aal2', 'role', 'authenticated')::text, true);
