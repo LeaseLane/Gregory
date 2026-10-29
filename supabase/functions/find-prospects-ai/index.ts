@@ -74,9 +74,11 @@ Deno.serve(async (req) => {
       res = await appeler(modele, messages, ai.stop_reason !== "pause_turn"); ai = await lire(res); compter(ai);
     }
     const u = { input_tokens: usage.in, output_tokens: usage.out }, recherches = usage.rech, cout = coutCents(usage.in, usage.out, recherches);
+    // Passerelle Tonia : un refus (quota, forfait) arrive en « 200 » avec un message msg-tonia-entitlement-… : c'est une erreur.
+    if (res.ok && /^msg-tonia-entitlement/.test(String(ai?.id ?? ""))) ai = { ...ai, error: { message: `Passerelle IA : ${(ai.content ?? []).map((x: { text?: string }) => x.text ?? "").join(" ").slice(0, 200)}` } };
     // Réponse « 200 » sans contenu (passerelle) : le corps brut va au journal de la recherche.
     if (res.ok && !Array.isArray(ai.content)) ai = { error: { message: `Réponse sans contenu : ${brut.slice(0, 200) || "(vide)"}` } };
-    const trace = `stop=${ai?.stop_reason ?? "?"} · contenu=${(Array.isArray(ai?.content) ? ai.content : []).map((b: { type: string }) => b.type).join(",") || "vide"} · tours=${messages.length} · ${brut.slice(0, 120)}`;
+    const trace = `stop=${ai?.stop_reason ?? "?"} · contenu=${(Array.isArray(ai?.content) ? ai.content : []).map((b: { type: string }) => b.type).join(",") || "vide"} · tours=${messages.length} · ${(Array.isArray(ai?.content) ? ai.content : []).filter((b: { type: string }) => b.type === "text").map((b: { text: string }) => b.text).join(" ").slice(0, 200)}`;
     return { res, ai, u, recherches, cout, bloc: res.ok ? outil(ai) : null, trace };
   }
   async function coordonnees(cle: string, par: string | null) {
