@@ -62,7 +62,9 @@ Deno.serve(async (req) => {
     let brut = "";
     const lire = async (r: Response) => { brut = await r.text().catch(() => ""); try { return JSON.parse(brut); } catch { return {}; } };
     let res = await appeler(modele, messages), ai = await lire(res);
-    if (!res.ok && /entitlement|model/i.test(JSON.stringify(ai?.error ?? ""))) { modele = MODELE_RAPIDE; res = await appeler(modele, messages); ai = await lire(res); }
+    // Modèle refusé par la passerelle (en erreur, ou en « 200 » msg-tonia-entitlement : prix manquant en mode Géré) : modèle rapide.
+    const refuse = (r: Response, x: any) => (!r.ok && /entitlement|model/i.test(JSON.stringify(x?.error ?? ""))) || (r.ok && /^msg-tonia-entitlement/.test(String(x?.id ?? "")));
+    if (refuse(res, ai) && modele !== MODELE_RAPIDE) { modele = MODELE_RAPIDE; res = await appeler(modele, messages); ai = await lire(res); }
     const usage = { in: 0, out: 0, rech: 0 };
     const compter = (x: any) => { usage.in += Number(x?.usage?.input_tokens ?? 0); usage.out += Number(x?.usage?.output_tokens ?? 0); usage.rech += Number(x?.usage?.server_tool_use?.web_search_requests ?? 0); };
     const outil = (x: any) => (x?.content || []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === "soumettre");
