@@ -1,3 +1,2 @@
--- Diagnostic (lecture) : immeubles cherchés par l'agent et coût des recherches.
-select adresse, logements, propose_nom, left(propose_note, 90) note, jsonb_array_length(coalesce(propose_sources, '[]')) sources from crm.immeubles_role where propose_le is not null order by logements desc;
-select count(*) recherches, sum(cout_cents) cents, sum(recherches) web from crm.agent_runs where criteres ->> 'mode' = 'proprietaire';
+-- Diagnostic (lecture) : erreurs des recherches de propriétaires de l'agent.
+select started_at::time(0) heure, trouves, tokens_in, tokens_out, recherches, cout_cents, left(erreur, 160) erreur from crm.agent_runs where criteres ->> 'mode' = 'proprietaire' order by started_at;
