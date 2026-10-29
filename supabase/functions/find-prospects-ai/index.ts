@@ -62,7 +62,7 @@ RÈGLES STRICTES :
 - Indique refus_sollicitation = true si une page mentionne un refus des sollicitations.
 
 Une fois la recherche terminée, appelle l'outil "soumettre".`;
-    const outils = [{ type: "web_search_20260209", name: "web_search", allowed_callers: ["direct"] }, OUTIL_COORDONNEES];
+    const outils = [{ type: "web_search_20260209", name: "web_search", allowed_callers: ["direct"], max_uses: 5 }, OUTIL_COORDONNEES];   // 5 recherches : moins d’une minute, quelques cents
     const appeler = (model: string, messages: unknown[], forcer = false) => fetch(IA_MESSAGES_URL, { method: "POST", headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify(avecContexte({ model, max_tokens: 2048, tools: outils, ...(forcer ? { tool_choice: { type: "tool", name: "soumettre" } } : {}), messages })) });
     let modele = await modelePour("prospection", Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5");
