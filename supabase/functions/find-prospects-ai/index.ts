@@ -28,6 +28,15 @@ const OUTIL_COORDONNEES = { name: "soumettre", description: "Soumet les coordonn
     sources: { type: "array", items: { type: "object", required: ["url", "extrait"], properties: { url: { type: "string" }, extrait: { type: "string", description: "Passage exact de la page" } } } },
   } } };
 
+const OUTIL_PROPRIETAIRE = { name: "soumettre", description: "Soumet le propriétaire trouvé, avec ses sources.", input_schema: { type: "object",
+  required: ["proprietaire", "sources", "confiance", "raison"], properties: {
+    proprietaire: { type: ["string", "null"], description: "Nom de l'entreprise ou de la personne propriétaire, tel qu'écrit sur la page; null si non trouvé" },
+    neq: { type: ["string", "null"], description: "NEQ (10 chiffres) s'il est publié" },
+    confiance: { type: "string", enum: ["élevée", "moyenne", "faible"] },
+    raison: { type: "string", description: "Une phrase : ce qui relie l'adresse à ce propriétaire, et le gestionnaire s'il est mentionné" },
+    sources: { type: "array", items: { type: "object", required: ["url", "extrait"], properties: { url: { type: "string" }, extrait: { type: "string" } } } },
+  } } };
+
 Deno.serve(async (req) => {
   const corsHeaders = corsHeadersFor(req.headers.get("origin"));
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
@@ -41,6 +50,29 @@ Deno.serve(async (req) => {
     if (!r.ok) throw new Error(`${nom} : ${r.status} ${await r.text()}`);
     return r.json();
   };
+  // Recherche web de l'agent, résultat structuré par l'outil « soumettre » seulement : laisse finir une recherche suspendue (pause_turn),
+  // puis exige la soumission (null si rien de vérifiable). Coût mesuré sur tous les tours.
+  async function rechercher(prompt: string, outilSoumettre: unknown) {
+    const outils = [{ type: "web_search_20260209", name: "web_search", allowed_callers: ["direct"], max_uses: 5 }, outilSoumettre];   // 5 recherches : moins d’une minute, quelques cents
+    const appeler = (model: string, messages: unknown[], forcer = false) => fetch(IA_MESSAGES_URL, { method: "POST", headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify(avecContexte({ model, max_tokens: 2048, tools: outils, ...(forcer ? { tool_choice: { type: "tool", name: "soumettre" } } : {}), messages })) });
+    let modele = await modelePour("prospection", Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5");
+    const messages: unknown[] = [{ role: "user", content: prompt }];
+    let res = await appeler(modele, messages), ai = await res.json().catch(() => ({}));
+    if (!res.ok && /entitlement|model/i.test(JSON.stringify(ai?.error ?? ""))) { modele = MODELE_RAPIDE; res = await appeler(modele, messages); ai = await res.json().catch(() => ({})); }
+    const usage = { in: 0, out: 0, rech: 0 };
+    const compter = (x: any) => { usage.in += Number(x?.usage?.input_tokens ?? 0); usage.out += Number(x?.usage?.output_tokens ?? 0); usage.rech += Number(x?.usage?.server_tool_use?.web_search_requests ?? 0); };
+    const outil = (x: any) => (x?.content || []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === "soumettre");
+    compter(ai);
+    // Recherche suspendue (pause_turn) : on la laisse finir; terminée sans l'outil : on exige la soumission (null si rien de vérifiable).
+    for (let tour = 0; res.ok && !outil(ai) && tour < 3; tour++) {
+      messages.push({ role: "assistant", content: ai.content });
+      if (ai.stop_reason !== "pause_turn") messages.push({ role: "user", content: "Appelle maintenant l'outil « soumettre » avec ce que tu as trouvé et vérifié (null pour ce qui manque, sources vides si rien)." });
+      res = await appeler(modele, messages, ai.stop_reason !== "pause_turn"); ai = await res.json().catch(() => ({})); compter(ai);
+    }
+    const u = { input_tokens: usage.in, output_tokens: usage.out }, recherches = usage.rech, cout = coutCents(usage.in, usage.out, recherches);
+    return { res, ai, u, recherches, cout, bloc: res.ok ? outil(ai) : null };
+  }
   async function coordonnees(cle: string, par: string | null) {
     if (!par) return json({ error: "Réservé à une personne de l'équipe." }, 403);
     const g = await rpc("service_role_groupe", { p_cle: cle });
@@ -62,31 +94,44 @@ RÈGLES STRICTES :
 - Indique refus_sollicitation = true si une page mentionne un refus des sollicitations.
 
 Une fois la recherche terminée, appelle l'outil "soumettre".`;
-    const outils = [{ type: "web_search_20260209", name: "web_search", allowed_callers: ["direct"], max_uses: 5 }, OUTIL_COORDONNEES];   // 5 recherches : moins d’une minute, quelques cents
-    const appeler = (model: string, messages: unknown[], forcer = false) => fetch(IA_MESSAGES_URL, { method: "POST", headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify(avecContexte({ model, max_tokens: 2048, tools: outils, ...(forcer ? { tool_choice: { type: "tool", name: "soumettre" } } : {}), messages })) });
-    let modele = await modelePour("prospection", Deno.env.get("IA_MODELE_RECHERCHE") || "claude-sonnet-5");
-    const messages: unknown[] = [{ role: "user", content: prompt }];
-    let res = await appeler(modele, messages), ai = await res.json().catch(() => ({}));
-    if (!res.ok && /entitlement|model/i.test(JSON.stringify(ai?.error ?? ""))) { modele = MODELE_RAPIDE; res = await appeler(modele, messages); ai = await res.json().catch(() => ({})); }
-    const usage = { in: 0, out: 0, rech: 0 };
-    const compter = (x: any) => { usage.in += Number(x?.usage?.input_tokens ?? 0); usage.out += Number(x?.usage?.output_tokens ?? 0); usage.rech += Number(x?.usage?.server_tool_use?.web_search_requests ?? 0); };
-    const outil = (x: any) => (x?.content || []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === "soumettre");
-    compter(ai);
-    // Recherche suspendue (pause_turn) : on la laisse finir; terminée sans l'outil : on exige la soumission (null si rien de vérifiable).
-    for (let tour = 0; res.ok && !outil(ai) && tour < 3; tour++) {
-      messages.push({ role: "assistant", content: ai.content });
-      if (ai.stop_reason !== "pause_turn") messages.push({ role: "user", content: "Appelle maintenant l'outil « soumettre » avec ce que tu as trouvé et vérifié (null pour ce qui manque, sources vides si rien)." });
-      res = await appeler(modele, messages, ai.stop_reason !== "pause_turn"); ai = await res.json().catch(() => ({})); compter(ai);
-    }
-    const u = { input_tokens: usage.in, output_tokens: usage.out }, recherches = usage.rech, cout = coutCents(usage.in, usage.out, recherches);
-    const bloc = res.ok ? outil(ai) : null;
+    const { res, ai, u, recherches, cout, bloc } = await rechercher(prompt, OUTIL_COORDONNEES);
     await rpc("agent_prospection_fin", { p_run: idRun, p_items: null, p_trouves: bloc ? 1 : 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null,
       p_recherches: recherches, p_cout: cout, p_erreur: res.ok ? (bloc ? null : "Aucun résultat soumis") : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
     if (!res.ok) return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
     if (!bloc) return json({ error: "La recherche n'a rien donné de vérifiable." }, 422);
     await rpc("service_role_coordonnees", { p_cle: cle, p_run: idRun, p: { ...bloc.input, nom: g.nom } });
     return json({ ok: true, coordonnees: bloc.input, cout_cents: cout });
+  }
+  // Prospection par le rôle : QUI possède cet immeuble, d'après le web public (jamais les sites municipaux ni le Registre foncier).
+  async function proprietaire(id: string, par: string | null) {
+    if (!par) return json({ error: "Réservé à une personne de l'équipe." }, 403);
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return json({ error: "Immeuble invalide." }, 400);
+    const im = await rpc("service_role_immeuble", { p_id: id });
+    if (!im) return json({ error: "Immeuble introuvable." }, 404);
+    if (im.deja) return json({ error: "Immeuble déjà cherché ou identifié." }, 409);
+    const idRun = await rpc("agent_prospection_debut", { p_par: par, p_criteres: { mode: "proprietaire", immeuble: id } });
+    const prompt = `Tu aides "Lease Lane", une entreprise québécoise de gestion immobilière, à savoir QUI possède un immeuble locatif.
+
+Immeuble : ${im.adresse}, ${im.municipalite} (Québec). ${im.logements} logements${im.annee ? `, construit en ${im.annee}` : ""}. Propriétaire actuel inscrit depuis ${im.inscrit_le ?? "date inconnue"}; ${im.statut === "morale" ? "c'est une entreprise" : im.statut === "physique" ? "c'est un particulier" : "statut inconnu"}.
+(Le numéro civique peut être une plage, ex. « 1245-1285 » : une page peut citer un seul numéro de la plage.)
+
+Avec l'outil de recherche web, trouve le propriétaire ACTUEL : nouvelles de vente ou d'acquisition, site d'une entreprise qui liste cet immeuble dans son parc, annonce commerciale (Centris, courtiers), permis ou projet municipal, communiqué.
+
+RÈGLES STRICTES :
+- N'invente JAMAIS un nom. Si aucune page ne relie clairement cette adresse à un propriétaire, mets proprietaire à null.
+- Une entreprise de gestion ou une agence de location n'est PAS le propriétaire (note-la dans raison si tu la vois).
+- Une vente plus ancienne que ${im.inscrit_le ?? "la date d'inscription"} peut viser un ancien propriétaire : vérifie la date.
+- Chaque source : url réelle + passage exact qui nomme l'adresse et le propriétaire.
+- confiance : « élevée » (page récente et explicite), « moyenne » (indirect), « faible ».
+
+Une fois la recherche terminée, appelle l'outil "soumettre".`;
+    const { res, ai, u, recherches, cout, bloc } = await rechercher(prompt, OUTIL_PROPRIETAIRE);
+    await rpc("agent_prospection_fin", { p_run: idRun, p_items: null, p_trouves: bloc?.input?.proprietaire ? 1 : 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null,
+      p_recherches: recherches, p_cout: cout, p_erreur: res.ok ? (bloc ? null : "Aucun résultat soumis") : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
+    if (!res.ok) return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
+    // Rien de vérifiable : l'immeuble est quand même marqué « cherché » (pas de seconde recherche payante).
+    await rpc("service_role_immeuble_propose", { p_id: id, p: bloc?.input ?? { proprietaire: null, sources: [], raison: "Aucun résultat soumis" } });
+    return json({ ok: true, proprietaire: bloc?.input?.proprietaire ?? null, confiance: bloc?.input?.confiance ?? null, cout_cents: cout });
   }
   let run: string | null = null;
   try {
@@ -109,6 +154,7 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
 
     const body = await req.json().catch(() => ({}));
     if (body.action === "coordonnees") return await coordonnees(String(body.cle || ""), par);
+    if (body.action === "proprietaire") return await proprietaire(String(body.id || ""), par);
     if ((body.action || "run") !== "run") return json({ error: "Action inconnue" }, 400);
     const territoire = String(body.territoire || "Québec et Lévis").slice(0, 80);
     const portesMin = Math.max(2, Math.min(100, Number(body.portes_min) || 4));

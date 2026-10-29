@@ -13,6 +13,7 @@ export async function POST(req: Request) {
     method: 'POST', cache: 'no-store',
     headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(corps.action === 'coordonnees' ? { action: 'coordonnees', cle: String(corps.cle ?? '').slice(0, 200) }
+      : corps.action === 'proprietaire' ? { action: 'proprietaire', id: String(corps.id ?? '').slice(0, 36) }
       : { action: 'run', territoire: String(corps.territoire ?? '').slice(0, 80), portes_min: Number(corps.portes_min) || 4 }),
   });
   return NextResponse.json(await res.json().catch(() => ({ error: 'Réponse illisible.' })), { status: res.status });
