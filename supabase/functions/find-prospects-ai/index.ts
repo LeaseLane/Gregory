@@ -76,7 +76,8 @@ Deno.serve(async (req) => {
     const u = { input_tokens: usage.in, output_tokens: usage.out }, recherches = usage.rech, cout = coutCents(usage.in, usage.out, recherches);
     // Réponse « 200 » sans contenu (passerelle) : le corps brut va au journal de la recherche.
     if (res.ok && !Array.isArray(ai.content)) ai = { error: { message: `Réponse sans contenu : ${brut.slice(0, 200) || "(vide)"}` } };
-    return { res, ai, u, recherches, cout, bloc: res.ok ? outil(ai) : null };
+    const trace = `stop=${ai?.stop_reason ?? "?"} · contenu=${(Array.isArray(ai?.content) ? ai.content : []).map((b: { type: string }) => b.type).join(",") || "vide"} · tours=${messages.length} · ${brut.slice(0, 120)}`;
+    return { res, ai, u, recherches, cout, bloc: res.ok ? outil(ai) : null, trace };
   }
   async function coordonnees(cle: string, par: string | null) {
     if (!par) return json({ error: "Réservé à une personne de l'équipe." }, 403);
@@ -99,9 +100,9 @@ RÈGLES STRICTES :
 - Indique refus_sollicitation = true si une page mentionne un refus des sollicitations.
 
 Une fois la recherche terminée, appelle l'outil "soumettre".`;
-    const { res, ai, u, recherches, cout, bloc } = await rechercher(prompt, OUTIL_COORDONNEES);
+    const { res, ai, u, recherches, cout, bloc, trace } = await rechercher(prompt, OUTIL_COORDONNEES);
     await rpc("agent_prospection_fin", { p_run: idRun, p_items: null, p_trouves: bloc ? 1 : 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null,
-      p_recherches: recherches, p_cout: cout, p_erreur: res.ok ? (bloc ? null : "Aucun résultat soumis") : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
+      p_recherches: recherches, p_cout: cout, p_erreur: res.ok ? (bloc ? null : `Aucun résultat soumis · ${trace}`.slice(0, 300)) : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
     if (!res.ok) return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
     if (!bloc) return json({ error: "La recherche n'a rien donné de vérifiable." }, 422);
     await rpc("service_role_coordonnees", { p_cle: cle, p_run: idRun, p: { ...bloc.input, nom: g.nom } });
@@ -130,9 +131,9 @@ RÈGLES STRICTES :
 - confiance : « élevée » (page récente et explicite), « moyenne » (indirect), « faible ».
 
 Une fois la recherche terminée, appelle l'outil "soumettre".`;
-    const { res, ai, u, recherches, cout, bloc } = await rechercher(prompt, OUTIL_PROPRIETAIRE);
+    const { res, ai, u, recherches, cout, bloc, trace } = await rechercher(prompt, OUTIL_PROPRIETAIRE);
     await rpc("agent_prospection_fin", { p_run: idRun, p_items: null, p_trouves: bloc?.input?.proprietaire ? 1 : 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null,
-      p_recherches: recherches, p_cout: cout, p_erreur: res.ok && !ai?.error ? (bloc ? null : "Aucun résultat soumis") : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
+      p_recherches: recherches, p_cout: cout, p_erreur: res.ok && !ai?.error ? (bloc ? null : `Aucun résultat soumis · ${trace}`.slice(0, 300)) : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
     if (!res.ok || ai?.error) return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
     // Rien de vérifiable : l'immeuble est quand même marqué « cherché » (pas de seconde recherche payante).
     await rpc("service_role_immeuble_propose", { p_id: id, p: bloc?.input ?? { proprietaire: null, sources: [], raison: "Aucun résultat soumis" } });
