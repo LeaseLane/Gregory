@@ -64,12 +64,15 @@ export function Immeubles({ filtres: F, donnees: D, erreurLecture }: { filtres: 
   async function chercherSerie(n: number) {
     const liste = D!.immeubles.filter((i) => !i.proprietaire && !i.propose_le && !i.ecarte).slice(0, n);
     setBandeau(null); setOk(null);
+    const erreurs: string[] = [];
     for (const [k, i] of liste.entries()) {
       setSerie(`Recherche ${k + 1} / ${liste.length} : ${i.adresse}…`);
-      const e = await chercherProprietaire(i);
-      if (e) { setSerie(null); setBandeau(`${i.adresse} : ${e}`); router.refresh(); return; }
+      const e = await chercherProprietaire(i);   // une erreur n'arrête pas la série : l'immeuble suivant est cherché
+      if (e) erreurs.push(`${i.adresse} : ${e}`);
     }
-    setSerie(null); setOk(`${liste.length} immeuble${liste.length > 1 ? 's' : ''} cherché${liste.length > 1 ? 's' : ''} : voyez l’onglet « Proposés par l’agent ».`); router.refresh();
+    setSerie(null); router.refresh();
+    setOk(`${liste.length - erreurs.length} immeuble${liste.length > 1 ? 's' : ''} cherché${liste.length > 1 ? 's' : ''} : voyez l’onglet « Proposés par l’agent ».`);
+    if (erreurs.length) setBandeau(erreurs.join(' · '));
   }
   async function decider(i: Imm, confirmer: boolean) {
     setOccupe(true); setBandeau(null);

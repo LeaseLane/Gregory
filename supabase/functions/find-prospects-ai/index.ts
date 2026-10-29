@@ -47,8 +47,9 @@ Deno.serve(async (req) => {
   const adminHeaders = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json" };
   const rpc = async (nom: string, args: unknown) => {
     const r = await fetch(`${supabaseUrl}/rest/v1/rpc/${nom}`, { method: "POST", headers: adminHeaders, body: JSON.stringify(args) });
-    if (!r.ok) throw new Error(`${nom} : ${r.status} ${await r.text()}`);
-    return r.json();
+    const texte = await r.text();
+    if (!r.ok) throw new Error(`${nom} : ${r.status} ${texte}`);
+    return texte ? JSON.parse(texte) : null;   // fonction « returns void » : corps vide
   };
   // Recherche web de l'agent, résultat structuré par l'outil « soumettre » seulement : laisse finir une recherche suspendue (pause_turn),
   // puis exige la soumission (null si rien de vérifiable). Coût mesuré sur tous les tours.
