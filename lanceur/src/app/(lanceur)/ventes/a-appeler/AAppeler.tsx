@@ -67,7 +67,7 @@ export function AAppeler({ ville, donnees: D, erreurLecture }: { ville: string; 
           <table className="tableau"><thead><tr><th>Adresse</th><th>Ville</th><th className="droite">Logements</th><th className="droite">Construit</th></tr></thead>
             <tbody>{P.immeubles.map((i) => <tr key={i.adresse + i.ville}><td className="fort">{i.adresse}</td><td>{i.ville}</td><td className="droite">{i.logements}</td><td className="droite">{i.annee ?? '—'}</td></tr>)}</tbody></table>
           <p className="gris texte-13" style={{ marginTop: 12 }}>Gestion actuelle : <b>{P.gestionnaire ?? 'inconnue'}</b> · Sources :{' '}
-            {P.sources.slice(0, 4).map((s) => <a key={s.url} className="lien" style={{ marginRight: 8 }} href={s.url} target="_blank" rel="noreferrer" title={s.extrait}>{hote(s.url)}</a>)}</p>
+            {P.sources.filter((s, k, t) => t.findIndex((x) => hote(x.url) === hote(s.url)) === k).slice(0, 4).map((s) => <a key={s.url} className="lien" style={{ marginRight: 8 }} href={s.url} target="_blank" rel="noreferrer" title={s.extrait}>{hote(s.url)}</a>)}</p>
         </section> : <section className="carte-l18" />}
 
         {P && D.peut_ecrire && <section className="carte-l18" aria-label="Appel" style={{ padding: 16 }}>
