@@ -72,7 +72,7 @@ export function AAppeler({ ville, donnees: D, erreurLecture }: { ville: string; 
 
         {P && D.peut_ecrire && <section className="carte-l18" aria-label="Appel" style={{ padding: 16 }}>
           <h2 className="titre-carte" style={{ margin: '0 0 8px' }}>Pendant l’appel</h2>
-          <p className="texte-13 gris" style={{ margin: '0 0 12px' }}>« Bonjour {P.decideur?.split(/[ ,]/)[0] ?? ''}, ici [votre nom] de Lease Lane, gestion immobilière à Québec et Lévis. Avez-vous deux minutes? »</p>
+          <p className="texte-13 gris" style={{ margin: '0 0 12px' }}>« Bonjour{P.decideur ? ` ${P.decideur.split(/[ ,]/)[0]}` : ''}, ici [votre nom] de Lease Lane, gestion immobilière à Québec et Lévis. Avez-vous deux minutes? »</p>
           <label className="fenetre-lib" htmlFor="ap-l">1. Combien de logements au total?</label>
           <input id="ap-l" className="e70-raison" inputMode="numeric" value={r.logements} onChange={(e) => setR({ ...r, logements: e.target.value })} placeholder={`Au rôle : ${P.logements}`} />
           <label className="fenetre-lib" htmlFor="ap-g">2. Qui gère vos immeubles?</label>
