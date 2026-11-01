@@ -11,6 +11,7 @@ import { Entete } from '@/proto/chrome';
 import { PiedRevue } from '@/proto/pied-options';
 import { CleoTemoins } from '@/proto/cleo-temoins';
 import { PixelMeta } from '@/components/PixelMeta';
+import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { naviguer, PontRouteur } from '@/lib/routeur';
 import { useLangue } from '@/lib/i18n/contexte';
 import { versFR } from '@/lib/i18n/adresses';
@@ -50,6 +51,7 @@ export default function Coquille({ children }) {
         <AgentIA ouvert={agent} setOuvert={setAgent} aller={naviguer} />
         <CleoTemoins />
         <PixelMeta />
+        <GoogleAnalytics />
       </div>
       </div>
     </FormeBoutonContexte.Provider>
