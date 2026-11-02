@@ -1,0 +1,35 @@
+/* Animations des pages de la région (29 oct.) : sobres et lisibles. Chargé seulement par les pages qui le demandent ("styles" dans l'en-tête). Le texte de la bannière entre en cascade, le coup d'œil monte puis sa barre
+   se remplit et le chiffre compte; au défilement, les éléments apparaissent à tour de rôle, la frise se trace, la photo se pose. */
+.heros .fil,.heros h1,.heros .lead,.heros .actions{animation:entree .9s var(--e) both}
+.heros .fil{animation-delay:.15s}.heros h1{animation-delay:.27s}.heros .lead{animation-delay:.4s}.heros .actions{animation-delay:.52s}
+.heros-photo{animation:pose 2.4s var(--e) both}
+@keyframes pose{from{transform:scale(1.06)}}
+@keyframes entree{from{opacity:0;transform:translateY(18px)}}
+.cq{opacity:0;transform:translateY(28px);transition:opacity .8s var(--e) .1s,transform 1s var(--e) .1s}
+.cq.vu{opacity:1;transform:none}
+.cq-c4-barre i{animation:none;transform-origin:left center;transform:scaleX(0);transition:transform 1.5s var(--e) .55s}
+.cq.vu .cq-c4-barre i{transform:none}
+.cq-c li{opacity:0;transform:translateX(16px);transition:opacity .6s var(--e),transform .7s var(--e)}
+.cq.vu li{opacity:1;transform:none}
+.cq.vu li:nth-child(1){transition-delay:.45s}.cq.vu li:nth-child(2){transition-delay:.56s}.cq.vu li:nth-child(3){transition-delay:.67s}
+.rv.cascade{opacity:1;transform:none}
+.cascade>*{opacity:0;transform:translateY(16px);transition:opacity .6s var(--e),transform .75s var(--e);transition-delay:calc(var(--i,0) * 80ms)}
+.cascade.on>*{opacity:1;transform:none}
+.dates-q.cascade>*{transition-delay:calc(var(--i,0) * 160ms + .15s)}
+.dates-q>li::before{transform:scaleX(0);transform-origin:left center;transition:transform .7s var(--e);transition-delay:calc(var(--i,0) * 160ms)}
+.dates-q>li::after{transform:scale(0);transition:transform .45s cubic-bezier(.34,1.56,.64,1);transition-delay:calc(var(--i,0) * 160ms + .12s)}
+.dates-q.on>li::before,.dates-q.on>li::after{transform:none}
+.photo-q img{transform:scale(1.06);transition:transform 1.6s var(--e)}
+.photo-q.on img{transform:none}
+.photo-q .vie-une{opacity:0;transform:translateY(22px);transition:opacity .7s var(--e) .35s,transform .8s var(--e) .35s}
+.photo-q.on .vie-une{opacity:1;transform:none}
+/* FAQ : la réponse s'ouvre et se referme en douceur (navigateurs récents; les autres l'ouvrent d'un coup) */
+:root{interpolate-size:allow-keywords}
+.fq-g details::details-content{block-size:0;overflow:hidden;transition:block-size .4s var(--e),content-visibility .4s allow-discrete}
+.fq-g details[open]::details-content{block-size:auto}
+@media (prefers-reduced-motion:reduce){
+  .heros .fil,.heros h1,.heros .lead,.heros .actions,.heros-photo{animation:none}
+  .cq,.cq-c li,.cascade>*,.photo-q .vie-une{opacity:1;transform:none;transition:none}
+  .cq-c4-barre i,.photo-q img,.dates-q>li::before,.dates-q>li::after{transform:none;transition:none}
+  .fq-g details::details-content{transition:none}
+}

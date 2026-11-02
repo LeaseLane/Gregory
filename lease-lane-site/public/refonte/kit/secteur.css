@@ -1,0 +1,111 @@
+/* Fiche du quartier (modèle universel du Guide Local) : la photo et l'ambiance d'un côté; de l'autre, le titre avec son slogan
+   et le profil du quartier. Ses points forts (vie de quartier, transports, marché immobilier) suivent en rangée de cellules. */
+.portrait-q{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:64px;align-items:stretch}
+.photo-q{position:relative;margin:0;min-height:560px}
+.photo-q img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:62% 50%;border-radius:2px;box-shadow:var(--ombre)}
+.photo-q figcaption{position:absolute;left:16px;top:16px;padding:6px 10px;background:rgba(7,26,46,.82);color:#fff;font-size:12px;font-weight:600}
+.photo-q figcaption i{font-style:normal;color:var(--bleu-200);margin-right:6px}
+.vie-une{position:absolute;left:24px;right:24px;bottom:24px;max-width:380px;padding:24px 26px 26px;background:var(--marine-900);color:#fff;border-radius:2px;box-shadow:17px -17px 46px 4px rgba(255,255,255,.5),0 24px 50px -20px rgba(7,26,46,.7)}
+.vie-une .sur{color:var(--bleu-200);margin-bottom:14px}.vie-une .sur::after{background:var(--bleu-300)}
+.vie-une h3{color:#fff;font-size:21px}
+.vie-une p:last-child{margin-top:8px;font-size:15px;line-height:1.6;color:var(--bleu-100)}
+.texte-q{align-self:center}
+.texte-q .lead-q{margin-top:26px;font-size:16px;line-height:1.7;color:var(--marine-900)}
+/* 31 oct. (cadre à filets) : les trois points forts en rangée de cellules à filets (/refonte/kit/filets.css .cellules),
+   icône au trait en haut, titre et texte en bas; plus de cases d'icône pleines ni de cartes bordées. */
+.vie-c{margin-top:88px;list-style:none}
+/* les trois titres sur une même ligne, quelle que soit la longueur des textes */
+.vie-c>li{--h:0px}
+.vie-c .cel-ic+h3{margin-top:56px}
+@media (max-width:640px){.vie-c .cel-ic+h3{margin-top:20px}}
+@media (min-width:641px) and (max-width:1100px){.vie-c>li:nth-child(3){grid-column:1/-1;border-left:0}}
+
+/* Prochain logement : le texte et la photo, puis l'appel aux propriétaires en bande claire (/refonte/kit/filets.css .bande-cta) */
+.prochain{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:center}
+.prochain figure{position:relative;margin:0}
+.prochain figure img{width:100%;aspect-ratio:1489/1000;object-fit:cover;border-radius:2px;box-shadow:var(--ombre)}
+.prochain figure figcaption{position:absolute;left:16px;top:16px;padding:6px 10px;background:rgba(7,26,46,.82);color:#fff;font-size:12px;font-weight:600}
+.prochain figure figcaption i{font-style:normal;color:var(--bleu-200);margin-right:6px}
+.prochain-b{margin-top:80px}
+.bande-cta .etiq{display:block;margin-bottom:8px}
+.bande-cta p b{font-size:19px;letter-spacing:-.02em;line-height:1.35}
+@media (max-width:640px){.prochain .btn,.prochain-b .btn{width:100%;justify-content:space-between;white-space:nowrap;text-align:left;gap:16px}}
+
+/* Histoire : jalons datés (années en blanc), puis les quatre chapitres en étapes en lignes (/refonte/kit/filets.css .etapes-r) :
+   numéro, période, //, récit. La période garde un grand corps (Steven : titres des chapitres bien plus gros que le texte). */
+.dates-q{--c:5}
+.dates-q>li .quand,.sombre .dates-q>li .quand{font-size:28px;font-weight:700;letter-spacing:-.03em;color:#fff;text-transform:none}
+.dates-q>li p:last-child{margin-top:8px}
+.chap-r{margin-top:80px}
+.chap-r>li{padding:36px 0}
+.chap-r .n{padding-top:8px}
+.chap-r>li::before{top:72px}
+.chap-r h3{font-size:24px;font-weight:600;letter-spacing:-.025em;line-height:1.25}
+.chap-r .sep{padding-top:6px}
+.chap-r p{font-size:15.5px;line-height:1.7}
+/* tablette : la période passe au-dessus du récit (le kit ne replie les étapes qu'à 760 px) */
+@media (max-width:1100px){.chap-r>li{grid-template-columns:56px minmax(0,1fr);gap:12px}.chap-r .n{padding-left:12px}.chap-r>li::before{left:12px}.chap-r .sep{display:none}.chap-r p{grid-column:2;max-width:64ch}}
+.sombre .etapes-r .n{color:var(--bleu-200)}
+.sombre .etapes-r .sep{color:var(--bleu-300)}
+.sombre .etapes-r>li::before{background:rgba(145,181,224,.24)}
+
+/* Autres secteurs (31 oct., cadre à filets) : un mur à bords partagés (/refonte/kit/filets.css .mur). La région en grande tuile marine,
+   huit secteurs en cellules : vignette en retrait, arrondissement en étiquette entre crochets, petite flèche sans case. */
+.autres{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.autres>a{position:relative;display:flex;flex-direction:column;min-width:0;background:#fff;text-decoration:none;transition:background-color .25s}
+.autres>a:not(.region):hover{background:var(--gris-025)}
+.autres .vig{display:block;width:calc(100% - 28px);margin:14px 14px 0;aspect-ratio:16/9;background:#F4F7FB;border:1px solid var(--filet);border-radius:2px}
+.autres .vig .z{transform-box:view-box;transform-origin:50% 50%;transition:transform .8s var(--e)}
+.autres>a:hover .vig .z{transform:scale(1.12)}
+.autres .c{position:relative;flex:1;display:flex;flex-direction:column;gap:6px;padding:20px 48px 24px 20px}
+.autres .c .etiq{font-size:10.5px;letter-spacing:.1em;line-height:1.4}
+.autres b{font-size:18px;font-weight:600;letter-spacing:-.02em;line-height:1.25;color:var(--marine-900)}
+.autres .c>span:not(.etiq):not(.va){font-size:13.5px;line-height:1.5;color:var(--gris-600)}
+.autres .va{position:absolute;right:18px;bottom:24px;display:grid;width:18px;height:18px;color:var(--bleu-600);transition:transform .3s var(--e)}
+.autres .va svg{width:18px;height:18px}
+.autres>a:hover .va{transform:translateX(3px);color:var(--marine-900)}
+.autres .region{grid-column:span 2;grid-row:span 2;justify-content:flex-end;min-height:440px;background:var(--marine-900);isolation:isolate;overflow:hidden}
+.autres .region svg.vig-r{position:absolute;inset:0;width:100%;height:100%;z-index:-2;transition:transform 1.2s var(--e)}
+.autres .region:hover svg.vig-r{transform:scale(1.05)}
+.autres .region::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,rgba(7,26,46,.96) 0,rgba(7,26,46,.7) 38%,rgba(7,26,46,.05) 78%)}
+.region-t{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:36px}
+.autres .region .etiq{margin-bottom:6px;color:var(--bleu-200)}
+.autres .region b{font-size:clamp(34px,3.4vw,46px);letter-spacing:-.035em;line-height:1.05;color:#fff}
+.region-t>span:not(.btn):not(.etiq){font-size:16px;line-height:1.5;color:var(--bleu-100)}
+.autres .region .btn{margin-top:22px;background:#fff;color:var(--marine-900)}
+.autres .region:hover .btn{background:var(--bleu-025)}
+@media (prefers-reduced-motion:reduce){.autres .va{transition:none}.autres>a:hover .va{transform:none}}
+
+/* action tertiaire : le lien fléché reçoit un contour fin (jamais de lien nu) */
+.lien-b,.fq-stat .lien{min-height:40px;padding:0 14px;gap:10px;font-size:14px;border-radius:2px;box-shadow:inset 0 0 0 .7px var(--marine-900);transition:background-color .2s,color .2s}
+.lien-b:hover,.fq-stat .lien:hover{background:var(--marine-900);color:#fff}.lien-b:hover svg,.fq-stat .lien:hover svg{color:#fff}
+.cq-c4-bas .lien-b{min-height:40px}
+.carte-cleo .lien-b{justify-self:start;min-height:40px;margin-top:10px}
+/* contraste AA : les gris du kit à filets (gris-500, 3,9:1) passent au gris-600 (5,6:1) pour le petit texte */
+.etiq,.cellules p,.bande-cta p{color:var(--gris-600)}
+.fin-portes .contacts span span{color:var(--gris-600)}
+/* numéros de la liste des questions (kit.css .fq-stat-l i, bleu-500 : 4,0:1) au bleu-600 (5,8:1) */
+.fq-stat-l i{color:var(--bleu-600)}
+
+@media (max-width:1100px){
+  .portrait-q,.prochain{grid-template-columns:minmax(0,1fr)}.photo-q{min-height:440px}
+  .dates-q{--c:3}
+  .autres{grid-template-columns:repeat(2,minmax(0,1fr))}.autres .region{grid-row:auto;min-height:380px}
+  .vie-c{margin-top:64px}
+}
+@media (max-width:640px){
+  .photo-q{min-height:0;display:flex;flex-direction:column}.photo-q img{position:relative;height:auto;aspect-ratio:4/3}
+  .vie-une{position:relative;left:auto;right:auto;bottom:auto;max-width:none;margin:-40px 14px 0}
+  .vie-c{margin-top:48px}
+  .dates-q>li .quand,.sombre .dates-q>li .quand{font-size:24px}
+  .chap-r{margin-top:56px}.chap-r>li{padding:28px 0}.chap-r h3{font-size:21px}
+  .prochain-b{margin-top:56px}
+  .autres{grid-template-columns:minmax(0,1fr)}.autres .region{grid-column:auto;min-height:360px}.region-t{padding:26px 22px}
+  .autres .vig{aspect-ratio:12/5}
+}
+/* paragraphes de portrait successifs (pages de secteur générées) */
+.texte-q .lead-q+.lead-q{margin-top:14px}
+/* photos libres de Wikimédia Commons : cadrage au centre; le crédit (auteur, licence) peut passer sur deux lignes dans la légende */
+.photo-q img.sec{object-position:50% 50%}
+.photo-q figcaption{max-width:calc(100% - 32px);line-height:1.4}
+.photo-q figcaption a{color:inherit;text-decoration:underline;text-underline-offset:2px}

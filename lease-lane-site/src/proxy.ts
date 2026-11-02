@@ -4,11 +4,14 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { LL_ROUTES } from '@/proto/routes';
 import { versEN } from '@/lib/i18n/adresses';
+import REFONTE from '@/lib/refonte-routes.json';
 
 const CONNUES = new Set<string>();
 for (const r of LL_ROUTES as { path: string }[]) { CONNUES.add(r.path); CONNUES.add(versEN(r.path)); }
 // Pages faites main hors de routes.js (dossiers statiques dans src/app) : article et calculateur de la hausse 2027.
 for (const p of ['/blogue/hausse-de-loyer-2027', '/en/blog/rent-increase-2027']) CONNUES.add(p);
+// Pages de la refonte de Steven (next.config.ts) : 39 secteurs de plus que routes.js.
+for (const p of Object.keys(REFONTE)) CONNUES.add(p);
 
 export function proxy(request: NextRequest) {
   const chemin = decodeURIComponent(request.nextUrl.pathname).replace(/\/+$/, '') || '/';

@@ -1,0 +1,217 @@
+/* Lease Lane — barre de recherche « Grille réglée », retenue par Steven le 29 oct. 2026 (« un gros wow! »).
+   Concept : design/refonte-barre/concepts/grille-reglee/. Chargé seulement par logements-a-louer.html. */
+/* ——— Grille réglée : une grille de 12 colonnes à filets 1 px, chaque critère est une cellule (icône, libellé, contrôle) ———
+   Les filets sont l'écart de 1 px de la grille sur un fond --gris-100. La recherche avancée (#lg-avance) passe en display:contents :
+   ses cellules entrent dans la même grille, donc dans les mêmes axes. Mouvements : transform et opacité, 150 à 200 ms. */
+.grb{--fil:var(--gris-100);position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-flow:row dense;gap:1px;background:var(--fil);border-radius:2px;box-shadow:0 1px 2px rgba(7,26,46,.045),0 48px 96px -28px rgba(7,26,46,.45),0 24px 40px -24px rgba(7,26,46,.26);font-family:Poppins,system-ui,sans-serif}
+.gr-av{display:contents}
+.gr-natifs{display:none}
+
+/* cellule */
+.gr-c{position:relative;grid-column:span 12;min-width:0;display:flex;flex-direction:column;gap:12px;padding:16px 20px 18px;background:#fff;container-type:inline-size}
+.gr-c::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--marine-900);transform:scaleX(0);transform-origin:left;transition:transform .2s var(--e);pointer-events:none}
+.gr-c.on::before{transform:scaleX(1)}
+.gr-t{display:flex;align-items:center;gap:8px;min-height:20px;margin:0;font-size:12px;font-weight:600;line-height:1.25;letter-spacing:.08em;text-transform:uppercase;color:var(--gris-600)}
+.gr-t svg{width:18px;height:18px;flex:none;color:var(--bleu-600);transition:color .15s}
+.gr-c.on .gr-t svg{color:var(--marine-900)}
+
+/* secteur : le champ commun du kit (loupe sur carré marine), à la hauteur de la grille */
+.gr-cherche{display:flex;align-items:center;gap:10px;height:44px;padding:0 4px;background:var(--gris-025);border:1px solid var(--gris-200);border-radius:2px;transition:border-color .15s,background-color .15s}
+.gr-cherche:focus-within{background:#fff;border-color:var(--marine-900);box-shadow:0 0 0 3px rgba(69,129,203,.18)}
+.gr-cherche .loupe{display:grid;place-items:center;width:34px;height:34px;flex:none;background:var(--marine-900);color:#fff;border-radius:2px}
+.gr-cherche .loupe svg{width:16px;height:16px}
+.gr-cherche input{flex:1;min-width:0;height:100%;padding:0 6px 0 0;border:0;outline:0;background:none;font:500 14px Poppins,sans-serif;color:var(--marine-900)}
+.gr-cherche input::placeholder{font-weight:400;color:var(--gris-600)}
+
+/* segments : un bloc marine qui glisse sous l'option choisie */
+.seg{position:relative;display:flex;gap:2px;padding:2px;border:1px solid var(--gris-200);border-radius:2px;background:var(--gris-025);isolation:isolate}
+.seg>label,.seg>button{position:relative;z-index:1;flex:1 1 auto;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:38px;margin:0;padding:0 8px;border:0;border-radius:2px;background:none;font:600 13px/1.2 Poppins,sans-serif;color:var(--marine-900);white-space:nowrap;cursor:pointer;transition:color .15s,background-color .15s}
+.seg input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.seg>label:has(input:focus-visible){outline:2px solid var(--bleu-500);outline-offset:2px}
+.seg>label:has(input:checked),.seg>button[aria-pressed=true]{color:#fff}
+.seg small{font-size:12px;font-weight:700;color:var(--bleu-600);transition:color .15s}
+.seg>button[aria-pressed=true] small,.seg>label:has(input:checked) small{color:#fff}
+.seg svg{width:16px;height:16px;flex:none}
+.seg-ind{position:absolute;z-index:0;left:0;top:0;width:0;height:0;background:var(--marine-900);opacity:0;transition:transform .2s var(--e);pointer-events:none}
+.seg:not(.pret) .seg-ind{transition:none}
+.seg:not(.pret)>label:has(input:checked),.seg:not(.pret)>button[aria-pressed=true]{background:var(--marine-900)}
+@media (hover:hover){
+  .seg>label:not(:has(input:checked)):hover,.seg>button[aria-pressed=false]:hover{background:#fff}
+}
+.seg-v{flex-direction:column;flex:1}
+.seg-v>label{flex:1 1 0;justify-content:flex-start;padding:0 12px}
+@container (max-width:470px){.seg-tri{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* curseur à crans : seulement les valeurs qui existent */
+.cran{display:flex;flex-direction:column;gap:6px}
+.cran-zone{position:relative;height:36px;border-radius:2px;touch-action:pan-y;cursor:pointer;overflow:clip;overflow-clip-margin:8px;outline-offset:4px}
+.cran-piste{position:absolute;left:9px;right:9px;top:16px;height:4px;background:var(--gris-200)}
+.cran-plein{position:absolute;inset:0;background:var(--bleu-100);transform-origin:left;transform:scaleX(var(--p,1));transition:transform .2s var(--e),background-color .15s}
+.c-loyer.on .cran-plein{background:var(--marine-900)}
+.cran-pts{position:absolute;left:9px;right:9px;top:12px;height:12px}
+.cran-pts i{position:absolute;top:0;width:2px;height:12px;margin-left:-1px;background:var(--gris-500);transition:background-color .15s}
+.cran-pts i:nth-child(1){left:0}.cran-pts i:nth-child(2){left:33.333%}.cran-pts i:nth-child(3){left:66.667%}.cran-pts i:nth-child(4){left:100%}
+.cran-pts i.on{background:var(--bleu-600)}
+.c-loyer.on .cran-pts i.on{background:#fff}
+.cran-rail{position:absolute;left:9px;right:9px;top:0;bottom:0;transform:translateX(calc(var(--p,1)*100%));transition:transform .2s var(--e);pointer-events:none}
+.cran-poignee{position:absolute;left:-9px;top:5px;width:18px;height:26px;background:var(--marine-900);border:2px solid #fff;border-radius:2px;box-shadow:0 0 0 1px var(--marine-900),0 2px 6px rgba(7,26,46,.28)}
+.cran-zone.tire .cran-rail,.cran-zone.tire .cran-plein{transition-duration:.1s}
+.cran-rep{position:relative;height:18px;margin:0 9px}
+.cran-rep span{position:absolute;top:0;transform:translateX(-50%);font-size:12px;font-weight:500;line-height:18px;color:var(--gris-600);white-space:nowrap;cursor:pointer;transition:color .15s}
+.cran-rep span:nth-child(1){left:0;transform:translateX(-9px)}.cran-rep span:nth-child(2){left:33.333%}.cran-rep span:nth-child(3){left:66.667%}.cran-rep span:nth-child(4){left:100%;transform:translateX(calc(9px - 100%))}
+.cran-rep span.on{font-weight:600;color:var(--marine-900)}
+
+/* plus de critères */
+.gr-plus{display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 12px 0 14px;border:1px solid var(--gris-200);border-radius:2px;background:#fff;font:600 14px Poppins,sans-serif;color:var(--marine-900);cursor:pointer;transition:border-color .15s,background-color .15s}
+.gr-plus .i{width:18px;height:18px;flex:none;color:var(--bleu-600)}
+.gr-plus .t,.gr-plus .t-m{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gr-plus .t-m{display:none}
+.gr-plus b{display:grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:2px;background:var(--bleu-600);color:#fff;font-size:12px;font-weight:700}
+.gr-plus .ch{width:18px;height:18px;flex:none;margin-left:auto;color:var(--gris-600);transition:transform .2s var(--e)}
+.gr-plus[aria-expanded=true]{border-color:var(--marine-900);background:var(--bleu-025)}
+.gr-plus[aria-expanded=true] .ch{transform:rotate(180deg);color:var(--marine-900)}
+@media (hover:hover){.gr-plus:hover{border-color:var(--marine-900)}}
+
+/* compteurs − / + : seulement les valeurs qui existent, « Peu importe » = 0 */
+.c-cpt{flex-direction:row;align-items:center;justify-content:space-between;gap:12px;padding-top:14px;padding-bottom:14px}
+.c-cpt .gr-t{flex:1 1 auto;min-width:0}
+.cpt{flex:0 0 188px;display:grid;grid-template-columns:44px minmax(0,1fr) 44px;row-gap:7px;align-items:center}
+.cpt-b{position:relative;z-index:1;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--gris-200);border-radius:2px 0 0 2px;background:#fff;color:var(--marine-900);cursor:pointer;transition:border-color .15s,color .15s}
+.cpt-b svg{width:16px;height:16px}
+.cpt-b+.cpt-v+.cpt-b{border-radius:0 2px 2px 0}
+.cpt-b[aria-disabled=true]{color:var(--gris-400);background:var(--gris-025);cursor:default}
+@media (hover:hover){.cpt-b:not([aria-disabled=true]):hover{border-color:var(--marine-900)}}
+.cpt-v{display:block;height:44px;overflow:hidden;padding:0 4px;border-top:1px solid var(--gris-200);border-bottom:1px solid var(--gris-200);background:#fff;font-size:13.5px;font-weight:600;line-height:42px;text-align:center;white-space:nowrap;text-overflow:ellipsis;color:var(--marine-900)}
+.cpt-v>span{display:inline-block}
+.cpt-v.zero{font-weight:500;color:var(--gris-600)}
+.cpt-crans{grid-column:1/-1;display:flex;gap:3px;height:3px}
+.cpt-crans i{flex:1;background:var(--gris-100);transition:background-color .15s}
+.cpt-crans i.on{background:var(--marine-900)}
+
+/* tuiles à icône : la tuile cochée passe au marine */
+.gr-tuiles{display:grid;gap:8px}
+.t-3{flex:1;grid-template-columns:minmax(0,1fr);grid-auto-rows:1fr}
+.t-9{flex:1;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr}
+.gr-tuile{position:relative;display:flex;margin:0;cursor:pointer}
+.gr-tuile input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.gr-tuile>span{position:relative;flex:1;display:flex;align-items:center;gap:10px;min-width:0;min-height:44px;padding:8px 34px 8px 12px;border:1px solid var(--gris-200);border-radius:2px;background:#fff;font-size:13px;font-weight:500;line-height:1.25;color:var(--marine-900);transition:background-color .15s,border-color .15s,color .15s}
+.gr-tuile svg{width:20px;height:20px;flex:none;color:var(--bleu-600);transition:color .15s}
+.gr-tuile>span::after{content:"";position:absolute;top:calc(50% - 7px);right:12px;width:14px;height:14px;border:1px solid var(--gris-500);border-radius:2px;background:#fff center/12px no-repeat;transition:transform .15s var(--e),background-color .15s,border-color .15s}
+@media (hover:hover){.gr-tuile:hover>span{border-color:var(--marine-900)}}
+.gr-tuile input:checked+span{background:var(--marine-900);border-color:var(--marine-900);color:#fff}
+.gr-tuile input:checked+span svg{color:var(--bleu-200)}
+.gr-tuile input:checked+span::after{border-color:#fff;background-color:#fff;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230C2147' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E");animation:gr-coche .15s var(--e)}
+@keyframes gr-coche{from{transform:scale(.6)}}
+.gr-tuile input:focus-visible+span{outline:2px solid var(--bleu-500);outline-offset:2px}
+
+/* interrupteurs : rectangles aux coins 2 px, jamais de pilule */
+.c-inter{flex-direction:row;align-items:center;justify-content:space-between;gap:16px;min-height:72px;padding-top:14px;padding-bottom:14px;cursor:pointer}
+.inter{position:relative;flex:none;width:44px;height:26px}
+.inter input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
+.inter i{position:absolute;inset:0;border:1.5px solid var(--gris-500);border-radius:2px;background:#fff;transition:background-color .15s,border-color .15s}
+.inter i::after{content:"";position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:2px;background:var(--gris-500);transition:transform .15s var(--e),background-color .15s}
+.inter input:checked+i{background:var(--marine-900);border-color:var(--marine-900)}
+.inter input:checked+i::after{transform:translateX(18px);background:#fff}
+.inter input:focus-visible+i{outline:2px solid var(--bleu-500);outline-offset:3px}
+@media (hover:hover){.c-inter:hover .inter input:not(:checked)+i{border-color:var(--marine-900)}}
+
+/* voir les logements */
+.c-voir{justify-content:center}
+.c-voir .btn{width:100%;justify-content:space-between}
+.voir-n{display:none}
+
+/* pied : la synthèse, puis la façon de regarder */
+.gr-pied{background:var(--gris-025)}
+.c-compte{justify-content:flex-end;gap:4px}
+.compte:focus{outline:0}.compte:focus-visible{outline:2px solid var(--bleu-500);outline-offset:4px}
+.compte{display:flex;align-items:baseline;gap:8px;margin:0;font-size:14px;font-weight:500;line-height:1.3;color:var(--gris-700)}
+.compte-n{display:inline-block;clip-path:inset(0 -4px);font-size:26px;font-weight:700;line-height:32px;letter-spacing:-.02em;color:var(--marine-900);font-variant-numeric:tabular-nums}
+.compte-n>span{display:inline-block}
+.actifs{display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;min-height:24px;margin:0;font-size:13px;line-height:1.3;color:var(--gris-600)}
+.actifs .sep{width:1px;height:14px;background:var(--gris-200)}
+.gr-lien{min-height:24px;padding:0;border:0;background:none;font:600 13px Poppins,sans-serif;color:var(--marine-900);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}
+.gr-lien[aria-disabled=true]{color:var(--gris-600);text-decoration:none;cursor:default}
+/* compte des résultats (1er nov., Steven : clarté, forme, mise en page) : sans critère, une seule phrase (« Tous nos logements, sans filtre »)
+   et ni filet ni « Effacer » inactif; avec des critères, leur nombre en marine avec un point bleu, et « Effacer » en petite étiquette à croix */
+.c-compte.vide .actifs .sep,.c-compte.vide #av-effacer{display:none}
+.c-compte:not(.vide) #gr-actifs{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--marine-900)}
+.c-compte:not(.vide) #gr-actifs::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--bleu-500)}
+.c-compte:not(.vide) .actifs .sep{display:none}
+.c-compte:not(.vide) #av-effacer{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border:1px solid var(--gris-200);border-radius:2px;background:#fff;font-size:12.5px;text-decoration:none;transition:border-color .2s,background-color .2s}
+.c-compte:not(.vide) #av-effacer::before{content:"";width:9px;height:9px;background:linear-gradient(45deg,transparent 45%,currentColor 45% 55%,transparent 55%),linear-gradient(-45deg,transparent 45%,currentColor 45% 55%,transparent 55%)}
+.c-compte:not(.vide) #av-effacer:hover{border-color:var(--marine-900);background:var(--gris-025)}
+.c-compte .actifs{gap:6px 12px}
+
+/* ouverture : les rangées s'ajoutent, cellule par cellule */
+.gr-av:not([hidden])>.gr-c{animation:gr-entre .2s var(--e) both;animation-delay:calc(var(--i,0)*20ms)}
+@keyframes gr-entre{from{opacity:0;transform:translateY(-4px)}}
+
+/* ——— bureau : 12 colonnes, l'axe de la colonne 8 traverse toutes les rangées ——— */
+@media (min-width:1240px){
+  .c-secteur{grid-column:span 8}.c-rive{grid-column:span 4}
+  .c-pieces,.c-loyer,.c-plus{grid-column:span 4}
+  .c-type{grid-column:span 4;grid-row:span 3}.c-ch{grid-column:span 4}.c-sdb,.c-sup{grid-column:5/span 4}
+  .c-dispo{grid-column:9/span 4;grid-row:span 3}
+  .c-inclus{grid-column:span 8;grid-row:span 3}.c-inter,.c-voir{grid-column:9/span 4}
+  .c-compte{grid-column:span 3;padding-right:0}
+  .c-tri{grid-column:span 5;display:grid;justify-content:end;align-content:start;row-gap:12px;padding-left:0;box-shadow:-1px 0 0 var(--gris-025)}
+  .c-vue{grid-column:span 4}
+}
+/* ——— tablette : demi-largeurs (axe de la colonne 6) ; Affichage remonte à côté de Plus de critères ——— */
+@media (min-width:641px) and (max-width:1239px){
+  .c-secteur,.c-rive,.c-pieces,.c-loyer,.c-plus,.c-vue,.c-ch,.c-sdb,.c-sup,.c-dispo,.c-inter,.c-compte,.c-tri{grid-column:span 6}
+  .gr-c>.gr-t{min-height:20px}
+  .c-vue{order:1}.gr-av>.gr-c{order:2}.c-compte{order:3}.c-tri{order:4}
+  .t-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .c-dispo .seg-v{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .seg-v>label{justify-content:center;padding:0 8px}
+}
+/* ——— mobile : une colonne, Rive collée au secteur, Plus de critères et Affichage sur une rangée, action collante ——— */
+@media (max-width:640px){
+  .gr-c{padding:12px 14px 14px;gap:10px}
+  .c-rive{padding-top:0;box-shadow:0 -1px 0 #fff}
+  .c-rive .gr-t,.c-plus .gr-t,.c-vue .gr-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .c-plus,.c-vue{grid-column:span 6;justify-content:center}
+  .c-plus{padding-right:7px}.c-vue{padding-left:7px}
+  .gr-plus{padding:0 8px;gap:6px;justify-content:center}
+  .gr-plus .i,.gr-plus .t{display:none}
+  .gr-plus .t-m{display:block}
+  .gr-plus .ch{margin-left:0}
+  .gr-plus b{position:absolute;top:4px;right:4px;min-width:20px;height:20px;padding:0 5px}
+  .seg-vue .t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .seg-vue>button{min-width:44px;padding:0}
+  .seg-vue svg{width:18px;height:18px}
+  .c-vue{order:1}.gr-av>.gr-c{order:2}.c-tri{order:3}.c-compte{order:4}.gr-av>.c-voir{order:5}
+  .grb:has(>#lg-avance[hidden]) .c-tri{display:none}
+  .c-cpt{padding-top:10px;padding-bottom:10px}
+  .c-inter{min-height:64px;padding-top:10px;padding-bottom:10px}
+  .t-3{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:auto}
+  .t-9{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gr-tuile>span{flex-direction:column;align-items:flex-start;justify-content:space-between;gap:6px;min-height:60px;padding:9px 26px 9px 10px}
+  .t-3 .gr-tuile>span{font-size:12px;padding-right:22px}
+  .gr-tuile>span::after{top:9px;right:9px}
+  .seg-v{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .seg-v>label{justify-content:center;padding:0 6px}
+  .seg>label,.seg>button,.seg-vue>button{min-height:44px;min-width:44px}
+  .seg>label,.seg>button{padding:0 6px}
+  .gr-plus{height:50px}
+  .gr-cherche{height:50px}.gr-cherche .loupe{width:38px;height:38px}
+  .cran-zone{height:44px}.cran-piste{top:20px}.cran-pts{top:16px}.cran-poignee{top:7px;height:30px}
+  .gr-lien{min-height:44px}
+  .c-rive::before{display:none}
+  .c-voir{position:sticky;bottom:0;z-index:4;padding:10px 14px;box-shadow:0 -1px 0 var(--fil),0 -10px 24px -14px rgba(7,26,46,.35)}
+  .c-voir .btn{min-height:52px}
+  .voir-n{display:grid;place-items:center;min-width:26px;height:24px;margin-left:auto;margin-right:-8px;padding:0 6px;border-radius:2px;background:#fff;color:var(--marine-950);font-size:13px;font-weight:700}
+  .compte-n{font-size:24px;line-height:30px}
+  .c-compte .actifs{animation:gr-entre .2s var(--e) both}
+}
+@media (max-width:374px){
+  .c-plus,.c-vue{grid-column:span 12;padding-left:14px;padding-right:14px}
+  .c-vue .seg{justify-content:stretch}.seg-vue>button{flex:1}
+}
+@media (prefers-reduced-motion:reduce){
+  .grb *,.grb *::before,.grb *::after,.gr-c::before{transition:none!important;animation:none!important}
+}
+
+/* téléphone : champ de recherche à 16 px pour éviter le zoom d’iOS (critique) */
+@media (max-width:640px){.gr-cherche input{font-size:16px}}

@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import REFONTE from './src/lib/refonte-routes.json';
 
 /* Adresse de connexion du portail locataire (à confirmer, SEO.md : « Redirections vers le portail locataire »).
    Les anciennes adresses des services réservés au portail y redirigent. */
@@ -45,12 +46,17 @@ const nextConfig: NextConfig = {
       { source: '/en/property-management/greater-quebec-city', destination: '/en/neighbourhoods', permanent: true },
     ];
   },
+  /* Refonte de Steven (1er nov. 2026, scripts/refonte/importer.py) : ses pages statiques remplacent les pages françaises
+     aux mêmes adresses. Les autres (anglais, pages locales, logements « Bientôt ») restent celles de l'application. */
+  async rewrites() {
+    return { beforeFiles: Object.entries(REFONTE).map(([source, fichier]) => ({ source, destination: `/refonte/${fichier}` })), afterFiles: [], fallback: [] };
+  },
   /* En-têtes de base. La politique CSP complète (liste blanche : domaine Lease Lane + projet Supabase, B14/SB1)
      sera ajoutée avec la connexion à Supabase et aux tuiles de carte (SB5). */
   async headers() {
     return [{
       /* Aperçu du portail (iframe des pages Gestion) : jamais indexé. */
-      source: '/:dossier(espace-proprietaire|portail-commun|tokens)/:path*',
+      source: '/:dossier(espace-proprietaire|portail-commun|tokens|refonte)/:path*',
       headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
     }, {
       source: '/:path*',
