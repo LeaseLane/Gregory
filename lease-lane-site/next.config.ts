@@ -55,6 +55,11 @@ const nextConfig: NextConfig = {
      sera ajoutée avec la connexion à Supabase et aux tuiles de carte (SB5). */
   async headers() {
     return [{
+      /* Aperçu de la refonte (Coolify, sans mot de passe) : jamais indexé, aucune page. */
+      source: '/:path*',
+      has: [{ type: 'host', value: 'refonte-leaselane.coolify.thewebismine.ca' }],
+      headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+    }, {
       /* Aperçu du portail (iframe des pages Gestion) : jamais indexé. */
       source: '/:dossier(espace-proprietaire|portail-commun|tokens|refonte)/:path*',
       headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
