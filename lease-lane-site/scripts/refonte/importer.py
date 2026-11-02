@@ -89,6 +89,9 @@ for url, nom in routes.items():
     assert t.count(POLICES) == 1, f'{nom} : liens Google Fonts introuvables'
     t = t.replace(POLICES, '<link rel="stylesheet" href="kit/polices.css">')
     t = t.replace('</head>', '<script src="kit/branchements.js" defer></script>\n</head>', 1)
+    # Images chargées au défilement, sauf le logo de l'en-tête (visible dès l'arrivée). Les héros sont des fonds CSS.
+    t = re.sub(r'<img\b(?![^>]*\bloading=)(?![^>]*class="logo-[hv]")([^>]*)>',
+               lambda m: '<img loading="lazy"' + ('' if 'decoding=' in m[1] else ' decoding="async"') + m[1] + '>', t)
     (DEST / nom).write_text(adresses(t), encoding='utf-8')
 
 ROUTES.write_text(json.dumps(routes, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
