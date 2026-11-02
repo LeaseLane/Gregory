@@ -45,6 +45,19 @@
       body: JSON.stringify({ p: { visiteur: v, choix: { mesure: !!c.audience, marketing: !!c.publicite }, version: String(c.version || '?'), langue: document.documentElement.lang || 'fr' } }) }).catch(() => null);
   });
 
+  /* ---------- Bouton EN (la maquette n'a pas d'anglais) : page jumelle de l'application (hreflang en-CA), sinon /en ---------- */
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('a[lang="en"],button[lang="en"]');
+    if (!b) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    let cible = '/en';
+    try {
+      const u = new URL(document.querySelector('link[rel=alternate][hreflang="en-CA"]').href).pathname;
+      if ((await fetch(u, { method: 'HEAD' })).ok) cible = u;
+    } catch (x) {}
+    location.href = cible;
+  }, true);
+
   /* ---------- Envoi (Turnstile invisible, comme src/lib/envoi.js) ---------- */
   let ts = null;
   const turnstile = () => ts || (ts = new Promise((ok, ko) => {
