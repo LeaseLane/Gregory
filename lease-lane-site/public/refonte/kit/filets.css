@@ -1,0 +1,387 @@
+/* Lease Lane — couche « Cadre à filets » (31 oct. 2026), chargée juste après kit.css sur toutes les pages.
+   Inspirée du site d'Attio (dossier ATI de Steven) : un cadre de filets fins qui court sur toute la page, des sections
+   découpées en cellules par des filets, des titres en deux tons, des cartes flottantes qui montrent de vraies données,
+   des étapes numérotées en lignes, une bande sombre à trame verticale pour l'appel final.
+   La marque ne bouge pas : Poppins, marine et bleu, coins de 2 px, photos réelles, aucune pilule. */
+:root{
+  --filet:#E4E8ED;--filet-f:#D3D9E0;--filet-s:rgba(145,181,224,.16);
+  --flot:0 1px 2px rgba(7,26,46,.05),0 14px 32px -14px rgba(7,26,46,.22);
+  --cadre:max(var(--g),calc(50% - var(--in)/2));
+}
+
+/* ——— Le cadre : les deux filets verticaux aux bords du contenu (body::before) sont retirés de tout le site le 31 oct., à la demande de Steven.
+   Le reste de la couche ne bouge pas. ——— */
+body{position:relative}
+.passage{background:transparent}
+/* deux sections blanches qui se suivent : un filet sur toute la largeur les sépare (il croise le cadre) */
+main>.sec:not(.sec-gris):not(.sombre)+.sec:not(.sec-gris):not(.sombre),
+main>.sec:not(.sec-gris):not(.sombre)+.passage,main>.passage+.sec:not(.sec-gris):not(.sombre){border-top:1px solid var(--filet)}
+
+/* ——— Titres : plus fins et plus serrés; la suite d'un titre peut passer en gris (deux tons) ——— */
+.h2,.heros h1{font-weight:600;letter-spacing:-.032em}
+.h2{line-height:1.1}
+.h2 .suite,.h3 .suite,.titre-2t .suite{color:var(--gris-500)}
+.sombre .h2 .suite,.sombre .titre-2t .suite{color:var(--bleu-200)}
+/* Second ton des titres (31 oct., choix de Steven : « Gris, façon Attio ») : l'ancien accent bleu (.acc) suit la même règle que .suite.
+   Gris 500 sur fond clair (3,9:1 : réservé aux titres de 24 px et plus), bleu pâle sur fond sombre. */
+:is(h1,h2,h3,.h2,.h3) .acc{color:var(--gris-500)}
+.sombre :is(h1,h2,h3,.h2,.h3) .acc{color:var(--bleu-200)}
+.titre-2t{font-size:clamp(26px,2.6vw,36px);font-weight:600;line-height:1.18;letter-spacing:-.028em;color:var(--marine-900);max-width:24ch}
+.sombre .titre-2t{color:#fff}
+/* étiquette entre crochets, en petites capitales grises : [ LOCATAIRES ] */
+.etiq{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gris-600)}
+.etiq::before{content:"[\00a0"}.etiq::after{content:"\00a0]"}
+.sombre .etiq{color:var(--bleu-200)}
+/* petit libellé au-dessus d'un titre centré (sans capitales) */
+.libelle{display:inline-block;margin-bottom:14px;font-size:13.5px;font-weight:500;color:var(--gris-600)}
+.sombre .libelle{color:var(--bleu-200)}
+
+/* En-tête de section centré : libellé, titre, chapeau, actions */
+.tete-c{display:grid;justify-items:center;text-align:center;max-width:760px;margin:0 auto 56px}
+.tete-c .chap{margin-top:16px;max-width:54ch}
+.tete-c .actions{justify-content:center;margin-top:28px}
+
+/* ——— Cartes : bord fin, sans ombre au repos; au survol, le bord passe au marine ——— */
+.carte{border-color:var(--filet-f)}
+a.carte:hover{box-shadow:var(--flot)}
+
+/* Carte flottante : un petit écran de données réelles (chiffre, liste, état), posée sur un fond ou une photo */
+.flot{display:grid;gap:8px;padding:16px 18px;background:#fff;border:1px solid var(--filet);border-radius:2px;box-shadow:var(--flot);color:var(--gris-700)}
+.flot-l{font-size:12px;font-weight:500;line-height:1.3;color:var(--gris-600)}
+.flot-v{font-size:22px;font-weight:600;line-height:1.1;letter-spacing:-.02em;color:var(--marine-900)}
+.flot-v small{font-size:12.5px;font-weight:500;letter-spacing:0;color:var(--gris-600)}
+.flot-ligne{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:8px;border-top:1px solid var(--filet);font-size:13px}
+.flot-ligne b{font-weight:600;color:var(--marine-900)}
+
+/* État : petite étiquette à point coloré (Libre, Au plus tard le 15, Terminé) */
+.etat{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;font-size:12px;font-weight:500;line-height:1.5;color:var(--marine-900);background:#fff;border:1px solid var(--filet-f);border-radius:2px;white-space:nowrap}
+.etat::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--bleu-500)}
+.etat.vert::before{background:#2E8B57}.etat.ambre::before{background:#C98A1B}.etat.rouge::before{background:var(--rouge)}
+.etat.vert{border-color:rgba(46,139,87,.35)}.etat.ambre{border-color:rgba(201,138,27,.4)}
+
+/* ——— Cellules : une rangée découpée par des filets; le visuel en haut, le titre et le texte en bas ——— */
+.cellules{display:grid;grid-template-columns:repeat(var(--c,3),minmax(0,1fr));border-top:1px solid var(--filet);border-bottom:1px solid var(--filet)}
+.cellules.c2{--c:2}.cellules.c4{--c:4}.cellules.c5{--c:5}
+.cellules>*{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:var(--h,220px);padding:28px;border-left:1px solid var(--filet);text-decoration:none}
+.cellules>*:first-child{border-left:0}
+.cellules .cel-ic{width:20px;height:20px;color:var(--gris-500)}
+.cellules .cel-ic svg{width:20px;height:20px}
+.cellules .cel-v{flex:1;display:grid;place-items:center;padding:8px 0 20px}
+.cellules h3{margin-top:auto;font-size:16px;font-weight:600;line-height:1.35;letter-spacing:-.01em}
+.cellules p{font-size:14.5px;line-height:1.55;color:var(--gris-600)}
+.cellules .cel-ic+h3{margin-top:auto}
+a.cellules>*,.cellules>a{transition:background-color .2s}
+.cellules>a:hover{background:var(--gris-025)}
+.sombre .cellules,.sombre .cellules>*{border-color:var(--filet-s)}
+.sombre .cellules p{color:var(--bleu-100)}.sombre .cellules .cel-ic{color:var(--bleu-200)}
+@media (max-width:1100px){
+  .cellules,.cellules.c4,.cellules.c5{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cellules>*{border-left:1px solid var(--filet);border-top:1px solid var(--filet)}
+  .cellules>*:nth-child(2n+1){border-left:0}
+  .cellules>*:nth-child(-n+2){border-top:0}
+}
+@media (max-width:640px){
+  .cellules,.cellules.c4,.cellules.c5,.cellules.c2{grid-template-columns:minmax(0,1fr)}
+  .cellules>*{border-left:0;min-height:0;padding:24px 0}
+  .cellules>*:nth-child(2){border-top:1px solid var(--filet)}
+}
+
+/* ——— Mur : grille à bords partagés (logos, fiches, cartes de logement) ——— */
+.mur{display:grid;grid-template-columns:repeat(var(--c,4),minmax(0,1fr));border-top:1px solid var(--filet);border-left:1px solid var(--filet)}
+.mur>*{min-width:0;border-right:1px solid var(--filet);border-bottom:1px solid var(--filet)}
+
+/* ——— Grand chiffre dans une cellule ——— */
+.stat-g{display:grid;align-content:center;justify-items:center;gap:10px;text-align:center}
+.stat-g b{font-size:clamp(56px,6vw,88px);font-weight:500;line-height:1;letter-spacing:-.05em;color:var(--marine-900)}
+.stat-g span{font-size:14px;color:var(--gris-600)}
+.sombre .stat-g b{color:#fff}.sombre .stat-g span{color:var(--bleu-100)}
+
+/* ——— Étapes en lignes : 01 · titre · // · description, un trait vertical relie les numéros ——— */
+.etapes-r{list-style:none;margin:0;padding:0;border-top:1px solid var(--filet)}
+.etapes-r>li{position:relative;display:grid;grid-template-columns:72px minmax(0,1fr) 40px minmax(0,1.25fr);gap:0 16px;align-items:start;padding:28px 0;border-bottom:1px solid var(--filet)}
+.etapes-r .n{font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--gris-600);padding-left:24px}
+.etapes-r>li::before{content:"";position:absolute;left:24px;top:56px;bottom:-1px;width:1px;background:var(--filet-f)}
+.etapes-r>li:last-child::before{display:none}
+.etapes-r h3{font-size:17px;font-weight:600;line-height:1.35;letter-spacing:-.01em}
+.etapes-r .sep{font-size:14px;color:var(--gris-400)}
+.etapes-r p{font-size:15px;line-height:1.6;color:var(--gris-600)}
+.etapes-r .etat{margin-top:10px}
+.sombre .etapes-r,.sombre .etapes-r>li{border-color:var(--filet-s)}
+.sombre .etapes-r p{color:var(--bleu-100)}
+.sombre .etapes-r .n{color:var(--bleu-200)}
+.sombre .etapes-r>li::before{background:rgba(145,181,224,.3)}
+/* tablette et téléphone : le titre et le texte s'empilent à droite du numéro */
+@media (max-width:900px){
+  .etapes-r>li{grid-template-columns:56px minmax(0,1fr);gap:6px 12px}
+  .etapes-r .n{padding-left:12px}.etapes-r>li::before{left:12px}
+  .etapes-r .sep{display:none}
+  .etapes-r p{grid-column:2}
+}
+
+/* ——— Fond à points (pour les cartes reliées) ——— */
+.points{background-color:#fff;background-image:radial-gradient(var(--gris-200) 1px,transparent 1.2px);background-size:18px 18px}
+.sec-gris.points{background-color:var(--gris-025)}
+
+/* Carte-nœud : petite carte d'une étape reliée aux autres par des traits */
+.noeud{display:grid;gap:4px;padding:12px 14px;background:#fff;border:1px solid var(--filet-f);border-radius:2px;box-shadow:0 1px 2px rgba(7,26,46,.04)}
+.noeud b{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--marine-900)}
+.noeud b svg{width:16px;height:16px;color:var(--bleu-600)}
+.noeud span{font-size:12.5px;line-height:1.45;color:var(--gris-600)}
+.noeud.actif{border-color:var(--bleu-500);box-shadow:0 0 0 3px rgba(69,129,203,.12)}
+
+/* ——— Bande sombre à trame verticale : des traits fins, coupés en arc au-dessus du titre ——— */
+.trame-v{position:relative;isolation:isolate;overflow:hidden}
+.trame-v::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(145,181,224,.16) 0 1px,transparent 1px 7px);
+  -webkit-mask-image:radial-gradient(120% 95% at 50% 118%,transparent 58%,#000 58.3%,#000 100%);
+          mask-image:radial-gradient(120% 95% at 50% 118%,transparent 58%,#000 58.3%,#000 100%)}
+
+/* ——— Appel final du pied (toutes les pages) : centré, sur la trame verticale ——— */
+.pied{padding-top:0;overflow-x:clip}
+/* pleine largeur : la trame et le filet du bas vont d'un bord à l'autre de l'écran */
+.pied-ent{position:relative;isolation:isolate;grid-template-columns:minmax(0,1fr);justify-items:center;gap:0;margin:0 calc(50% - 50vw) 64px;padding:120px calc(50vw - 50%) 88px;text-align:center;border-bottom:1px solid rgba(145,181,224,.2)}
+/* la trame monte jusqu'au haut du marine (31 oct., Steven) : quand la page finit sur une bande qui descend dans le marine (.fin, .faq),
+   elle continue sous la carte d'appel, qui reste par-dessus (z-index 2); l'arc garde la forme qu'il a dans le pied.
+   Arc relevé de 30 % le 31 oct. (Steven) : 52 % de la hauteur de l'appel au lieu de 40 % (rayon vertical 120 % → 140 %);
+   puis de 40 % le 1er nov. : 73 % de la hauteur (rayon vertical 140 % → 175 %); puis encore de 25 % : 91 % (175 % → 205 %). */
+body:has(main>section.fin:last-of-type,main>section.faq:last-of-type) .pied-ent{--trame-haut:168px}
+.pied-ent::before{content:"";position:absolute;inset:calc(-1 * var(--trame-haut,0px)) 0 0;z-index:-1;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(145,181,224,.15) 0 1px,transparent 1px 7px);
+  -webkit-mask-image:linear-gradient(#000,#000),radial-gradient(85% 205% at 50% 132%,transparent 60%,#000 60.3%);
+          mask-image:linear-gradient(#000,#000),radial-gradient(85% 205% at 50% 132%,transparent 60%,#000 60.3%);
+  -webkit-mask-size:100% var(--trame-haut,0px),100% calc(100% - var(--trame-haut,0px));mask-size:100% var(--trame-haut,0px),100% calc(100% - var(--trame-haut,0px));
+  -webkit-mask-position:top,bottom;mask-position:top,bottom;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.pied-ent .sur{display:none}
+.pied-ent h2{font-size:clamp(32px,3.6vw,48px);font-weight:600;line-height:1.1;letter-spacing:-.032em;max-width:20ch}
+.pied-ent p:not(.sur){margin-top:16px;font-size:16.5px;max-width:48ch}
+.pied-ent>.btn,.pied-ent>.actions{margin-top:32px}
+/* la page finit déjà sur une carte d'appel : l'appel du pied reste plus discret */
+body:has(.fin-carte) .pied-ent{padding-top:96px;padding-bottom:72px}
+body:has(.fin-carte) .pied-ent h2{font-size:clamp(28px,3vw,40px)}
+@media (max-width:640px){body:has(main>section.fin:last-of-type,main>section.faq:last-of-type) .pied-ent{--trame-haut:96px}.pied-ent{padding-top:88px;padding-bottom:64px}.pied-ent h2,body:has(.fin-carte) .pied-ent h2{font-size:30px}}
+
+/* ——— Carte finale « trois portes » : les contacts deviennent trois cellules à filets ——— */
+.fin-carte{box-shadow:var(--flot),0 40px 80px -40px rgba(7,26,46,.45);border:1px solid var(--filet)}
+.fin-carte.fin-portes>.contacts{gap:0;border-top:1px solid var(--filet);border-bottom:1px solid var(--filet)}
+.fin-portes .contacts>li+li{border-left:1px solid var(--filet)}
+.fin-portes .contacts a{grid-template-columns:40px minmax(0,1fr) 20px;align-items:start;min-height:132px;padding:24px;background:#fff}
+.fin-portes .contacts a:hover{background:var(--gris-025)}
+.fin-portes .contacts .ic{background:var(--marine-900);color:#fff}
+.fin-portes .contacts b{color:var(--marine-900)}
+.fin-portes .contacts span span{margin-top:4px;color:var(--gris-600)}
+.fin-portes .contacts a>svg:last-child{align-self:end;color:var(--bleu-600)}
+.fin-portes .contacts a:hover>svg:last-child{color:var(--marine-900)}
+.fin-portes .contacts .urg .ic{background:var(--rouge)}
+@media (max-width:1100px){.fin-portes .contacts>li+li{border-left:0;border-top:1px solid var(--filet)}.fin-portes .contacts a{min-height:0}}
+
+/* ——— Bande d'appel claire : la phrase à gauche, le bouton à droite, entre deux filets ——— */
+.bande-cta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px 40px;padding:28px 0;border-top:1px solid var(--filet);border-bottom:1px solid var(--filet)}
+.bande-cta p{font-size:15.5px;line-height:1.5;color:var(--gris-600)}
+.bande-cta p b{display:block;font-weight:600;color:var(--marine-900)}
+
+@media (prefers-reduced-motion:reduce){.cellules>a{transition:none}}
+
+/* ——— Carte finale « trois portes » (1er nov., Steven : design, espacement, mise en page) ———
+   Le titre à gauche; à droite, le chapeau puis les deux boutons côte à côte, de même hauteur, alignés sur la base du titre.
+   Les trois contacts : icône, titre et précision sur une ligne de base commune, la flèche centrée à droite; des cellules plus basses. */
+.fin-carte.fin-portes{gap:40px;padding:52px 56px 56px}
+.fin-portes .fin-tete{grid-template-columns:minmax(0,1fr) auto;gap:24px 56px;align-items:end}
+.fin-portes .fin-tete>div:last-child{display:flex;flex-direction:column;align-items:flex-end;gap:18px;max-width:440px}
+.fin-portes .fin-tete .chap{margin:0;max-width:40ch;text-align:right;font-size:16px}
+.fin-portes .fin-tete .actions{flex-wrap:nowrap;justify-content:flex-end;gap:12px;margin:0}
+.fin-portes .fin-tete .actions .btn{min-height:52px;white-space:nowrap}
+.fin-portes .fin-tete .sur{margin-bottom:16px}
+.fin-portes .contacts a{grid-template-columns:44px minmax(0,1fr) 20px;align-items:center;gap:18px;min-height:0;padding:26px 28px}
+.fin-portes .contacts .ic,.fin-portes .contacts .ic img{width:44px;height:44px}
+.fin-portes .contacts b{font-size:16.5px}
+.fin-portes .contacts span span{margin-top:3px;font-size:14px;line-height:1.45;text-wrap:balance}
+.fin-portes .contacts a>svg:last-child{align-self:center}
+@media (max-width:1100px){
+  .fin-portes .fin-tete{grid-template-columns:minmax(0,1fr)}
+  .fin-portes .fin-tete>div:last-child{align-items:flex-start;max-width:none}
+  .fin-portes .fin-tete .chap{text-align:left}
+  .fin-portes .fin-tete .actions{justify-content:flex-start;flex-wrap:wrap}
+}
+@media (max-width:640px){
+  .fin-carte.fin-portes{gap:28px;padding:28px 20px}
+  .fin-portes .fin-tete .actions{flex-direction:column;align-items:stretch;width:100%}
+  .fin-portes .fin-tete .actions .btn{justify-content:space-between}
+  .fin-portes .contacts a{padding:20px 4px}
+}
+
+/* ——— Carte clé sous la bannière (.cq-c4, 13 pages; 1er nov., Steven : refonte, mise en page, forme) ———
+   Le grand chiffre et sa phrase sont centrés verticalement entre le surtitre et le pied, au lieu de laisser un grand vide en bas;
+   le pied est séparé par un filet, le résumé à gauche et le lien à droite. Le chiffre ne touche plus le trait du surtitre. */
+.cq-c4-une{padding:34px 40px 30px}
+.cq-c4-une>.cq-c4-ligne{margin-top:auto;padding-top:24px}
+.cq-c4-une>.cq-c4-ligne .phrase{max-width:30ch}
+.cq-c4-une .phrase-d{text-wrap:pretty}
+.cq-c4-une>.cq-c4-bas{margin-top:auto;padding-top:22px;border-top:1px solid var(--filet)}
+.cq-c4-une>.cq-c4-ligne+.cq-c4-bas{margin-top:auto}
+.cq-c4-une>.cq-c4-ligne:not(:has(+.cq-c4-bas)){margin-bottom:0}
+.cq-c4-une>.cq-c4-barre,.cq-c4-une>.sv-rep{margin-bottom:0}
+.cq-c4-une>:is(.cq-c4-ligne,.cq-c4-barre,.sv-rep):has(+.cq-c4-bas){margin-bottom:24px}
+@media (max-width:640px){.cq-c4-une{padding:26px 22px 24px}}
+
+/* pied de page, téléphone seulement (1er nov., Steven) : colonnes centrées — logo, accroche, titres et leur trait, liens */
+@media (max-width:640px){
+  .pied-g{text-align:center;justify-items:center}
+  .pied-g>div>img{margin-left:auto;margin-right:auto}
+  .pied-g .accroche{margin-left:auto;margin-right:auto}
+  .pied h4::after{margin-left:auto;margin-right:auto}
+  .pied-g ul{padding:0}
+}
+
+/* ——— Bas du pied (1er nov., Steven : repris du site) : la silhouette de Québec au trait, les cinq liens légaux, l'identité et le responsable ——— */
+.bas{display:grid;justify-items:center;gap:22px;margin-top:40px;padding-top:28px;text-align:center}
+.bas-ville{display:block;width:100%;height:auto;max-height:64px;fill:none;stroke:rgba(145,181,224,.42);stroke-width:1.4;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.bas-ville path{vector-effect:non-scaling-stroke}
+.bas-liens{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 26px;font-size:13.5px}
+.bas-liens a{color:var(--bleu-100)}
+.bas-id{display:grid;gap:8px;margin:0;font-size:13px;line-height:1.5;color:var(--bleu-200)}
+.bas-id a{color:inherit}
+
+/* ——— Bulle de Cléo (toutes les pages) et choix des témoins (repris du site : cleo-temoins.jsx) ——— */
+.cl-flot{position:fixed;right:24px;bottom:24px;z-index:80;display:grid;justify-items:end;gap:16px;pointer-events:none}
+.cl-flot>*{pointer-events:auto}
+.cl-bulle{position:relative;display:block;width:64px;height:64px;padding:0;border:0;background:none;cursor:pointer;border-radius:50%;box-shadow:0 0 0 2px #fff,0 14px 32px -10px rgba(7,26,46,.55);transition:transform .25s var(--e)}
+.cl-bulle img{width:64px;height:64px;border-radius:50%;object-fit:cover}
+.cl-bulle i{position:absolute;right:1px;bottom:3px;width:14px;height:14px;border:2px solid #fff;border-radius:50%;background:var(--bleu-500)}
+.cl-bulle:hover{transform:translateY(-2px)}
+.cl-bulle:focus-visible{outline:2px solid var(--bleu-500);outline-offset:4px}
+.ct{position:relative;width:min(360px,calc(100vw - 48px));background:#fff;border:1px solid rgba(12,33,71,.12);border-radius:2px;box-shadow:0 24px 60px -24px rgba(12,33,71,.45);color:var(--gris-700);transform-origin:100% 100%;animation:ct-in .45s cubic-bezier(.22,1,.36,1) both}
+.ct[hidden]{display:none}
+@keyframes ct-in{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.ct::after{content:"";position:absolute;right:26px;bottom:-7px;width:12px;height:12px;background:#fff;border-right:1px solid rgba(12,33,71,.12);border-bottom:1px solid rgba(12,33,71,.12);transform:rotate(45deg)}
+.ct-tete{display:flex;align-items:center;gap:12px;padding:16px 16px 0}
+.ct-tete img{width:32px;height:32px;border-radius:50%;object-fit:cover;flex:none}
+.ct-tete b{display:block;font-size:13.5px;color:var(--marine-900)}.ct-tete small{display:block;font-size:12px;color:var(--gris-600)}
+.ct-x{display:grid;place-items:center;width:36px;height:36px;margin-left:auto;border:0;border-radius:2px;background:transparent;color:var(--marine-900);cursor:pointer}
+.ct-x svg{width:18px;height:18px}.ct-x:hover{background:var(--bleu-025)}
+.ct-tx{margin:12px 16px 0;font-size:13px;line-height:1.55}.ct-tx a{color:var(--bleu-600);font-weight:600}
+.ct-act{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:16px}
+.ct-b{min-height:40px;padding:0 8px;border:1px solid var(--marine-900);border-radius:2px;background:#fff;color:var(--marine-900);font:600 13px Poppins,system-ui,sans-serif;white-space:nowrap;cursor:pointer;transition:background-color .2s,transform .15s}
+.ct-b:hover{background:var(--bleu-025)}.ct-b:active{transform:scale(.97)}
+.ct-b:focus-visible,.ct-x:focus-visible,.ct-sw:focus-visible{outline:2px solid var(--bleu-500);outline-offset:2px}
+.ct-cats{margin:12px 16px 0;border-top:1px solid var(--filet)}
+.ct-cat{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--filet)}
+.ct-cat b{display:block;font-size:13px;color:var(--marine-900)}.ct-cat small{display:block;font-size:12px;line-height:1.45;color:var(--gris-600)}
+.ct-fixe{font-size:12px;font-weight:600;color:var(--gris-600)}
+.ct-sw{position:relative;flex:none;width:44px;height:26px;border:0;border-radius:2px;background:var(--gris-200);cursor:pointer;transition:background-color .2s}
+.ct-sw::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(12,33,71,.3);transition:transform .25s cubic-bezier(.22,1,.36,1)}
+.ct-sw[aria-checked="true"]{background:var(--marine-900)}.ct-sw[aria-checked="true"]::after{transform:translateX(18px)}
+.ct-ok{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 8px 12px 16px}
+.ct-ok img{width:28px;height:28px;border-radius:50%;object-fit:cover}.ct-ok p{margin:0;font-size:13px;line-height:1.5;color:var(--marine-900)}
+.menu:not([hidden])~.cl-flot{display:none}
+@media (max-width:560px){.cl-flot{right:16px;bottom:16px}.cl-bulle,.cl-bulle img{width:56px;height:56px}.ct{width:calc(100vw - 32px)}.ct-b{font-size:12.5px;padding:0 4px}}
+@media (prefers-reduced-motion:reduce){.ct{animation:none}.ct-sw,.ct-sw::after,.ct-b,.cl-bulle{transition:none}}
+
+/* ═══ Vérification mobile (1er nov. 2026, Steven : « check-up de la version mobile, au pixel près ») — téléphone seulement ═══
+   1 · cibles tactiles : 44 px au moins pour les liens et boutons hors du texte courant (WCAG 2.5.5, règle du système) */
+@media (max-width:640px){
+  .tete-logo{display:flex;align-items:center;min-height:44px}
+  .tete-langue a{width:44px}
+  .pied ul{gap:0}
+  .pied ul a{display:inline-flex;align-items:center;min-height:44px}
+  .bas-liens{gap:0 20px}
+  .bas-liens a{display:inline-flex;align-items:center;min-height:44px}
+  .bas-id a{display:inline-flex;align-items:center;min-height:44px}
+  .toc a{padding-top:12px;padding-bottom:12px}
+  .toc-autres a{display:inline-flex;align-items:center;min-height:44px}
+  .fq-stat .lien,.cleo-art .lien{min-height:44px}
+}
+/* 2 · aucun texte sous 12 px au téléphone : surtitres en capitales, en-têtes de tableaux, étiquettes */
+@media (max-width:640px){
+  .acces small,.cq-c li small,.jalons .quand,.jalons .fournir b,.etiq,.bientot,.appro-t i,table th{font-size:12px}
+}
+/* 3 · revue visuelle, lot 2 (formulaires, tuiles, à propos, blogue, cartes de fin) */
+@media (max-width:640px){
+  .bloc-f .form,.form{grid-template-columns:minmax(0,1fr)}
+  .form>*,.form .champ,.form .depot,.form fieldset{min-width:0}
+  .actions:has(>.btn+.btn){flex-direction:column;align-items:stretch;gap:10px}
+  .actions:has(>.btn+.btn)>.btn{justify-content:space-between}
+  .art-une img{height:auto;min-height:0;aspect-ratio:1376/768}
+  .plan h2 span{white-space:nowrap}
+  .fil [aria-current]{overflow-wrap:anywhere}
+  .corps .tab-defile{background:linear-gradient(90deg,#fff 30%,rgba(255,255,255,0)) left/24px 100% no-repeat local,linear-gradient(270deg,#fff 30%,rgba(255,255,255,0)) right/24px 100% no-repeat local,radial-gradient(farthest-side at 100% 50%,rgba(7,26,46,.16),transparent) right/12px 100% no-repeat scroll}
+}
+@media (max-width:480px){
+  .tuiles:not(.t5){grid-template-columns:minmax(0,1fr)}
+}
+/* 4 · revue visuelle, lot 3 : tableaux en fiches au téléphone (chaque ligne devient une fiche, chaque valeur garde son libellé),
+   tuiles de formulaire sur une colonne, appels de note sans saut d'interligne, titres équilibrés */
+@media (max-width:560px){
+  .tab-defile{overflow:visible!important;border:0!important;background:none!important}
+  .tab-defile table,.tab-defile tbody,.tab-defile tr,.tab-defile td,.tab-defile th{display:block;width:auto!important;text-align:left}
+  .tab-defile table{border:0}
+  .tab-defile thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .tab-defile tbody tr{padding:16px 18px 18px;border:1px solid var(--gris-200);border-radius:2px;background:#fff}
+  .tab-defile tbody tr+tr{margin-top:8px}
+  .tab-defile tbody :is(td,th){padding:0;border:0;background:none;font-size:14.5px;line-height:1.5}
+  .tab-defile tbody :is(td,th):first-child{margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--gris-100);font-size:15.5px;font-weight:600;color:var(--marine-900)}
+  .tab-defile tbody :is(td,th):first-child[data-l=""]::before,.tab-defile tbody :is(td,th):first-child::before{content:none}
+  .tab-defile tbody :is(td,th)+:is(td,th){margin-top:10px}
+  .tab-defile tbody :is(td,th)[data-l]:not(:first-child)::before{content:attr(data-l);display:block;margin-bottom:2px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--bleu-600)}
+}
+@media (max-width:480px){
+  .form .tuiles:not(.t5){grid-template-columns:minmax(0,1fr)!important}
+}
+@media (max-width:640px){
+  .corps sup{line-height:0}
+  .fil a{display:inline-flex;align-items:center;min-height:44px}
+  .contacts b{overflow-wrap:anywhere}
+  .toc-autres{margin-right:-8px}
+  details>summary{min-height:44px}
+  a.lien{min-height:44px}
+  main :is(h1,h2,h3){text-wrap:balance}
+}
+/* 5 · revue visuelle, lot 1 et finitions */
+@media (max-width:640px){
+  .actions .btn,.form-pied .btn{max-width:100%;white-space:normal;text-align:left}
+  .form-pied{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:14px}
+  .form-pied .btn{flex:none;width:100%;justify-content:space-between}
+  .btn{min-height:48px}
+  .cq-c4-bas .lien,.fq-stat .lien,.art .lien,.lien-t{min-height:44px}
+  .onglets [role=tab],.onglets button{min-height:44px}
+  .onglets.enroule{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+  .pagin{flex-wrap:nowrap;gap:4px}
+  .pagin button{min-width:40px;padding:0 8px}
+  .fq4-chat{height:440px}
+}
+@media (max-width:480px){
+  ul.coches{grid-template-columns:minmax(0,1fr)!important}
+}
+@media (max-width:640px){
+  main :is(a.lien,a.lien-t,a.lien-b){min-height:44px!important}
+  main :is(.etiq,.bientot){font-size:12px!important}
+  main i{font-size:max(12px,1em)}
+}
+@media (max-width:640px){
+  .officiel span{font-size:12px}
+  main a[href="#sources"]{display:inline-flex;align-items:center;min-height:44px}
+}
+@media (max-width:640px){
+  .pagin.pagin{flex-wrap:nowrap}
+  .onglets.enroule{grid-template-columns:minmax(0,1fr)}
+  .onglets.enroule [role=tab],.onglets.enroule button{white-space:normal}
+}
+@media (max-width:640px){.pagin.pagin{gap:4px}.pagin.pagin button{min-width:32px;padding:0 4px}}
+
+/* ═══ En-tête au téléphone (1er nov. 2026, Steven) : le logo vertical à cadre remplace le logo horizontal, et le bouton blanc « Logements à louer » disparaît.
+   Reste à droite : la langue et le menu. Le logo horizontal garde sa place dès 641 px. ═══ */
+.tete-logo .logo-v{display:none}
+@media (max-width:640px){
+  .tete .tete-logo .logo-h{display:none}
+  .tete .tete-logo .logo-v{display:block;height:68px;width:auto}
+  .tete-outils>.tete-loge{display:none}
+  .tete-outils>.tete-langue{margin-left:0;border-left:1px solid rgba(255,255,255,.16)}
+}
+@media (max-width:360px){.tete .tete-logo .logo-v{height:60px}}
+/* 320 px (iPhone SE, 1re génération) : le bouton du pied de page et le tableau « dispo » de À propos ne dépassent plus l'écran */
+@media (max-width:340px){
+  .btn{font-size:14px;gap:10px;padding-left:16px;padding-right:16px}
+  .promesse{min-width:0}
+  .temoin-nav .points-n{gap:4px;margin-left:4px}.temoin-nav .points-n i{width:14px}
+  .promesse .dispo{width:100%;table-layout:fixed}
+  .promesse .dispo th,.promesse .dispo td{padding-left:6px;padding-right:6px;overflow-wrap:anywhere;hyphens:auto}
+}
