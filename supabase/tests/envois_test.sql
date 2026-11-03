@@ -35,7 +35,9 @@ select is(pg_temp.mettre('LOC-04', 't2:a'), pg_temp.mettre('LOC-04', 't2:a'), '2
 select is((select count(*)::int from comms.outbox where idempotency_key = 't2:a'), 1, '2 · une seule ligne');
 select is((comms.enqueue('{"template_code":"LOC-06","recipient":"x@exemple.test","idempotency_key":"t2:nuit","at":"2026-10-14 23:30:00-04"}')).scheduled_for,
           pg_temp.toronto('2026-10-15 08:00'), '2 · mis en file à 23 h 30 → prévu le lendemain 8 h');
-select throws_ok($$ select comms.enqueue('{"template_code":"LOC-01","recipient":"x@exemple.test","idempotency_key":"t2:inactif"}') $$, 'PT422', null, '2 · gabarit inactif (exemple de maquette) → PT422');
+-- Gabarit inactif fictif (LOC-01, l'exemple d'origine, est actif depuis les invitations du 25 oct.).
+insert into comms.email_templates (code, audience, name, subject, contenu, lcap_category, unsubscribe_required, active) values ('PSP-98', 'Prospects', 'Essai inactif', 's', '{"subject":"s","title":"t"}', 'commercial', true, false);
+select throws_ok($$ select comms.enqueue('{"template_code":"PSP-98","recipient":"x@exemple.test","idempotency_key":"t2:inactif"}') $$, 'PT422', null, '2 · gabarit inactif → PT422');
 select throws_ok($$ select comms.enqueue('{"template_code":"LOC-04","recipient":"x@exemple.test","idempotency_key":"t2:sms","channel":"sms"}') $$, 'PT422', null, '2 · SMS d''un gabarit sans version SMS → PT422');
 
 -- 3. Droits : la file ne s'écrit que par les fonctions
