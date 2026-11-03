@@ -8,6 +8,7 @@ Les pages restent celles de Steven (générées par son _src/construire.py) : se
 - Poppins servie depuis le domaine (/assets/fonts) au lieu de Google Fonts (Loi 25 : aucun tiers avant consentement);
 - kit/temoins.js annonce le choix (« ll-temoins-choix »), comme la bannière du site; branchements.js s'y abonne
   (GA4, pixel Meta, preuve du choix) et envoie les formulaires;
+- balise robots passée de noindex à index, follow (mise en ligne du 3 nov. 2026);
 - pages gardées du site en ligne : logements-a-louer, logement et demande-de-location (annonces d'exemple, « Bientôt »),
   plan.html (page interne) n'est pas servie.
 Sortie : public/refonte/ et src/lib/refonte-routes.json (adresse → fichier), lu par next.config.ts et src/proxy.ts.
@@ -50,6 +51,8 @@ POLICES = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
            '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
            '<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">')
 
+NOINDEX = '<meta name="robots" content="noindex, nofollow">'
+
 if DEST.exists():
     shutil.rmtree(DEST)
 shutil.copytree(SRC / 'img', DEST / 'img')
@@ -89,6 +92,9 @@ for url, nom in routes.items():
     assert t.count(POLICES) == 1, f'{nom} : liens Google Fonts introuvables'
     t = t.replace(POLICES, '<link rel="stylesheet" href="kit/polices.css">')
     t = t.replace('</head>', '<script src="kit/branchements.js" defer></script>\n</head>', 1)
+    # Mise en ligne (3 nov. 2026) : les pages de Steven sont indexées, comme celles qu'elles remplacent (son noindex servait à l'aperçu).
+    assert t.count(NOINDEX) == 1, f'{nom} : balise robots introuvable'
+    t = t.replace(NOINDEX, '<meta name="robots" content="index, follow">')
     # Images chargées au défilement, sauf le logo de l'en-tête (visible dès l'arrivée). Les héros sont des fonds CSS.
     t = re.sub(r'<img\b(?![^>]*\bloading=)(?![^>]*class="logo-[hv]")([^>]*)>',
                lambda m: '<img loading="lazy"' + ('' if 'decoding=' in m[1] else ' decoding="async"') + m[1] + '>', t)
