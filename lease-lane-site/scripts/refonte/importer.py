@@ -51,6 +51,8 @@ POLICES = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
            '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
            '<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">')
 
+FAQ_SANS = ("else dire('Je n’ai pas de réponse toute prête à cette question. Choisissez une catégorie, ou "
+            "<a href=\"nous-joindre.html\">écrivez à l’équipe</a> : une personne vous répond.'+(cote?'':liste()),800,true)};")
 NOINDEX = '<meta name="robots" content="noindex, nofollow">'
 
 if DEST.exists():
@@ -95,6 +97,10 @@ for url, nom in routes.items():
     # Mise en ligne (3 nov. 2026) : les pages de Steven sont indexées, comme celles qu'elles remplacent (son noindex servait à l'aperçu).
     assert t.count(NOINDEX) == 1, f'{nom} : balise robots introuvable'
     t = t.replace(NOINDEX, '<meta name="robots" content="index, follow">')
+    # FAQ de l'accueil (fq4) : une question sans réponse toute prête part à Cléo (window.llCleo), le message de la maquette reste en secours.
+    if FAQ_SANS in t:
+        t = t.replace(FAQ_SANS, "else{const non=()=>" + FAQ_SANS[5:-2] + ",g=gen;if(!window.llCleo)return non();"
+                      "window.llCleo(t).then(r=>{if(g===gen)r?dire(esc(r),300,true):non()},()=>{if(g===gen)non()})}};")
     # Images chargées au défilement, sauf le logo de l'en-tête (visible dès l'arrivée). Les héros sont des fonds CSS.
     t = re.sub(r'<img\b(?![^>]*\bloading=)(?![^>]*class="logo-[hv]")([^>]*)>',
                lambda m: '<img loading="lazy"' + ('' if 'decoding=' in m[1] else ' decoding="async"') + m[1] + '>', t)

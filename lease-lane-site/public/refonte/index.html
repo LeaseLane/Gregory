@@ -1616,7 +1616,7 @@ document.querySelectorAll('.fq1').forEach(fq=>{const tabs=[...fq.querySelectorAl
     const chercher=t=>{const mots=norm(t).split(/[^a-z0-9]+/).filter(m=>m.length>3),tout=CATS.flatMap(c=>c.q);
       const res=tout.map(x=>{const q=norm(x.q),r=norm(x.r.replace(/<[^>]+>/g,' '));return{x,s:mots.reduce((a,m)=>a+(q.includes(m)?3:0)+(r.includes(m)?1:0),0)}}).filter(o=>o.s>0).sort((a,b)=>b.s-a.s).slice(0,3).map(o=>o.x);
       bulle(esc(t),true);if(res.length)dire(reponses(res,'Voici les réponses'),800,true);
-      else dire('Je n’ai pas de réponse toute prête à cette question. Choisissez une catégorie, ou <a href="/nous-joindre">écrivez à l’équipe</a> : une personne vous répond.'+(cote?'':liste()),800,true)};
+      else{const non=()=>dire('Je n’ai pas de réponse toute prête à cette question. Choisissez une catégorie, ou <a href="/nous-joindre">écrivez à l’équipe</a> : une personne vous répond.'+(cote?'':liste()),800,true),g=gen;if(!window.llCleo)return non();window.llCleo(t).then(r=>{if(g===gen)r?dire(esc(r),300,true):non()},()=>{if(g===gen)non()})}};
     fq.addEventListener('click',e=>{const b=e.target.closest('.fq4-cats button');if(b&&CATS)choisir(+b.dataset.c);if(e.target.closest('.fq4-reprise'))accueil()});
     form.addEventListener('submit',e=>{e.preventDefault();const t=champ.value.trim();if(!t||!CATS)return;champ.value='';chercher(t)});
     new IntersectionObserver((es,o)=>{if(es[0].isIntersecting&&!lance){lance=true;o.disconnect();accueil()}},{threshold:.3}).observe(fil)})})();
