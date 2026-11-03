@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { dateCourte, aujQc } from '@/composants/portail/format';
 
 /* Propriétaire · 01 Tableau de bord. Décisions du 13 oct. : les loyers sont payés directement au propriétaire (Lease Lane les suit),
    aucun « net » ni versement; la carte « Net versé » de la maquette devient « Honoraires du mois » (facturés le 5). */
@@ -16,7 +17,7 @@ const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juill.', 'août
 const MOIS_LONG = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
 const k = (n: number) => `${Math.round(n / 1000)} k$`;
-const d = (iso: string) => new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' }).replace(/^1 /, '1er ');
+const d = (iso: string) => dateCourte(iso);
 const ETATS: Record<string, [string, string]> = { attente_vous: ['En attente de vous', 'action'], urgence: ['Urgence prise en charge', 'todo'], en_cours: ['En cours', 'neutral'], qualifiee: ['Qualifiée', ''] };
 
 export function TableauDeBord({ prenom, portes, immeubles, donnees, erreur }: { prenom: string; portes: number; immeubles: number; donnees: Accueil | null; erreur: string | null }) {
@@ -25,7 +26,7 @@ export function TableauDeBord({ prenom, portes, immeubles, donnees, erreur }: { 
   const [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   if (erreur || !donnees) return <div className="bandeau erreur" role="alert">{erreur ?? 'Votre tableau de bord n’a pas pu être lu.'}</div>;
-  const D = donnees, auj = new Date(), serie = D.loyers.slice(-periode), max = Math.max(1, ...serie.map((s) => s.montant));
+  const D = donnees, auj = aujQc(), serie = D.loyers.slice(-periode), max = Math.max(1, ...serie.map((s) => s.montant));
   const totalPaye = serie.reduce((a, s) => a + s.montant, 0), occ = D.occupation.total ? Math.round((100 * D.occupation.occupes) / D.occupation.total) : 0;
 
   async function decider(x: AFaire, decision: 'approuve' | 'refuse') {

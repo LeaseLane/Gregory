@@ -3,11 +3,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { dateCourte } from '@/composants/portail/format';
 
 /* Cloche des portails (écran 18) : 30 dernières notifications, non lues en premier plan, « Tout marquer comme lu », « Tout voir » (page complète). */
 type Notif = { id: string; genre: string; icone: string; titre: string; ligne: string | null; lien: string | null; le: string; lue: boolean };
 const quand = (iso: string) => { const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000); if (m < 60) return `Il y a ${Math.max(1, m)} min`; if (m < 1440) return `Il y a ${Math.round(m / 60)} h`;
-  const x = new Date(iso); return `${x.getDate() === 1 ? '1er' : x.getDate()} ${x.toLocaleDateString('fr-CA', { month: 'short' })}`; };
+  return dateCourte(iso); };
 
 export function Cloche({ clair = true, toutVoir }: { clair?: boolean; toutVoir?: string }) {
   const router = useRouter();

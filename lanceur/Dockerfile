@@ -15,7 +15,8 @@ RUN rm -f .env.local && npm run build
 
 FROM node:22-alpine
 WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
+# Heure du Québec au serveur : les dates rendues côté serveur égalent celles du navigateur (portails).
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0 TZ=America/Toronto
 COPY --from=build /app/lanceur/.next/standalone ./
 COPY --from=build /app/lanceur/.next/static ./lanceur/.next/static
 COPY --from=build /app/lanceur/public ./lanceur/public

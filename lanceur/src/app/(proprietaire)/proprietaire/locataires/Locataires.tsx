@@ -3,12 +3,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
+import { aujQc } from '@/composants/portail/format';
 
 /* Propriétaire · 05 Locataires : chiffres, recherche, filtre par immeuble, une carte par locataire (loyer du mois, retard et relance). */
 type Loc = { id: string; nom: string; immeuble_id: string; logement: string; loyer: number; depuis: number | null; retard_jours: number | null; paye_ce_mois: boolean };
 export type DonneesLocataires = { locataires: Loc[]; occupes: number; documents: number; documents_semaine: number; immeubles: { id: string; adresse: string }[] };
 const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
-const MOIS = new Date().toLocaleDateString('fr-CA', { month: 'long' });
+const MOIS = aujQc().toLocaleDateString('fr-CA', { month: 'long' });
 const DE = /^[aeiouéèêh]/i.test(MOIS) ? 'd’' : 'de ';
 const relance = (j: number) => (j >= 12 ? 'mise en demeure' : j >= 7 ? 'relance J+7' : 'rappel J+1');
 

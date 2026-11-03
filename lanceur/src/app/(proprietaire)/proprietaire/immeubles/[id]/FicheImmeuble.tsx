@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
 import { ouvrirFichier } from '@/composants/portail/fichiers';
 import { Photo } from '../Photo';
+import { dateCourte, aujQc } from '@/composants/portail/format';
 
 /* Propriétaire · 03 Fiche d'un immeuble : gestionnaire, ce mois-ci, photo et caractéristiques, onglets logements, locataires, demandes, documents. */
 export type Fiche = { id: string; adresse: string; secteur: string | null; etages: number | null; annee: number | null; stationnement: string | null; chauffage: string | null; photo: boolean;
@@ -11,7 +12,7 @@ export type Fiche = { id: string; adresse: string; secteur: string | null; etage
   logements: { id: string; numero: string; type: string | null; loyer: number | null; occupe: boolean; locataire: string | null; locataire_id: string | null }[];
   demandes: { id: string; titre: string; logement: string; statut: string; recue: string }[]; documents: { id: string; titre: string; categorie: string | null; le: string }[] };
 const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
-const d = (iso: string) => new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' }).replace(/^1 /, '1er ');
+const d = (iso: string) => dateCourte(iso, true);
 const STATUTS: Record<string, string> = { open: 'Reçue', in_progress: 'En cours', closed: 'Fermée' };
 
 export function FicheImmeuble({ donnees, erreur }: { donnees: Fiche | null; erreur: string | null }) {
@@ -33,7 +34,7 @@ export function FicheImmeuble({ donnees, erreur }: { donnees: Fiche | null; erre
               <a className="bouton bouton-contour po-bouton" href={`mailto:${F.gestionnaire.courriel}`}><Icone nom="message" taille={16} couleur="#0C2147" />Écrire à {F.gestionnaire.nom.split(' ')[0]}</a></> : <p className="gris texte-13">À venir.</p>}
           </section>
           <section className="carte-l18" aria-label="Ce mois-ci">
-            <h2 className="titre-carte" style={{ margin: 0 }}>Ce mois-ci</h2><p className="gris texte-13" style={{ margin: '4px 0 12px' }}>{new Date().toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' }).replace(/^./, (c) => c.toUpperCase())}</p>
+            <h2 className="titre-carte" style={{ margin: 0 }}>Ce mois-ci</h2><p className="gris texte-13" style={{ margin: '4px 0 12px' }}>{aujQc().toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' }).replace(/^./, (c) => c.toUpperCase())}</p>
             <dl className="po-liste">{[['Loyers payés chez vous', argent(F.mois.payes)], ['Arriérés', argent(F.mois.arrieres)], ['Demandes ouvertes', String(F.mois.demandes)], ['Travaux engagés', argent(F.mois.travaux)]].map(([t, v]) =>
               <div key={t}><dt>{t}</dt><dd className={t === 'Arriérés' && F.mois.arrieres ? 'rouge' : ''}>{v}</dd></div>)}</dl>
           </section>

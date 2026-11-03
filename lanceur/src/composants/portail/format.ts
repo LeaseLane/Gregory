@@ -1,6 +1,10 @@
 /* Montants et dates des portails (dates « 1er », D13; espace insécable des milliers). */
 export const argent = (n: number, cents = false) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }).replace(/[  ]/g, ' ')} $`;
-const d = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso);
+// Un horodatage devient d'abord le jour du calendrier à Québec, ancré à midi : même texte au serveur (UTC) et dans tout navigateur.
+const jourIsoQc = (x: Date) => x.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+const d = (iso: string) => new Date(`${iso.length === 10 ? iso : jourIsoQc(new Date(iso))}T12:00:00`);
+/** Aujourd'hui à Québec (midi) : getDate, getMonth et les formats sans fuseau donnent le même jour partout. */
+export const aujQc = () => new Date(`${jourIsoQc(new Date())}T12:00:00`);
 const jour = (x: Date) => (x.getDate() === 1 ? '1er' : String(x.getDate()));
 export const dateLongue = (iso: string) => { const x = d(iso); return `${jour(x)} ${x.toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' })}`; };
 export const dateCourte = (iso: string, annee = false) => { const x = d(iso); return `${jour(x)} ${x.toLocaleDateString('fr-CA', annee ? { month: 'short', year: 'numeric' } : { month: 'short' })}`; };

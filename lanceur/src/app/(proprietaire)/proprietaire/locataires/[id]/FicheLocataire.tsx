@@ -6,6 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
 import { ouvrirFichier, televerser } from '@/composants/portail/fichiers';
+import { dateCourte } from '@/composants/portail/format';
 
 /* Propriétaire · 06 Fiche d'un locataire : coordonnées (consultation journalisée), loyer, paiement, bail; documents (dépôt, lecture,
    téléchargement), paiements, demandes. Aucune corbeille : les pièces sont conservées 3 ans après la fin du bail (D14, Loi 25). */
@@ -15,7 +16,7 @@ export type FicheLoc = { id: string; nom: string; courriel: string | null; telep
   demandes: { id: string; titre: string; statut: string; recue: string }[];
   documents: { id: string; titre: string; categorie: string; taille: number | null; le: string; par: string | null; lisible: boolean }[] };
 const argent = (n: number) => `${n.toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/ /g, ' ')} $`;
-const d = (iso: string) => { const x = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso); const j = x.getDate(); return `${j === 1 ? '1er' : j} ${x.toLocaleDateString('fr-CA', { month: 'short', year: 'numeric' })}`; };
+const d = (iso: string) => dateCourte(iso, true);
 const dLong = (iso: string) => { const x = new Date(`${iso.slice(0, 10)}T12:00:00`); const j = x.getDate(); return `${j === 1 ? '1er' : j} ${x.toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' })}`; };
 const taille = (n: number | null) => n == null ? '' : n > 1e6 ? `${(n / 1e6).toFixed(1).replace('.', ',')} Mo` : `${Math.max(1, Math.round(n / 1e3))} ko`;
 const CATEGORIES = ['Bail et annexes', 'Identité et enquête', 'États des lieux', 'Paiements et reçus', 'Avis et correspondance'];
