@@ -20,13 +20,12 @@ export async function proxy(request: NextRequest) {
   });
 
   const chemin = request.nextUrl.pathname;
-  // 2026-11-03 : portails propriétaire et locataire sur app.leaselane.ca (Traefik n'y envoie que leurs chemins), admin.leaselane.ca = l'équipe.
-  // L'invitation d'équipe (/espace/inscription?p=equipe) reste sur admin : sa session et la suite (/connexion/code) y vivent.
+  // 2026-11-03 : portails propriétaire et locataire sur app.leaselane.ca (Traefik n'y envoie que leurs chemins). admin.leaselane.ca = l'équipe,
+  // sans aucune inscription : même l'invitation d'équipe (/espace/inscription?p=equipe) se fait sur app, puis connexion sur admin.
   const hote = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
-  const equipe = chemin.startsWith('/espace/inscription') && request.nextUrl.searchParams.get('p') === 'equipe';
-  if (hote === 'admin.leaselane.ca' && PORTAIL.test(chemin) && !equipe)
+  if (hote === 'admin.leaselane.ca' && chemin.startsWith('/api/portail/')) return new NextResponse(null, { status: 404 });
+  if (hote === 'admin.leaselane.ca' && PORTAIL.test(chemin))
     return NextResponse.redirect(`https://app.leaselane.ca${chemin}${request.nextUrl.search}`, 308);
-  if (hote === 'app.leaselane.ca' && equipe) return NextResponse.redirect(`https://admin.leaselane.ca${chemin}${request.nextUrl.search}`, 308);
   // Retour d'un lien courriel (connexion, mot de passe) : la page échange le code avant toute vérification.
   if (chemin.startsWith('/auth/')) return reponse;
   // A2 : l'inscription par code se fait sans session (code et courriel vérifiés en base par « portail-inscription »).

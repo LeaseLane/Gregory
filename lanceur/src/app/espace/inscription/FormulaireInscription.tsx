@@ -20,8 +20,8 @@ export function FormulaireInscription({ espace, code: code0, equipe = false }: {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { setEnvoi(false); return setErreur(j.error ?? 'Le compte n’a pas pu être créé.'); }
     const { error } = await supabaseNavigateur().auth.signInWithPassword({ email: f.courriel.trim(), password: f.mdp });
-    // équipe : la double authentification s'active tout de suite (Lanceur)
-    if (j.espace === 'equipe') return window.location.assign(error ? '/connexion' : '/connexion/code');
+    // équipe : la double authentification s'active tout de suite (Lanceur); inscrite sur app.leaselane.ca, la personne se connecte sur admin.
+    if (j.espace === 'equipe') return window.location.assign(location.hostname === 'app.leaselane.ca' ? 'https://admin.leaselane.ca/connexion' : error ? '/connexion' : '/connexion/code');
     window.location.assign(error ? `/espace/connexion?p=${j.espace ?? espace}` : '/espace');
   }
 
