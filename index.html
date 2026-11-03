@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script>
+// 2026-11-03 : l'accueil de app.leaselane.ca ouvre les nouveaux portails (Next.js, /espace). Une adresse avec paramètres
+// (?p=travailleur, ?p=prospecteur, ?code=…) ou un jeton dans le # (anciens liens courriel) garde l'ancienne application.
+if (location.pathname === '/' && !location.search && !location.hash) location.replace('/espace/connexion');
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Lease Lane</title>
