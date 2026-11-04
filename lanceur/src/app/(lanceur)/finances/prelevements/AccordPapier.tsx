@@ -28,7 +28,7 @@ export function AccordPapier({ fermer, fait }: { fermer: () => void; fait: (mess
     setEnvoi(false);
     if (error) { await sb.storage.from('portail').remove([chemin]); return setErreur(error.message); }
     const r = data as { premier: string; montant: number };
-    fait(`Accord saisi pour ${bail.locataire} : ${argent(r.montant, true)} par mois, premier débit le ${jour(r.premier)}. Le locataire le voit dans son portail.`);
+    fait(`Accord saisi pour ${bail.locataire} : ${argent(r.montant, true)} par mois, premier débit le ${jour(r.premier)} ; le locataire le voit dans son portail.`);
   }
   const pret = bail && fichier && f.titulaire.trim().length >= 2 && /^\d{3}$/.test(f.institution) && /^\d{5}$/.test(f.transit) && /^\d{5,12}$/.test(f.compte)
     && (f.type === 'variable' || Number(f.montant.replace(',', '.')) > 0) && f.signe_le;
@@ -59,8 +59,11 @@ export function AccordPapier({ fermer, fait }: { fermer: () => void; fait: (mess
           <label className="fenetre-lib">Premier débit demandé<span>facultatif</span><input type="date" className="e70-raison" min={bail?.premier} value={f.premier} onChange={maj('premier')} /></label>
         </div>
         {bail && <p className="fenetre-aide">Premier débit possible au plus tôt le {jour(bail.premier)} (10 jours après la saisie, sur une échéance de loyer).</p>}
-        <label className="fenetre-lib">Accord signé<span>PDF ou photo, obligatoire</span>
-          <input type="file" className="e70-raison" accept="application/pdf,image/*" onChange={(e) => setFichier(e.target.files?.[0] ?? null)} /></label>
+        <span className="fenetre-lib">Accord signé<span>PDF ou photo, obligatoire</span></span>
+        <label className="bouton bouton-contour" style={{ width: '100%', justifyContent: 'flex-start', padding: '0 16px', cursor: 'pointer', marginBottom: 8 }}>
+          <Icone nom={fichier ? 'check' : 'upload'} taille={18} couleur="#0C2147" />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fichier ? fichier.name : 'Joindre l’accord signé'}</span>
+          <input type="file" hidden accept="application/pdf,image/*" onChange={(e) => setFichier(e.target.files?.[0] ?? null)} /></label>
         {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
         <div className="fenetre-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>Annuler</button>
           <button className="bouton bouton-principal" disabled={envoi || !pret}>{envoi ? 'Enregistrement…' : 'Enregistrer l’accord'}</button></div>
