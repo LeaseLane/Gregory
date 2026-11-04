@@ -6,6 +6,7 @@ import { TEMOIN_MEMOIRE, optionsTemoins } from '@/lib/memoire';
 /* Rafraîchit la session et applique la 2FA avant toute page de Lanceur.
    La base revérifie (RLS, require_aal2) : l'interface n'est jamais la seule barrière. */
 export async function proxy(request: NextRequest) {
+  request.headers.set('x-chemin', request.nextUrl.pathname);   // lu par la coquille (prospecteur : Ventes › Mes prospects seulement)
   let reponse = NextResponse.next({ request });
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookieOptions: optionsTemoins(request.cookies.get(TEMOIN_MEMOIRE)?.value),

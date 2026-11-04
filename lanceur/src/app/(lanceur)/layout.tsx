@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { destination } from '@/lib/acces';
 import { BarreHaut } from '@/composants/BarreHaut';
@@ -18,13 +19,16 @@ export default async function LanceurLayout({ children }: { children: React.Reac
   const u = data.user!;
   const moi = await lireMoi();
   const initiales = moi?.initiales ?? (u.email ?? '?').slice(0, 2).toUpperCase();
+  // Prospecteur téléphonique (cold_callers) hors équipe : Ventes › Mes prospects seulement. Sans rôle d'équipe, la base refuse tout le reste.
+  const { data: appelant } = moi ? { data: null } : await supabase.from('cold_callers').select('full_name').eq('user_id', u.id).eq('active', true).maybeSingle();
+  if (appelant && !((await headers()).get('x-chemin') ?? '').startsWith('/ventes/mes-prospects')) redirect('/ventes/mes-prospects');
   const [{ data: notifs }, { data: politique }] = moi ? await Promise.all([supabase.rpc('lanceur_notifications'), supabase.rpc('lanceur_politique')]) : [{ data: null }, { data: null }];
 
   return (
     <div className="coquille">
       {moi && <Inactivite minutes={Number((politique as { inactivite_minutes?: number } | null)?.inactivite_minutes ?? 0)} />}
-      <BarreHaut initiales={initiales} courriel={u.email ?? ''} nom={moi?.nom && !moi.nom.includes('@') ? moi.nom : (u.email ?? '')} role={moi ? (ROLES[moi.role] ?? moi.role) : ''} nonLues={Number((notifs as { non_lues?: number } | null)?.non_lues ?? 0)} moi={u.id} />
-      {moi ? (
+      <BarreHaut initiales={initiales} courriel={u.email ?? ''} nom={moi?.nom && !moi.nom.includes('@') ? moi.nom : (appelant?.full_name ?? u.email ?? '')} role={moi ? (ROLES[moi.role] ?? moi.role) : appelant ? 'prospecteur' : ''} nonLues={Number((notifs as { non_lues?: number } | null)?.non_lues ?? 0)} moi={u.id} />
+      {moi || appelant ? (
         children
       ) : (
         <AccesReserve

@@ -9,11 +9,12 @@ const ETAPES: Record<string, [string, string]> = { new: ['Nouveau', 'action'], c
   proposal: ['Proposition', 'todo'], signed: ['Client', 'final'], lost: ['Perdu', 'neutral'] };
 const VIDE = { full_name: '', company_name: '', phone: '', email: '', num_doors: '', avg_rent: '', notes: '' };
 
-export function Prospecteur({ lignes, moi, erreur }: { lignes: Ligne[]; moi: string; erreur: string | null }) {
+export function MesProspects({ lignes, moi, nouveau, erreur }: { lignes: Ligne[]; moi: string; nouveau: boolean; erreur: string | null }) {
   const router = useRouter();
-  const [ouvert, setOuvert] = useState(false), [f, setF] = useState(VIDE), [envoi, setEnvoi] = useState(false), [msg, setMsg] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null);
+  const [ouvert, setOuvertBrut] = useState(nouveau), [f, setF] = useState(VIDE), [envoi, setEnvoi] = useState(false), [msg, setMsg] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null);
+  const setOuvert = (v: boolean) => { setOuvertBrut(v); if (!v && nouveau) router.replace('/ventes/mes-prospects'); };
   async function relais(corps: Record<string, unknown>) {
-    const res = await fetch('/api/portail/prospecteur', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) });
+    const res = await fetch('/api/prospecteur', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) });
     const x = await res.json().catch(() => ({})); return res.ok ? null : (x.error ?? `Erreur ${res.status}`);
   }
   async function creer() {
@@ -25,15 +26,13 @@ export function Prospecteur({ lignes, moi, erreur }: { lignes: Ligne[]; moi: str
   }
   async function etape(l: Ligne, stage: string) { const e = await relais({ action: 'update_my_stage', prospect_id: l.id, stage }); if (e) setToast(e); else router.refresh(); }
   const champ = (k: keyof typeof VIDE, lib: string, type = 'text', aide?: string) =>
-    <label className="champ"><span>{lib}{aide && <small className="gris"> · {aide}</small>}</span><input type={type} value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} /></label>;
+    <label className="fenetre-lib">{lib}{aide && <span>{aide}</span>}<input type={type} className="e70-raison" value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} /></label>;
   const aRappeler = lignes.filter((l) => l.next_followup_date && l.next_followup_date <= new Date().toISOString().slice(0, 10)).length;
   return (
     <>
-      <section className="lo-bandeau court"><div className="lo-bandeau-haut"><div><p className="surtitre">Espace prospecteur</p><h1>Mes prospects</h1>
-        <p className="lo-resume">{lignes.length} prospect{lignes.length > 1 ? 's' : ''}{aRappeler ? ` · ${aRappeler} à rappeler aujourd’hui` : ''}</p></div>
-        <div className="lo-bandeau-actions"><button className="bouton bouton-principal" onClick={() => setOuvert(true)}><Icone nom="plus" taille={18} couleur="#fff" />Nouveau prospect</button></div></div></section>
+      {!!aRappeler && <div className="bandeau info" role="status">{aRappeler} prospect{aRappeler > 1 ? 's' : ''} à rappeler aujourd’hui.</div>}
       {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
-      <section className="carte-l18 e2 lo-remonte pr-carte" aria-label="Mes prospects">
+      <section className="carte-l18 pr-carte" aria-label="Mes prospects">
         <table className="tableau">
           <thead><tr><th>Propriétaire</th><th>Téléphone</th><th>Portes</th><th>Rappel</th><th>Étape</th><th /></tr></thead>
           <tbody>{lignes.map((l) => { const [lib, ton] = ETAPES[l.stage] ?? [l.stage, 'neutral']; return (
@@ -50,16 +49,16 @@ export function Prospecteur({ lignes, moi, erreur }: { lignes: Ligne[]; moi: str
         </table>
       </section>
       {ouvert && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setOuvert(false)}>
-        <form className="modale lo-modale" role="dialog" aria-modal="true" aria-labelledby="np-t" onSubmit={(e) => { e.preventDefault(); creer(); }}>
-          <header className="tete-action"><h2 id="np-t" style={{ margin: 0 }}>Nouveau prospect</h2>
-            <button type="button" className="haut-ibtn" onClick={() => setOuvert(false)} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
-          <p className="gris texte-13">Le prospect vous est assigné. L’équipe des ventes le voit aussi.</p>
+        <form className="fenetre" role="dialog" aria-modal="true" aria-labelledby="np-t" style={{ marginTop: 80, width: 'min(560px, 100%)' }} onSubmit={(e) => { e.preventDefault(); creer(); }}>
+          <div className="fenetre-tete"><h2 id="np-t">Nouveau prospect</h2>
+            <button type="button" className="fermer" onClick={() => setOuvert(false)} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
+          <p className="fenetre-texte">Le prospect vous est assigné. L’équipe des ventes le voit aussi.</p>
           {champ('full_name', 'Nom du propriétaire')}{champ('company_name', 'Entreprise', 'text', 'facultatif')}
           {champ('phone', 'Téléphone', 'tel')}{champ('email', 'Courriel', 'email', 'facultatif')}
-          <div className="deux-champs">{champ('num_doors', 'Nombre de portes', 'number')}{champ('avg_rent', 'Loyer moyen ($)', 'number')}</div>
-          <label className="champ"><span>Notes</span><textarea rows={3} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} maxLength={5000} /></label>
+          <div className="nt-grille">{champ('num_doors', 'Nombre de portes', 'number')}{champ('avg_rent', 'Loyer moyen ($)', 'number')}</div>
+          <label className="fenetre-lib">Notes<span>facultatif</span><textarea rows={3} className="e70-raison" value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} maxLength={5000} /></label>
           {msg && <div className="bandeau erreur" role="alert">{msg}</div>}
-          <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><button type="button" className="bouton bouton-contour" onClick={() => setOuvert(false)}>Annuler</button>
+          <div className="fenetre-actions"><button type="button" className="bouton bouton-contour" onClick={() => setOuvert(false)}>Annuler</button>
             <button className="bouton bouton-principal" disabled={envoi || !f.full_name.trim()}>Ajouter le prospect</button></div>
         </form></div>}
       {toast && <div className="toast" role="status"><Icone nom="check" taille={18} couleur="#fff" />{toast}</div>}

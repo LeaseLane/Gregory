@@ -1,6 +1,7 @@
 import { lireAccueil, type Tuile } from '@/lib/accueil';
 import { lireMoi } from '@/lib/moi';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 
 /* Accueil · 10 espaces (maquette l00 : 5 × 2, état en direct, « reprendre où vous étiez », astuce ⌘K). */
@@ -18,7 +19,8 @@ function Carte({ href, label, children }: { href?: string; label: string; childr
 }
 
 export default async function Accueil() {
-  const moi = (await lireMoi())!;
+  const moi = await lireMoi();
+  if (!moi) redirect('/ventes/mes-prospects');   // prospecteur hors équipe (la coquille a déjà refusé les autres)
   const nom = moi.nom && !moi.nom.includes('@') ? moi.nom : '';
   const prenom = nom.split(/\s+/)[0];
   const a = await lireAccueil(moi);
