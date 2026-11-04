@@ -7,6 +7,7 @@ import { Icone } from '@/composants/Icones';
 import type { Carte } from '../Bons';
 import { heure } from '../../onglets';
 import { adresse } from '@/lib/format';
+import { ACCEPTE, deposer, ouvrir, retirer } from '../../pieces';
 
 /* e33 · Fiche bon de travail : étapes (créé → soumissions → accord → planifié → réalisé → facturé), détails, accès au logement (avis de 24 h, art. 1931 C.c.Q.),
    fil inscrit au journal, fournisseur, coûts avec taxes et honoraires (10 % dès 1 000 $ avant taxes). */
@@ -26,7 +27,8 @@ const argent = (n: number | null | undefined, c = true) => n == null ? '—' : `
 const jour = (iso: string) => new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
 const local = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
 
-export function FicheBon({ donnees: D, maintenant, erreurLecture }: { donnees: DonneesBon | null; maintenant: string; erreurLecture: string | null }) {
+export type FacturesBon = { dossier: string | null; depense: boolean; factures: { id: string; titre: string; le: string }[] };
+export function FicheBon({ donnees: D, maintenant, erreurLecture, factures = null }: { donnees: DonneesBon | null; maintenant: string; erreurLecture: string | null; factures?: FacturesBon | null }) {
   const router = useRouter();
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [envoi, setEnvoi] = useState(false), [note, setNote] = useState(''), [tout, setTout] = useState(false);
   const [modal, setModal] = useState<null | 'planifier' | 'assigner' | 'realiser' | 'fermer' | 'annuler'>(null);
@@ -37,6 +39,17 @@ export function FicheBon({ donnees: D, maintenant, erreurLecture }: { donnees: D
     setEnvoi(true); setBandeau(null); setOk(null);
     const { error } = await supabaseNavigateur().rpc(nom, { p });
     setEnvoi(false); if (error) { setBandeau(error.message); return false; } setOk(msg); setModal(null); router.refresh(); return true;
+  }
+  // Facture du fournisseur : dépôt dans le dossier du propriétaire, puis rattachement à la dépense du bon (visible au relevé du propriétaire).
+  async function joindre(f: File) {
+    if (!factures?.dossier) return;
+    setEnvoi(true); setBandeau(null); setOk(null);
+    try {
+      const d = await deposer(factures.dossier, f);
+      const { error } = await supabaseNavigateur().rpc('lanceur_bon_facture', { p: { id: D!.id, ...d } });
+      if (error) { await retirer(d.chemin); throw new Error(error.message); }
+      setOk('Facture jointe au bon. Le propriétaire la voit avec ses documents.'); router.refresh();
+    } catch (e) { setBandeau((e as Error).message); } finally { setEnvoi(false); }
   }
   const fil = tout ? D.fil : D.fil.slice(0, 5);
   return (
@@ -102,6 +115,13 @@ export function FicheBon({ donnees: D, maintenant, erreurLecture }: { donnees: D
             {C.accord && <div className="cleo-lecture" style={{ background: '#F3F6FA' }}><Icone nom={C.accord.statut === 'approved' ? 'check' : C.accord.statut === 'rejected' ? 'close' : 'clock'} taille={18} couleur="#2E5788" />
               <span><b>{C.accord.statut === 'pending' ? 'Accord du propriétaire attendu' : C.accord.statut === 'approved' ? `Accordé le ${jour(C.accord.decide_le ?? C.accord.le)}` : 'Refusé par le propriétaire'}</b> · {argent(C.accord.montant, false)}
                 {C.accord.statut === 'pending' && <><br />Au-delà de {argent(C.plafond, false)}, son accord est requis avant les travaux.</>}</span></div>}
+            {/* Facture du fournisseur : jointe au bon (dépense) et à ses documents du propriétaire. */}
+            {(factures?.factures.length || (D.peut_ecrire && factures?.depense)) ? <div className="ligne-ic" style={{ justifyContent: 'space-between', marginTop: 16, gap: 12, flexWrap: 'wrap' }}>
+              <span className="ligne-ic">{factures!.factures.length ? factures!.factures.map((x) => <button key={x.id} className="lien ligne-ic" onClick={async () => setBandeau(await ouvrir(x.id))}><Icone nom="file" taille={16} couleur="#2E5788" />{x.titre}</button>)
+                : <span className="gris texte-13">Aucune facture jointe.</span>}</span>
+              {D.peut_ecrire && factures!.depense && !factures!.factures.length && <label className="bouton bouton-contour" style={{ width: 'auto', padding: '0 16px', cursor: 'pointer' }} aria-disabled={envoi}>
+                <Icone nom="upload" taille={16} couleur="#0C2147" />Joindre la facture
+                <input type="file" hidden accept={ACCEPTE} disabled={envoi} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) joindre(f); }} /></label>}</div> : null}
           </section>
         </div>
       </div>
