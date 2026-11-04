@@ -17,9 +17,9 @@ const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/
 const jour = jourCourt;
 const PORTAIL: Record<string, [string, string]> = { actif: ['Actif', 'ok'], invite: ['Invitation envoyée', 'att'], aucun: ['Sans portail', 'off'] };
 
-export function Proprietaires({ donnees: D, filtres, maintenant, erreurLecture }: { donnees: DonneesProprios | null; filtres: Record<string, string | undefined>; maintenant: string; erreurLecture: string | null }) {
+export function Proprietaires({ donnees: D, filtres, maintenant, erreurLecture, peutSupprimer = false }: { donnees: DonneesProprios | null; filtres: Record<string, string | undefined>; maintenant: string; erreurLecture: string | null; peutSupprimer?: boolean }) {
   const router = useRouter();
-  const [q, setQ] = useState(filtres.q ?? ''), [tous, setTous] = useState(false), [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null);
+  const [supprimer, setSupprimer] = useState<Pro | null>(null), [q, setQ] = useState(filtres.q ?? ''), [tous, setTous] = useState(false), [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null);
   if (!D) return <div className="bandeau erreur" role="alert">{bandeau}</div>;
   const aller = (k: string, v: string) => { const s = new URLSearchParams(Object.entries({ ...filtres, [k]: v }).filter(([, x]) => x) as [string, string][]); router.push(`/clients/proprietaires?${s}`); };
   async function relancer(a: Appro) {
@@ -41,16 +41,18 @@ export function Proprietaires({ donnees: D, filtres, maintenant, erreurLecture }
           </div>
           <section className="carte-l18" aria-label="Propriétaires"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Propriétaires</h2>
             <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{D.proprietaires.length} clients · {T.imm} immeubles · {T.portes} logements · décisions attendues d’abord</p>
-            <table className="tableau tab-fixe"><colgroup><col style={{ width: '30%' }} /><col style={{ width: '24%' }} /><col style={{ width: '18%' }} /><col style={{ width: '16%' }} /><col /></colgroup>
-              <thead><tr><th>Propriétaire</th><th>Immeubles · portes</th><th className="droite">Revenus du mois</th><th>Portail</th><th>Approbations</th></tr></thead>
+            <table className="tableau tab-fixe"><colgroup><col style={{ width: '30%' }} /><col style={{ width: '24%' }} /><col style={{ width: '18%' }} /><col style={{ width: '16%' }} /><col />{peutSupprimer && <col style={{ width: 52 }} />}</colgroup>
+              <thead><tr><th>Propriétaire</th><th>Immeubles · portes</th><th className="droite">Revenus du mois</th><th>Portail</th><th>Approbations</th>{peutSupprimer && <th><span className="sr">Supprimer</span></th>}</tr></thead>
               <tbody>{P.map((p) => { const [l, t] = PORTAIL[p.portail] ?? PORTAIL.aucun;
                 return <tr key={p.id} className="ligne-lien" onClick={() => router.push(`/clients/proprietaires/${p.id}`)}>
                   <td><span className="cellule-ini"><span className="ini" style={{ width: 36, height: 36, fontSize: 12 }}>{initiales(p.entreprise ?? p.nom)}</span><span><Link className="fort" href={`/clients/proprietaires/${p.id}`} onClick={(e) => e.stopPropagation()}>{p.entreprise ?? p.nom}</Link>
                     <span className="sous gris">{depuis(p.depuis)}{p.entreprise ? ` · ${p.nom}` : ''}</span></span></span></td>
                   <td>{p.immeubles} immeuble{p.immeubles > 1 ? 's' : ''} · {p.portes} porte{p.portes > 1 ? 's' : ''}<span className="sous gris">{p.quartiers ?? '—'}</span></td>
                   <td className="droite"><b>{argent(p.payes_mois)}</b><span className={`sous ${p.loyers_payes < p.loyers ? 'fort' : 'gris'}`}>{p.loyers_payes} loyer{p.loyers_payes > 1 ? 's' : ''} sur {p.loyers}</span></td>
-                  <td><span className="ligne-ic"><i className={`point-etat ${t}`} />{l}</span></td><td>{p.approbations ? <span className="compte">{p.approbations}</span> : <span className="gris">—</span>}</td></tr>; })}
-                {!D.proprietaires.length && <tr><td colSpan={5} className="gris">Aucun propriétaire. Convertissez un deal.</td></tr>}</tbody></table>
+                  <td><span className="ligne-ic"><i className={`point-etat ${t}`} />{l}</span></td><td>{p.approbations ? <span className="compte">{p.approbations}</span> : <span className="gris">—</span>}</td>
+                  {peutSupprimer && <td><button className="haut-ibtn" title={`Supprimer ${p.entreprise ?? p.nom}`} aria-label={`Supprimer ${p.entreprise ?? p.nom}`} onClick={(e) => { e.stopPropagation(); setSupprimer(p); }}>
+                    <Icone nom="trash" taille={18} couleur="#9B2E28" /></button></td>}</tr>; })}
+                {!D.proprietaires.length && <tr><td colSpan={peutSupprimer ? 6 : 5} className="gris">Aucun propriétaire. Convertissez un deal.</td></tr>}</tbody></table>
             {D.proprietaires.length > 8 && !tous && <button className="lien" onClick={() => setTous(true)}>Afficher les {D.proprietaires.length - 8} autres propriétaires</button>}
           </section>
         </div>
@@ -71,6 +73,35 @@ export function Proprietaires({ donnees: D, filtres, maintenant, erreurLecture }
             <Link className="bouton bouton-contour" href={`/finances/releves?m=${D.releves.mois.slice(0, 7)}`}><Icone nom="check" taille={16} couleur="#0C2147" />Vérifier les relevés</Link></section>
         </div>
       </div>
+      {supprimer && <SupprimerProprio p={supprimer} fermer={() => setSupprimer(null)} fait={(m) => { setSupprimer(null); setBandeau(null); setOk(m); router.refresh(); }} />}
     </>
+  );
+}
+
+// Suppression d'un propriétaire (administrateur) : on tape son nom pour confirmer. La base refuse s'il a des mouvements au fidéicommis.
+function SupprimerProprio({ p, fermer, fait }: { p: Pro; fermer: () => void; fait: (message: string) => void }) {
+  const nom = p.entreprise ?? p.nom;
+  const [saisie, setSaisie] = useState(''), [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
+  async function ok() {
+    setEnvoi(true); setErreur(null);
+    const { data, error } = await supabaseNavigateur().rpc('lanceur_proprietaire_supprimer', { p: { id: p.id, confirmation: saisie } });
+    setEnvoi(false);
+    if (error) return setErreur(error.message);
+    const r = data as { immeubles: number; logements: number; locataires: number };
+    fait(`${nom} est supprimé, avec ${r.immeubles} immeuble${r.immeubles > 1 ? 's' : ''}, ${r.logements} logement${r.logements > 1 ? 's' : ''} et ${r.locataires} locataire${r.locataires > 1 ? 's' : ''} sans autre bail.`);
+  }
+  return (
+    <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermer()}>
+      <form className="fenetre" role="dialog" aria-modal="true" aria-labelledby="sup-t" style={{ marginTop: 120, width: 'min(520px, 100%)' }} onSubmit={(e) => { e.preventDefault(); ok(); }}>
+        <div className="fenetre-tete"><h2 id="sup-t">Supprimer {nom} ?</h2><button type="button" className="fermer" onClick={fermer} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
+        <p className="fenetre-texte">Part définitivement avec ce propriétaire : {p.immeubles} immeuble{p.immeubles > 1 ? 's' : ''}, {p.portes} logement{p.portes > 1 ? 's' : ''}, leurs baux, loyers, factures,
+          documents et visites, et ses locataires qui n’ont aucun autre bail. Pour les comptes d’essai seulement : un client qui a des mouvements au compte en fidéicommis ne peut pas être supprimé.</p>
+        <label className="fenetre-lib" htmlFor="sup-n">Tapez <b>{nom}</b> pour confirmer</label>
+        <input id="sup-n" className="e70-raison" autoComplete="off" value={saisie} onChange={(e) => setSaisie(e.target.value)} />
+        {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
+        <div className="fenetre-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>Annuler</button>
+          <button className="bouton bouton-danger" disabled={envoi || saisie.trim().toLowerCase() !== nom.trim().toLowerCase()}>{envoi ? 'Suppression…' : 'Supprimer définitivement'}</button></div>
+      </form>
+    </div>
   );
 }
