@@ -2870,10 +2870,10 @@ function vcJours(){
   return Array.from({ length: 7 }, (_, k) => { const x = new Date(lundi); x.setDate(lundi.getDate() + k); return x; });
 }
 async function loadVisitsAdmin(){
-  const [v, l] = await Promise.all([callOpsApi({ action: 'list_visits' }), callOpsApi({ action: 'list_marketplace_listings' })]);
+  const [v, l] = await Promise.all([callOpsApi({ action: 'list_visits' }), callOpsApi({ action: 'list_units_for_rent' })]);
   VC.visites = (v?.visits || []).map(x => ({ ...x, debut: new Date(x.proposed_at), fin: new Date(x.ends_at || new Date(new Date(x.proposed_at).getTime() + 15 * 60000)) }));
   const vus = new Map();
-  for(const u of (l?.listings || [])) vus.set(u.id, `${u.buildings?.address || 'Logement'}${u.unit_number ? ', unité ' + u.unit_number : ''}`);
+  for(const u of (l?.units || [])) vus.set(u.id, `${u.buildings?.address || 'Logement'}${u.unit_number ? ', unité ' + u.unit_number : ''}`);
   for(const x of VC.visites) if(x.unit_id && !vus.has(x.unit_id)) vus.set(x.unit_id, `${x.units?.buildings?.address || 'Logement'}, unité ${x.units?.unit_number || ''}`);
   VC.logements = [...vus.entries()];
   vcRendre();

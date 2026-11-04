@@ -1531,6 +1531,12 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
     }
 
+    // Logements à louer (libres ou bientôt libres) : choix du logement d'une visite libre dans le calendrier des visites.
+    if (action === "list_units_for_rent") {
+      const res = await fetch(`${supabaseUrl}/rest/v1/units?status=in.(available,soon_available)&select=id,unit_number,buildings(address)&order=building_id.asc,unit_number.asc`, { headers: adminHeaders });
+      return new Response(JSON.stringify({ units: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // Visite libre (portes ouvertes) : bloque une plage du logement, 3 h par défaut; aucun visiteur nommé, aucun courriel envoyé.
     if (action === "create_open_house") {
       const { unit_id, starts_at, duration_minutes } = body;

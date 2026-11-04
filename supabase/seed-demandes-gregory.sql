@@ -34,7 +34,7 @@ end $$;
 delete from public.visits where id in ('00000000-0000-4000-a000-0000000c1501', '00000000-0000-4000-a000-0000000c1502', '00000000-0000-4000-a000-0000000c1503');
 insert into public.visits (id, unit_id, prospect_name, prospect_email, proposed_at, status, kind, ends_at)
 select x.id::uuid, u.id, x.nom, x.courriel, (x.debut || ' America/Toronto')::timestamptz, x.statut, x.genre, case when x.fin is not null then (x.fin || ' America/Toronto')::timestamptz end
-from (select id from public.units where marketplace_generated_at is not null and status in ('available', 'soon_available') order by id limit 1) u,
+from (select id from public.units where status in ('available', 'soon_available') order by id limit 1) u,
   (values ('00000000-0000-4000-a000-0000000c1501', 'Léa Tremblay (fictif)', 'lea@exemple.test', '2026-11-05 10:00', 'confirmed', 'visite', null),
           ('00000000-0000-4000-a000-0000000c1502', 'Marc Gagnon (fictif)', 'marc@exemple.test', '2026-11-05 10:15', 'proposed', 'visite', null),
           ('00000000-0000-4000-a000-0000000c1503', null, null, '2026-11-07 13:00', 'confirmed', 'visite_libre', '2026-11-07 16:00')) x(id, nom, courriel, debut, statut, genre, fin);
