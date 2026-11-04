@@ -1,6 +1,7 @@
 -- Clients › Propriétaires : supprimer un propriétaire (Grégory, 2026-11-04 : « être capable de supprimer les tests »).
 -- Administrateur seulement, 2FA, nom exact tapé pour confirmer. Part avec lui : immeubles, logements, baux, loyers, factures, documents,
 -- visites, demandes, accords de prélèvement, et ses locataires qui n'ont aucun autre bail. Inscrit au journal (nom et nombres).
+-- Ses dossiers juridiques (TAL) partent aussi : un dossier exige un bail.
 -- Refusé s'il existe une trace à conserver : mouvement au compte en fidéicommis (registre immuable) ou relevé 31.
 -- ponytail: les fichiers des documents restent dans le stockage (les lignes partent); un nettoyage du stockage viendra au besoin.
 
@@ -27,10 +28,9 @@ begin
   -- Liens qui ne partent pas tout seuls avec le propriétaire.
   update crm.deals set converted_owner_id = null where converted_owner_id = o.id;
   update public.prospects set converted_owner_id = null where converted_owner_id = o.id;
-  update jur.cases set lease_id = null where lease_id = any(v_baux);
+  delete from jur.cases where lease_id = any(v_baux);
   delete from crm.assignments where lease_id = any(v_baux);
   delete from public.approvals where owner_id = o.id;
-  delete from ops.services where owner_id = o.id or building_id = any(v_imm);
   delete from public.financial_anomalies where owner_id = o.id;
   delete from public.documents where owner_id = o.id or building_id = any(v_imm) or lease_id = any(v_baux);
   delete from public.visits where unit_id = any(v_log);
