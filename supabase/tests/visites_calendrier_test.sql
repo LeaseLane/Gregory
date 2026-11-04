@@ -1,8 +1,9 @@
--- Tests pgTAP · visites en calendrier (migration 20261111120000_visites_calendrier.sql) : créneaux de 15 min, visite libre de 3 h par
--- défaut, aucun chevauchement d'une visite active dans un même logement. Préproduction ou base jetable; transaction annulée.
+-- Tests pgTAP · visites en calendrier (migrations 20261111120000 et 20261111170000) : créneaux de 15 min, visite libre de 3 h par
+-- défaut, aucun chevauchement de deux visites actives, même dans deux logements (une seule personne fait les visites). Préproduction ou base jetable; transaction annulée.
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir ../migrations/20261111120000_visites_calendrier.sql
+\ir ../migrations/20261111170000_visites_une_personne.sql
 set local search_path = public, extensions;
 select plan(13);
 
@@ -20,7 +21,7 @@ create function pg_temp.libre(p_unite uuid, p_debut text, p_fin text default nul
 select is(pg_temp.visite('00000000-0000-4000-a000-0000000f1003', '2026-11-14 10:00'), '10:15', '1 · une visite dure 15 minutes');
 select is(pg_temp.visite('00000000-0000-4000-a000-0000000f1003', '2026-11-14 10:15'), '10:30', '1 · la visite suivante colle à la première');
 select throws_ok($$ select pg_temp.visite('00000000-0000-4000-a000-0000000f1003', '2026-11-14 10:00', 'Autre (essai)') $$, 'PT409', null, '2 · même créneau, même logement : refusé');
-select lives_ok($$ select pg_temp.visite('00000000-0000-4000-a000-0000000f1004', '2026-11-14 10:00') $$, '2 · même heure dans un autre logement : permis');
+select throws_ok($$ select pg_temp.visite('00000000-0000-4000-a000-0000000f1004', '2026-11-14 10:00') $$, 'PT409', null, '2 · même heure dans un autre logement : refusé (une seule personne)');
 select throws_ok($$ select pg_temp.visite('00000000-0000-4000-a000-0000000f1003', '2026-11-14 11:10') $$, 'PT422', null, '3 · une visite commence au quart d''heure');
 select is(pg_temp.libre('00000000-0000-4000-a000-0000000f1003', '2026-11-15 13:00'), '16:00', '4 · visite libre : 3 h par défaut');
 select throws_ok($$ select pg_temp.visite('00000000-0000-4000-a000-0000000f1003', '2026-11-15 14:30') $$, 'PT409', null, '4 · pas de visite pendant une visite libre');
