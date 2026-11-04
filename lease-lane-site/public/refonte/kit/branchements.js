@@ -144,6 +144,36 @@
     try { await action(); return true; } catch (e) { erreur(f, e.message || ECHEC); return false; } finally { if (b) { b.disabled = false; b.textContent = t; } }
   }
 
+  /* Zone de dépôt (« Preuve d'assurance ») : la maquette n'affiche pas le fichier choisi et un fichier glissé ouvrait le PDF dans le navigateur.
+     On montre le nom et la taille (« prêt à envoyer »), on accepte le glisser-déposer et on refuse tout autre format ou plus de 10 Mo. */
+  const TYPES_DEPOT = /\.(pdf|jpe?g|png)$/i, MAX_DEPOT = 10 * 1024 * 1024;
+  function majDepot(l) {
+    const i = l.querySelector('input[type=file]'), f = i.files[0], b = l.querySelector('b'), s = l.querySelector('small');
+    l.dataset.b = l.dataset.b || b.textContent; l.dataset.s = l.dataset.s || s.textContent;
+    let err = '';
+    if (f && !TYPES_DEPOT.test(f.name)) err = 'Format refusé : joignez un PDF, un JPG ou un PNG.';
+    else if (f && f.size > MAX_DEPOT) err = 'Fichier trop lourd : 10 Mo maximum.';
+    if (err) i.value = '';
+    const ok = !err && i.files[0];
+    b.textContent = ok ? '✓ ' + ok.name : l.dataset.b;
+    s.textContent = err || (ok ? (ok.size < 1048576 ? Math.max(1, Math.round(ok.size / 1024)) + ' Ko' : (ok.size / 1048576).toFixed(1).replace('.', ',') + ' Mo') + ' · prêt à envoyer · cliquez pour remplacer' : l.dataset.s);
+    s.style.color = err ? '#B42318' : ''; s.setAttribute('role', err ? 'alert' : 'status');
+    l.style.borderColor = err ? '#B42318' : ok ? '#12694F' : ''; l.style.background = ok ? '#EEF7F2' : '';
+  }
+  document.addEventListener('change', e => { const l = e.target.closest?.('label.depot'); if (l && e.target.type === 'file') majDepot(l); });
+  ['dragenter', 'dragover'].forEach(t => document.addEventListener(t, e => {
+    if (![...(e.dataTransfer?.types || [])].includes('Files')) return;
+    e.preventDefault();   // jamais d'ouverture du fichier dans l'onglet
+    const l = e.target.closest?.('label.depot'); if (l) { e.dataTransfer.dropEffect = 'copy'; l.style.borderColor = '#2E5788'; }
+  }));
+  document.addEventListener('dragleave', e => { const l = e.target.closest?.('label.depot'); if (l && !l.contains(e.relatedTarget)) majDepot(l); });
+  document.addEventListener('drop', e => {
+    if (![...(e.dataTransfer?.types || [])].includes('Files')) return;
+    e.preventDefault();
+    const l = e.target.closest?.('label.depot'), f = e.dataTransfer.files[0]; if (!l || !f) return;
+    const i = l.querySelector('input[type=file]'), dt = new DataTransfer(); dt.items.add(f); i.files = dt.files; majDepot(l);
+  });
+
   /* Inscription d'entreprise : document + téléphone + courriel (inscription-entreprise, multipart). */
   const estInscription = f => location.pathname === '/inscrire-mon-entreprise' && f.querySelector('input[type=file]');
   let idem = null;
