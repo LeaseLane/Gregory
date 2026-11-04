@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
 
 /* Propriétaire · 16 Aide : questions fréquentes, réponses alignées sur les décisions du 13 oct. (loyers payés chez vous, honoraires
-   facturés le 5, coordination de 10 % au-delà de 1 000 $, le propriétaire propose un locataire et l'équipe valide, prise en charge en 48 h). */
+   facturés le 5, coordination de 10 % dès 1 000 $, le propriétaire propose un locataire et l'équipe valide, prise en charge en 48 h). */
 const FAQ: [string, [string, string][]][] = [
   ['Frais et facturation', [
     ['Comment sont calculés les honoraires ?', 'Un pourcentage des loyers effectivement payés sur les logements occupés (6 % par défaut, selon votre mandat). Un logement vacant ne génère aucuns frais. Lease Lane vous facture le 5 du mois, taxes en sus.'],
     ['Est-ce que Lease Lane me verse les loyers ?', 'Non. Vos locataires paient directement chez vous. Lease Lane suit chaque paiement, relance les retards et vous envoie le relevé et la facture d’honoraires le 5.'],
-    ['Prenez-vous une marge sur les travaux ?', 'Non. La facture du fournisseur vous est remise telle quelle. Des frais de coordination de 10 % s’ajoutent seulement pour une facture de plus de 1 000 $ (rien à 1 000 $ ou moins).']]],
+    ['Prenez-vous une marge sur les travaux ?', 'Non. La facture du fournisseur vous est remise telle quelle. Des frais de coordination de 10 % s’ajoutent seulement pour une facture de 1 000 $ ou plus (rien sous 1 000 $).']]],
   ['Travaux et autorisations', [
     ['Qu’est-ce que le seuil d’autorisation ?', 'Le montant au-delà duquel une dépense vous est soumise avant d’être commandée (500 $ par défaut, selon votre mandat). Sous ce seuil, l’équipe agit pour vous.'],
     ['Que se passe-t-il en cas d’urgence ?', 'Une urgence (sécurité, eau, chauffage) est prise en charge tout de suite, jour et nuit; vous êtes avisé aussitôt. Une demande normale est prise en charge en 48 h.'],

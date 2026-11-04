@@ -19,7 +19,19 @@ export const MESSAGES = {
   poste: "Chiffres seulement.",
   courriel_vide: "Entrez votre adresse courriel.",
   courriel_invalide: "Ce courriel semble incomplet. Exemple : vous@entreprise.ca",
+  entreprise: "Entrez le nom de votre entreprise.",
+  metiers: "Choisissez au moins un métier.",
+  rbq: "Le numéro RBQ a la forme 1234-5678-90.",
 } as const;
+
+// Métiers de l'attribution des bons de travail : mêmes codes que assets/metiers.js (portail des fournisseurs).
+export const METIERS = ["plomberie", "electricite", "cvac", "menage", "nettoyage_location", "entretien", "peinture", "serrurerie", "extermination",
+  "concierge", "vitres_pression", "degat_eau", "deneigement", "paysagement", "menuiserie", "structure", "toiture", "autre"] as const;
+// RBQ : 10 chiffres, écrits 1234-5678-90.
+export function rbqFormate(s: string): string | null {
+  const d = s.replace(/\D/g, "");
+  return d.length === 10 ? `${d.slice(0, 4)}-${d.slice(4, 8)}-${d.slice(8)}` : null;
+}
 
 // Pas de < > " \ ni de ponctuation d'adresse citée : le courriel est réaffiché dans le portail admin
 // (attributs HTML, aperçu du document), où un guillemet suffirait à injecter du code.
@@ -51,12 +63,21 @@ export function typeFichier(debut: Uint8Array): { ext: string; mime: string } | 
   return s ? { ext: s.ext, mime: s.mime } : null;
 }
 
-export type Champ = "courriel" | "telephone" | "poste" | "document";
-export type Demande = { courriel: string; telephone: string; poste: string | null; octets: Uint8Array<ArrayBuffer>; type: { ext: string; mime: string } };
+export type Champ = "courriel" | "telephone" | "poste" | "document" | "entreprise" | "metiers" | "rbq";
+export type Demande = { courriel: string; telephone: string; poste: string | null; octets: Uint8Array<ArrayBuffer>; type: { ext: string; mime: string };
+  entreprise: string | null; metiers: string[]; secteurs: string[]; rbq: string | null };
 
 // Premier champ en erreur, dans l'ordre du formulaire (document, téléphone, poste, courriel).
-export function validerInscription(f: { courriel?: unknown; telephone?: unknown; poste?: unknown; octets?: Uint8Array<ArrayBuffer> | null }):
+// Dispatch d'abord (2026-11-04) : entreprise, métiers, secteurs et RBQ. Le formulaire du site les demande (entreprise et un métier
+// obligatoires si « dispatch » est envoyé); sans ce champ, une ancienne page reste acceptée telle quelle.
+export function validerInscription(f: { courriel?: unknown; telephone?: unknown; poste?: unknown; octets?: Uint8Array<ArrayBuffer> | null;
+  entreprise?: unknown; metiers?: unknown; secteurs?: unknown; rbq?: unknown; dispatch?: unknown }):
   { ok: true; demande: Demande } | { ok: false; champ: Champ; error: string } {
+  const entreprise = String(f.entreprise ?? "").trim().replace(/\s+/g, " ").slice(0, 200);
+  const metiers = [...new Set(String(f.metiers ?? "").split(",").map((m) => m.trim()).filter((m) => (METIERS as readonly string[]).includes(m)))];
+  const secteurs = [...new Set(String(f.secteurs ?? "").split(",").map((s) => s.trim().replace(/\s+/g, " ").slice(0, 60)).filter(Boolean))].slice(0, 20);
+  const rbqSaisi = String(f.rbq ?? "").trim(), rbq = rbqSaisi ? rbqFormate(rbqSaisi) : null;
+  const dispatch = String(f.dispatch ?? "") === "1";
   const courriel = String(f.courriel ?? "").trim().toLowerCase();
   const tel = String(f.telephone ?? "").trim();
   const poste = String(f.poste ?? "").trim();
@@ -71,14 +92,19 @@ export function validerInscription(f: { courriel?: unknown; telephone?: unknown;
   if (poste && !posteValide(poste)) return { ok: false, champ: "poste", error: MESSAGES.poste };
   if (!courriel) return { ok: false, champ: "courriel", error: MESSAGES.courriel_vide };
   if (!courrielValide(courriel)) return { ok: false, champ: "courriel", error: MESSAGES.courriel_invalide };
-  return { ok: true, demande: { courriel, telephone, poste: poste || null, octets, type } };
+  if (dispatch && entreprise.length < 2) return { ok: false, champ: "entreprise", error: MESSAGES.entreprise };
+  if (dispatch && !metiers.length) return { ok: false, champ: "metiers", error: MESSAGES.metiers };
+  if (rbqSaisi && !rbq) return { ok: false, champ: "rbq", error: MESSAGES.rbq };
+  return { ok: true, demande: { courriel, telephone, poste: poste || null, octets, type, entreprise: entreprise.length >= 2 ? entreprise : null, metiers, secteurs, rbq } };
 }
 
-export type Inscription = { id: string; courriel: string; telephone: string; poste: string | null; created_at: string };
+export type Inscription = { id: string; courriel: string; telephone: string; poste: string | null; created_at: string;
+  entreprise?: string | null; metiers?: string[]; secteurs?: string[]; rbq?: string | null };
 
 export function texteAvisEquipe(i: Inscription): string {
   const recue = new Date(i.created_at).toLocaleString("fr-CA", { timeZone: "America/Toronto", dateStyle: "long", timeStyle: "short" });
-  return `Une entreprise demande son inscription sur Lease Lane.\n\n` +
+  return `Une entreprise demande son inscription sur Lease Lane.\n\n` + (i.entreprise ? `Entreprise : ${i.entreprise}\n` : "") +
+    (i.metiers?.length ? `Métiers : ${i.metiers.join(", ")}\n` : "") + (i.secteurs?.length ? `Secteurs : ${i.secteurs.join(", ")}\n` : "") + (i.rbq ? `RBQ : ${i.rbq}\n` : "") +
     `Téléphone : ${telephoneFormate(i.telephone)}\n` + (i.poste ? `Poste : ${i.poste}\n` : "") +
     `Courriel : ${i.courriel}\nReçue le : ${recue}\n\n` +
     `La preuve d’assurance est dans l’onglet « Inscriptions d’entreprises » du portail admin (connexion et deuxième facteur requis). Elle n’est pas encore vérifiée.\n\n${LIEN_ADMIN}`;

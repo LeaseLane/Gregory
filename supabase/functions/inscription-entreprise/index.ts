@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
     const fichier = form.get("document");
     const v = validerInscription({
       courriel: form.get("courriel"), telephone: form.get("telephone"), poste: form.get("poste"),
+      entreprise: form.get("entreprise"), metiers: form.get("metiers"), secteurs: form.get("secteurs"), rbq: form.get("rbq"), dispatch: form.get("dispatch"),
       octets: fichier instanceof File ? new Uint8Array(await fichier.arrayBuffer()) : null,
     });
     if (!v.ok) return champ(v.champ, v.error);
@@ -85,6 +86,7 @@ Deno.serve(async (req) => {
       method: "POST", headers: { ...adminHeaders, Prefer: "return=representation" },
       body: JSON.stringify({
         id, idempotency_key: cle, courriel: d.courriel, telephone: d.telephone, poste: d.poste,
+        entreprise: d.entreprise, metiers: d.metiers, secteurs: d.secteurs, rbq: d.rbq,
         fichier_chemin: chemin, fichier_type: d.type.mime, fichier_taille: d.octets.length, fichier_nom: nom, ip,
         consent_purpose: "Traiter la demande d’inscription de l’entreprise et la contacter à ce sujet", consented_at: new Date().toISOString(),
       }),

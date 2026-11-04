@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { CATALOGUE_SERVICES } from '@/lib/drapeaux';
 
 /* e38 · Nouveau bon de travail (tiroir de 600 px) : demande liée, logement, travaux, mode (assigner ou demander des soumissions), fournisseurs invités, budget
    avec la référence du catalogue, accès au logement. Un fournisseur sans assurance valide (ou sans licence RBQ requise) n'est pas proposé. */
@@ -84,9 +85,9 @@ export function NouveauBon({ ouvrir = false, demande, fournisseur }: { ouvrir?: 
                   <p className="gris texte-12">Une tâche vous rappelle d’envoyer la demande de soumission à chacun.</p></>}
               <div className="po-deux" style={{ marginTop: 16 }}><div><label className="fenetre-lib" htmlFor="nb-b">Budget <span className="gris texte-12">obligatoire</span></label>
                 <input id="nb-b" className="e70-raison" inputMode="decimal" value={f.budget} onChange={(e) => setF({ ...f, budget: e.target.value.replace(/[^\d.]/g, '') })} /></div>
-                <div><label className="fenetre-lib" htmlFor="nb-c">Travail du catalogue</label><select id="nb-c" className="e70-raison" value={f.service_catalog_id} onChange={(e) => setF({ ...f, service_catalog_id: e.target.value })}>
-                  <option value="">Aucun</option>{ctx.catalogue.map((c) => <option key={c.id} value={c.id}>{c.libelle}</option>)}</select></div></div>
-              {cat?.reference && <p className="gris texte-13">Référence du catalogue : {Math.round(cat.reference)} $</p>}
+                {CATALOGUE_SERVICES && <div><label className="fenetre-lib" htmlFor="nb-c">Travail du catalogue</label><select id="nb-c" className="e70-raison" value={f.service_catalog_id} onChange={(e) => setF({ ...f, service_catalog_id: e.target.value })}>
+                  <option value="">Aucun</option>{ctx.catalogue.map((c) => <option key={c.id} value={c.id}>{c.libelle}</option>)}</select></div>}</div>
+              {CATALOGUE_SERVICES && cat?.reference && <p className="gris texte-13">Référence du catalogue : {Math.round(cat.reference)} $</p>}
               <p className="ligne-ic texte-12" style={{ color: '#2E5788', fontWeight: 600 }}><Icone nom="info" taille={16} couleur="#2E5788" />Au-delà de {Math.round(plafond)} $, l’accord du propriétaire est requis.</p>
               {avis?.locataire && <label className="ligne-entre carte-case" style={{ marginTop: 16 }}>
                 <span><strong>Aviser {avis.locataire} 24 h avant la visite</strong><span className="gris texte-13" style={{ display: 'block' }}>Créneau proposé : {new Date(avis.creneau).toLocaleString('fr-CA', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).replace(':', ' h ')}{avis.urgent ? ' · urgence : sans délai' : ''}</span></span>

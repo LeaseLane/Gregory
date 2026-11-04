@@ -572,6 +572,15 @@ li.non-lu .inbox-l2 { color: #3E4A59; }
 .rdv.court > div { display: flex; gap: 12px; align-items: baseline; } .rdv.court span { color: #58697F; }
 .rdv.passe { background: #EEF1F5; } .rdv.passe > i { background: #C8CDD4; } .rdv.passe strong { color: #3E4A59; } .rdv.passe span { color: #58697F; }
 .rdv.urg { background: #F8E4E2; } .rdv.urg > i { background: #9B2E28; } .rdv.urg strong { color: #9B2E28; }
+/* Visite libre (portes ouvertes) et vue Semaine de l'agenda (2026-11-04) */
+.rdv.libre { background: repeating-linear-gradient(45deg, #ECF2F9 0 7px, #DCE6F3 7px 14px); } .rdv.libre > i { background: #2E5788; }
+.sem { display: grid; grid-template-columns: 64px repeat(7, minmax(0, 1fr)); margin: 8px 24px 24px; }
+.sem-tete { text-align: center; font-size: 13px; font-weight: 600; color: #0C2147; padding: 8px 0 10px; border-bottom: 1px solid #E1E6EC; }
+.sem-tete.auj { color: #2E5788; } .sem-tete small { display: block; font-weight: 400; color: #58697F; }
+.sem-h { position: relative; } .sem-h span { position: absolute; right: 10px; transform: translateY(-50%); font-size: 12px; color: #58697F; }
+.sem-col { position: relative; border-left: 1px solid #E1E6EC; background-image: linear-gradient(to bottom, #E1E6EC 1px, transparent 1px); background-size: 100% 56px; }
+.sem .rdv { left: 3px; right: 3px; padding: 3px 6px 3px 12px; gap: 4px; border-radius: 6px; } .sem .rdv > i { left: 4px; top: 4px; bottom: 4px; }
+.sem .rdv strong { font-size: 12px; } .sem .rdv span { font-size: 11px; }
 .rdv .urgence { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 6px; background: #9B2E28; color: #fff; font-size: 12px; font-weight: 600; flex: none; }
 .maintenant { position: absolute; left: -64px; right: 0; height: 2px; display: flex; align-items: center; z-index: 2; }
 .maintenant span { width: 56px; height: 20px; border-radius: 6px; background: #4581CB; color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; flex: none; }
@@ -1959,3 +1968,15 @@ html[data-theme="sombre"]:has(main.accueil) .astuce { background: #172C49; } htm
 .voile:has(> .fenetre-invit) { align-content: center; padding-top: 16px; } .tab-rappels .puce { max-width: 100%; }
 .e11-champ.inchange .e11-saisie select, .e11-champ.inchange .e11-saisie input { background: #fff; border: 1px solid #D1D6DB; font-weight: 400; } .e11-champ.inchange label i { background: transparent; }
 .avec-suffixe { position: relative; display: block; } .avec-suffixe input { padding-right: 36px; } .avec-suffixe span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-weight: 600; color: #0C2147; pointer-events: none; }
+/* Inscriptions du site (Maintenance › Recrutement) */
+.inscriptions { margin-top: 32px; }
+.inscriptions-tete h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 20px; color: #0C2147; }
+.inscriptions-tete p { margin: 0 0 16px; }
+.inscriptions-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+.inscription-l1 { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 16px; color: #0C2147; }
+.inscription > .gris { margin: 4px 0 12px; font-size: 13px; }
+.inscription .details-deal { padding: 0; margin: 0 0 16px; }
+.segment a { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border: 1px solid transparent; border-radius: 8px; font-size: 13px; font-weight: 500; color: #3E4A59; text-decoration: none; white-space: nowrap; }
+.segment a.actif { background: #fff; border-color: #E1E6EC; font-weight: 600; color: #0C2147; }
+.inscription .puce { flex: none; max-width: none; }
+.inscription .import-boutons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 0; } .inscription .import-boutons .bouton { width: auto; padding: 0 16px; }

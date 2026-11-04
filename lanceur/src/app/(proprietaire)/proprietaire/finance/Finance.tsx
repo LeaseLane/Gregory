@@ -6,7 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 
 /* Propriétaire · 10 Finance (décisions du 13 oct.) : les loyers sont payés directement chez vous et suivis par Lease Lane; Lease Lane
-   facture le 5 ses honoraires et, pour une facture de travaux de plus de 1 000 $, 10 % de coordination. Aucun « net », aucun « versé ».
+   facture le 5 ses honoraires et, pour une facture de travaux de 1 000 $ ou plus, 10 % de coordination. Aucun « net », aucun « versé ».
    Relevés 31 (TF) : produire ses relevés, puis les valider et les remettre aux locataires (aucune remise sans vous). */
 type Ecriture = { le: string; libelle: string; categorie: string; montant: number };
 export type DonneesRL31 = { annee: number; echeance: string; production_possible: boolean; logements: { immeuble: string; logement: string; locataire: string; numero: boolean; releve: { id: string; statut: string; code: string } | null }[] };
@@ -46,7 +46,7 @@ export function Finance({ rl31, donnees, erreur }: { rl31: DonneesRL31 | null; d
             <tbody>{E.map((e, i) => <tr key={i}><td>{jour(e.le)}</td><td style={{ whiteSpace: 'normal' }}>{e.libelle.replace(/(\d+)\.(\d*?)0* %/, (_, a, b) => `${a}${b ? `,${b}` : ''} %`)}</td><td><span className={`puce ${CAT[e.categorie] ?? 'neutral'}`}>{e.categorie}</span></td>
               <td className="droite fort">{e.montant > 0 ? '+' : ''}{argent(e.montant)}</td></tr>)}
               {!E.length && <tr><td colSpan={4} className="gris">Aucune écriture pour ce mois.</td></tr>}</tbody></table>
-          <p className="po-note" style={{ margin: '0 24px 24px' }}><Icone nom="help" taille={14} couleur="#3E4A59" />Les loyers sont payés directement chez vous : Lease Lane les suit et relance les retards. La facture du fournisseur vous est remise telle quelle; 10 % de coordination s’ajoute seulement au-delà de 1 000 $.</p>
+          <p className="po-note" style={{ margin: '0 24px 24px' }}><Icone nom="help" taille={14} couleur="#3E4A59" />Les loyers sont payés directement chez vous : Lease Lane les suit et relance les retards. La facture du fournisseur vous est remise telle quelle; 10 % de coordination s’ajoute seulement dès 1 000 $.</p>
         </section>
         <div className="colonne-l18">
           <section className="carte-l18" aria-label="Répartition">

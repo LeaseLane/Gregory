@@ -9,6 +9,7 @@ import type { Carte } from '../../bons/Bons';
 import { ETAPES } from '../../onglets';
 import { FournisseurTiroir, type FournEdit } from '../FournisseurTiroir';
 import { etatAssurance } from '../Fournisseurs';
+import { ACCEPTE, deposer, ouvrir, retirer } from '../../pieces';
 
 /* e35 · Fiche fournisseur : qui il est, ce qu'il a fait pour nous en 12 mois, ses documents vérifiés, ce qu'en disent les locataires.
    Travaux par mois = micro-colonnes; délai de réponse = micro-courbe; note = jauge sur 5. Une assurance échue avec des travaux prévus est en rouge. */
@@ -21,7 +22,7 @@ const dl = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso
 
 export function FicheFournisseur({ donnees: D, erreurLecture }: { donnees: DonneesFournisseur | null; erreurLecture: string | null }) {
   const router = useRouter();
-  const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [refus, setRefus] = useState<string | null>(null);
+  const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [refus, setRefus] = useState<string | null>(null), [ajout, setAjout] = useState(false), [envoi, setEnvoi] = useState(false);
   if (!D) return <><Link className="lien po-retour" href="/maintenance/fournisseurs"><Icone nom="arrow" taille={14} couleur="#2E5788" />Fournisseurs</Link><div className="bandeau erreur" role="alert">{bandeau}</div></>;
   const I = D.indicateurs, maxS = Math.max(1, ...I.serie), [ic, lib, cl] = etatAssurance({ etat_assurance: D.etat_assurance, assurance: D.assurance, prochain: D.travaux.find((t) => t.rendez_vous && new Date(t.rendez_vous) > new Date())?.rendez_vous ?? null });
   const sp = D.specialites.filter(Boolean) as string[];
@@ -29,6 +30,15 @@ export function FicheFournisseur({ donnees: D, erreurLecture }: { donnees: Donne
     setBandeau(null); const { error } = await supabaseNavigateur().rpc('lanceur_fournisseur_verifier', { p: { id: D!.id, statut, motif: refus } });
     if (error) return setBandeau(error.message); setRefus(null); setOk(statut === 'verified' ? 'Fournisseur vérifié.' : 'Fournisseur refusé.'); router.refresh();
   }
+  // Accès au portail des fournisseurs : même envoi que l'ancien admin (onboarding-api grant_worker_access, lien d'accès par courriel).
+  async function acces() {
+    setEnvoi(true); setBandeau(null); setOk(null);
+    const r = await fetch('/api/inscriptions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'acces_fournisseur', id: D!.id }) });
+    const x = await r.json().catch(() => ({})); setEnvoi(false);
+    if (!r.ok) return setBandeau(x.error ?? `Erreur ${r.status}`);
+    setOk(x.courriel_envoye ? `Accès envoyé à ${D!.courriel} : le fournisseur reçoit un lien pour créer son mot de passe.` : `Accès créé, mais le courriel n’est pas parti : réessayez plus tard ou écrivez à ${D!.courriel}.`); router.refresh();
+  }
+  async function voir(id: string) { setBandeau(await ouvrir(id)); }
   return (
     <>
       <Link className="lien po-retour" href="/maintenance/fournisseurs"><Icone nom="arrow" taille={14} couleur="#2E5788" />Fournisseurs</Link>
@@ -41,6 +51,7 @@ export function FicheFournisseur({ donnees: D, erreurLecture }: { donnees: Donne
               <h2 className="releve-titre" style={{ margin: '4px 0' }}>{D.nom}</h2>
               <p className="gris" style={{ margin: 0 }}>{[D.rbq && `RBQ ${D.rbq}`, D.zones?.length && D.zones.join(' et '), [D.contact, D.telephone].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}</p></div>
             <div className="fiche-actions">{D.peut_ecrire && <FournisseurTiroir fournisseur={D} />}
+              {D.peut_ecrire && !D.portail && D.courriel && <button className="bouton bouton-contour" disabled={envoi} onClick={acces}><Icone nom="key" taille={16} couleur="#0C2147" />Envoyer l’accès au portail</button>}
               {D.telephone && <a className="haut-ibtn" href={`tel:${D.telephone}`} aria-label={`Appeler ${D.contact}`}><Icone nom="phone" taille={18} couleur="#0C2147" /></a>}
               {D.peut_ecrire && D.actif && <Link className="bouton bouton-principal" href={`/maintenance/bons?nouveau=1&fournisseur=${D.id}`}><Icone nom="send" taille={16} couleur="#fff" />Demander une soumission</Link>}</div>
           </section>
@@ -70,7 +81,8 @@ export function FicheFournisseur({ donnees: D, erreurLecture }: { donnees: Donne
               <li><span className="a-faire-ic"><Icone nom="file" taille={18} couleur="#0C2147" /></span><div><strong>{D.rbq ? `Licence RBQ ${D.rbq}` : 'Licence RBQ'}</strong>
                 <span className="gris texte-13">{D.rbq ? (D.rbq_expiration ? `Valide jusqu’au ${dl(D.rbq_expiration)}` : 'Échéance à saisir') : D.rbq_requise ? 'Requise · manquante' : 'Non requise pour ses travaux'}</span></div></li>
               {D.documents.map((d) => <li key={d.id}><span className="a-faire-ic"><Icone nom="file" taille={18} couleur="#0C2147" /></span><div><strong>{d.titre}</strong><span className="gris texte-13">Ajouté le {dl(d.le)}</span></div>
-                {d.valide === 'valide' && <Icone nom="check" taille={16} couleur="#12694F" />}</li>)}</ul>
+                <span className="ligne-ic">{d.valide === 'valide' && <Icone nom="check" taille={16} couleur="#12694F" />}<button className="lien" onClick={() => voir(d.id)}>Voir</button></span></li>)}</ul>
+            {D.peut_ecrire && <button className="bouton bouton-contour" style={{ marginTop: 12, width: '100%' }} onClick={() => setAjout(true)}><Icone nom="upload" taille={16} couleur="#0C2147" />Ajouter un document</button>}
             {D.peut_ecrire && <div className="fiche-actions" style={{ marginTop: 12 }}>{refus == null ? <>
               {D.verification !== 'verified' && <button className="bouton bouton-principal" onClick={() => verifier('verified')}><Icone nom="check" taille={16} couleur="#fff" />Marquer vérifié</button>}
               {D.verification !== 'rejected' && <button className="bouton bouton-contour" onClick={() => setRefus('')}>Refuser</button>}</>
@@ -83,6 +95,41 @@ export function FicheFournisseur({ donnees: D, erreurLecture }: { donnees: Donne
             {!D.evaluations.length && <p className="gris texte-13">Aucun commentaire écrit.</p>}</section>
         </div>
       </div>
+      {ajout && <AjoutDocument id={D.id} fermer={() => setAjout(false)} fait={(m) => { setAjout(false); setBandeau(null); setOk(m); router.refresh(); }} />}
     </>
+  );
+}
+
+// Attestation d'assurance (met à jour l'échéance), licence RBQ ou autre document : dépôt dans workers/<id>/, puis rattachement en base.
+function AjoutDocument({ id, fermer, fait }: { id: string; fermer: () => void; fait: (m: string) => void }) {
+  const [type, setType] = useState('assurance'), [titre, setTitre] = useState(''), [exp, setExp] = useState(''), [f, setF] = useState<File | null>(null);
+  const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
+  async function ok() {
+    if (!f) return;
+    setEnvoi(true); setErreur(null);
+    try {
+      const d = await deposer(`workers/${id}`, f);
+      const { error } = await supabaseNavigateur().rpc('lanceur_fournisseur_document', { p: { worker_id: id, type, titre, expiration: exp, ...d } });
+      if (error) { await retirer(d.chemin); throw new Error(error.message); }
+      fait(type === 'assurance' ? `Attestation d’assurance ajoutée${exp ? `, valide jusqu’au ${dl(exp)}` : ''}.` : 'Document ajouté.');
+    } catch (e) { setErreur((e as Error).message); } finally { setEnvoi(false); }
+  }
+  return (
+    <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermer()}>
+      <form className="fenetre" role="dialog" aria-modal="true" aria-labelledby="ad-t" style={{ marginTop: 100, width: 'min(480px, 100%)' }} onSubmit={(e) => { e.preventDefault(); ok(); }}>
+        <div className="fenetre-tete"><h2 id="ad-t">Ajouter un document</h2><button type="button" className="fermer" onClick={fermer} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
+        <label className="fenetre-lib">Type<select className="e70-raison" value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="assurance">Attestation d’assurance</option><option value="rbq">Licence RBQ</option><option value="autre">Autre document</option></select></label>
+        {type === 'autre' ? <label className="fenetre-lib">Titre<input className="e70-raison" value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex. : contrat de service" /></label>
+          : <label className="fenetre-lib">Valide jusqu’au<span>facultatif</span><input type="date" className="e70-raison" value={exp} onChange={(e) => setExp(e.target.value)} /></label>}
+        <span className="fenetre-lib">Fichier<span>PDF, JPG ou PNG · 10 Mo maximum</span></span>
+        <label className="bouton bouton-contour" style={{ width: '100%', justifyContent: 'flex-start', padding: '0 16px', cursor: 'pointer', marginBottom: 16 }}>
+          <Icone nom={f ? 'check' : 'upload'} taille={18} couleur="#0C2147" /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f ? f.name : 'Choisir le fichier'}</span>
+          <input type="file" hidden accept={ACCEPTE} onChange={(e) => setF(e.target.files?.[0] ?? null)} /></label>
+        {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
+        <div className="fenetre-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>Annuler</button>
+          <button className="bouton bouton-principal" disabled={envoi || !f || (type === 'autre' && titre.trim().length < 2)}>{envoi ? 'Envoi…' : 'Ajouter'}</button></div>
+      </form>
+    </div>
   );
 }

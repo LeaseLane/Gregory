@@ -70,7 +70,7 @@ export function Paiements({ donnees: D, filtres, erreurLecture }: { donnees: Don
         <div className="kpi"><span>Loyers payés en {libM}</span><b>{argent(I.paye)}</b><span>{pct} % de {argent(I.attendu)} · payés aux propriétaires</span><span className="jauge"><i style={{ width: `${Math.min(100, pct)}%` }} /></span></div>
         <div className="kpi"><span>À recevoir</span><b>{argent(I.a_recevoir.montant)}</b><span>{I.a_recevoir.n} loyer{I.a_recevoir.n > 1 ? 's' : ''}{I.a_recevoir.prochain ? ` · échéance le ${jour(I.a_recevoir.prochain)}` : ''}</span></div>
         <div className="kpi"><span>En retard</span><b style={I.en_retard.n ? { color: '#9B2E28' } : undefined}>{argent(I.en_retard.montant)}</b><span>{I.en_retard.n} loyer{I.en_retard.n > 1 ? 's' : ''}{I.en_retard.jours ? ` · jusqu’à ${I.en_retard.jours} jours` : ''}</span></div>
-        <div className="kpi"><span>Revenu de gestion</span><b>{argent(I.revenu_gestion)}</b><span>honoraires du mois : 6 % des loyers, travaux au-delà de 1 000 $</span><Courbe valeurs={I.revenu_serie.map(Number)} /></div>
+        <div className="kpi"><span>Revenu de gestion</span><b>{argent(I.revenu_gestion)}</b><span>honoraires du mois : 6 % des loyers, travaux dès 1 000 $</span><Courbe valeurs={I.revenu_serie.map(Number)} /></div>
       </div>
       <div className="grille-2-1">
         <div className="po-colonne">

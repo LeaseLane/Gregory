@@ -8,7 +8,7 @@ import { supabaseServeur } from '@/lib/supabase/serveur';
    (actif : fond b025 + trait b500 de 3 px; pastille de compte). Un onglet sans page n'est pas un lien.
    Pastilles : celles que la page fournit, sinon celles de lanceur_pastilles (un appel par requête, même définition que la page).
    Boutons d'en-tête : ceux que la page fournit, sinon ceux de la maquette pour l'espace (blk.js B.SP.actions). */
-export type Onglet = { libelle: string; href?: string; compte?: number; rouge?: boolean };
+export type Onglet = { libelle: string; href?: string; compte?: number; rouge?: boolean; cache?: boolean };   // cache : onglet fermé (drapeau), la numérotation « actif » ne bouge pas
 type Pastilles = Record<string, Record<string, { n: number; r?: boolean }>>;
 
 const lirePastilles = cache(async (): Promise<Pastilles> => {
@@ -51,6 +51,7 @@ export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, c
         </div>
         <nav className="onglets" aria-label={`Pages de ${nom}`}>
           {tabs.map((o, i) => {
+            if (o.cache) return null;
             const contenu = <>{o.libelle}{o.compte ? <span className={'compte' + (o.rouge ? ' rouge' : '')}>{o.compte}</span> : null}</>;
             return o.href
               ? <Link key={o.libelle} href={o.href} className={'onglet' + (i === actif ? ' actif' : '')} aria-current={i === actif ? 'page' : undefined}>{contenu}</Link>
