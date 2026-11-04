@@ -39,7 +39,13 @@ from (select id from public.units where status in ('available', 'soon_available'
           ('00000000-0000-4000-a000-0000000c1502', 'Marc Gagnon (fictif)', 'marc@exemple.test', '2026-11-05 10:15', 'proposed', 'visite', null),
           ('00000000-0000-4000-a000-0000000c1503', null, null, '2026-11-07 13:00', 'confirmed', 'visite_libre', '2026-11-07 16:00')) x(id, nom, courriel, debut, statut, genre, fin);
 
-select (select count(*) from public.cold_callers where full_name = 'Appelant Démo (fictif)') as appelant,
+-- 4. Une inscription d'entreprise « dispatch d'abord » (nom, métiers, secteurs, RBQ), sans fichier.
+insert into public.inscriptions_entreprises (id, idempotency_key, courriel, telephone, entreprise, metiers, secteurs, rbq, statut)
+values ('00000000-0000-4000-a000-0000000d1501', '00000000-0000-4000-a000-0000000d1502', 'dispatch@plomberie-exemple.test', '4185550142',
+        'Plomberie Exemple inc. (fictif)', '{plomberie,degat_eau}', '{Lévis,Québec}', '1234-5678-90', 'recue')
+on conflict (id) do update set entreprise = excluded.entreprise, metiers = excluded.metiers, secteurs = excluded.secteurs, rbq = excluded.rbq, statut = 'recue';
+
+select (select count(*) from public.inscriptions_entreprises where id = '00000000-0000-4000-a000-0000000d1501') as inscription, (select count(*) from public.cold_callers where full_name = 'Appelant Démo (fictif)') as appelant,
        (select count(*) from public.approvals where work_order_id in ('00000000-0000-4000-a000-00000009a900', '00000000-0000-4000-a000-00000009a1e3')) as accords,
        (select count(*) from public.visits where id::text like '00000000-0000-4000-a000-0000000c150%') as visites;
 commit;
