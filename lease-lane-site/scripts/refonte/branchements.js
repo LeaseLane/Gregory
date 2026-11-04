@@ -150,12 +150,18 @@
   async function inscrire(f) {
     const fichier = f.querySelector('input[type=file]').files[0], tel = f.querySelector('input[type=tel]').value.trim(),
       courriel = f.querySelector('input[type=email]').value.trim(), poste = f.querySelector('#ie-poste')?.value.trim() || '';
+    // Dispatch d'abord (2026-11-04) : entreprise, métiers, secteurs, RBQ.
+    const entreprise = f.querySelector('#ie-ent')?.value.trim() || '', secteurs = f.querySelector('#ie-sect')?.value.trim() || '',
+      rbq = f.querySelector('#ie-rbq')?.value.trim() || '', metiers = [...f.querySelectorAll('#ie-metiers input:checked')].map(c => c.value).join(',');
     if (!fichier || tel.replace(/\D/g, '').length < 10 || !/^\S+@\S+\.\S+$/.test(courriel))
       return erreur(f, 'Joignez votre preuve d’assurance et indiquez un téléphone et un courriel valides.');
+    if (f.querySelector('#ie-ent') && (entreprise.length < 2 || !metiers)) return erreur(f, 'Indiquez le nom de l’entreprise et au moins un métier.');
+    if (rbq && rbq.replace(/\D/g, '').length !== 10) return erreur(f, 'Le numéro RBQ a la forme 1234-5678-90.');
     idem = idem || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
     const ok = await envoyer(f, async () => {
       const fd = new FormData();
       fd.set('courriel', courriel); fd.set('telephone', tel); fd.set('poste', poste); fd.set('document', fichier); fd.set('idempotency_key', idem);
+      if (f.querySelector('#ie-ent')) { fd.set('dispatch', '1'); fd.set('entreprise', entreprise); fd.set('metiers', metiers); fd.set('secteurs', secteurs); fd.set('rbq', rbq); }
       fd.set('cf-turnstile-response', await jeton());
       const r = await fetch(FONCTIONS + 'inscription-entreprise', { method: 'POST', headers: ENTETES, body: fd });
       const d = await r.json().catch(() => ({}));

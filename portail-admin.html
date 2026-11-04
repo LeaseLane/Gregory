@@ -80,6 +80,20 @@
   }
   /* 4 signaux : la grille à 3 colonnes de leaselane.css passe en auto-fit (une colonne sur mobile). */
   #overview .vo-signaux{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}
+  /* Visites en calendrier (2026-11-04) : semaine ou jour, lignes de 15 min, visite libre en hachures. */
+  .vc-barre{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;}
+  .vc-barre .vc-titre{font-weight:700;margin:0 8px;}
+  .vc-barre button.actif{background:var(--ink, #0C2147);color:#fff;}
+  .vc-grille{display:grid;border:1px solid var(--line);background:var(--paper);overflow-x:auto;}
+  .vc-tete{font-size:12px;font-weight:700;padding:6px;border-bottom:1px solid var(--line);text-align:center;background:var(--paper-2);}
+  .vc-tete.auj{color:#2E5788;}
+  .vc-heures{position:relative;border-right:1px solid var(--line);font-size:11px;color:var(--muted);}
+  .vc-heures span{position:absolute;right:6px;transform:translateY(-50%);}
+  .vc-jour{position:relative;border-right:1px solid var(--line);background-image:linear-gradient(to bottom, var(--line) 1px, transparent 1px);}
+  .vc-ev{position:absolute;left:3px;right:3px;border-radius:4px;padding:2px 5px;font-size:11px;line-height:1.25;color:#fff;overflow:hidden;cursor:pointer;border:0;text-align:left;}
+  .vc-ev.libre{color:#0C2147;background:repeating-linear-gradient(45deg,#e8eef7,#e8eef7 6px,#d3deee 6px,#d3deee 12px);border:1px solid #9fb3d1;}
+  .vc-form{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 12px;padding:12px;border:1px solid var(--line);background:var(--paper-2);}
+  .vc-form label{display:flex;flex-direction:column;font-size:12px;gap:4px;}
 </style>
 <link rel="stylesheet" href="assets/leaselane.css?v=202610111500">
 <script src="assets/charger-portail.js?v=202610091900"></script>
@@ -171,7 +185,7 @@
       <button class="tab-btn" data-tab="late-payments" onclick="showTab('late-payments')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#circle-alert"/></svg><span>Paiements en retard</span></button>
       <button class="tab-btn" data-tab="workers" onclick="showTab('workers')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#users"/></svg><span>Travailleurs</span></button>
       <button class="tab-btn" data-tab="inscriptions-entreprises" onclick="showTab('inscriptions-entreprises')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#building-2"/></svg><span>Inscriptions d'entreprises</span></button>
-      <button class="tab-btn" data-tab="service-catalog" onclick="showTab('service-catalog')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#list"/></svg><span>Catalogue de services</span></button>
+      <button class="tab-btn" data-tab="service-catalog" data-drapeau="catalogue" onclick="showTab('service-catalog')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#list"/></svg><span>Catalogue de services</span></button>
       <button class="tab-btn" data-tab="renewals" onclick="showTab('renewals')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#refresh-cw"/></svg><span>Renouvellements de bail</span></button>
       <button class="tab-btn" data-tab="tenants" onclick="showTab('tenants')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#user"/></svg><span>Locataires</span></button>
       <button class="tab-btn" data-tab="tous-documents" onclick="showTab('tous-documents')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#file-text"/></svg><span>Documents</span></button>
@@ -180,7 +194,6 @@
       <button class="tab-btn" data-tab="accounting" onclick="showTab('accounting')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#scale"/></svg><span>Comptabilité</span></button>
       <button class="tab-btn" data-tab="bank-recon" onclick="showTab('bank-recon')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#table-2"/></svg><span>Rapprochement bancaire</span></button>
       <button class="tab-btn" data-tab="fiducie" onclick="showTab('fiducie')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#scale"/></svg><span>Fidéicommis</span></button>
-      <button class="tab-btn" data-tab="flinks" onclick="showTab('flinks')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wallet"/></svg><span>Connexions bancaires</span></button>
       <button class="tab-btn" data-tab="anomalies" onclick="showTab('anomalies')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#triangle-alert"/></svg><span>Anomalies financières</span></button>
       <button class="tab-btn" data-tab="supplier-invoices" onclick="showTab('supplier-invoices')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#files"/></svg><span>Factures fournisseurs</span></button>
       <div class="nav-group-label">CROISSANCE</div>
@@ -273,6 +286,7 @@
     <p class="subtitle" style="margin-bottom:16px;">L'IA ne propose ni ne confirme jamais une heure — c'est toi qui choisis, le candidat confirme via un lien</p>
     <div id="visit-inquiries-body" style="margin-bottom:16px;"><p class="tr-vide">Chargement...</p></div>
     <div id="visits-body" style="margin-bottom:32px;"><p class="tr-vide">Chargement...</p></div>
+    <div id="visit-detail" class="tr-carte" style="display:none;margin-bottom:32px;"></div>
 
       </section>
 
@@ -403,7 +417,7 @@
     <div id="invoices-body" style="margin-bottom:24px;"><p class="tr-vide">Chargement...</p></div>
 
     <h2 class="sous-titre">Prélèvement automatique (PAD)</h2>
-    <p class="subtitle" style="margin-bottom:12px;">Aucun fournisseur de prélèvement n'est encore branché (Flinks Connect est en lecture seule) — ceci consigne seulement le consentement contractuel en attendant. Le prélèvement réel des honoraires reste manuel pour l'instant.</p>
+    <p class="subtitle" style="margin-bottom:12px;">Consigne le consentement contractuel du propriétaire au prélèvement de ses honoraires. Les prélèvements eux-mêmes partent par fichier BMO (Finances › Prélèvements).</p>
     <div class="fo-carte">
       <div><label class="ch-label" for="pad-owner">Client</label>
         <select id="pad-owner"><option value="">— Choisir —</option></select>
@@ -419,7 +433,7 @@
         <input type="text" id="pad-method" placeholder="Ex: clause au contrat de gestion">
       </div>
       <div><label class="ch-label" for="pad-processor">Fournisseur (une fois choisi)</label>
-        <input type="text" id="pad-processor" placeholder="Ex: Flinks Pay">
+        <input type="text" id="pad-processor" placeholder="Ex: BMO (fichier CPA 005)">
       </div>
       <button onclick="savePadAuthorization()" class="ll-bouton ll-bouton--primaire">Enregistrer</button>
     </div>
@@ -551,29 +565,7 @@
 
       </section>
 
-      <section id="flinks" class="section">
-    <h1 >Connexions bancaires (Flinks)</h1>
-    <p class="subtitle" style="margin-bottom:16px;">Connexion en lecture seule — aucun identifiant bancaire n'est stocké côté Lease Lane. Une fois liée, la synchronisation des transactions est automatique (une fois par jour) et alimente le rapprochement ci-dessous.</p>
-    <div class="fo-carte fo-carte--libre">
-      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:12px;">
-        <div><label class="ch-label" for="flinks-owner">Client</label>
-          <select id="flinks-owner"><option value="">— Choisir —</option></select>
-        </div>
-        <button onclick="startFlinksConnect()" class="ll-bouton ll-bouton--primaire">Connecter une banque</button>
-      </div>
-      <div id="flinks-widget-wrap" style="display:none;margin-bottom:12px;">
-        <iframe id="flinks-iframe" height="700" style="width:100%;max-width:520px;border:1px solid var(--line);"></iframe>
-        <p style="font-size:11.5px;color:var(--muted);margin-top:6px;">Une fois la connexion réussie dans le widget ci-dessus, la liaison se fait automatiquement. Si rien ne se passe après quelques secondes, ouvre la console du navigateur (F12) pour voir le message reçu et colle son contenu ici :</p>
-        <div style="display:flex;gap:8px;margin-top:6px;">
-          <input type="text" id="flinks-manual-loginid" placeholder="LoginId (secours manuel)" style="flex:1;padding:8px;border:1px solid var(--line);">
-          <button onclick="linkFlinksManual()" class="vo-action">Lier ce compte</button>
-        </div>
-      </div>
-      <p id="flinks-msg" style="font-size:12.5px;"></p>
-    </div>
-    <div id="flinks-connections-body" style="margin-bottom:32px;"><p class="tr-vide">Chargement...</p></div>
-
-      </section>
+      <!-- Connexions bancaires (Flinks/Plaid) retirées le 2026-11-04 : les loyers passent par le compte en fidéicommis BMO et les prélèvements (CPA 005). -->
 
       <section id="anomalies" class="section">
     <h1 >Anomalies financières</h1>
@@ -1003,6 +995,11 @@
 </div>
 
 <script>
+// Catalogue de services (forfaits Lease Lane Pro) : fermé pour l'instant, tout passe en sous-traitance (Grégory, 2026-11-04).
+// Onglet et section masqués (ils sont plus haut dans la page); rien n'est supprimé. Réouvrir : true (même drapeau dans lanceur/src/lib/drapeaux.ts).
+const CATALOGUE_SERVICES = false;
+if(!CATALOGUE_SERVICES) document.querySelectorAll('[data-drapeau="catalogue"], #service-catalog').forEach(e => { e.hidden = true; e.style.display = 'none'; });
+
 const SUPABASE_URL = 'https://kdmwfbcziokygfcmjxeq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storageKey: 'sb-portail-admin-auth' } });
@@ -1272,11 +1269,6 @@ async function loadAdminDashboard(){
   reconOwnerSelect.innerHTML = '<option value="">— Choisir —</option>' + clients.map(c => `<option value="${c.id}">${esc(c.full_name)}</option>`).join('');
   if(currentReconOwner) reconOwnerSelect.value = currentReconOwner;
 
-  const flinksOwnerSelect = document.getElementById('flinks-owner');
-  const currentFlinksOwner = flinksOwnerSelect.value;
-  flinksOwnerSelect.innerHTML = '<option value="">— Choisir —</option>' + clients.map(c => `<option value="${c.id}">${esc(c.full_name)}</option>`).join('');
-  if(currentFlinksOwner) flinksOwnerSelect.value = currentFlinksOwner;
-  enCours.push(loadFlinksConnections());
 
   const padOwnerSelect = document.getElementById('pad-owner');
   const currentPadOwner = padOwnerSelect.value;
@@ -2369,7 +2361,7 @@ function photoLinksHtml(bucket, paths, label){
 
 async function loadOps(){
   await Promise.allSettled([
-    loadMarketplaceListings(), loadBuildingsForReceipts(), loadServiceCatalog(),
+    loadMarketplaceListings(), loadBuildingsForReceipts(), ...(CATALOGUE_SERVICES ? [loadServiceCatalog()] : []),
     loadVisitInquiries(), loadMandatInquiries(), loadSiteMessages(), loadInscriptionsEntreprises(), loadFiducie(), loadVisitsAdmin(),
     // Les listes de demandes et de travaux proposent les travailleurs :
     // elles attendent que workersDirectory soit rempli.
@@ -2611,7 +2603,7 @@ async function loadVisitInquiries(){
       <span style="font-size:12.5px;color:var(--muted);display:block;margin-bottom:8px;">${esc(i.email)} · ${esc(i.phone) || '—'}${i.message ? ' — ' + esc(i.message) : ''}</span>
       <div class="fo-ligne">
         <div><label class="ch-label" for="vi-when-${i.id}">Date et heure proposées</label>
-          <input type="datetime-local" id="vi-when-${i.id}">
+          <input type="datetime-local" step="900" id="vi-when-${i.id}">
         </div>
         <button onclick="proposeVisit('${i.id}', '${i.unit_id}')" class="ll-bouton ll-bouton--primaire">Proposer cette visite</button>
       </div>
@@ -2769,8 +2761,11 @@ function renderInscriptionsEntreprises(){
       <header class="tr-tete">
         <span class="tr-avatar" aria-hidden="true">${esc((i.courriel || '?').slice(0, 2).toUpperCase())}</span>
         <div class="tr-ident">
-          <h3>${esc(i.courriel)}</h3>
-          <div class="md-sous">Reçue le ${new Date(i.created_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+          <h3>${esc(i.entreprise || i.courriel)}</h3>
+          <div class="md-sous">${i.entreprise ? esc(i.courriel) + ' · ' : ''}Reçue le ${new Date(i.created_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+          ${(i.metiers?.length || i.secteurs?.length || i.rbq) ? `<div class="md-sous">${[
+            i.metiers?.length ? 'Métiers : ' + i.metiers.map(m => (window.LL_METIERS || []).find(x => x[0] === m)?.[1] || m).join(', ') : '',
+            i.secteurs?.length ? 'Secteurs : ' + i.secteurs.join(', ') : '', i.rbq ? 'RBQ ' + i.rbq : ''].filter(Boolean).map(esc).join(' · ')}</div>` : ''}
         </div>
         <div class="tr-pastilles">
           <span class="tr-pastille tr-pastille--${ton}">${esc(libelle)}</span>
@@ -2857,33 +2852,97 @@ async function proposeVisit(inquiry_id, unit_id){
     proposed_at: new Date(whenInput.value).toISOString(),
   });
   if(res?.ok){ await loadVisitInquiries(); await loadVisitsAdmin(); }
+  else alert(res?.error || 'La visite n’a pas pu être proposée.');
 }
 
+// Visites en calendrier (Grégory, 2026-11-04) : semaine ou jour, créneaux de 15 min, visite libre (3 h par défaut, ajustable).
+// Les chevauchements sont refusés par la base (visits_plage); l'écran affiche le message.
+const VC = { vue: 'semaine', date: new Date(), visites: [], logements: [] };
+const VC_STATUT = { proposed: 'En attente de réponse', confirmed: 'Confirmée', declined: 'Refusée', completed: 'Complétée', no_show: 'Absence', other_time_proposed: 'Autre moment proposé — à reprogrammer' };
+const VC_COULEUR = { proposed: '#b7860b', confirmed: '#4c7a4c', declined: '#8a8a8a', completed: '#2E5788', no_show: '#c0392b', other_time_proposed: '#8a5fb0' };
+const vcJour = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+const vcIso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const vcHeure = d => d.toLocaleTimeString('fr-CA', { hour: 'numeric', minute: '2-digit' }).replace(/\s?h\s?/, ' h ');
+function vcJours(){
+  const d0 = vcJour(VC.date);
+  if(VC.vue === 'jour') return [d0];
+  const lundi = new Date(d0); lundi.setDate(d0.getDate() - ((d0.getDay() + 6) % 7));
+  return Array.from({ length: 7 }, (_, k) => { const x = new Date(lundi); x.setDate(lundi.getDate() + k); return x; });
+}
 async function loadVisitsAdmin(){
-  const data = await callOpsApi({ action: 'list_visits' });
-  const container = document.getElementById('visits-body');
-  const visits = data?.visits || [];
-  if(!visits.length){
-    container.innerHTML = '<p class="tr-vide">Aucune visite planifiée.</p>';
-    return;
-  }
-  const statusLabel = { proposed: 'En attente de réponse', confirmed: 'Confirmée', declined: 'Refusée', completed: 'Complétée', no_show: 'Absence', other_time_proposed: 'Autre moment proposé — à reprogrammer' };
-  const statusColor = { proposed: '#e6a817', confirmed: '#4c7a4c', declined: '#8a8a8a', completed: '#4c7a4c', no_show: '#c0392b', other_time_proposed: '#8a5fb0' };
-  container.innerHTML = visits.map(v => `
-    <div class="tr-carte">
-      <b style="display:block;margin-bottom:4px;">${esc(v.prospect_name)} — ${esc(v.units?.buildings?.address) || ''}, unité ${esc(v.units?.unit_number) || ''}</b>
-      <span style="font-size:12.5px;color:var(--muted);display:block;margin-bottom:8px;">${new Date(v.proposed_at).toLocaleString('fr-CA')} — <span style="background:${statusColor[v.status]};color:#fff;font-size:11px;font-weight:700;padding:3px 8px;">${esc(statusLabel[v.status] || v.status)}</span>${v.response_note ? ' — ' + esc(v.response_note) : ''}</span>
-      ${v.status === 'confirmed' ? `
-      <div style="display:flex;gap:10px;">
-        <button onclick="markVisitOutcome('${v.id}','completed')" class="vo-action">Visite complétée</button>
-        <button onclick="markVisitOutcome('${v.id}','no_show')" class="vo-action">Absence du candidat</button>
-      </div>` : ''}
-    </div>`).join('');
+  const [v, l] = await Promise.all([callOpsApi({ action: 'list_visits' }), callOpsApi({ action: 'list_marketplace_listings' })]);
+  VC.visites = (v?.visits || []).map(x => ({ ...x, debut: new Date(x.proposed_at), fin: new Date(x.ends_at || new Date(new Date(x.proposed_at).getTime() + 15 * 60000)) }));
+  const vus = new Map();
+  for(const u of (l?.listings || [])) vus.set(u.id, `${u.buildings?.address || 'Logement'}${u.unit_number ? ', unité ' + u.unit_number : ''}`);
+  for(const x of VC.visites) if(x.unit_id && !vus.has(x.unit_id)) vus.set(x.unit_id, `${x.units?.buildings?.address || 'Logement'}, unité ${x.units?.unit_number || ''}`);
+  VC.logements = [...vus.entries()];
+  vcRendre();
+}
+function vcRendre(){
+  const el = document.getElementById('visits-body'), jours = vcJours(), PX = 14;   // 14 px par quart d'heure
+  const deb = jours[0], fin = new Date(jours[jours.length - 1]); fin.setDate(fin.getDate() + 1);
+  const ici = VC.visites.filter(x => x.debut < fin && x.fin > deb);
+  let h0 = 8, h1 = 21;
+  for(const x of ici){ h0 = Math.min(h0, x.debut.getHours()); h1 = Math.max(h1, x.fin.getHours() + (x.fin.getMinutes() ? 1 : 0)); }
+  const quarts = (h1 - h0) * 4, haut = quarts * PX, aujourdhui = vcIso(new Date());
+  const titre = VC.vue === 'jour' ? deb.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long' })
+    : `${deb.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })} au ${new Date(fin.getTime() - 864e5).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+  const evenements = j => ici.filter(x => vcIso(x.debut) === vcIso(j)).map(x => {
+    const top = ((x.debut.getHours() - h0) * 60 + x.debut.getMinutes()) / 15 * PX, h = Math.max(PX, (x.fin - x.debut) / 9e5 * PX) - 2;
+    const libre = x.kind === 'visite_libre', lieu = `${x.units?.buildings?.address || ''}${x.units?.unit_number ? ', ' + x.units.unit_number : ''}`;
+    return `<button type="button" class="vc-ev${libre ? ' libre' : ''}" style="top:${top}px;height:${h}px;${libre ? '' : 'background:' + (VC_COULEUR[x.status] || '#4c7a4c')}" onclick="vcDetail('${x.id}')"
+      title="${esc((libre ? 'Visite libre' : x.prospect_name) + ' · ' + lieu)}"><b>${vcHeure(x.debut)}</b> ${esc(libre ? 'Visite libre' : x.prospect_name || '')}<br>${esc(lieu)}</button>`;
+  }).join('');
+  const heures = Array.from({ length: h1 - h0 + 1 }, (_, k) => `<span style="top:${k * 4 * PX}px">${h0 + k} h</span>`).join('');
+  const optLog = VC.logements.map(([id, nom]) => `<option value="${id}">${esc(nom)}</option>`).join('');
+  el.innerHTML = `
+    <div class="vc-barre">
+      <button type="button" onclick="vcAller(-1)">‹</button><button type="button" onclick="VC.date = new Date(); vcRendre()">Aujourd’hui</button><button type="button" onclick="vcAller(1)">›</button>
+      <span class="vc-titre">${esc(titre)}</span>
+      <button type="button" class="${VC.vue === 'semaine' ? 'actif' : ''}" onclick="VC.vue = 'semaine'; vcRendre()">Semaine</button>
+      <button type="button" class="${VC.vue === 'jour' ? 'actif' : ''}" onclick="VC.vue = 'jour'; vcRendre()">Jour</button>
+      <span style="flex:1"></span>
+      <button type="button" class="primary" onclick="document.getElementById('vc-libre').style.display = 'flex'">+ Visite libre</button>
+    </div>
+    <form id="vc-libre" class="vc-form" style="display:none" onsubmit="event.preventDefault(); vcCreerLibre()">
+      <label>Logement<select id="vc-l-unite" required>${optLog || '<option value="">Aucun logement à louer</option>'}</select></label>
+      <label>Début<input type="datetime-local" id="vc-l-debut" step="900" required></label>
+      <label>Durée<select id="vc-l-duree">${[60, 90, 120, 150, 180, 240, 300, 360].map(m => `<option value="${m}"${m === 180 ? ' selected' : ''}>${Math.floor(m / 60)} h${m % 60 ? ' ' + (m % 60) : ''}</option>`).join('')}</select></label>
+      <button type="submit" class="primary">Bloquer la plage</button><button type="button" onclick="this.form.style.display = 'none'">Annuler</button>
+      <span style="font-size:12px;color:var(--muted);flex-basis:100%">Les visiteurs passent sans heure précise; aucune autre visite ne peut être prise dans ce logement pendant la plage.</span>
+    </form>
+    <div class="vc-grille" style="grid-template-columns:52px repeat(${jours.length}, minmax(${VC.vue === 'jour' ? 280 : 110}px, 1fr))">
+      <div class="vc-tete"></div>${jours.map(j => `<div class="vc-tete${vcIso(j) === aujourdhui ? ' auj' : ''}">${esc(j.toLocaleDateString('fr-CA', { weekday: 'short', day: 'numeric', month: 'short' }))}</div>`).join('')}
+      <div class="vc-heures" style="height:${haut}px">${heures}</div>
+      ${jours.map(j => `<div class="vc-jour" style="height:${haut}px;background-size:100% ${4 * PX}px">${evenements(j)}</div>`).join('')}
+    </div>
+    ${ici.length ? '' : `<p class="tr-vide" style="margin-top:8px">Aucune visite ${VC.vue === 'jour' ? 'ce jour-là' : 'cette semaine'}.</p>`}`;
+}
+function vcAller(k){ const d = new Date(VC.date); d.setDate(d.getDate() + k * (VC.vue === 'jour' ? 1 : 7)); VC.date = d; vcRendre(); }
+async function vcCreerLibre(){
+  const debut = document.getElementById('vc-l-debut').value, unit_id = document.getElementById('vc-l-unite').value;
+  if(!debut || !unit_id){ alert('Choisis le logement et l’heure de début.'); return; }
+  const res = await callOpsApi({ action: 'create_open_house', unit_id, starts_at: new Date(debut).toISOString(), duration_minutes: Number(document.getElementById('vc-l-duree').value) });
+  if(!res?.ok){ alert(res?.error || 'La visite libre n’a pas pu être créée.'); return; }
+  VC.date = new Date(debut); await loadVisitsAdmin();
+}
+function vcDetail(id){
+  const x = VC.visites.find(v => v.id === id), el = document.getElementById('visit-detail');
+  if(!x){ el.style.display = 'none'; return; }
+  const libre = x.kind === 'visite_libre';
+  el.style.display = 'block';
+  el.innerHTML = `<b style="display:block;margin-bottom:4px;">${esc(libre ? 'Visite libre' : x.prospect_name)} — ${esc(x.units?.buildings?.address) || ''}, unité ${esc(x.units?.unit_number) || ''}</b>
+    <span style="font-size:12.5px;color:var(--muted);display:block;margin-bottom:8px;">${x.debut.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long' })}, ${vcHeure(x.debut)} à ${vcHeure(x.fin)}
+      — ${libre ? 'sans rendez-vous' : esc(VC_STATUT[x.status] || x.status)}${!libre && x.prospect_email ? ' · ' + esc(x.prospect_email) : ''}</span>
+    <div style="display:flex;gap:10px;">${!libre && x.status === 'confirmed' ? `<button onclick="markVisitOutcome('${x.id}','completed')" class="vo-action">Visite complétée</button>
+      <button onclick="markVisitOutcome('${x.id}','no_show')" class="vo-action">Absence du candidat</button>` : ''}
+      ${libre && x.status === 'confirmed' ? `<button onclick="markVisitOutcome('${x.id}','completed')" class="vo-action">Visite libre terminée</button><button onclick="markVisitOutcome('${x.id}','cancelled')" class="vo-action">Annuler la visite libre</button>` : ''}</div>`;
 }
 
 async function markVisitOutcome(visit_id, outcome){
   const res = await callOpsApi({ action: 'mark_visit_outcome', visit_id, outcome });
-  if(res?.ok){ await loadVisitsAdmin(); }
+  if(res?.ok){ document.getElementById('visit-detail').style.display = 'none'; await loadVisitsAdmin(); }
+  else alert(res?.error || 'Le statut n’a pas pu être enregistré.');
 }
 
 async function copyToClipboard(text, btn){

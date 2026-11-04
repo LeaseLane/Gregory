@@ -1,5 +1,6 @@
 import { analyserAppel, changementsProposes, proposerSuivi } from "../_shared/analyse-appel.ts";
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
+import { nouveauProspect } from "../_shared/prospect.ts";
 
 
 Deno.serve(async (req) => {
@@ -94,22 +95,9 @@ Deno.serve(async (req) => {
     }
 
     if (action === "create") {
-      const { full_name, email, phone, company_name, num_doors, avg_rent, lead_source, acquisition_cost, notes } = body;
-      const potential = num_doors && avg_rent ? Math.round(num_doors * avg_rent * 0.06 * 100) / 100 : null;
-      await fetch(`${supabaseUrl}/rest/v1/prospects`, {
-        method: "POST",
-        headers: adminHeaders,
-        body: JSON.stringify({
-          full_name, email, phone, company_name,
-          num_doors: num_doors || null,
-          avg_rent: avg_rent || null,
-          potential_monthly_revenue: potential,
-          stage: "new",
-          lead_source: lead_source || "manuel",
-          acquisition_cost: acquisition_cost || null,
-          notes: typeof notes === "string" ? notes.trim().slice(0, 5000) || null : null,
-        }),
-      });
+      const p = nouveauProspect(body);   // mêmes règles que caller-api « create_prospect »
+      if ("erreur" in p) return new Response(JSON.stringify({ error: p.erreur }), { status: 400, headers: corsHeaders });
+      await fetch(`${supabaseUrl}/rest/v1/prospects`, { method: "POST", headers: adminHeaders, body: JSON.stringify(p.ligne) });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
     }
 

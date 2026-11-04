@@ -708,7 +708,10 @@ Deno.serve(async (req) => {
         const wRes = await fetch(`${supabaseUrl}/rest/v1/workers`, {
           method: "POST", headers: { ...adminHeaders, Prefer: "return=representation" },
           body: JSON.stringify({
-            name: `À compléter (${i.courriel})`, email: i.courriel, phone: t.length === 10 ? `${t.slice(0, 3)} ${t.slice(3, 6)}-${t.slice(6)}` : t || null,
+            // Dispatch d'abord (2026-11-04) : la fiche reprend l'entreprise, ses métiers, ses secteurs et son RBQ (attribution des bons de travail).
+            name: i.entreprise || `À compléter (${i.courriel})`, company_name: i.entreprise || null, specialties: i.metiers?.length ? i.metiers : undefined,
+            zones: i.secteurs?.length ? i.secteurs : undefined, rbq_license: i.rbq || null,
+            email: i.courriel, phone: t.length === 10 ? `${t.slice(0, 3)} ${t.slice(3, 6)}-${t.slice(6)}` : t || null,
             verification_status: "pending",
             verification_notes: `Inscription du site du ${String(i.created_at).slice(0, 10)}. Preuve d'assurance reçue, non vérifiée.${i.poste ? ` Poste : ${i.poste}.` : ""}`,
           }),

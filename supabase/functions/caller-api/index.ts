@@ -2,6 +2,7 @@ import { EXPEDITEUR, PORTAILS } from "../_shared/branding.ts";
 import { avecHtml } from "../_shared/courriel.ts";
 import { corsHeadersFor, requireUser } from "../_shared/auth.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
+import { nouveauProspect } from "../_shared/prospect.ts";
 
 const CALLER_ALLOWED_STAGES = ["contacted", "interested"];
 const OWNER_PORTAL_URL = PORTAILS.proprietaire;
@@ -37,6 +38,9 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Accès refusé — compte de prospecteur téléphonique introuvable ou désactivé" }), { status: 403, headers: corsHeaders });
     }
     const callerId = caller.id;
+    // Un prospect est au prospecteur s'il le lui a été assigné ou s'il l'a créé (même règle que la RLS de public.prospects).
+    const estAMoi = (p: { assigned_caller_id?: string | null; created_by_caller_id?: string | null }) =>
+      p.assigned_caller_id === callerId || p.created_by_caller_id === callerId;
 
     const logAudit = (action: string, entityType: string, entityId: string | null, details: Record<string, unknown>) =>
       fetch(`${supabaseUrl}/rest/v1/audit_log`, {
@@ -57,7 +61,7 @@ Deno.serve(async (req) => {
 
     if (action === "list_my_prospects") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/prospects?assigned_caller_id=eq.${callerId}&archived_at=is.null&select=id,full_name,email,phone,company_name,num_doors,avg_rent,potential_monthly_revenue,stage,interest_level,next_followup_date,call_history,notes,created_at&order=next_followup_date.asc.nullslast`,
+        `${supabaseUrl}/rest/v1/prospects?or=(assigned_caller_id.eq.${callerId},created_by_caller_id.eq.${callerId})&archived_at=is.null&select=id,full_name,email,phone,company_name,num_doors,avg_rent,potential_monthly_revenue,stage,interest_level,next_followup_date,call_history,notes,created_at&order=next_followup_date.asc.nullslast`,
         { headers: adminHeaders },
       );
       const prospects = await res.json();
@@ -105,7 +109,7 @@ Deno.serve(async (req) => {
       if (!prospect) {
         return new Response(JSON.stringify({ error: "Prospect introuvable" }), { status: 404, headers: corsHeaders });
       }
-      if (prospect.assigned_caller_id !== callerId) {
+      if (!estAMoi(prospect)) {
         return new Response(JSON.stringify({ error: "Ce prospect ne t'est pas assigné" }), { status: 403, headers: corsHeaders });
       }
 
@@ -187,9 +191,9 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
       if (!prospect_id || !CALLER_ALLOWED_STAGES.includes(stage)) {
         return new Response(JSON.stringify({ error: "Statut invalide pour un prospecteur téléphonique" }), { status: 400, headers: corsHeaders });
       }
-      const prospRes = await fetch(`${supabaseUrl}/rest/v1/prospects?id=eq.${prospect_id}&select=assigned_caller_id`, { headers: adminHeaders });
+      const prospRes = await fetch(`${supabaseUrl}/rest/v1/prospects?id=eq.${prospect_id}&select=assigned_caller_id,created_by_caller_id`, { headers: adminHeaders });
       const [prospect] = await prospRes.json();
-      if (!prospect || prospect.assigned_caller_id !== callerId) {
+      if (!prospect || !estAMoi(prospect)) {
         return new Response(JSON.stringify({ error: "Ce prospect ne t'est pas assigné" }), { status: 403, headers: corsHeaders });
       }
       await fetch(`${supabaseUrl}/rest/v1/prospects?id=eq.${prospect_id}`, {
@@ -197,6 +201,21 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
       });
       await logAudit("prospect.stage_change_by_caller", "prospects", prospect_id, { new_stage: stage, caller_name: caller.full_name });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
+    }
+
+    // Le prospecteur ajoute lui-même un prospect (Grégory, 2026-11-04) : mêmes règles que l'admin (nouveauProspect),
+    // assigné à lui et marqué comme créé par lui.
+    if (action === "create_prospect") {
+      const p = nouveauProspect(body, "prospecteur");
+      if ("erreur" in p) return new Response(JSON.stringify({ error: p.erreur }), { status: 400, headers: corsHeaders });
+      const res = await fetch(`${supabaseUrl}/rest/v1/prospects?select=id,full_name`, {
+        method: "POST", headers: { ...adminHeaders, Prefer: "return=representation" },
+        body: JSON.stringify({ ...p.ligne, acquisition_cost: null, assigned_caller_id: callerId, created_by_caller_id: callerId }),
+      });
+      const [cree] = await res.json().catch(() => [null]);
+      if (!res.ok || !cree) return new Response(JSON.stringify({ error: "Le prospect n'a pas pu être créé." }), { status: 500, headers: corsHeaders });
+      await logAudit("prospect.created_by_caller", "prospects", cree.id, { caller_name: caller.full_name });
+      return new Response(JSON.stringify({ ok: true, prospect: cree }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Un prospecteur téléphonique crée lui-même le compte propriétaire quand un
@@ -212,12 +231,12 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 
       let prospect: any = null;
       if (prospect_id) {
-        const prospRes = await fetch(`${supabaseUrl}/rest/v1/prospects?id=eq.${prospect_id}&select=id,assigned_caller_id`, { headers: adminHeaders });
+        const prospRes = await fetch(`${supabaseUrl}/rest/v1/prospects?id=eq.${prospect_id}&select=id,assigned_caller_id,created_by_caller_id`, { headers: adminHeaders });
         [prospect] = await prospRes.json();
         if (!prospect) {
           return new Response(JSON.stringify({ error: "Prospect introuvable" }), { status: 404, headers: corsHeaders });
         }
-        if (prospect.assigned_caller_id !== callerId) {
+        if (!estAMoi(prospect)) {
           return new Response(JSON.stringify({ error: "Ce prospect ne t'est pas assigné" }), { status: 403, headers: corsHeaders });
         }
       }

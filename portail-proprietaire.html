@@ -241,29 +241,7 @@
 
       <section id="payments" class="section">
         <div class="toolbar"><h2>Loyers et paiements</h2></div>
-        <div class="pp-carte pp-banque">
-          <span class="vo-icone"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#wallet"/></svg></span>
-          <div class="pp-banque__texte">
-            <h3>Compte bancaire</h3>
-            <p>Les loyers reçus sont rapprochés automatiquement. Accès en lecture seule : vos identifiants restent chez Flinks, notre partenaire, jamais chez nous.</p>
-            <div id="bank-connections-body"><p class="tr-vide">Chargement...</p></div>
-            <p id="bank-connect-msg" class="pp-note"></p>
-          </div>
-          <button class="ll-bouton ll-bouton--primaire" onclick="startOwnerBankConnect()" id="bank-connect-btn">Connecter mon compte</button>
-        </div>
-        <div id="bank-connect-widget-wrap" style="display:none;margin-bottom:14px;">
-          <iframe id="bank-connect-iframe" height="700" style="width:100%;max-width:520px;border:1px solid var(--bordure);border-radius:var(--rayon-carte);"></iframe>
-          <p class="pp-note">Une fois la connexion réussie ci-dessus, la liaison se fait automatiquement en quelques secondes.</p>
-        </div>
-
-        <h3 class="sous-titre">Historique des loyers</h3>
-        <table><thead><tr><th>Locataire</th><th>Montant</th><th>Échéance</th><th>Statut</th></tr></thead>
-          <tbody id="payments-body"><tr class="empty-row"><td colspan="4">Chargement...</td></tr></tbody>
-        </table>
-      </section>
-
-      <section id="expenses" class="section">
-        <div class="toolbar"><h2>Dépenses</h2></div>
+        <!-- Connexion bancaire retirée le 2026-11-04 : les loyers passent par le compte en fidéicommis de Lease Lane (BMO) et les prélèvements. -->
         <table><thead><tr><th>Description</th><th>Fournisseur</th><th>Catégorie</th><th>Montant</th><th>Date</th></tr></thead>
           <tbody id="expenses-body"><tr class="empty-row"><td colspan="5">Chargement...</td></tr></tbody>
         </table>
@@ -527,7 +505,6 @@ async function loadBuildings(){
   renderBuildingsTab(buildings || []);
   renderUnitsTab(buildings || []);
   renderPaymentsTab(buildings || []);
-  await loadOwnerBankConnections();
   await loadExpenses();
   await loadWorkTab();
   await loadApprovals();
@@ -1292,7 +1269,7 @@ async function loadReports(){
         <summary style="cursor:pointer;color:var(--muted);">Travaux ayant dépassé l'estimation (${r.over_estimate_work_orders.length})</summary>
         <ul style="margin:6px 0 0 18px;padding:0;">${r.over_estimate_work_orders.map(w => `<li>${esc(w.description)} — estimé ${Number(w.estimated_cost).toLocaleString('fr-CA')} $, réel ${Number(w.actual_cost).toLocaleString('fr-CA')} $ (+${Number(w.overage).toLocaleString('fr-CA')} $)</li>`).join('')}</ul>
       </details>` : ''}
-      <span style="font-size:11.5px;color:var(--muted);">Rapprochement bancaire : ${r.bank_reconciliation_status === 'non_connecte' ? 'aucun compte bancaire lié pour l\'instant' : esc(r.bank_reconciliation_status)}</span>
+      
     </div>`;
   }).join('');
 }

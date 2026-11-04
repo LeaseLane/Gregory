@@ -57,3 +57,15 @@ Deno.test("avis à l'équipe : coordonnées et lien vers l'onglet privé, jamais
   for (const s of ["Téléphone : 418 555-0142", "Poste : 12", "Courriel : vous@entreprise.ca", "Reçue le : ", "https://app.leaselane.ca/portail-admin"]) assertEquals(t.includes(s), true, s);
   assertEquals(/storage|sign/.test(t), false);
 });
+
+Deno.test("dispatch d'abord : entreprise, métiers connus, secteurs, RBQ", () => {
+  const r = validerInscription({ ...ok, dispatch: "1", entreprise: "  Plomberie  Essai inc. ", metiers: "plomberie,inconnu,plomberie,cvac", secteurs: " Lévis , Québec,,Lévis", rbq: "1234 5678 90" });
+  if (!r.ok) throw new Error(r.error);
+  assertEquals([r.demande.entreprise, r.demande.metiers, r.demande.secteurs, r.demande.rbq], ["Plomberie Essai inc.", ["plomberie", "cvac"], ["Lévis", "Québec"], "1234-5678-90"]);
+  assertEquals(validerInscription({ ...ok, dispatch: "1", metiers: "plomberie" }), { ok: false, champ: "entreprise", error: MESSAGES.entreprise });
+  assertEquals(validerInscription({ ...ok, dispatch: "1", entreprise: "Essai", metiers: "inconnu" }), { ok: false, champ: "metiers", error: MESSAGES.metiers });
+  assertEquals(validerInscription({ ...ok, rbq: "12-34" }), { ok: false, champ: "rbq", error: MESSAGES.rbq });
+  // Ancienne page (sans « dispatch ») : acceptée telle quelle.
+  const v = validerInscription(ok);
+  assertEquals(v.ok && [v.demande.entreprise, v.demande.metiers.length], [null, 0]);
+});

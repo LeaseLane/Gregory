@@ -28,10 +28,10 @@ export function Releve({ donnees, erreur }: { donnees: DonneesReleve | null; err
         {frais.length > 0 && <table className="tableau"><thead><tr><th>Travaux (factures remises telles quelles)</th><th>Date</th><th className="droite">Montant</th></tr></thead>
           <tbody>{frais.map((l, i) => <tr key={i}><td>{l.libelle.replace(/(\d+)\.(\d*?)0* %/, (_, a, b) => `${a}${b ? `,${b}` : ''} %`)}</td><td>{jour(l.le)}</td><td className="droite">{argent(-l.montant)}</td></tr>)}</tbody></table>}
         <table className="tableau"><thead><tr><th>Facture d’honoraires du 5</th><th /><th className="droite">Montant</th></tr></thead>
-          <tbody>{[['Honoraires de gestion', R.facture.honoraires], ['Coordination 10 % (travaux de plus de 1 000 $)', R.facture.coordination], ['TPS 5 %', R.facture.tps], ['TVQ 9,975 %', R.facture.tvq]].filter(([, v]) => (v as number) > 0 || true).map(([t, v]) =>
+          <tbody>{[['Honoraires de gestion', R.facture.honoraires], ['Coordination 10 % (travaux de 1 000 $ ou plus)', R.facture.coordination], ['TPS 5 %', R.facture.tps], ['TVQ 9,975 %', R.facture.tvq]].filter(([, v]) => (v as number) > 0 || true).map(([t, v]) =>
             <tr key={t as string}><td>{t}</td><td /><td className="droite">{argent(v as number)}</td></tr>)}</tbody></table>
         <p className="releve-total"><span>Total de la facture du 5</span><b>{argent(R.facture.total)}</b></p>
-        <p className="po-note">Les loyers sont payés directement à vous; Lease Lane les suit et relance les retards. La facture d’honoraires est prélevée ou payable le 5. Les factures des fournisseurs sont jointes telles quelles au dossier; les frais de coordination de 10 % s’appliquent seulement au-delà de 1 000 $.</p>
+        <p className="po-note">Les loyers sont payés directement à vous; Lease Lane les suit et relance les retards. La facture d’honoraires est prélevée ou payable le 5. Les factures des fournisseurs sont jointes telles quelles au dossier; les frais de coordination de 10 % s’appliquent seulement dès 1 000 $.</p>
       </article>
     </>
   );

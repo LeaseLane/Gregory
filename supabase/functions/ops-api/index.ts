@@ -1502,7 +1502,12 @@ Deno.serve(async (req) => {
           prospect_phone: prospect_phone || null, proposed_at,
         }),
       });
-      const [visit] = await insertRes.json();
+      const inserted = await insertRes.json().catch(() => null);
+      // Créneau déjà pris (autre visite ou visite libre dans ce logement) ou heure hors quart d'heure : règle vérifiée en base (visits_plage).
+      if (!insertRes.ok) {
+        return new Response(JSON.stringify({ error: inserted?.message || "La visite n'a pas pu être proposée." }), { status: insertRes.status === 409 ? 409 : 400, headers: corsHeaders });
+      }
+      const [visit] = inserted;
 
       const confirmUrl = `${SITE_BASE_URL}/confirmer-visite?visit=${visit?.id}&token=${visit?.confirmation_token}`;
       const whenLabel = new Date(proposed_at).toLocaleString("fr-CA", { dateStyle: "full", timeStyle: "short" });
@@ -1524,6 +1529,23 @@ Deno.serve(async (req) => {
       }
       await logAudit("visit.proposed", "visits", visit?.id ?? null, { unit_id, prospect_email, proposed_at });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
+    }
+
+    // Visite libre (portes ouvertes) : bloque une plage du logement, 3 h par défaut; aucun visiteur nommé, aucun courriel envoyé.
+    if (action === "create_open_house") {
+      const { unit_id, starts_at, duration_minutes } = body;
+      const debut = new Date(starts_at), duree = Number(duration_minutes) || 180;
+      if (!unit_id || Number.isNaN(debut.getTime())) {
+        return new Response(JSON.stringify({ error: "Logement et heure de début requis" }), { status: 400, headers: corsHeaders });
+      }
+      const res = await fetch(`${supabaseUrl}/rest/v1/visits`, {
+        method: "POST", headers: { ...adminHeaders, Prefer: "return=representation" },
+        body: JSON.stringify({ unit_id, kind: "visite_libre", proposed_at: debut.toISOString(), ends_at: new Date(debut.getTime() + duree * 60000).toISOString(), status: "confirmed" }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) return new Response(JSON.stringify({ error: data?.message || "La visite libre n'a pas pu être créée." }), { status: res.status === 409 ? 409 : 400, headers: corsHeaders });
+      await logAudit("visit.open_house_created", "visits", data?.[0]?.id ?? null, { unit_id, starts_at: debut.toISOString(), duration_minutes: duree });
+      return new Response(JSON.stringify({ ok: true, visit: data?.[0] }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "mark_visit_outcome") {

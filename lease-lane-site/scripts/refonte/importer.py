@@ -53,6 +53,22 @@ POLICES = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
 
 FAQ_SANS = ("else dire('Je n’ai pas de réponse toute prête à cette question. Choisissez une catégorie, ou "
             "<a href=\"nous-joindre.html\">écrivez à l’équipe</a> : une personne vous répond.'+(cote?'':liste()),800,true)};")
+METIERS = re.findall(r"\['([a-z_]+)', '([^']+)'\]", (SITE.parent / 'assets' / 'metiers.js').read_text(encoding='utf-8'))
+assert len(METIERS) >= 10, 'assets/metiers.js : liste des métiers introuvable'
+INSC_ANCRE = '        <div class="rang-21">\n          <div class="champ"><label for="ie-tel">'
+INSC_AIDE = 'Trois champs obligatoires, marqués d’un *. Le reste se complète dans la plateforme.'
+INSC_CHAMPS = ('        <div class="champ"><label for="ie-ent">Nom de l’entreprise <span class="req">*</span></label>'
+  '<input class="saisie" id="ie-ent" autocomplete="organization" placeholder="Plomberie Exemple inc."></div>\n'
+  '        <fieldset class="champ" id="ie-metiers" style="border:0;padding:0;margin:0"><legend class="etiq">Métiers <span class="req">*</span></legend>'
+  '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;margin-top:8px">'
+  + ''.join(f'<label class="case"><input type="checkbox" value="{c}"><span>{l}</span></label>' for c, l in METIERS) +
+  '</div><span class="aide">Nos demandes vous arrivent selon ces métiers.</span></fieldset>\n'
+  '        <div class="rang-21">\n'
+  '          <div class="champ"><label for="ie-sect">Secteurs desservis <span class="facult">(facultatif)</span></label>'
+  '<input class="saisie" id="ie-sect" placeholder="Lévis, Québec, Saint-Nicolas"><span class="aide">Séparés par des virgules.</span></div>\n'
+  '          <div class="champ"><label for="ie-rbq">Numéro RBQ <span class="facult">(facultatif)</span></label>'
+  '<input class="saisie" id="ie-rbq" inputmode="numeric" placeholder="1234-5678-90"></div>\n'
+  '        </div>\n')
 NOINDEX = '<meta name="robots" content="noindex, nofollow">'
 
 if DEST.exists():
@@ -101,6 +117,11 @@ for url, nom in routes.items():
     if FAQ_SANS in t:
         t = t.replace(FAQ_SANS, "else{const non=()=>" + FAQ_SANS[5:-2] + ",g=gen;if(!window.llCleo)return non();"
                       "window.llCleo(t).then(r=>{if(g===gen)r?dire(esc(r),300,true):non()},()=>{if(g===gen)non()})}};")
+    # Inscrire mon entreprise, dispatch d'abord (2026-11-04) : nom de l'entreprise, métiers (assets/metiers.js), secteurs et RBQ,
+    # entre la preuve d'assurance et le téléphone; branchements.js les envoie à inscription-entreprise.
+    if nom == 'inscrire-mon-entreprise.html':
+        assert t.count(INSC_ANCRE) == 1 and t.count(INSC_AIDE) == 1, 'inscrire-mon-entreprise.html : formulaire modifié par Steven'
+        t = t.replace(INSC_ANCRE, INSC_CHAMPS + INSC_ANCRE).replace(INSC_AIDE, 'Cinq champs obligatoires, marqués d’un *. Le reste se complète dans la plateforme.')
     # Images chargées au défilement, sauf le logo de l'en-tête (visible dès l'arrivée). Les héros sont des fonds CSS.
     t = re.sub(r'<img\b(?![^>]*\bloading=)(?![^>]*class="logo-[hv]")([^>]*)>',
                lambda m: '<img loading="lazy"' + ('' if 'decoding=' in m[1] else ' decoding="async"') + m[1] + '>', t)

@@ -9,7 +9,7 @@ import { heure } from '../../onglets';
 import { adresse } from '@/lib/format';
 
 /* e33 · Fiche bon de travail : étapes (créé → soumissions → accord → planifié → réalisé → facturé), détails, accès au logement (avis de 24 h, art. 1931 C.c.Q.),
-   fil inscrit au journal, fournisseur, coûts avec taxes et honoraires (10 % au-delà de 1 000 $ avant taxes). */
+   fil inscrit au journal, fournisseur, coûts avec taxes et honoraires (10 % dès 1 000 $ avant taxes). */
 type Etape = { cle: string; fait: boolean; le?: string | null; note?: string; saute?: boolean };
 export type DonneesBon = Carte & { description: string; statut: string; signale_par: string; signale_le: string; categorie: string | null; service_request_id: string | null; priorite: string; responsable_nom: string;
   acces: { permission: string | null; locataire: string | null; tenant_id: string | null; telephone: string | null; presence: string | null; presence_le: string | null; confirmation: string | null; confirme: boolean | null; note: string | null };
@@ -98,7 +98,7 @@ export function FicheBon({ donnees: D, maintenant, erreurLecture }: { donnees: D
             <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{C.facture_ht ? 'Facture du fournisseur' : C.soumission ? `Soumission retenue le ${jour(C.soumission.le)}` : 'Budget estimé'}</p>
             <div className="couts"><span>{C.facture_ht ? 'Facture avant taxes' : C.soumission ? 'Soumission' : 'Budget'}</span><span>{argent(C.base)}</span><span>TPS (5 %)</span><span>{argent(C.tps)}</span><span>TVQ (9,975 %)</span><span>{argent(C.tvq)}</span>
               <span className="total">Total</span><span className="total">{argent(C.facture_ttc ?? C.total)}</span></div>
-            <p className="gris texte-12">{Number(C.honoraires) > 0 ? `Honoraires de Lease Lane au relevé du propriétaire : ${argent(C.honoraires)} (10 % au-delà de 1 000 $ avant taxes).` : 'Aucun honoraire : 1 000 $ ou moins avant taxes.'}</p>
+            <p className="gris texte-12">{Number(C.honoraires) > 0 ? `Honoraires de Lease Lane au relevé du propriétaire : ${argent(C.honoraires)} (10 % dès 1 000 $ avant taxes).` : 'Aucun honoraire : 1 000 $ ou moins avant taxes.'}</p>
             {C.accord && <div className="cleo-lecture" style={{ background: '#F3F6FA' }}><Icone nom={C.accord.statut === 'approved' ? 'check' : C.accord.statut === 'rejected' ? 'close' : 'clock'} taille={18} couleur="#2E5788" />
               <span><b>{C.accord.statut === 'pending' ? 'Accord du propriétaire attendu' : C.accord.statut === 'approved' ? `Accordé le ${jour(C.accord.decide_le ?? C.accord.le)}` : 'Refusé par le propriétaire'}</b> · {argent(C.accord.montant, false)}
                 {C.accord.statut === 'pending' && <><br />Au-delà de {argent(C.plafond, false)}, son accord est requis avant les travaux.</>}</span></div>}

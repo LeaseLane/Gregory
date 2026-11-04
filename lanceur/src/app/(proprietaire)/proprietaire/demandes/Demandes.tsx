@@ -7,7 +7,7 @@ import { Icone } from '@/composants/Icones';
 import { heureQc, jourQc } from '@/composants/portail/dates';
 
 /* Propriétaire · 07 Demandes et travaux + 08 Autorisation de dépense. « En attente de vous » en puce marine (D3); fenêtre d'accord avec
-   titre en question, conséquence, note facultative; refus avec motif (D8). Coordination de 10 % seulement au-delà de 1 000 $. */
+   titre en question, conséquence, note facultative; refus avec motif (D8). Coordination de 10 % seulement dès 1 000 $. */
 type Ligne = { id: string; numero: string; titre: string; logement: string; locataire: string; etat: string; recue: string };
 export type ListeDemandes = { seuil: number; demandes: Ligne[] };
 export type Detail = { id: string; numero: string; logement: string; locataire: string | null; titre: string; description: string; urgence: string | null; recue: string; etat: string; photos: number;

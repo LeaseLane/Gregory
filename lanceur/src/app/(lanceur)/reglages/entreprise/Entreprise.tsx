@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { CATALOGUE_SERVICES } from '@/lib/drapeaux';
 
 /* x13 · Réglages › Entreprise : identité et taxes (admin), honoraires datés (un nouveau taux s'ajoute à une date, jamais au passé), catalogue
    de services (maintenance). La règle du 13 oct. vit dans les honoraires : 6 % des loyers; travaux : rien jusqu'au seuil, au-delà le taux sur
@@ -43,13 +44,13 @@ export function Entreprise({ donnees: D, erreurLecture }: { donnees: DonneesEntr
             <span>{h.gestion_pct} % des loyers · travaux : rien jusqu’à {argent(h.travaux_seuil)}, au-delà {h.travaux_pct} % avant taxes · {h.source}</span></div>
             <span className={`puce ${h.en_vigueur ? 'final' : 'neutral'}`}>{h.en_vigueur ? 'En vigueur' : new Date(`${h.valid_from}T12:00:00`) > new Date() ? 'À venir' : 'Remplacé'}</span></li>)}</ul></section>
       </div>
-      <section className="carte-l18" id="catalogue" aria-label="Catalogue de services"><header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>Catalogue de services</h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>Travaux types, prix au propriétaire et paie du fournisseur</p></div>
+      {CATALOGUE_SERVICES && <><section className="carte-l18" id="catalogue" aria-label="Catalogue de services"><header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>Catalogue de services</h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>Travaux types, prix au propriétaire et paie du fournisseur</p></div>
         <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setServ({ pricing_model: 'forfait', active: true, urgent_eligible: true, requires_rbq: false })}><Icone nom="plus" taille={16} couleur="#0C2147" />Ajouter un service</button></header>
         <table className="tableau"><thead><tr><th>Service</th><th>Tarification</th><th className="droite">Prix propriétaire</th><th className="droite">Paie fournisseur</th><th>RBQ</th><th>Actif</th><th /></tr></thead>
           <tbody>{D.catalogue.map((c) => <tr key={c.id} className={c.active ? '' : 'gris'}><td><strong>{c.label}</strong><span className="sous gris">{c.category} · {c.task_type}</span></td><td>{TARIF[c.pricing_model] ?? c.pricing_model}</td>
             <td className="droite">{argent(c.fixed_owner_price)}</td><td className="droite">{argent(c.fixed_worker_pay)}</td><td>{c.requires_rbq ? 'Oui' : '—'}</td><td>{c.active ? 'Oui' : 'Non'}</td>
             <td className="droite"><button className="lien" onClick={() => setServ(c)}>Modifier</button></td></tr>)}
-            {!D.catalogue.length && <tr><td colSpan={7} className="gris">Aucun service au catalogue.</td></tr>}</tbody></table></section>
+            {!D.catalogue.length && <tr><td colSpan={7} className="gris">Aucun service au catalogue.</td></tr>}</tbody></table></section></>}
 
       {edit && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setEdit(null)}>
         <form className="fenetre" role="dialog" aria-modal="true" aria-labelledby="ent-t" style={{ marginTop: 80 }} onSubmit={(e) => { e.preventDefault(); rpc('lanceur_entreprise_maj', edit, 'Fiche de l’entreprise enregistrée.'); }}>

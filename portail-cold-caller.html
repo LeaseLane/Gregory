@@ -131,6 +131,7 @@
       <div class="brand"><a href="/" style="display:inline-block;"><img src="assets/logo/leaselane-horizontal-blanc.svg" alt="Lease Lane — Gestion immobilière" style="height:28px;width:auto;display:block;"></a></div>
       <span class="brand-sub">Espace prospection téléphonique</span>
       <button class="tab-btn active" data-tab="queue" onclick="showTab('queue')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#square"/></svg><span>Ma file d'appels</span></button>
+      <button class="tab-btn" data-tab="new-prospect" onclick="showTab('new-prospect')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#square"/></svg><span>+ Nouveau prospect</span></button>
       <button class="tab-btn" data-tab="new-client" onclick="showTab('new-client')"><svg class="ic" aria-hidden="true"><use href="assets/icones.svg#square"/></svg><span>+ Nouveau client</span></button>
       <div class="signout">
         <button class="tab-btn" onclick="handleSignOut()">Se déconnecter</button>
@@ -147,6 +148,28 @@
         </div>
 
         <div id="prospects-list"><p class="empty-note">Chargement...</p></div>
+      </section>
+
+      <section id="new-prospect" class="section">
+        <h1>Nouveau prospect</h1>
+        <p class="subtitle">Ajoute un propriétaire à rappeler. Il arrive dans ta file d'appels, à ton nom.</p>
+        <div class="prospect-card" style="max-width:480px;">
+          <div class="convert-form active" style="margin-top:0;padding-top:0;border-top:none;">
+            <div class="row"><input type="text" id="np-name" placeholder="Nom complet" style="flex:1;min-width:200px;"></div>
+            <div class="row">
+              <input type="email" id="np-email" placeholder="Courriel (optionnel)" style="flex:1;min-width:200px;">
+              <input type="text" id="np-phone" placeholder="Téléphone">
+            </div>
+            <div class="row"><input type="text" id="np-company" placeholder="Entreprise (optionnel)" style="flex:1;min-width:200px;"></div>
+            <div class="row">
+              <input type="number" id="np-doors" placeholder="Nombre de portes" min="1" style="width:170px;">
+              <input type="number" id="np-rent" placeholder="Loyer moyen $" min="1" style="width:150px;">
+            </div>
+            <div class="row"><textarea id="np-notes" placeholder="Notes (optionnel)" rows="3" style="flex:1;min-width:200px;"></textarea></div>
+            <button class="primary" onclick="submitNewProspect()">Ajouter le prospect</button>
+            <p class="msg" id="np-msg"></p>
+          </div>
+        </div>
       </section>
 
       <section id="new-client" class="section">
@@ -462,6 +485,21 @@ async function submitNewClient(){
   document.getElementById('nc-company').value = '';
   document.getElementById('nc-rate').value = '6';
   document.getElementById('nc-cap').value = '300';
+}
+
+// Nouveau prospect (Grégory, 2026-11-04) : caller-api « create_prospect », mêmes règles que l'admin; il entre dans la file à ton nom.
+async function submitNewProspect(){
+  const champ = (id) => document.getElementById(id).value.trim();
+  const msgEl = document.getElementById('np-msg');
+  const full_name = champ('np-name');
+  if(!full_name){ msgEl.style.color = 'var(--rust)'; msgEl.textContent = 'Le nom est requis.'; return; }
+  msgEl.style.color = ''; msgEl.textContent = 'Ajout...';
+  const res = await callCallerApi({ action: 'create_prospect', full_name, email: champ('np-email'), phone: champ('np-phone'), company_name: champ('np-company'),
+    num_doors: champ('np-doors'), avg_rent: champ('np-rent'), notes: champ('np-notes') });
+  if(!res || res.error){ msgEl.style.color = 'var(--rust)'; msgEl.textContent = 'Erreur : ' + (res?.error || 'réessaie dans un instant'); return; }
+  msgEl.style.color = 'var(--sage)'; msgEl.textContent = `${full_name} est ajouté à ta file d'appels.`;
+  ['np-name','np-email','np-phone','np-company','np-doors','np-rent','np-notes'].forEach(id => document.getElementById(id).value = '');
+  loadQueue(); loadStats();
 }
 
 function showTab(id){
