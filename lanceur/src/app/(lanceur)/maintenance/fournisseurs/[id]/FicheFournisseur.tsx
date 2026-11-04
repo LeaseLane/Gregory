@@ -123,7 +123,7 @@ function AjoutDocument({ id, fermer, fait }: { id: string; fermer: () => void; f
         {type === 'autre' ? <label className="fenetre-lib">Titre<input className="e70-raison" value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex. : contrat de service" /></label>
           : <label className="fenetre-lib">Valide jusqu’au<span>facultatif</span><input type="date" className="e70-raison" value={exp} onChange={(e) => setExp(e.target.value)} /></label>}
         <span className="fenetre-lib">Fichier<span>PDF, JPG ou PNG · 10 Mo maximum</span></span>
-        <label className="bouton bouton-contour" style={{ width: '100%', justifyContent: 'flex-start', padding: '0 16px', cursor: 'pointer' }}>
+        <label className="bouton bouton-contour" style={{ width: '100%', justifyContent: 'flex-start', padding: '0 16px', cursor: 'pointer', marginBottom: 16 }}>
           <Icone nom={f ? 'check' : 'upload'} taille={18} couleur="#0C2147" /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f ? f.name : 'Choisir le fichier'}</span>
           <input type="file" hidden accept={ACCEPTE} onChange={(e) => setF(e.target.files?.[0] ?? null)} /></label>
         {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
