@@ -16,15 +16,16 @@ export type DonneesLocataire = { id: string; nom: string; courriel: string | nul
   demandes: { id: string; numero: string; titre: string; statut: string; recue: string; rdv: { qui: string | null; quand: string | null; fait: string | null } | null }[];
   documents: { id: string; titre: string; categorie: string | null; le: string }[]; avis: { id: string; type: string; statut: string; le: string; dossier: string }[];
   consentements: { canal: string; but: string; base: string; le: string; retire: string | null }[] };
+export type LoyersDus = { peut_inscrire: boolean; loyers: { id: string; echeance: string; montant: number; recu: number }[] };
 export type Colocataire = { id: string; nom: string; courriel: string | null; telephone: string | null; principal: boolean };
 const argent = (n: number) => `${n.toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')} $`;
 const date = (iso: string, an = true) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('fr-CA', an ? { day: 'numeric', month: 'short', year: 'numeric' } : { day: 'numeric', month: 'short' });
 const ETAPE: Record<string, string> = { ouvert: 'Recouvrement en cours', mise_en_demeure: 'Mise en demeure envoyée', tal: 'Au TAL' };
 const STATUT: Record<string, string> = { new: 'Reçue', open: 'Ouverte', assigned: 'Assignée', in_progress: 'En cours', scheduled: 'Planifiée', completed: 'Terminée', closed: 'Fermée' };
 
-export function FicheLocataire({ donnees: D, colocataires = [], erreurLecture }: { donnees: DonneesLocataire | null; colocataires?: Colocataire[]; erreurLecture: string | null }) {
+export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, erreurLecture }: { donnees: DonneesLocataire | null; colocataires?: Colocataire[]; loyers?: LoyersDus | null; erreurLecture: string | null }) {
   const router = useRouter();
-  const [coloc, setColoc] = useState(false), [nc, setNc] = useState({ nom: '', courriel: '', telephone: '' });
+  const [payer, setPayer] = useState(false), [coloc, setColoc] = useState(false), [nc, setNc] = useState({ nom: '', courriel: '', telephone: '' });
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [edit, setEdit] = useState(false), [envoi, setEnvoi] = useState(false);
   const [f, setF] = useState({ nom: D?.nom ?? '', courriel: D?.courriel ?? '', telephone: D?.telephone ?? '', langue: D?.langue ?? 'fr' });
   if (!D) return <><Link className="lien po-retour" href="/clients/locataires"><Icone nom="arrow" taille={14} couleur="#2E5788" />Locataires</Link><div className="bandeau erreur" role="alert">{bandeau}</div></>;
@@ -99,7 +100,9 @@ export function FicheLocataire({ donnees: D, colocataires = [], erreurLecture }:
         <div className="po-colonne">
           <section className="carte-l18" aria-label="Paiements"><div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Paiements · 12 derniers mois</h2>
             <p className="gris texte-13" style={{ margin: 0 }}>{B?.mode ?? '—'} · payés chez le propriétaire</p></div>
-            {D.impaye && <div className="droite"><b style={{ fontSize: 22, color: '#9B2E28' }}>{argent(D.impaye.montant)}</b><p className="gris texte-13" style={{ margin: 0 }}>impayé depuis {D.impaye.jours} j</p></div>}</div>
+            <div className="droite">{D.impaye && <><b style={{ fontSize: 22, color: '#9B2E28' }}>{argent(D.impaye.montant)}</b><p className="gris texte-13" style={{ margin: 0 }}>impayé depuis {D.impaye.jours} j</p></>}
+              {loyers?.peut_inscrire && loyers.loyers.length > 0 && <button className="bouton bouton-contour" style={{ width: 'auto', height: 36, padding: '0 14px', marginTop: 8, fontSize: 13 }} onClick={() => setPayer(true)}>
+                <Icone nom="check" taille={16} couleur="#0C2147" />Marquer un loyer payé</button>}</div></div>
             <div className="mois-carres">{D.paiements.map((m) => { const c = m.paye === null ? 'vide' : !m.paye ? 'refus' : (m.retard ?? 0) > 5 ? 'retard' : 'ok';
               return <div key={m.mois} title={m.paye === null ? 'Aucun loyer' : !m.paye ? `Impayé · ${m.retard} j` : m.retard ? `Payé avec ${m.retard} j de retard` : 'Payé à temps'}><i className={c} /><small>{new Date(`${m.mois}-15T12:00:00`).toLocaleDateString('fr-CA', { month: 'narrow' })}</small></div>; })}</div>
             <ul className="legende"><li><i className="ok" />À temps</li><li><i className="retard" />En retard</li><li><i className="refus" />Impayé</li></ul></section>
@@ -149,6 +152,44 @@ export function FicheLocataire({ donnees: D, colocataires = [], erreurLecture }:
             <label className="fenetre-lib" htmlFor="fl-l">Langue</label><select id="fl-l" className="e70-raison" value={f.langue} onChange={(e) => setF({ ...f, langue: e.target.value })}><option value="fr">Français</option><option value="en">English</option></select></div>
           <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={() => setEdit(false)}>Annuler</button><button className="bouton bouton-principal" disabled={envoi || f.nom.trim().length < 2}>Enregistrer</button></footer>
         </form></div>}
+      {payer && loyers && <MarquerPaye loyers={loyers.loyers} mode={B?.mode ?? ''} fermer={() => setPayer(false)} fait={(m) => { setPayer(false); setBandeau(null); setOk(m); router.refresh(); }} />}
     </>
+  );
+}
+
+// Marquer un loyer payé à la main (payé au propriétaire, chèque, comptant…) : montant partiel permis, le solde reste dû. Inscrit au journal.
+function MarquerPaye({ loyers, mode, fermer, fait }: { loyers: LoyersDus['loyers']; mode: string; fermer: () => void; fait: (message: string) => void }) {
+  const reste = (l: LoyersDus['loyers'][number]) => Math.round((Number(l.montant) - Number(l.recu)) * 100) / 100;
+  const auj = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+  const [id, setId] = useState(loyers[0].id), [montant, setMontant] = useState(String(reste(loyers[0]))), [le, setLe] = useState(auj);
+  const [moyen, setMoyen] = useState(/ch[eè]que/i.test(mode) ? 'cheque' : /pr[ée]l/i.test(mode) ? 'prelevement' : /comptant/i.test(mode) ? 'comptant' : 'virement');
+  const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
+  const choisi = loyers.find((l) => l.id === id)!;
+  async function ok() {
+    setEnvoi(true); setErreur(null);
+    const { error } = await supabaseNavigateur().rpc('lanceur_paiement_payer', { p: { id, montant: montant.replace(/\s/g, '').replace(',', '.'), le, mode: moyen } });
+    setEnvoi(false);
+    if (error) return setErreur(error.message);
+    const m = Number(montant.replace(',', '.'));
+    fait(m >= reste(choisi) ? `Loyer du ${date(choisi.echeance)} marqué payé.` : `${argent(m)} inscrit sur le loyer du ${date(choisi.echeance)} : il reste ${argent(reste(choisi) - m)} à payer.`);
+  }
+  return (
+    <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermer()}>
+      <form className="fenetre" role="dialog" aria-modal="true" aria-labelledby="mp-t" style={{ marginTop: 100, width: 'min(480px, 100%)' }} onSubmit={(e) => { e.preventDefault(); ok(); }}>
+        <div className="fenetre-tete"><h2 id="mp-t">Marquer un loyer payé</h2><button type="button" className="fermer" onClick={fermer} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
+        <p className="fenetre-texte">Inscrivez ce qui a été reçu. Un montant partiel laisse le solde dû; les relances s’arrêtent quand le loyer est payé en entier.</p>
+        <label className="fenetre-lib">Loyer<select className="e70-raison" value={id} onChange={(e) => { setId(e.target.value); setMontant(String(reste(loyers.find((l) => l.id === e.target.value)!))); }}>
+          {loyers.map((l) => <option key={l.id} value={l.id}>Échéance du {date(l.echeance)} · {argent(reste(l))} à payer</option>)}</select></label>
+        <div className="nt-grille">
+          <label className="fenetre-lib">Montant reçu ($)<input className="e70-raison" inputMode="decimal" value={montant} onChange={(e) => setMontant(e.target.value.replace(/[^\d.,]/g, ''))} /></label>
+          <label className="fenetre-lib">Payé le<input type="date" className="e70-raison" max={auj} value={le} onChange={(e) => setLe(e.target.value)} /></label>
+        </div>
+        <label className="fenetre-lib">Mode<select className="e70-raison" value={moyen} onChange={(e) => setMoyen(e.target.value)}>
+          <option value="virement">Virement Interac</option><option value="cheque">Chèque</option><option value="prelevement">Prélèvement</option><option value="comptant">Comptant</option></select></label>
+        {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
+        <div className="fenetre-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>Annuler</button>
+          <button className="bouton bouton-principal" disabled={envoi || !(Number(montant.replace(',', '.')) > 0) || !le}>{envoi ? 'Enregistrement…' : 'Marquer payé'}</button></div>
+      </form>
+    </div>
   );
 }
