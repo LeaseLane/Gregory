@@ -5,6 +5,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { argent, jour } from '../onglets';
 import { adresse } from '@/lib/format';
+import { AccordPapier } from './AccordPapier';
 
 /* Prélèvements : 1. créer le lot de l'échéance (seuls les accords en règle : premier débit à 10 jours, montant de l'accord);
    2. télécharger le fichier BMO (CPA 005) et le déposer dans les Services bancaires en ligne pour entreprises, puis « Déposé chez BMO »;
@@ -18,7 +19,7 @@ const STATUT: Record<string, [string, string]> = { prepare: ['Préparé', 'actio
 export function Prelevements({ echeance, donnees: D, erreurLecture }: { echeance: string; donnees: DonneesPrelevements | null; erreurLecture: string | null }) {
   const router = useRouter();
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [occupe, setOccupe] = useState(false);
-  const [refus, setRefus] = useState<{ ligne: string; nom: string; motif: string } | null>(null);
+  const [refus, setRefus] = useState<{ ligne: string; nom: string; motif: string } | null>(null), [papier, setPapier] = useState(false);
   if (!D) return <div className="bandeau erreur" role="alert">{bandeau}</div>;
   const lotDuJour = D.lots.find((l) => l.echeance === echeance && l.statut !== 'annule');
   const prets = D.candidats.filter((c) => c.raison === 'ok'), exclus = D.candidats.filter((c) => c.raison !== 'ok');
@@ -44,6 +45,8 @@ export function Prelevements({ echeance, donnees: D, erreurLecture }: { echeance
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       {ok && <div className="bandeau info" role="status">{ok}</div>}
       {!D.bmo_pret && <p className="bandeau info" style={{ fontSize: 13 }}>Le fichier BMO attend les réglages du service TFE de BMO (ID d’émetteur, centre de traitement) et le compte en fidéicommis. Les lots se préparent quand même.</p>}
+      {D.peut_ecrire && <div className="a-faire-actions" style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
+        <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setPapier(true)}><Icone nom="file" taille={18} couleur="#0C2147" />Saisir un accord papier</button></div>}
       <section className="carte-l18" aria-label="Échéance">
         <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>Échéance du {jour(echeance)}</h2>
           <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{D.accords} accord{D.accords > 1 ? 's' : ''} de prélèvement en vigueur · {prets.length} loyer{prets.length > 1 ? 's' : ''} à prélever ({argent(prets.reduce((s, c) => s + Number(c.montant), 0), true)})</p></div>
@@ -74,6 +77,7 @@ export function Prelevements({ echeance, donnees: D, erreurLecture }: { echeance
                 : D.peut_ecrire && <button className="lien" onClick={() => setRefus({ ligne: g.id, nom: g.locataire, motif: '' })}>Inscrire un retour</button>}</td></tr>)}</tbody></table>
         </section>; })}
 
+      {papier && <AccordPapier fermer={() => setPapier(false)} fait={(m) => { setPapier(false); setBandeau(null); setOk(m); router.refresh(); }} />}
       {refus && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setRefus(null)}>
         <form className="fenetre" role="dialog" aria-modal="true" aria-labelledby="ref-t" style={{ marginTop: 100 }} onSubmit={(e) => { e.preventDefault(); action({ action: 'refuser', ligne: refus.ligne, motif: refus.motif }, 'Retour inscrit : le loyer reste dû.'); }}>
           <div className="fenetre-tete"><h2 id="ref-t">Débit retourné : {refus.nom}</h2><button type="button" className="fermer" onClick={() => setRefus(null)} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
