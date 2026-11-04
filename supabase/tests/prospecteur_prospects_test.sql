@@ -8,9 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 select plan(12);
 
-create function pg_temp.comme(p_id uuid) returns void language sql as $$
-  select set_config('request.jwt.claims', json_build_object('sub', p_id, 'role', 'authenticated')::text, true);
-$$;
+-- Changement de personne : set_config direct (une fonction pg_temp n'est pas exécutable sous le rôle authenticated en préproduction).
 insert into auth.users (instance_id, id, aud, role, email) values
   ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-a000-0000000cc0a1', 'authenticated', 'authenticated', 'appelant-a@exemple-cc.test'),
   ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-a000-0000000cc0a2', 'authenticated', 'authenticated', 'appelant-b@exemple-cc.test'),
@@ -27,7 +25,7 @@ insert into prospects (id, full_name, assigned_caller_id, created_by_caller_id) 
   ('00000000-0000-4000-a000-0000000cc0c4', 'Prospect 4 (essai)', '00000000-0000-4000-a000-0000000cc0b3', null);
 
 set local role authenticated;
-select pg_temp.comme('00000000-0000-4000-a000-0000000cc0a1');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-0000000cc0a1","role":"authenticated"}', true);
 select is((select string_agg(full_name, ', ' order by full_name) from prospects where full_name like '% (essai)'), 'Prospect 1 (essai), Prospect 3 (essai)',
   '1 · A voit ce qui lui est assigné et ce qu''il a créé, rien d''autre');
 select lives_ok($$ insert into prospects (full_name, assigned_caller_id, created_by_caller_id)
@@ -44,10 +42,10 @@ select throws_ok($$ update prospects set stage = 'signed' where id = '00000000-0
 select throws_ok($$ update prospects set assigned_caller_id = '00000000-0000-4000-a000-0000000cc0b2' where id = '00000000-0000-4000-a000-0000000cc0c1' $$, '42501', null, '3 · A ne réassigne pas');
 select throws_ok($$ delete from prospects where id = '00000000-0000-4000-a000-0000000cc0c1' $$, '42501', null, '4 · A ne supprime rien');
 
-select pg_temp.comme('00000000-0000-4000-a000-0000000cc0a2');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-0000000cc0a2","role":"authenticated"}', true);
 select is((select string_agg(full_name, ', ' order by full_name) from prospects where full_name like '% (essai)'), 'Prospect 2 (essai), Prospect 3 (essai)',
   '5 · B voit ses prospects assignés, dont celui créé par A');
-select pg_temp.comme('00000000-0000-4000-a000-0000000cc0a3');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-0000000cc0a3","role":"authenticated"}', true);
 select is((select count(*)::int from prospects), 0, '6 · un prospecteur désactivé ne voit rien');
 reset role;
 set local role anon;
