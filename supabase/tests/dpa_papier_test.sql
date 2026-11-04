@@ -1,5 +1,5 @@
 -- Tests pgTAP · accord de DPA signé sur papier (migration 20261111190000_dpa_papier.sql). Préproduction; transaction annulée.
--- Comptes : equipe-comptabilite (finances.lire seulement), equipe-admin (tout).
+-- Comptes : equipe-lecture (finances.lire seulement), equipe-admin (tout).
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir ../migrations/20261111190000_dpa_papier.sql
@@ -20,9 +20,9 @@ create function pg_temp.saisie(p_bail text, p_locataire text, p_extra jsonb defa
   select jsonb_build_object('lease_id', p_bail, 'titulaire', 'Titulaire Essai', 'institution', '001', 'transit', '12345', 'compte', '1234567',
     'type', 'fixe', 'montant', '1100', 'signe_le', to_char(current_date - 1, 'YYYY-MM-DD'), 'chemin', 'locataires/' || p_locataire || '/dpa/accord.pdf', 'taille', 1000) || p_extra $$;
 
-select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = 'equipe-comptabilite@leaselane.test'), 'aal', 'aal2', 'role', 'authenticated')::text, true);
+select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = 'equipe-lecture@leaselane.test'), 'aal', 'aal2', 'role', 'authenticated')::text, true);
 select throws_ok($$ select lanceur_dpa_papier(pg_temp.saisie('00000000-0000-4000-a000-0000000d9a07', '00000000-0000-4000-a000-0000000d9a05')) $$, 'PT403', null,
-  '1 · la comptabilité (lecture) ne saisit pas d''accord');
+  '1 · la lecture seule ne saisit pas d''accord');
 
 select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = 'equipe-admin@leaselane.test'), 'aal', 'aal2', 'role', 'authenticated')::text, true);
 select ok(lanceur_dpa_baux() @> '[{"lease_id":"00000000-0000-4000-a000-0000000d9a07"}]', '2 · le bail sans prélèvement est proposé');
