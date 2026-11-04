@@ -17,7 +17,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ n
   return (
     <CadreEspace icone={VENTES.icone} nom={VENTES.nom} sous="Vos prospects : appelez, faites avancer, ajoutez-en" actif={0} onglets={[{ libelle: 'Mes prospects', href: '/ventes/mes-prospects' }]}
       actions={moi ? <Link className="bouton bouton-principal" href="/ventes/mes-prospects?nouveau=1" style={{ width: 208 }}><Icone nom="plus" taille={20} couleur="#fff" />Nouveau prospect</Link> : null}>
-      <MesProspects lignes={(data as Ligne[] | null) ?? []} moi={moi?.id ?? ''} nouveau={!!nouveau && !!moi}
+      <MesProspects key={nouveau ? "nouveau" : "liste"} lignes={(data as Ligne[] | null) ?? []} moi={moi?.id ?? ''} nouveau={!!nouveau && !!moi}
         erreur={!moi ? 'Ce compte n’est pas un compte de prospecteur.' : error ? 'Vos prospects n’ont pas pu être lus.' : null} />
     </CadreEspace>
   );
