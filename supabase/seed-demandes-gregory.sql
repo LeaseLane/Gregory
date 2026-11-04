@@ -2,7 +2,10 @@
 -- Univers des maquettes seulement : comptes @leaselane.test, noms et courriels d'exemple. Lancer par le workflow « SQL en préproduction ».
 begin;
 
--- 1. Prospecteur téléphonique de démonstration : compte hors équipe appelant-demo@leaselane.test (supabase/seed-appelant-demo.sql).
+-- 1. Prospecteur téléphonique de démonstration : le compte de rôle « prospection » devient aussi appelant (portail des prospecteurs).
+insert into public.cold_callers (user_id, full_name, email, active)
+select u.id, 'Appelant Démo (fictif)', u.email, true from auth.users u
+where u.email = 'equipe-prospection@leaselane.test' and not exists (select 1 from public.cold_callers c where c.user_id = u.id);
 
 -- 2. Seuil de coordination : deux accords de travaux en attente chez Marie-Josée Bérubé (900 $ et 1 000 $).
 delete from public.approvals where work_order_id in ('00000000-0000-4000-a000-00000009a900', '00000000-0000-4000-a000-00000009a1e3');

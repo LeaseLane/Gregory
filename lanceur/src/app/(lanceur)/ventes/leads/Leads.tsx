@@ -112,8 +112,9 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
 }
 
 // Nouveau lead (maquette e16) : tiroir de 600 px; doublon signalé pendant la saisie (non bloquant); consentement LCAP explicite.
-function NouveauLead({ donnees, fermer, cree }: { donnees: DonneesLeads; fermer: () => void; cree: (id: string, qui: string | null) => void }) {
-  const [f, setF] = useState({ pipeline: donnees.pipelines[0]?.code ?? 'mandats', nom: '', courriel: '', telephone: '', source_id: '', adresse: '', portes: '', consentement: false });
+// mien : « Nouveau prospect » de Ventes › Mes prospects (pipeline des mandats, la personne qui le crée en est responsable).
+export function NouveauLead({ donnees, fermer, cree, mien = false }: { donnees: Pick<DonneesLeads, 'pipelines' | 'prochains' | 'liste_sources'>; fermer: () => void; cree: (id: string, qui: string | null) => void; mien?: boolean }) {
+  const [f, setF] = useState({ pipeline: mien ? 'mandats' : donnees.pipelines[0]?.code ?? 'mandats', nom: '', courriel: '', telephone: '', source_id: '', adresse: '', portes: '', consentement: false });
   const [doublons, setDoublons] = useState<{ id: string; nom: string; raison: string; client_depuis: number | null; locataire: boolean; deal_id: string | null }[]>([]);
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
   const maj = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
@@ -125,7 +126,7 @@ function NouveauLead({ donnees, fermer, cree }: { donnees: DonneesLeads; fermer:
   useEffect(() => { const k = (e: KeyboardEvent) => e.key === 'Escape' && fermer(); addEventListener('keydown', k); return () => removeEventListener('keydown', k); }, [fermer]);
   async function creer() {
     setEnvoi(true); setErreur(null);
-    const { data, error } = await supabaseNavigateur().rpc('lanceur_creer_lead', { p: { ...f, portes: f.portes || null, source_id: f.source_id || null } });
+    const { data, error } = await supabaseNavigateur().rpc(mien ? 'lanceur_creer_mon_prospect' : 'lanceur_creer_lead', { p: { ...f, portes: f.portes || null, source_id: f.source_id || null } });
     setEnvoi(false);
     if (error) setErreur(error.message); else { const r = data as { deal_id: string; owner: string | null }; cree(r.deal_id, r.owner); }
   }
@@ -133,12 +134,12 @@ function NouveauLead({ donnees, fermer, cree }: { donnees: DonneesLeads; fermer:
   return (
     <div className="voile tiroir-voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermer()}>
       <aside className="tiroir" role="dialog" aria-modal="true" aria-labelledby="nl-t" style={{ width: 'min(600px, calc(100vw - 48px))' }}>
-        <header className="tiroir-tete"><h2 id="nl-t">Nouveau lead</h2><button className="haut-ibtn" onClick={fermer} aria-label="Fermer le tiroir"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
+        <header className="tiroir-tete"><h2 id="nl-t">{mien ? 'Nouveau prospect' : 'Nouveau lead'}</h2><button className="haut-ibtn" onClick={fermer} aria-label="Fermer le tiroir"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
         <div className="tiroir-liste formulaire">
-          <span className="fenetre-lib">Pipeline</span>
+          {!mien && <><span className="fenetre-lib">Pipeline</span>
           <div className="segment large" role="tablist" style={{ width: '100%', marginBottom: 20 }}>
             {donnees.pipelines.map((p) => <button key={p.code} role="tab" aria-selected={f.pipeline === p.code} className={f.pipeline === p.code ? 'actif' : ''} onClick={() => setF({ ...f, pipeline: p.code })}>{p.name}</button>)}
-          </div>
+          </div></>}
           <label className="fenetre-lib" htmlFor="nl-nom">Nom<span>obligatoire</span></label>
           <input id="nl-nom" className="e70-raison" value={f.nom} onChange={maj('nom')} autoFocus />
           <label className="fenetre-lib" htmlFor="nl-c">Courriel</label>
@@ -154,12 +155,12 @@ function NouveauLead({ donnees, fermer, cree }: { donnees: DonneesLeads; fermer:
           </div>
           <p className="aide-lcap">LCAP : cochez seulement si la personne a dit oui. La date et votre nom sont inscrits au journal.</p>
           <label className="case consentement"><input type="checkbox" checked={f.consentement} onChange={(e) => setF({ ...f, consentement: e.target.checked })} />Consentement exprès obtenu (courriel, SMS)</label>
-          <p className="routage-auto"><Icone nom="users" taille={18} couleur="#58697F" />Automatique : à tour de rôle{prochain ? ` · ce lead ira à ${court(prochain)}` : ''}</p>
+          <p className="routage-auto"><Icone nom="users" taille={18} couleur="#58697F" />{mien ? 'Vous en serez responsable : il s’ajoute à Mes prospects.' : `Automatique : à tour de rôle${prochain ? ` · ce lead ira à ${court(prochain)}` : ''}`}</p>
           {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
         </div>
         <footer className="tiroir-pied" style={{ justifyContent: 'flex-end', gap: 12 }}>
           <button className="bouton bouton-contour" onClick={fermer}>Annuler</button>
-          <button className="bouton bouton-principal" style={{ width: 'auto', height: 44, fontSize: 14 }} disabled={envoi || !f.nom.trim()} onClick={creer}>Créer le lead</button>
+          <button className="bouton bouton-principal" style={{ width: 'auto', height: 44, fontSize: 14 }} disabled={envoi || !f.nom.trim()} onClick={creer}>{mien ? 'Créer le prospect' : 'Créer le lead'}</button>
         </footer>
       </aside>
     </div>
