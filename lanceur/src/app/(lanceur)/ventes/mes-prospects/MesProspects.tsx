@@ -4,12 +4,12 @@ import { useRouter } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 
 export type Ligne = { id: string; full_name: string; company_name: string | null; phone: string | null; email: string | null; num_doors: number | null; stage: string;
-  next_followup_date: string | null; created_by_caller_id: string | null; created_at: string };
+  next_followup_date: string | null; created_by_caller_id: string | null; created_at: string; prospecteur?: string };
 const ETAPES: Record<string, [string, string]> = { new: ['Nouveau', 'action'], contacted: ['Contacté', 'neutral'], interested: ['Intéressé', 'todo'], meeting: ['Rencontre', 'todo'],
   proposal: ['Proposition', 'todo'], signed: ['Client', 'final'], lost: ['Perdu', 'neutral'] };
 const VIDE = { full_name: '', company_name: '', phone: '', email: '', num_doors: '', avg_rent: '', notes: '' };
 
-export function MesProspects({ lignes, moi, nouveau, erreur }: { lignes: Ligne[]; moi: string; nouveau: boolean; erreur: string | null }) {
+export function MesProspects({ lignes, moi, nouveau, erreur, equipe = false }: { lignes: Ligne[]; moi: string; nouveau: boolean; erreur: string | null; equipe?: boolean }) {
   const router = useRouter();
   const [ouvert, setOuvertBrut] = useState(nouveau), [f, setF] = useState(VIDE), [envoi, setEnvoi] = useState(false), [msg, setMsg] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null);
   const setOuvert = (v: boolean) => { setOuvertBrut(v); if (!v && nouveau) router.replace('/ventes/mes-prospects'); };
@@ -34,7 +34,7 @@ export function MesProspects({ lignes, moi, nouveau, erreur }: { lignes: Ligne[]
       {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
       <section className="carte-l18 pr-carte" aria-label="Mes prospects">
         <table className="tableau">
-          <thead><tr><th>Propriétaire</th><th>Téléphone</th><th>Portes</th><th>Rappel</th><th>Étape</th><th /></tr></thead>
+          <thead><tr><th>Propriétaire</th><th>Téléphone</th><th>Portes</th><th>Rappel</th><th>Étape</th><th>{equipe ? 'Prospecteur' : ''}</th></tr></thead>
           <tbody>{lignes.map((l) => { const [lib, ton] = ETAPES[l.stage] ?? [l.stage, 'neutral']; return (
             <tr key={l.id}>
               <td><strong>{l.full_name}</strong>{l.company_name && <div className="gris texte-13">{l.company_name}</div>}{l.created_by_caller_id === moi && <div className="gris texte-13">Ajouté par vous</div>}</td>
@@ -42,10 +42,10 @@ export function MesProspects({ lignes, moi, nouveau, erreur }: { lignes: Ligne[]
               <td>{l.num_doors ?? '—'}</td>
               <td>{l.next_followup_date ? new Date(l.next_followup_date + 'T12:00').toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' }) : '—'}</td>
               <td><span className={'puce ' + ton}>{lib}</span></td>
-              <td>{l.stage === 'new' && <button className="lien" onClick={() => etape(l, 'contacted')}>Marquer contacté</button>}
-                {l.stage === 'contacted' && <button className="lien" onClick={() => etape(l, 'interested')}>Marquer intéressé</button>}</td>
+              <td>{equipe ? l.prospecteur : <>{l.stage === 'new' && <button className="lien" onClick={() => etape(l, 'contacted')}>Marquer contacté</button>}
+                {l.stage === 'contacted' && <button className="lien" onClick={() => etape(l, 'interested')}>Marquer intéressé</button>}</>}</td>
             </tr>); })}
-            {!lignes.length && <tr><td colSpan={6} className="gris">Aucun prospect pour l’instant. Ajoutez-en un avec « Nouveau prospect ».</td></tr>}</tbody>
+            {!lignes.length && <tr><td colSpan={6} className="gris">{equipe ? 'Aucun prospect ajouté par un prospecteur pour l’instant.' : 'Aucun prospect pour l’instant. Ajoutez-en un avec « Nouveau prospect ».'}</td></tr>}</tbody>
         </table>
       </section>
       {ouvert && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setOuvert(false)}>
