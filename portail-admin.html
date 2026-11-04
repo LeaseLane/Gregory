@@ -83,7 +83,7 @@
   /* Visites en calendrier (2026-11-04) : semaine ou jour, lignes de 15 min, visite libre en hachures. */
   .vc-barre{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;}
   .vc-barre .vc-titre{font-weight:700;margin:0 8px;}
-  .vc-barre button.actif{background:var(--ink, #0C2147);color:#fff;}
+  .vc-barre button.actif{background:#0C2147;color:#fff;border-color:#0C2147;}
   .vc-grille{display:grid;border:1px solid var(--line);background:var(--paper);overflow-x:auto;}
   .vc-tete{font-size:12px;font-weight:700;padding:6px;border-bottom:1px solid var(--line);text-align:center;background:var(--paper-2);}
   .vc-tete.auj{color:#2E5788;}
@@ -2852,7 +2852,6 @@ async function proposeVisit(inquiry_id, unit_id){
     proposed_at: new Date(whenInput.value).toISOString(),
   });
   if(res?.ok){ await loadVisitInquiries(); await loadVisitsAdmin(); }
-  else alert(res?.error || 'La visite n’a pas pu être proposée.');
 }
 
 // Visites en calendrier (Grégory, 2026-11-04) : semaine ou jour, créneaux de 15 min, visite libre (3 h par défaut, ajustable).
@@ -2897,18 +2896,18 @@ function vcRendre(){
   const optLog = VC.logements.map(([id, nom]) => `<option value="${id}">${esc(nom)}</option>`).join('');
   el.innerHTML = `
     <div class="vc-barre">
-      <button type="button" onclick="vcAller(-1)">‹</button><button type="button" onclick="VC.date = new Date(); vcRendre()">Aujourd’hui</button><button type="button" onclick="vcAller(1)">›</button>
+      <button type="button" class="vo-action" onclick="vcAller(-1)">‹</button><button type="button" class="vo-action" onclick="VC.date = new Date(); vcRendre()">Aujourd’hui</button><button type="button" class="vo-action" onclick="vcAller(1)">›</button>
       <span class="vc-titre">${esc(titre)}</span>
-      <button type="button" class="${VC.vue === 'semaine' ? 'actif' : ''}" onclick="VC.vue = 'semaine'; vcRendre()">Semaine</button>
-      <button type="button" class="${VC.vue === 'jour' ? 'actif' : ''}" onclick="VC.vue = 'jour'; vcRendre()">Jour</button>
+      <button type="button" class="vo-action ${VC.vue === 'semaine' ? 'actif' : ''}" onclick="VC.vue = 'semaine'; vcRendre()">Semaine</button>
+      <button type="button" class="vo-action ${VC.vue === 'jour' ? 'actif' : ''}" onclick="VC.vue = 'jour'; vcRendre()">Jour</button>
       <span style="flex:1"></span>
-      <button type="button" class="primary" onclick="document.getElementById('vc-libre').style.display = 'flex'">+ Visite libre</button>
+      <button type="button" class="ll-bouton ll-bouton--primaire" onclick="document.getElementById('vc-libre').style.display = 'flex'">+ Visite libre</button>
     </div>
     <form id="vc-libre" class="vc-form" style="display:none" onsubmit="event.preventDefault(); vcCreerLibre()">
       <label>Logement<select id="vc-l-unite" required>${optLog || '<option value="">Aucun logement à louer</option>'}</select></label>
       <label>Début<input type="datetime-local" id="vc-l-debut" step="900" required></label>
       <label>Durée<select id="vc-l-duree">${[60, 90, 120, 150, 180, 240, 300, 360].map(m => `<option value="${m}"${m === 180 ? ' selected' : ''}>${Math.floor(m / 60)} h${m % 60 ? ' ' + (m % 60) : ''}</option>`).join('')}</select></label>
-      <button type="submit" class="primary">Bloquer la plage</button><button type="button" onclick="this.form.style.display = 'none'">Annuler</button>
+      <button type="submit" class="ll-bouton ll-bouton--primaire">Bloquer la plage</button><button type="button" class="vo-action" onclick="this.form.style.display = 'none'">Annuler</button>
       <span style="font-size:12px;color:var(--muted);flex-basis:100%">Les visiteurs passent sans heure précise; aucune autre visite ne peut être prise dans ce logement pendant la plage.</span>
     </form>
     <div class="vc-grille" style="grid-template-columns:52px repeat(${jours.length}, minmax(${VC.vue === 'jour' ? 280 : 110}px, 1fr))">
@@ -2923,7 +2922,7 @@ async function vcCreerLibre(){
   const debut = document.getElementById('vc-l-debut').value, unit_id = document.getElementById('vc-l-unite').value;
   if(!debut || !unit_id){ alert('Choisis le logement et l’heure de début.'); return; }
   const res = await callOpsApi({ action: 'create_open_house', unit_id, starts_at: new Date(debut).toISOString(), duration_minutes: Number(document.getElementById('vc-l-duree').value) });
-  if(!res?.ok){ alert(res?.error || 'La visite libre n’a pas pu être créée.'); return; }
+  if(!res?.ok) return;   // callOpsApi a déjà affiché la raison (ex. créneau déjà pris)
   VC.date = new Date(debut); await loadVisitsAdmin();
 }
 function vcDetail(id){
@@ -2942,7 +2941,6 @@ function vcDetail(id){
 async function markVisitOutcome(visit_id, outcome){
   const res = await callOpsApi({ action: 'mark_visit_outcome', visit_id, outcome });
   if(res?.ok){ document.getElementById('visit-detail').style.display = 'none'; await loadVisitsAdmin(); }
-  else alert(res?.error || 'Le statut n’a pas pu être enregistré.');
 }
 
 async function copyToClipboard(text, btn){
