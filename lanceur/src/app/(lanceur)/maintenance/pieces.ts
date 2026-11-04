@@ -13,9 +13,12 @@ export async function deposer(dossier: string, f: File): Promise<{ chemin: strin
 }
 // Si le rattachement échoue, le fichier déposé est retiré (la base le permet tant qu'aucun document ne le cite).
 export const retirer = (chemin: string) => supabaseNavigateur().storage.from('documents').remove([chemin]);
+// L'onglet s'ouvre au clic (sinon le navigateur le bloque comme fenêtre surgissante), puis reçoit le lien signé.
 export async function ouvrir(id: string): Promise<string | null> {
+  const w = window.open('about:blank', '_blank');
   const r = await fetch('/api/inscriptions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'document', id }) });
   const x = await r.json().catch(() => ({}));
-  if (!r.ok || !x.signed_url) return x.error ?? 'Lien indisponible.';
-  window.open(x.signed_url, '_blank', 'noopener'); return null;
+  if (!r.ok || !x.signed_url) { w?.close(); return x.error ?? 'Lien indisponible.'; }
+  if (w) { w.opener = null; w.location.href = x.signed_url; } else window.location.href = x.signed_url;
+  return null;
 }
