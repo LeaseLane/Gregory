@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { jourCourt } from '@/lib/format';
 
 /* e45 · Relevé mensuel tel que reçu par le propriétaire. Adapté au 13 oct. : les loyers sont payés chez lui; le total du relevé est la
    facture d'honoraires (aucun « versé »). En-tête (état d'envoi), revenus et dépenses, honoraires des 6 derniers mois, factures du mois. */
@@ -12,7 +13,7 @@ export type DonneesReleve = { id: string | null; proprietaire: string; logements
   envoi: { releve: { statut: string; le: string } | null; facture: { statut: string; le: string } | null }; lignes: Ligne[]; facture: Facture; historique: { mois: string; honoraires: number }[];
   parametres: { gestion_pct: number; travaux_seuil: number; travaux_pct: number } | null };
 const argent = (n: number, c = false) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: c ? 2 : 0, maximumFractionDigits: c ? 2 : 0 }).replace(/[  ]/g, ' ')} $`;
-const jour = (iso: string) => { const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso); return `${d.getDate() === 1 ? '1er' : d.getDate()} ${d.toLocaleDateString('fr-CA', { month: 'short' })}`; };
+const jour = jourCourt;
 const moisLib = (iso: string, an = true) => new Date(`${iso.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', an ? { month: 'long', year: 'numeric' } : { month: 'short' });
 
 export function Releve({ donnees: D, erreurLecture }: { donnees: DonneesReleve | null; erreurLecture: string | null }) {

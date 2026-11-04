@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { qc } from '@/lib/format';
 
 type Proc = { id: string; code: string; nom: string; etapes: string[]; step: number; data: { debut_bail?: string; loyer_actuel?: number; nouveau_loyer?: number; type?: string; fin_bail?: string; fenetre?: string[]; autres_conditions?: string };
   due_at: string | null; logement: string | null; locataire: string | null; courriel: string | null; team_approved: boolean; team_par: string | null; owner_approved: boolean; owner_note: string | null;
@@ -30,7 +31,7 @@ export function Processus({ donnees, erreurLecture }: { donnees: DonneesProcessu
   const D = donnees, max = Math.max(1, ...D.fins_par_mois.map((m) => m.n)), nonValides = D.parametres.filter((p) => !p.valide).length;
   // Mois dont la fenêtre d'avis (préavis long) est ouverte aujourd'hui : accent dans le graphique.
   const avis = D.parametres.find((p) => p.code === 'renewal_notice_long')?.value, auj = new Date();
-  const ecart = (m: string) => { const [an, mo] = m.split('-').map(Number); return (an - auj.getFullYear()) * 12 + mo - 1 - auj.getMonth(); };
+  const ecart = (m: string) => { const [an, mo] = m.split('-').map(Number); const q = qc(auj); return (an - q.an) * 12 + mo - 1 - q.mois; };
   const ouverts = avis ? D.fins_par_mois.filter((m) => ecart(m.mois) >= avis.min_mois && ecart(m.mois) < avis.max_mois) : [];
   const nomMois = (m: string) => MOIS[Number(m.slice(5, 7)) - 1];
   async function agir(f: () => PromiseLike<{ error: { message: string } | null }>, ok: string) {

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
+import { jourCourt } from '@/lib/format';
 const depuis = (iso: string) => Date.now() - new Date(iso).getTime() < 365 * 864e5 ? `depuis le ${new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })}` : `depuis ${new Date(iso).getFullYear()}`;
 
 /* e19 · Propriétaires : décisions attendues d'abord; loyers payés chez eux ce mois-ci (suivis par Lease Lane; jamais « encaissés » ni « versés »);
@@ -13,7 +14,7 @@ type Pro = { id: string; nom: string; entreprise: string | null; depuis: string;
 type Appro = { type: string; id: string; owner_id: string; proprietaire: string; quoi: string; demande_le: string | null; echeance?: string; recue?: string };
 export type DonneesProprios = { proprietaires: Pro[]; quartiers: string[]; approbations: Appro[]; seuil: number; releves: { mois: string; emis: number; attendus: number; a_verifier: { owner_id: string; proprietaire: string; raison: string }[] } };
 const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
-const jour = (iso: string) => { const d = new Date(iso); return `${d.getDate() === 1 ? '1er' : d.getDate()} ${d.toLocaleDateString('fr-CA', { month: 'short' })}`; };
+const jour = jourCourt;
 const PORTAIL: Record<string, [string, string]> = { actif: ['Actif', 'ok'], invite: ['Invitation envoyée', 'att'], aucun: ['Sans portail', 'off'] };
 
 export function Proprietaires({ donnees: D, filtres, maintenant, erreurLecture }: { donnees: DonneesProprios | null; filtres: Record<string, string | undefined>; maintenant: string; erreurLecture: string | null }) {

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { jourCourt } from '@/lib/format';
 
 /* x09 · Immeubles soumis à valider : un immeuble soumis reste invisible des listes jusqu'à sa validation (invariant TH). Valider crée
    l'immeuble (l'équipe ajoute ensuite ses logements); refuser exige un motif, visible par le propriétaire; « Demander une précision »
@@ -10,7 +11,7 @@ import { Icone } from '@/composants/Icones';
 type Soumis = { id: string; adresse: string; secteur: string | null; proprietaire: string; logements: number | null; etages: number | null; annee: number | null; loyer_prevu: number | null;
   chauffage: string | null; stationnement: string | null; notes: string | null; photos: number; regles: Record<string, unknown>; recu: string; echeance: string };
 export type DonneesSoumis = { a_valider: Soumis[]; decides: { id: string; adresse: string; proprietaire: string; statut: string; decide_le: string; par: string | null; motif: string | null }[] };
-const jour = (iso: string) => { const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso); return `${d.getDate() === 1 ? '1er' : d.getDate()} ${d.toLocaleDateString('fr-CA', { month: 'short' })}`; };
+const jour = jourCourt;
 
 export function AValider({ donnees: D, maintenant, erreurLecture }: { donnees: DonneesSoumis | null; maintenant: string; erreurLecture: string | null }) {
   const router = useRouter();

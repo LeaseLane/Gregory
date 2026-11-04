@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
+import { qc } from '@/lib/format';
 
 type Signataire = { ord: number; nom: string; role: string; statut: string; ouvert: string | null; signe: string | null };
 type Enveloppe = { id: string; kind: string; titre: string; sous: string | null; statut: string; envoyee: string | null; par: string | null; relances: number; prochaine: string | null;
@@ -13,8 +14,8 @@ export type DonneesDocs = { enveloppes: Enveloppe[]; recus: { id: string; titre:
 
 const TYPES: Record<string, string> = { mandat: 'Mandat de gestion', bail: 'Bail', avenant_cession: 'Avenant', avis_renouvellement: 'Avis de renouvellement', autre: 'Autre' };
 const CLASSES: Record<string, string> = { assurance: 'Assurances', bail: 'Baux', facture: 'Dépenses', releve: 'Solvabilité', identite: 'Identité' };
-const auj = new Date().toDateString();
-const quand = (iso: string) => { const x = new Date(iso); return x.toDateString() === auj ? `auj. ${x.getHours()} h${x.getMinutes() ? String(x.getMinutes()).padStart(2, '0') : ''}` : x.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' }); };
+const auj = qc(new Date()).iso;
+const quand = (iso: string) => { const x = new Date(iso), q = qc(x); return q.iso === auj ? `auj. ${q.h} h${q.min ? String(q.min).padStart(2, '0') : ''}` : x.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' }); };
 const jours = (n: number) => n < 1 ? '< 1 j' : `${String(n).replace('.', ',')} j`;
 const signes = (e: Enveloppe) => e.signataires.filter((s) => s.statut === 'signed').length;
 function statut(e: Enveloppe) {

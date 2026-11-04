@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
+import { jourCourt } from '@/lib/format';
 
 /* e20 · Fiche propriétaire : loyers payés chez lui (6 mois, jamais « versé »), occupation, dépenses, demandes; logements par immeuble avec retards;
    relevés mensuels émis le 5; approbation en attente (relance); préférences de communication (LCAP); documents; journal récent. */
@@ -18,7 +19,7 @@ export type DonneesProprio = { id: string; nom: string; entreprise: string | nul
   consentements: { courriel: { le: string; base: string } | null; sms: { le: string; base: string } | null };
   documents: { nombre: number; mandat: { titre: string; le: string } | null }; journal: { action: string; le: string; qui: string | null }[] };
 const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
-const jour = (iso: string) => { const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso); return `${d.getDate() === 1 ? '1er' : d.getDate()} ${d.toLocaleDateString('fr-CA', { month: 'short' })}`; };
+const jour = jourCourt;
 const moisLib = (iso: string, f: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' }) => new Date(`${iso.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', f);
 const ACTIONS: Record<string, string> = { 'owner.created': 'Client créé', 'owner.updated': 'Fiche modifiée', 'owner.reminded': 'Relance envoyée', 'approval.decided': 'Approbation décidée', 'statement.issued': 'Relevé émis', 'statement.resent': 'Relevé renvoyé',
   'owner_statement.issued': 'Relevé émis', 'owner_statement.resent': 'Relevé renvoyé', 'owner.profile_updated': 'Profil modifié dans le portail', 'owner.preferences_updated': 'Préférences modifiées dans le portail' };

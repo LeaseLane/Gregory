@@ -12,8 +12,8 @@ const jourQ = (iso: string) => iso.length === 10 ? iso : new Date(iso).toLocaleD
 const mot = (s: string) => s.length > 16 ? s.split(/[ ,·—]/)[0] : s;
 
 export function Calendrier({ mois, jour, aujourdhui, evts, erreur }: { mois: string; jour: string; aujourdhui: string; evts: Evt[]; erreur: string | null }) {
-  const [a, m] = mois.split('-').map(Number), premier = new Date(a, m - 1, 1), nb = new Date(a, m, 0).getDate(), dec = premier.getDay();
-  const cases = Array.from({ length: Math.ceil((dec + nb) / 7) * 7 }, (_, i) => new Date(a, m - 1, i - dec + 1));
+  const [a, m] = mois.split('-').map(Number), premier = new Date(a, m - 1, 1, 12), nb = new Date(a, m, 0).getDate(), dec = premier.getDay();
+  const cases = Array.from({ length: Math.ceil((dec + nb) / 7) * 7 }, (_, i) => new Date(a, m - 1, i - dec + 1, 12));   // midi, comme les dates « AAAA-MM-JJT12:00 »
   const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const du = (j: string) => evts.filter((e) => jourQ(e.le) === j);
   const autre = (k: number) => { const d = new Date(a, m - 1 + k, 1); return `/locataire/calendrier?m=${iso(d).slice(0, 7)}`; };

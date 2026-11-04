@@ -18,11 +18,21 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/* Dates et heures à l'heure du Québec dans le navigateur, comme au serveur (TZ=America/Toronto, Dockerfile) : un format de date
+   sans fuseau prend America/Toronto, sinon un appareil hors Québec affiche une autre date que le rendu serveur (écart
+   d'hydratation, React #418). Un fuseau donné explicitement est respecté. Les lectures locales (getDate, getHours…) ne sont
+   pas couvertes : utiliser qc() de lib/format pour un horodatage.
+   ponytail: correctif global du navigateur au lieu de 92 appels; plafond : un appareil à UTC+12 ou plus lit une date
+   « AAAA-MM-JJT12:00 » locale la veille à Québec. */
+const FUSEAU_QC = "(function(){var Z='America/Toronto',D=Intl.DateTimeFormat;var o=function(x){return x&&x.timeZone?x:Object.assign({},x,{timeZone:Z})};"
+  + "function F(l,x){return new D(l,o(x))}F.prototype=D.prototype;F.supportedLocalesOf=D.supportedLocalesOf;Intl.DateTimeFormat=F;"
+  + "['toLocaleString','toLocaleDateString','toLocaleTimeString'].forEach(function(m){var f=Date.prototype[m];Date.prototype[m]=function(l,x){return f.call(this,l,o(x))}})})();";
+
 export default function RacineLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr-CA" className={poppins.variable} suppressHydrationWarning>
-      {/* Thème choisi dans le menu du profil, appliqué avant l'affichage (pas d'éclair blanc) */}
-      <head><script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('ll-theme');if(t==='systeme')t=matchMedia('(prefers-color-scheme: dark)').matches?'sombre':'clair';if(t)document.documentElement.dataset.theme=t}catch(e){}" }} /></head>
+      {/* Heure du Québec pour les dates (avant tout script de page), puis thème choisi dans le menu du profil, appliqué avant l'affichage (pas d'éclair blanc) */}
+      <head><script dangerouslySetInnerHTML={{ __html: FUSEAU_QC }} /><script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('ll-theme');if(t==='systeme')t=matchMedia('(prefers-color-scheme: dark)').matches?'sombre':'clair';if(t)document.documentElement.dataset.theme=t}catch(e){}" }} /></head>
       <body>{children}</body>
     </html>
   );

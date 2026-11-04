@@ -8,6 +8,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
 import type { DonneesSite } from './Commun';
+import { qc } from '@/lib/format';
 
 type Point = { d: string; v: number };
 export type Activite = { jours: number; courant: Point[]; precedent: Point[]; visites_logements?: { id: string; n: number; p: number }[]; ia?: { etape: string; appels: number; ti: number; to: number }[] };
@@ -232,7 +233,7 @@ function Blocs({ A, site, demo }: { A: Activite; site: DonneesSite; demo: boolea
   const ia = ETAPES.map(([k, n]) => { const e = (A.ia ?? []).find((x) => x.etape === k); return { n, v: e ? e.ti * TARIF.i + e.to * TARIF.o : 0, c: e?.appels ?? 0 }; });
   const autres = (A.ia ?? []).filter((x) => !ETAPES.some(([k]) => k === x.etape));
   const cout = somme(A.ia ?? [], (e) => e.ti * TARIF.i + e.to * TARIF.o), appels = somme(A.ia ?? [], (e) => e.appels), jet = somme(A.ia ?? [], (e) => e.ti + e.to);
-  const mois = (cout / P) * new Date().getDate(), bud = Math.min(1, mois / BUDGET);
+  const mois = (cout / P) * qc(new Date()).jour, bud = Math.min(1, mois / BUDGET);
   const pl = (n: number, a: string, b: string) => nf(n) + ' ' + (n > 1 ? b : a);
   return (<>
     <div className="vd-sec"><h2 className="sr">Contenus</h2>
