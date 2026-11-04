@@ -1,10 +1,12 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
-import { VENTES, ongletsVentes } from '@/lib/ventes';
+import { notFound } from 'next/navigation';
+import { ROLE_VISIBLE, VENTES, ongletsVentes } from '@/lib/ventes';
 import { AAppeler, type DonneesAppels } from './AAppeler';
 
 /* Ventes · À appeler : la file d'appels de l'équipe de vente (propriétaires du rôle d'évaluation avec un téléphone publié), un à la fois. */
 export default async function Page({ searchParams }: { searchParams: Promise<{ ville?: string }> }) {
+  if (!ROLE_VISIBLE) notFound();   // hors production pour l'instant (lib/ventes.ts)
   const sp = await searchParams;
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_appels_file', { p: { ville: sp.ville ?? '' } });
   return (

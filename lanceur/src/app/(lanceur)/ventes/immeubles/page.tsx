@@ -1,11 +1,13 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
-import { VENTES, ongletsVentes } from '@/lib/ventes';
+import { notFound } from 'next/navigation';
+import { ROLE_VISIBLE, VENTES, ongletsVentes } from '@/lib/ventes';
 import { Immeubles, type DonneesImmeubles } from './Immeubles';
 
 /* Ventes · Immeubles (rôle) : les immeubles locatifs du rôle d'évaluation en format ouvert; l'équipe inscrit le propriétaire, les immeubles se
    regroupent et un propriétaire de 100 à 200 logements part en suggestion vers Prospection IA (révision humaine avant tout contact). */
 export default async function Page({ searchParams }: { searchParams: Promise<{ vue?: string; ville?: string; min?: string; q?: string }> }) {
+  if (!ROLE_VISIBLE) notFound();   // hors production pour l'instant (lib/ventes.ts)
   const sp = await searchParams;
   const filtres = { vue: sp.vue ?? 'a_identifier', ville: sp.ville ?? '', min: sp.min ?? '12', q: sp.q ?? '' };
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_role_immeubles', { p: filtres });
