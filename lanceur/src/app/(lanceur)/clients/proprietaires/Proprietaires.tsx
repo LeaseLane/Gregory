@@ -41,7 +41,7 @@ export function Proprietaires({ donnees: D, filtres, maintenant, erreurLecture, 
           </div>
           <section className="carte-l18" aria-label="Propriétaires"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Propriétaires</h2>
             <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{D.proprietaires.length} clients · {T.imm} immeubles · {T.portes} logements · décisions attendues d’abord</p>
-            <table className="tableau tab-fixe"><colgroup><col style={{ width: '30%' }} /><col style={{ width: '24%' }} /><col style={{ width: '18%' }} /><col style={{ width: '16%' }} /><col />{peutSupprimer && <col style={{ width: 52 }} />}</colgroup>
+            <table className="tableau tab-fixe"><colgroup><col style={{ width: peutSupprimer ? '28%' : '30%' }} /><col style={{ width: peutSupprimer ? '22%' : '24%' }} /><col style={{ width: '18%' }} /><col style={{ width: peutSupprimer ? '15%' : '16%' }} /><col />{peutSupprimer && <col style={{ width: 56 }} />}</colgroup>
               <thead><tr><th>Propriétaire</th><th>Immeubles · portes</th><th className="droite">Revenus du mois</th><th>Portail</th><th>Approbations</th>{peutSupprimer && <th><span className="sr">Supprimer</span></th>}</tr></thead>
               <tbody>{P.map((p) => { const [l, t] = PORTAIL[p.portail] ?? PORTAIL.aucun;
                 return <tr key={p.id} className="ligne-lien" onClick={() => router.push(`/clients/proprietaires/${p.id}`)}>
