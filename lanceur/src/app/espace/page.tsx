@@ -9,6 +9,10 @@ export default async function Espace() {
   const role = (data as { role?: string } | null)?.role;
   if (role === 'proprietaire') redirect('/proprietaire');
   if (role === 'locataire') redirect('/locataire');
+  // Prospecteur téléphonique (Grégory, 2026-11-04) : son espace sur app.leaselane.ca, même s'il fait aussi partie de l'équipe.
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: appelant } = user ? await supabase.from('cold_callers').select('id').eq('user_id', user.id).eq('active', true).maybeSingle() : { data: null };
+  if (appelant) redirect('/prospecteur');
   if (role === 'equipe') redirect('/');
   return (
     <CadreAuth espace="locataire">
