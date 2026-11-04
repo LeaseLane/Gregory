@@ -17,10 +17,11 @@ export function Inscriptions({ liste, erreurLecture }: { liste: Inscription[]; e
   const [envoi, setEnvoi] = useState<string | null>(null), [message, setMessage] = useState<[string, boolean] | null>(null);
   async function relais(action: 'inviter' | 'assurance', i: Inscription) {
     setEnvoi(i.id); setMessage(null);
+    const w = action === 'assurance' ? window.open('about:blank', '_blank') : null;   // ouvert au clic, sinon bloqué
     const res = await fetch('/api/inscriptions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, id: i.id }) });
     const x = await res.json().catch(() => ({})); setEnvoi(null);
-    if (!res.ok) { setMessage([x.error ?? `Erreur ${res.status}`, false]); return; }
-    if (action === 'assurance') { window.open(x.signed_url, '_blank', 'noopener'); return; }
+    if (!res.ok) { w?.close(); setMessage([x.error ?? `Erreur ${res.status}`, false]); return; }
+    if (action === 'assurance') { if (w) { w.opener = null; w.location.href = x.signed_url; } return; }
     setMessage([`${i.entreprise ?? i.courriel} est invitée au portail des fournisseurs.`, true]); router.refresh();
   }
   async function statut(i: Inscription, s: 'a_completer' | 'ecartee') {
