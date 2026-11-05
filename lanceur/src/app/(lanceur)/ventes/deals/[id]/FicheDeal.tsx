@@ -25,9 +25,14 @@ const quand = (iso: string) => { const d = new Date(iso), a = new Date(); const 
 const court = (n: string | null) => { if (!n) return ''; const [p, f] = n.split(/\s+/); return f ? `${p} ${f[0]}.` : p; };
 const duree = (j: number | null) => j == null ? '' : j < 1 ? `${Math.max(1, Math.round(j * 24))} h` : `${Math.round(j)} j`;
 
-export function FicheDeal({ donnees, erreurLecture }: { donnees: DonneesDeal | null; erreurLecture: string | null }) {
+// Notes et historique d'appels écrits sur le prospect (ancien admin, portail des prospecteurs) : public.prospects.notes et call_history.
+export type Historique = { notes: string | null; interet?: string | null; relance?: string | null; prochaine_action?: string | null;
+  appels: { le: string | null; resume: string | null; prochaine_etape: string | null; objections: string | null; engagement: string | null; interet: string | null; par: string | null }[] };
+const INTERET: Record<string, string> = { chaud: 'Chaud', tiede: 'Tiède', froid: 'Froid' };
+export function FicheDeal({ donnees, erreurLecture, historique = null }: { donnees: DonneesDeal | null; erreurLecture: string | null; historique?: Historique | null }) {
   const router = useRouter();
-  const [onglet, setOnglet] = useState<'fil' | 'taches' | 'details'>('fil');
+  const nbHist = (historique?.notes ? 1 : 0) + (historique?.appels.length ?? 0);
+  const [onglet, setOnglet] = useState<'fil' | 'notes' | 'taches' | 'details'>(nbHist ? 'notes' : 'fil');
   const [note, setNote] = useState(''), [envoi, setEnvoi] = useState(false), [tout, setTout] = useState(false);
   const [perdu, setPerdu] = useState(false), [convertir, setConvertir] = useState(false);
   const [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null);
@@ -92,7 +97,7 @@ export function FicheDeal({ donnees, erreurLecture }: { donnees: DonneesDeal | n
 
           <section className="studio-liste" aria-label="Fil chronologique">
             <div className="fil-onglets">
-              {([['fil', 'Fil'], ['taches', `Tâches · ${donnees.taches.length}`], ['details', 'Détails']] as const).map(([k, l]) => (
+              {([['fil', 'Fil'], ['notes', `Notes et appels · ${nbHist}`], ['taches', `Tâches · ${donnees.taches.length}`], ['details', 'Détails']] as const).map(([k, l]) => (
                 <button key={k} className={onglet === k ? 'actif' : ''} onClick={() => setOnglet(k)}>{l}</button>))}
               <div className="note-deal"><input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note…" aria-label="Ajouter une note"
                 onKeyDown={(e) => { if (e.key === 'Enter' && note.trim()) ajouterNote(); }} disabled={!donnees.peut_ecrire} />
@@ -108,6 +113,15 @@ export function FicheDeal({ donnees, erreurLecture }: { donnees: DonneesDeal | n
                 {activites.length > 5 && <li><button className="lien" onClick={() => setTout(!tout)}>{tout ? 'Afficher moins' : `Voir les ${activites.length - 5} événements plus anciens`}</button></li>}
               </ol>
             )}
+            {onglet === 'notes' && (nbHist ? <div style={{ padding: '0 24px 24px' }}>
+              {historique!.notes && <div className="cleo-lecture" style={{ background: '#F3F6FA', whiteSpace: 'pre-wrap' }}><Icone nom="file" taille={18} couleur="#2E5788" /><span><b>Notes du prospect</b><br />{historique!.notes}</span></div>}
+              {(historique!.interet || historique!.relance || historique!.prochaine_action) && <p className="gris texte-13">{[historique!.interet && `Intérêt : ${INTERET[historique!.interet] ?? historique!.interet}`,
+                historique!.relance && `rappel prévu le ${new Date(`${historique!.relance}T12:00:00`).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })}`, historique!.prochaine_action && `prochaine action : ${historique!.prochaine_action}`].filter(Boolean).join(' · ')}</p>}
+              <ol className="chrono">{historique!.appels.map((c, i) => <li key={i}><span className="chrono-ic"><Icone nom="phone" taille={20} couleur="#0C2147" /></span>
+                <div><strong>Appel{c.par ? ` · ${court(c.par)}` : ''}{c.interet ? ` · ${INTERET[c.interet] ?? c.interet}` : ''}</strong>{c.resume && <p>{c.resume}</p>}
+                  {[c.objections && `Objections : ${c.objections}`, c.engagement && `Engagement : ${c.engagement}`, c.prochaine_etape && `Prochaine étape : ${c.prochaine_etape}`].filter(Boolean).map((x) => <p key={x} className="gris texte-13" style={{ margin: '2px 0 0' }}>{x}</p>)}</div>
+                <span className="chrono-h">{c.le ? quand(c.le) : ''}</span></li>)}</ol></div>
+              : <p className="appro-vide">Aucune note ni aucun appel enregistré sur ce prospect.</p>)}
             {onglet === 'taches' && (donnees.taches.length ? <ul className="planifier" style={{ padding: '0 24px 24px' }}>{donnees.taches.map((t) => <li key={t.id}><div><strong>{t.title}</strong><span>{[t.due_at && new Date(t.due_at).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' }), court(t.assignee)].filter(Boolean).join(' · ')}</span></div></li>)}</ul>
               : <p className="appro-vide">Aucune tâche ouverte.</p>)}
             {onglet === 'details' && <dl className="details-deal"><div><dt>Source</dt><dd>{d.source ?? '—'}</dd></div><div><dt>Créé</dt><dd>{new Date(d.created_at).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })}</dd></div>
