@@ -8,7 +8,7 @@
 (() => {
   const BASE = 'https://kdmwfbcziokygfcmjxeq.supabase.co', FONCTIONS = BASE + '/functions/v1/';
   const CLE = 'sb_publishable_XJTO7hD6WHG9uK7Sg7LNDg_MM46QALR', TURNSTILE = '0x4AAAAAAEwdcNdTN1rCC_Jz';
-  const GA = 'G-JQLFWEYSSH', META = '1081699598100533';
+  const GA = 'G-31MNTWNKQZ', META = '1081699598100533';
   const ECHEC = 'Envoi impossible pour le moment. Réessayez dans un instant, ou écrivez à info@leaselane.ca.';
   const ENTETES = { apikey: CLE, Authorization: 'Bearer ' + CLE };
 

@@ -1,11 +1,11 @@
 'use client';
 
-/* Google Analytics 4 (G-JQLFWEYSSH) : chargé seulement si le visiteur accepte « Mesure d'audience » dans les
+/* Google Analytics 4 (G-31MNTWNKQZ) : chargé seulement si le visiteur accepte « Mesure d'audience » dans les
    témoins (Loi 25), comme le pixel Meta pour la publicité. Retrait du consentement : analytics_storage refusé. */
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
-const ID = 'G-JQLFWEYSSH';
+const ID = 'G-31MNTWNKQZ';
 const accepte = () => {
   try { return !!JSON.parse(localStorage.getItem('ll-temoins'))?.audience; } catch (e) { return false; }
 };
