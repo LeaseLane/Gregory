@@ -14,6 +14,7 @@ Les pages restent celles de Steven (générées par son _src/construire.py) : se
 Sortie : public/refonte/ et src/lib/refonte-routes.json (adresse → fichier), lu par next.config.ts et src/proxy.ts.
 """
 import json, re, shutil, sys
+from liens_morts import relier
 from pathlib import Path
 
 ICI = Path(__file__).resolve().parent
@@ -125,6 +126,8 @@ for url, nom in routes.items():
     # Images chargées au défilement, sauf le logo de l'en-tête (visible dès l'arrivée). Les héros sont des fonds CSS.
     t = re.sub(r'<img\b(?![^>]*\bloading=)(?![^>]*class="logo-[hv]")([^>]*)>',
                lambda m: '<img loading="lazy"' + ('' if 'decoding=' in m[1] else ' decoding="async"') + m[1] + '>', t)
+    # Liens « # » de la maquette (connexions, cartes du portail locataire) → vraies adresses (2026-11-05).
+    t = relier(t)
     (DEST / nom).write_text(adresses(t), encoding='utf-8')
 
 ROUTES.write_text(json.dumps(routes, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
