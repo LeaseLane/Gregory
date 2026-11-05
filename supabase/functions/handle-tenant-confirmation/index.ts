@@ -2,7 +2,7 @@ import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { courrielDemande } from "../_shared/fil-demande.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
-import { enTetesAppelInterne } from "../_shared/appel-interne.ts";
+import { enTetesAppelInterne, refuserSiNonInterne, estUuid } from "../_shared/appel-interne.ts";
 // Ferme la dernière étape manquante du cycle de réparation : le
 // locataire confirme que le travail est bien réglé avant que le
 // dossier ne se ferme pour de bon. "get"/"confirm"/"reopen" sont
@@ -35,6 +35,13 @@ Deno.serve(async (req) => {
     const { work_order_id, token, action, message } = body;
     if (!work_order_id || !action) {
       return new Response(JSON.stringify({ error: "Paramètres manquants" }), { status: 400, headers: corsHeaders });
+    }
+    if (!estUuid(work_order_id)) {
+      return new Response(JSON.stringify({ error: "Paramètres invalides" }), { status: 400, headers: corsHeaders });
+    }
+    if (action === "send_reminder") {
+      const refus = refuserSiNonInterne(req, corsHeaders);
+      if (refus) return refus;
     }
 
     const woRes = await fetch(
