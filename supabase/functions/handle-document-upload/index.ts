@@ -1,3 +1,4 @@
+import { refuserSiNonInterne, estUuid } from "../_shared/appel-interne.ts";
 import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, modelePour, avecContexte } from "../_shared/ia.ts";
 const MODEL_VERSION = MODELE_RAPIDE;
 let modeleUtilise = MODEL_VERSION;   // modèle routé (Routeur IA), inscrit au journal
@@ -5,8 +6,13 @@ const PROMPT_VERSION = "document-extraction-v2-traceability";
 const CONFIDENCE_THRESHOLD = 85;
 
 Deno.serve(async (req) => {
+  const refus = refuserSiNonInterne(req, {});
+  if (refus) return refus;
   try {
     const { document_id } = await req.json();
+    if (!estUuid(document_id)) {
+      return new Response(JSON.stringify({ ok: false, error: "document_id invalide" }), { status: 400 });
+    }
 
     const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
