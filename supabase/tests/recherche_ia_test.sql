@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(13);
+select plan(16);
 
 create function pg_temp.equipe(p_courriel text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = p_courriel), 'aal', 'aal2', 'role', 'authenticated')::text, true);
@@ -40,6 +40,15 @@ insert into crm.immeubles_role (millesime, municipalite, matricule, adresse, log
   (2026, 'Éssai-Récherche', 'R-6', '6 rue Essai', 90, 'morale', null, 'Gestion Douce inc.', 'rpa');
 select is((public.lanceur_recherche_role('{"villes": ["Éssai-Récherche"]}') ->> 'total')::int, 2, 'hors cible ignorés : logement social (par le nom) et RPA (classée par l''agent)');
 select is((public.lanceur_recherche_role('{"villes": ["Éssai-Récherche"]}') ->> 'hors_cible')::int, 2, 'hors cible comptés à part');
+
+-- Doublons : deux noms, le même téléphone → une seule ligne, sous le premier nom trouvé, coordonnées complétées.
+insert into crm.immeubles_role (millesime, municipalite, matricule, adresse, logements, statut, proprietaire) values
+  (2026, 'Éssai-Doublon', 'D-1', '1 rue Doublon', 60, 'morale', 'Beaudet & Saucier'), (2026, 'Éssai-Doublon', 'D-2', '2 rue Doublon', 50, 'morale', 'Beaudet et Saucier inc.');
+select public.service_role_coordonnees(crm.cle_proprietaire(null, 'Beaudet & Saucier'), null, '{"telephone": "418-555-0177", "sources": []}');
+select public.service_role_coordonnees(crm.cle_proprietaire(null, 'Beaudet et Saucier inc.'), null, '{"telephone": "(418) 555-0177", "decideur": "Claude Essai", "sources": []}');
+select is((public.lanceur_recherche_role('{"villes": ["Éssai-Doublon"]}') ->> 'total')::int, 1, 'même téléphone : une seule ligne');
+select is((public.lanceur_recherche_role('{"villes": ["Éssai-Doublon"]}') -> 'resultats' -> 0 ->> 'logements')::int, 110, 'ses immeubles réunis (110 logements)');
+select is((public.lanceur_recherche_role('{"villes": ["Éssai-Doublon"]}') -> 'resultats' -> 0 -> 'coordonnees' ->> 'decideur'), 'Claude Essai', 'coordonnées complétées par le doublon');
 
 select set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'aal', 'aal2', 'role', 'authenticated')::text, true);
 select throws_ok($$ select public.lanceur_recherche_role('{}') $$, null, null, 'hors de l''équipe : refusé');
