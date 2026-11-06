@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(11);
+select plan(13);
 
 create function pg_temp.equipe(p_courriel text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = p_courriel), 'aal', 'aal2', 'role', 'authenticated')::text, true);
@@ -34,6 +34,12 @@ select throws_ok(format('select public.lanceur_recherche_decider(%L)', jsonb_bui
   'PT422', null, 'propriétaire à identifier : pas de pipeline');
 select public.lanceur_recherche_decider(jsonb_build_object('cle', 'imm:' || (select id from crm.immeubles_role where matricule = 'R-3'), 'decision', 'ecarter'));
 select is((public.lanceur_recherche_role('{"villes": ["Éssai-Récherche"]}') ->> 'total')::int, 2, 'écarté : ne revient plus dans la recherche');
+
+insert into crm.immeubles_role (millesime, municipalite, matricule, adresse, logements, statut, proprietaire, propose_nom, propose_categorie) values
+  (2026, 'Éssai-Récherche', 'R-5', '5 rue Essai', 80, 'morale', 'Office municipal d''habitation d''Essai', null, null),
+  (2026, 'Éssai-Récherche', 'R-6', '6 rue Essai', 90, 'morale', null, 'Gestion Douce inc.', 'rpa');
+select is((public.lanceur_recherche_role('{"villes": ["Éssai-Récherche"]}') ->> 'total')::int, 2, 'hors cible ignorés : logement social (par le nom) et RPA (classée par l''agent)');
+select is((public.lanceur_recherche_role('{"villes": ["Éssai-Récherche"]}') ->> 'hors_cible')::int, 2, 'hors cible comptés à part');
 
 select set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'aal', 'aal2', 'role', 'authenticated')::text, true);
 select throws_ok($$ select public.lanceur_recherche_role('{}') $$, null, null, 'hors de l''équipe : refusé');

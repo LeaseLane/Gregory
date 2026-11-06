@@ -25,6 +25,7 @@ const OUTIL_COORDONNEES = { name: "soumettre", description: "Soumet les coordonn
     decideur: { type: ["string", "null"], description: "Nom du dirigeant ou propriétaire, s'il est publié" },
     gestionnaire: { type: ["string", "null"], description: "Entreprise de gestion immobilière qui gère ses immeubles, si une page le montre; sinon null" },
     refus_sollicitation: { type: "boolean", description: "Vrai si une page mentionne un refus des sollicitations" },
+    categorie: { type: "string", enum: ["prive", "logement_social", "fpi", "rpa"], description: "prive = entreprise ou personne privée; logement_social = office municipal d'habitation, SOMHAC, coopérative, OBNL; fpi = REIT/FPI, grand fonds, assureur, investisseur institutionnel; rpa = résidence pour aînés" },
     a_propos_entreprise: { type: ["string", "null"], description: "Deux phrases au plus : ce qu'est l'entreprise (fondation, parc, secteur, gestion elle-même ou non), d'après les pages" },
     a_propos_personne: { type: ["string", "null"], description: "Une ou deux phrases sur le décideur : titre, depuis quand, autres entreprises qu'il dirige. Renseignements d'affaires publiés seulement" },
     remarque: { type: ["string", "null"], description: "Un fait utile pour Lease Lane vu sur les pages (logements annoncés à louer depuis longtemps, acquisition récente, croissance, avis de locataires); null sinon" },
@@ -69,6 +70,7 @@ const OUTIL_PROPRIETAIRE = { name: "soumettre", description: "Soumet le proprié
     proprietaire: { type: ["string", "null"], description: "Nom de l'entreprise ou de la personne propriétaire, tel qu'écrit sur la page; null si non trouvé" },
     neq: { type: ["string", "null"], description: "NEQ (10 chiffres) s'il est publié" },
     confiance: { type: "string", enum: ["élevée", "moyenne", "faible"] },
+    categorie: { type: "string", enum: ["prive", "logement_social", "fpi", "rpa"], description: "prive = entreprise ou personne privée; logement_social = office municipal d'habitation, SOMHAC, coopérative, OBNL; fpi = REIT/FPI, grand fonds, assureur, investisseur institutionnel; rpa = résidence pour aînés" },
     raison: { type: "string", description: "Une phrase : ce qui relie l'adresse à ce propriétaire, et le gestionnaire s'il est mentionné" },
     sources: { type: "array", items: { type: "object", required: ["url", "extrait"], properties: { url: { type: "string" }, extrait: { type: "string" } } } },
   } } };
