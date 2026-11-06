@@ -271,7 +271,7 @@ carteHeros(document.querySelector('.heros-carte'),null,{zoom:1.25,centre:[444,44
 /* rives : Rive-Nord = Québec, Rive-Nord, Portneuf et île d'Orléans; Rive-Sud = Lévis et Rive-Sud */
 const ZONES=[['tous','Voir tout',()=>true],['nord','Québec – Rive-Nord',s=>['qc','rn','pn','io'].includes(s.z)],['sud','Québec – Rive-Sud',s=>['lev','rs'].includes(s.z)]];
 /* chaque secteur a sa page (quartier-<secteur>.html), générée par _src/gen-secteurs.py */
-const GUIDES=Object.fromEntries(SECTEURS.map(s=>[s.s,'quartier-'+s.s+'.html']));
+const GUIDES=Object.fromEntries(SECTEURS.map(s=>[s.s,'/quartiers/'+s.s]));
 const sa=t=>t.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const PIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';

@@ -39,6 +39,8 @@ const nextConfig: NextConfig = {
       { source: '/en/connexion', destination: PORTAIL, permanent: false },
       { source: '/app/:onglet*', destination: APP + '/', permanent: false },
       { source: '/pro', destination: APP + '/pro', permanent: false },
+      /* Steven, 2026-11-06 : anciennes adresses des guides de secteur (partagées ou indexées) → /quartiers/<secteur>. Avant la règle des .html. */
+      { source: '/quartier-:secteur([a-z0-9-]+)\\.html', destination: '/quartiers/:secteur', statusCode: 301 },
       { source: '/:page([^/]+\\.html)', destination: APP + '/:page', permanent: false },
       { source: '/assets/courriel/:fichier*', destination: APP + '/assets/courriel/:fichier*', permanent: false },
       /* Page « Grande région de Québec » fusionnée avec /quartiers (carte et guides des secteurs, 12 oct. 2026). */

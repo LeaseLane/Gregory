@@ -45,6 +45,8 @@ def adresses(t):
             return m[0]
         return liens[m[1]]
     t = re.sub(r'(?<=["\'`(])([a-z0-9-]+)\.html(?=[#?"\'`)])', lien, t)
+    # Steven, 2026-11-06 : « Voir le guide » de /quartiers construit 'quartier-<secteur>.html' (404) : les guides sont à /quartiers/<secteur>.
+    t = t.replace("'quartier-'+s.s+'.html'", "'/quartiers/'+s.s")
     t = re.sub(r'(?<=["\'`(])(?:\.\./)?(kit|img)/', r'/refonte/\1/', t)
     return t
 
@@ -81,6 +83,10 @@ for f in (SRC / 'kit').iterdir():
         (DEST / 'kit' / f.name).write_text(adresses(f.read_text(encoding='utf-8')), encoding='utf-8')
     else:
         shutil.copy2(f, DEST / 'kit' / f.name)
+
+# Steven, 2026-11-06 : « Découvrir Montréal » (Bientôt, /guide-local) ressemblait à un bouton actif. Un bouton aria-disabled a l'air désactivé.
+with open(DEST / 'kit' / 'kit.css', 'a', encoding='utf-8') as css:
+    css.write('\n.btn[aria-disabled="true"],.btn[aria-disabled="true"]:hover{opacity:.5;cursor:not-allowed;background:none;color:inherit;box-shadow:inset 0 0 0 .7px currentColor}\n')
 
 # Choix des témoins annoncé au reste de la page (même événement que la bannière du site : src/proto/cleo-temoins.jsx).
 t = (DEST / 'kit' / 'temoins.js').read_text(encoding='utf-8')
