@@ -25,8 +25,37 @@ const OUTIL_COORDONNEES = { name: "soumettre", description: "Soumet les coordonn
     decideur: { type: ["string", "null"], description: "Nom du dirigeant ou propriétaire, s'il est publié" },
     gestionnaire: { type: ["string", "null"], description: "Entreprise de gestion immobilière qui gère ses immeubles, si une page le montre; sinon null" },
     refus_sollicitation: { type: "boolean", description: "Vrai si une page mentionne un refus des sollicitations" },
+    a_propos_entreprise: { type: ["string", "null"], description: "Deux phrases au plus : ce qu'est l'entreprise (fondation, parc, secteur, gestion elle-même ou non), d'après les pages" },
+    a_propos_personne: { type: ["string", "null"], description: "Une ou deux phrases sur le décideur : titre, depuis quand, autres entreprises qu'il dirige. Renseignements d'affaires publiés seulement" },
+    remarque: { type: ["string", "null"], description: "Un fait utile pour Lease Lane vu sur les pages (logements annoncés à louer depuis longtemps, acquisition récente, croissance, avis de locataires); null sinon" },
     sources: { type: "array", items: { type: "object", required: ["url", "extrait"], properties: { url: { type: "string" }, extrait: { type: "string", description: "Passage exact de la page" } } } },
   } } };
+
+// Recherche en langage naturel (Ventes › Prospection IA) : la phrase de la personne → filtres sur le rôle d'évaluation. Aucune recherche web.
+const OUTIL_FILTRES = { name: "filtres", description: "Filtres de recherche dans le rôle d'évaluation foncière du Québec.", input_schema: { type: "object", properties: {
+  villes: { type: "array", items: { type: "string" }, description: "Municipalités nommées (ex. Québec, Lévis); vide si aucune" },
+  min: { type: ["integer", "null"], description: "Logements par immeuble, minimum" }, max: { type: ["integer", "null"], description: "Logements par immeuble, maximum" },
+  annee_min: { type: ["integer", "null"], description: "Construit en ou après" }, annee_max: { type: ["integer", "null"], description: "Construit en ou avant (« avant 1990 » → 1989)" },
+  statut: { type: ["string", "null"], enum: ["morale", "physique", null], description: "morale = entreprise, physique = particulier" },
+  pres_de: { type: ["object", "null"], properties: { adresse: { type: "string", description: "Adresse complète avec la ville" }, km: { type: "number" } }, description: "Rayon autour d'une adresse (2 km par défaut)" },
+  q: { type: ["string", "null"], description: "Nom de propriétaire ou de rue recherché, s'il est donné" },
+  coordonnees: { type: ["string", "null"], enum: ["avec", "sans", null], description: "Seulement ceux dont on a (avec) ou n'a pas (sans) les coordonnées" },
+} } };
+
+// Adresses Québec (iCherche, gouvernement du Québec, gratuit, sans clé) : adresse → point. Le rôle abrège le type de voie (RU, BO…).
+const VOIES: Record<string, string> = { RU: "rue", BO: "boulevard", AV: "avenue", CH: "chemin", RO: "route", PL: "place", CR: "croissant", MO: "montée", RG: "rang",
+  TE: "terrasse", CA: "carré", AL: "allée", PR: "promenade", CO: "côte", IM: "impasse", RL: "ruelle", QU: "quai", SE: "sentier", AU: "autoroute", CV: "cour" };
+const nettoyerAdresse = (a: string) => a.replace(/^(\d+)[A-Z]?-\d+[A-Z]?\b/, "$1").replace(/^(\S+)\s+([A-Z]{2})\s/, (m, no, c) => `${no} ${VOIES[c] ?? ""} `).replace(/\s+/g, " ").trim();
+const sansAccents = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+async function geocoder(adresse: string, ville?: string): Promise<{ lat: number; lon: number; libelle: string } | null> {
+  const u = new URL("https://geoegl.msp.gouv.qc.ca/apis/icherche/geocode");
+  u.searchParams.set("type", "adresses"); u.searchParams.set("limit", "1"); u.searchParams.set("geometry", "1"); u.searchParams.set("q", ville ? `${adresse}, ${ville}` : adresse);
+  const r = await fetch(u, { signal: AbortSignal.timeout(15000) }).catch(() => null);
+  const f = r?.ok ? (await r.json().catch(() => ({})))?.features?.[0] : null;
+  const c = f?.geometry?.coordinates, nom = String(f?.properties?.nom ?? "");
+  if (!Array.isArray(c) || (ville && !sansAccents(nom).includes(sansAccents(ville)))) return null;   // autre ville : faux positif
+  return { lon: Number(c[0]), lat: Number(c[1]), libelle: nom };
+}
 
 const OUTIL_PROPRIETAIRE = { name: "soumettre", description: "Soumet le propriétaire trouvé, avec ses sources.", input_schema: { type: "object",
   required: ["proprietaire", "sources", "confiance", "raison"], properties: {
@@ -102,6 +131,9 @@ RÈGLES STRICTES :
 - Attention aux homonymes : ne garde une coordonnée que si la page la relie clairement à cette entreprise ou à ces adresses.
 - Chaque élément retenu doit apparaître dans "sources" (url réelle + passage exact).
 - Indique refus_sollicitation = true si une page mentionne un refus des sollicitations.
+- Rédige aussi une courte présentation pour la personne qui appellera : a_propos_entreprise, a_propos_personne, remarque. Seulement des
+  renseignements d'AFFAIRES publiés (rôle, entreprises dirigées, parc immobilier). JAMAIS la vie privée : âge, famille, adresse personnelle,
+  santé, opinions. Rien de trouvé : null.
 
 Une fois la recherche terminée, appelle l'outil "soumettre".`;
     const { res, ai, u, recherches, cout, bloc, trace } = await rechercher(prompt, OUTIL_COORDONNEES);
@@ -143,6 +175,42 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
     await rpc("service_role_immeuble_propose", { p_id: id, p: bloc?.input ?? { proprietaire: null, sources: [], raison: "Aucun résultat soumis" } });
     return json({ ok: true, proprietaire: bloc?.input?.proprietaire ?? null, confiance: bloc?.input?.confiance ?? null, cout_cents: cout });
   }
+  // La phrase → filtres (modèle rapide, outil forcé), puis l'adresse « près de » géocodée.
+  async function comprendre(texte: string, par: string | null) {
+    if (!par) return json({ error: "Réservé à une personne de l'équipe." }, 403);
+    texte = texte.trim().slice(0, 500);
+    if (!texte) return json({ error: "Écrivez ce que vous cherchez." }, 400);
+    const idRun = await rpc("agent_prospection_debut", { p_par: par, p_criteres: { mode: "comprendre", texte } });
+    const r = await fetch(IA_MESSAGES_URL, { method: "POST", headers: { "x-api-key": IA_CLE, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify(avecContexte({ model: MODELE_RAPIDE, max_tokens: 600, tools: [OUTIL_FILTRES], tool_choice: { type: "tool", name: "filtres" },
+        messages: [{ role: "user", content: `Traduis cette demande de prospection immobilière (Québec) en filtres. Ne mets que ce qui est demandé.\n\nDemande : « ${texte} »` }] })) });
+    const ai = await r.json().catch(() => ({}));
+    const u = ai?.usage ?? {}, cout = coutCents(Number(u.input_tokens ?? 0), Number(u.output_tokens ?? 0), 0);
+    const f = (ai?.content ?? []).find((b: { type: string }) => b.type === "tool_use")?.input;
+    await rpc("agent_prospection_fin", { p_run: idRun, p_items: null, p_trouves: f ? 1 : 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null,
+      p_recherches: 0, p_cout: cout, p_erreur: f ? null : `${r.status} ${ai?.error?.message ?? "aucun filtre"}`.slice(0, 300) });
+    if (!f) return json({ error: ai?.error?.message || "La demande n'a pas été comprise." }, 502);
+    if (f.pres_de?.adresse) {
+      const pt = await geocoder(String(f.pres_de.adresse));
+      if (!pt) return json({ error: `Adresse introuvable : ${f.pres_de.adresse}`, filtres: { ...f, pres_de: null } }, 422);
+      f.pres_de = { ...f.pres_de, ...pt, km: Number(f.pres_de.km) || 2 };
+    }
+    return json({ ok: true, filtres: f });
+  }
+  // Géocode un lot d'immeubles du rôle (gratuit). Appelé en boucle jusqu'à « restants : 0 ».
+  async function geocoderLot(villes: string[] | null, n: number, par: string | null) {
+    if (!par) return json({ error: "Réservé à une personne de l'équipe." }, 403);
+    const lot: { id: string; adresse: string; municipalite: string }[] = await rpc("service_role_a_geocoder", { p_n: n, p_villes: villes });
+    const faits: { id: string; lat: number | null; lon: number | null }[] = [];
+    for (let k = 0; k < lot.length; k += 8) {   // 8 à la fois : poli envers le service public
+      faits.push(...await Promise.all(lot.slice(k, k + 8).map(async (i) => {
+        const pt = await geocoder(nettoyerAdresse(i.adresse), i.municipalite);
+        return { id: i.id, lat: pt?.lat ?? null, lon: pt?.lon ?? null };
+      })));
+    }
+    if (faits.length) await rpc("service_role_geocode", { p: faits });
+    return json({ ok: true, faits: faits.length, trouves: faits.filter((x) => x.lat != null).length, restants: await rpc("service_role_geocode_restants", { p_villes: villes }) });
+  }
   let run: string | null = null;
   try {
     let par: string | null = null;
@@ -165,6 +233,9 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
     const body = await req.json().catch(() => ({}));
     if (body.action === "coordonnees") return await coordonnees(String(body.cle || ""), par);
     if (body.action === "proprietaire") return await proprietaire(String(body.id || ""), par);
+    if (body.action === "comprendre") return await comprendre(String(body.texte || ""), par);
+    if (body.action === "geocoder") return await geocoderLot(Array.isArray(body.villes) && body.villes.length ? body.villes.map(String).slice(0, 20) : null,
+      Math.max(1, Math.min(200, Number(body.n) || 100)), par);
     if ((body.action || "run") !== "run") return json({ error: "Action inconnue" }, 400);
     const territoire = String(body.territoire || "Québec et Lévis").slice(0, 80);
     const portesMin = Math.max(2, Math.min(100, Number(body.portes_min) || 4));
