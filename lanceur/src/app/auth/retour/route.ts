@@ -11,6 +11,13 @@ export async function GET(request: NextRequest) {
   const suite = request.nextUrl.searchParams.get('suite');
   const apres = suite === '/mot-de-passe' ? '?suite=/mot-de-passe' : '';
   const portail = suite === '/espace' || suite === '/espace/mot-de-passe';
+  // Lien à jeton (réinitialisation envoyée par un admin, onboarding-api) : valable dans n'importe quel navigateur, contrairement au code PKCE.
+  const jeton = request.nextUrl.searchParams.get('token_hash');
+  if (jeton && request.nextUrl.searchParams.get('type') === 'recovery') {
+    const supabase = await supabaseServeur();
+    const { error } = await supabase.auth.verifyOtp({ token_hash: jeton, type: 'recovery' });
+    if (!error) return vers('/connexion/code' + apres);
+  }
   if (code) {
     const supabase = await supabaseServeur();
     const { error } = await supabase.auth.exchangeCodeForSession(code);

@@ -1,6 +1,6 @@
 import { EXPEDITEUR, PORTAILS, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml } from "../_shared/courriel.ts";
-import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
+import { aLeDroit, corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
 // navigateur d'un usager (CSRF via fetch). Les appels serveur à
@@ -38,7 +38,13 @@ Deno.serve(async (req) => {
     const userRes = await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${userId}&select=is_admin`, { headers: adminHeaders });
     const userRows = await userRes.json();
     if (!userRows?.[0]?.is_admin) {
-      return new Response(JSON.stringify({ error: "Accès refusé — compte non admin" }), { status: 403, headers: corsHeaders });
+      // Gestionnaire (maintenance.ecrire) : inviter une inscription, ouvrir le portail d'un fournisseur. Admin de l'équipe (reglages.equipe) :
+      // réinitialiser le mot de passe d'un membre. Le reste demeure réservé aux comptes admin.
+      const demandee = (await req.clone().json().catch(() => ({})))?.action;
+      const droit = ["inviter_inscription", "grant_worker_access"].includes(demandee) ? "maintenance.ecrire" : demandee === "reinitialiser_mot_de_passe" ? "reglages.equipe" : null;
+      if (!droit || !await aLeDroit(req, droit)) {
+        return new Response(JSON.stringify({ error: "Accès refusé — compte non admin" }), { status: 403, headers: corsHeaders });
+      }
     }
 
     const logAudit = (action: string, entityType: string, entityId: string | null, details: Record<string, unknown>) =>
@@ -667,6 +673,26 @@ Deno.serve(async (req) => {
       await courrielBienvenueLocataire(email, t.full_name, acces.motDePasse);
       await logAudit("tenant.access_granted", "tenants", tenant_id, { email });
       return new Response(JSON.stringify({ ok: true, temp_password: acces.motDePasse }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Réinitialiser le mot de passe d'un membre de l'équipe (Réglages › Équipe › Comptes). Envoyé depuis le navigateur de l'admin, le lien
+    // de Supabase (PKCE) ne marchait que dans CE navigateur : le membre arrivait sur « lien expiré » (audit du 2026-11-06). Ici, un lien
+    // à jeton (token_hash) vérifié par Lanceur (/auth/retour), valable dans n'importe quel navigateur. Jamais renvoyé dans la réponse.
+    if (action === "reinitialiser_mot_de_passe") {
+      const courriel = String(body.courriel ?? "").trim().toLowerCase();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(courriel)) return new Response(JSON.stringify({ error: "Courriel invalide" }), { status: 400, headers: corsHeaders });
+      const base = ["https://admin.leaselane.ca", "http://localhost:3020"].includes(body.origine) ? body.origine : "https://admin.leaselane.ca";
+      const linkRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ type: "recovery", email: courriel }) });
+      const linkData = await linkRes.json().catch(() => ({}));
+      const jeton = linkData?.hashed_token || linkData?.properties?.hashed_token;
+      if (!linkRes.ok || !jeton) return new Response(JSON.stringify({ error: linkData?.msg || "Compte introuvable" }), { status: 404, headers: corsHeaders });
+      const lien = `${base}/auth/retour?token_hash=${encodeURIComponent(jeton)}&type=recovery&suite=/mot-de-passe`;
+      const envoi = await sendEmail(courriel, "Choisissez un nouveau mot de passe Lease Lane",
+        `Bonjour,\n\nUn administrateur de Lease Lane a demandé la réinitialisation de votre mot de passe.\n\nCliquez sur le bouton pour en choisir un nouveau. Le lien est valable une heure et ne sert qu'une fois.\n\nSi vous n'attendiez pas ce courriel, ignorez-le : votre mot de passe actuel reste valide.\n\nL'équipe Lease Lane`,
+        { bouton: { libelle: "Choisir mon mot de passe", url: lien } }).catch(() => null);
+      await logAudit("team.password_reset_sent", "auth.users", linkData?.id ?? null, { courriel, envoye: !!envoi?.ok });
+      if (!envoi?.ok) return new Response(JSON.stringify({ error: "Courriel non envoyé" }), { status: 502, headers: corsHeaders });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Accès au portail pour un travailleur ajouté par l'équipe (sans compte) : lien de connexion temporaire, aucun mot de passe envoyé.

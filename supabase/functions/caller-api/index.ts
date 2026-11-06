@@ -46,8 +46,10 @@ Deno.serve(async (req) => {
       fetch(`${supabaseUrl}/rest/v1/audit_log`, {
         method: "POST",
         headers: adminHeaders,
-        body: JSON.stringify({ actor_type: "caller", actor_id: userId, action, entity_type: entityType, entity_id: entityId, details }),
-      });
+        // « caller » n'est pas un actor_type permis : chaque ligne était refusée en silence (audit du 2026-11-06). Un membre de l'équipe
+        // s'écrit admin + person (20261014150000); le portail est noté dans details.
+        body: JSON.stringify({ actor_type: "admin", actor_kind: "person", actor_id: userId, action, entity_type: entityType, entity_id: entityId, details: { ...details, portail: "prospecteur" } }),
+      }).then((r) => { if (!r.ok) console.error("Journal refusé", action, r.status); return r; });
 
     const sendEmail = (to: string, subject: string, text: string) =>
       fetch("https://api.resend.com/emails", {

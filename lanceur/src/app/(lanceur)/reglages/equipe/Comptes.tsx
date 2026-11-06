@@ -36,8 +36,9 @@ export function Comptes({ donnees: D, erreurLecture }: { donnees: DonneesComptes
   const action = (c: Compte, a: string, msg: string) => rpc('lanceur_compte_action', { user_id: c.user_id, action: a }, msg);
   const invitation = (i: Invit, a: string) => rpc('lanceur_compte_action', { invitation_id: i.id, action: a }, a === 'renvoyer' ? `Nouvelle invitation envoyée à ${i.courriel}.` : 'Invitation annulée.');
   async function reinitialiser(c: Compte) {
-    setMenu(null); const { error } = await supabaseNavigateur().auth.resetPasswordForEmail(c.courriel, { redirectTo: `${window.location.origin}/auth/retour?suite=/mot-de-passe` });
-    if (error) return setBandeau(error.message); await action(c, 'reinitialisation', `Lien de réinitialisation envoyé à ${c.courriel}.`);
+    // Envoyé par le serveur (lien valable dans n'importe quel navigateur) : depuis le navigateur de l'admin, le lien ne marchait que chez l'admin.
+    setMenu(null); const r = await fetch('/api/mot-de-passe-equipe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ courriel: c.courriel }) });
+    if (!r.ok) return setBandeau((await r.json().catch(() => ({}))).error ?? 'Le lien n’a pas pu être envoyé.'); await action(c, 'reinitialisation', `Lien de réinitialisation envoyé à ${c.courriel}.`);
   }
   async function changerRole(c: Compte, role: string) {
     const faire = async () => { await rpc('lanceur_maj_membre', { user_id: c.user_id, role, read_version: c.updated_at }, `Rôle de ${c.nom} : ${ROLES.find(([k]) => k === role)?.[1]}.`); setFiche(null); };

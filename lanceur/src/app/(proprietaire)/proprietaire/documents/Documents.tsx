@@ -13,7 +13,8 @@ export type DonneesDocs = { documents: Doc[]; immeubles: { id: string; adresse: 
 const PARTAGES: Record<string, [string, string]> = { prive: ['lock', 'Privé'], proprietaire_equipe: ['users', 'Vous et Lease Lane'], tous: ['users', 'Locataire, vous et Lease Lane'] };
 const Go = (n: number) => `${(n / 1e9).toFixed(n > 1e8 ? 1 : 2).replace('.', ',')} Go`;
 
-export function Documents({ donnees, erreur }: { donnees: DonneesDocs | null; erreur: string | null }) {
+// lectureSeule : accès « comptable » (audit du 2026-11-06 : le dépôt échouait en base, « lecture seulement », après avoir laissé le fichier).
+export function Documents({ donnees, erreur, lectureSeule = false }: { donnees: DonneesDocs | null; erreur: string | null; lectureSeule?: boolean }) {
   const router = useRouter();
   const [dossier, setDossier] = useState('tous'), [q, setQ] = useState(''), [envoi, setEnvoi] = useState(false), [cible, setCible] = useState({ immeuble: '', partage: 'proprietaire_equipe' });
   const [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null);
@@ -44,9 +45,9 @@ export function Documents({ donnees, erreur }: { donnees: DonneesDocs | null; er
         <div className="colonne-l18">
           <section className="carte-l18 e2" aria-label="Récents">
             <div className="po-docs-outils"><label className="po-recherche" style={{ width: 'auto', flex: 1 }}><Icone nom="search" taille={18} couleur="#58697F" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un document" aria-label="Rechercher" /></label>
-              <select className="e70-raison" value={cible.immeuble} onChange={(e) => setCible({ ...cible, immeuble: e.target.value })} aria-label="Immeuble du document"><option value="">Sans immeuble</option>{donnees.immeubles.map((b) => <option key={b.id} value={b.id}>{b.adresse}</option>)}</select>
+              {!lectureSeule && <><select className="e70-raison" value={cible.immeuble} onChange={(e) => setCible({ ...cible, immeuble: e.target.value })} aria-label="Immeuble du document"><option value="">Sans immeuble</option>{donnees.immeubles.map((b) => <option key={b.id} value={b.id}>{b.adresse}</option>)}</select>
               <select className="e70-raison" value={cible.partage} onChange={(e) => setCible({ ...cible, partage: e.target.value })} aria-label="Partage"><option value="proprietaire_equipe">Vous et Lease Lane</option><option value="prive">Privé</option></select>
-              <label className={`bouton bouton-principal po-bouton ${envoi ? 'occupe' : ''}`}><input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => deposer(e.target.files)} /><Icone nom="upload" taille={16} couleur="#fff" />{envoi ? 'Envoi…' : 'Téléverser'}</label></div>
+              <label className={`bouton bouton-principal po-bouton ${envoi ? 'occupe' : ''}`}><input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => deposer(e.target.files)} /><Icone nom="upload" taille={16} couleur="#fff" />{envoi ? 'Envoi…' : 'Téléverser'}</label></>}</div>
             <p className="surtitre gris" style={{ margin: '20px 0 12px' }}>Récents</p>
             <div className="po-recents">{D.slice(0, 4).map((d) => <button key={d.id} onClick={() => ouvrir(d.id)} disabled={!d.lisible}><span className="a-faire-ic"><Icone nom={d.dossier === 'finances' ? 'receipt' : 'file'} taille={18} couleur="#0C2147" /></span>
               <strong>{d.titre}</strong><span className="gris">{d.par} · {jourQc(d.le)}</span></button>)}{!D.length && <p className="gris">Aucun document.</p>}</div>

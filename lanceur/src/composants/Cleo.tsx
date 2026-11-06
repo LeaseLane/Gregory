@@ -94,7 +94,7 @@ export function Cleo({ question, fermer, locataire }: { question: string; fermer
                 {m.rep?.action?.type === 'intervention' && <div className="cleo-choix">{faites.includes(m.rep.action.intervention_id!) ? null : <>
                   <button className="bouton bouton-contour" onClick={() => presence(m.rep!.action!, 'present')}>Je serai présent</button>
                   <button className="bouton bouton-contour" onClick={() => presence(m.rep!.action!, 'acces')}>Autoriser l’accès</button>
-                  <Link className="bouton bouton-contour" href={`${m.rep.action.lien ?? '/locataire/demandes'}&autre=1`} onClick={fermer}>Autre moment</Link></>}</div>}
+                  <Link className="bouton bouton-contour" href={`${m.rep.action.lien ?? '/locataire/demandes'}${(m.rep.action.lien ?? '').includes('?') ? '&' : '?'}autre=1`} onClick={fermer}>Autre moment</Link></>}</div>}
                 {m.rep?.action?.type === 'demande' && m.rep.action.brouillon && <div className="cleo-action"><p className="surtitre">Demande prête</p><strong>{m.rep.action.brouillon.titre}</strong>
                   <p className="gris texte-13" style={{ margin: 0 }}>{[m.rep.action.brouillon.piece, URGENCES[m.rep.action.brouillon.urgence]].filter(Boolean).join(' · ')}</p>
                   <p className="ligne-ic gris texte-13"><Icone nom="clock" taille={14} couleur="#58697F" />Délai visé : prise en charge sous 48 h</p>

@@ -20,7 +20,8 @@ const k = (n: number) => `${Math.round(n / 1000)} k$`;
 const d = (iso: string) => dateCourte(iso);
 const ETATS: Record<string, [string, string]> = { attente_vous: ['En attente de vous', 'action'], urgence: ['Urgence prise en charge', 'todo'], en_cours: ['En cours', 'neutral'], qualifiee: ['Qualifiée', ''] };
 
-export function TableauDeBord({ prenom, portes, immeubles, donnees, erreur }: { prenom: string; portes: number; immeubles: number; donnees: Accueil | null; erreur: string | null }) {
+// lectureSeule : accès « comptable », qui ne peut pas approuver une dépense (refusé en base).
+export function TableauDeBord({ prenom, portes, immeubles, donnees, erreur, lectureSeule = false }: { prenom: string; portes: number; immeubles: number; donnees: Accueil | null; erreur: string | null; lectureSeule?: boolean }) {
   const router = useRouter();
   const [periode, setPeriode] = useState<6 | 12>(6), [refus, setRefus] = useState<AFaire | null>(null), [motif, setMotif] = useState(''), [envoi, setEnvoi] = useState(false);
   const [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null);
@@ -52,7 +53,7 @@ export function TableauDeBord({ prenom, portes, immeubles, donnees, erreur }: { 
               <span className={`a-faire-ic ${x.type === 'urgence' ? 'rouge' : ''}`}><Icone nom={x.type === 'urgence' ? 'alert' : x.type === 'depense' ? 'dollar' : 'users'} taille={20} couleur={x.type === 'urgence' ? '#9B2E28' : '#0C2147'} /></span>
               <div><p className={`surtitre ${x.type === 'urgence' ? 'rouge' : ''}`}>{x.type === 'urgence' ? 'Urgence en cours' : x.type === 'depense' ? 'Autorisation de dépense' : 'Cession à approuver'}</p>
                 <strong>{x.titre}{x.montant ? ` · ${argent(x.montant)}` : ''}</strong><span className="gris">{x.sous}</span></div>
-              {x.type === 'urgence' ? <span className="puce">{x.etat}</span> : x.type === 'depense' ? <div className="a-faire-actions">
+              {x.type === 'urgence' ? <span className="puce">{x.etat}</span> : x.type === 'depense' && !lectureSeule ? <div className="a-faire-actions">
                 <button className="bouton bouton-principal" disabled={envoi} onClick={() => decider(x, 'approuve')}>Approuver la dépense</button>
                 <button className="bouton bouton-contour" disabled={envoi} onClick={() => { setRefus(x); setMotif(''); }}>Refuser</button></div> : null}
             </li>))}

@@ -9,7 +9,7 @@ import { Icone } from '@/composants/Icones';
 type Doc = { id: string; titre: string; type: string | null; type_detecte: string | null; confiance: number | null; probleme: string; doublon_de: string | null; lie: string | null; le: string };
 export type DonneesValidation = { a_valider: Doc[]; echeances: { id: string; titre: string; type: string | null; expire: string; jours: number; lie: string | null }[];
   recents: { id: string; titre: string; statut: string; par: string | null; le: string; motif: string | null }[] };
-const TYPES: [string, string][] = [['bail', 'Bail'], ['mandat', 'Mandat'], ['reglement', 'Règlement'], ['rapport', 'Rapport'], ['facture', 'Facture'], ['assurance_travailleur', 'Assurance (fournisseur)'], ['reference_travailleur', 'Référence (fournisseur)']];
+const TYPES: [string, string][] = [['bail', 'Bail'], ['mandat', 'Mandat'], ['reglement', 'Règlement'], ['rapport', 'Rapport'], ['facture', 'Facture'], ['assurance_travailleur', 'Assurance (fournisseur)'], ['reference_travailleur', 'Référence (fournisseur)'], ['licence_rbq', 'Licence RBQ'], ['autre', 'Autre']];
 const lib = (t: string | null) => TYPES.find(([k]) => k === t)?.[1] ?? t ?? '—';
 const jour = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' });
 

@@ -15,11 +15,8 @@ export async function POST(req: Request) {
   if (action === 'inviter') cible = ['onboarding-api', { action: 'inviter_inscription', id }];
   else if (action === 'assurance') cible = ['ops-api', { action: 'inscription_document', id }];
   else if (action === 'acces_fournisseur') cible = ['onboarding-api', { action: 'grant_worker_access', worker_id: id }];
-  else if (action === 'document') {
-    const { data: chemin, error } = await supabase.rpc('lanceur_maintenance_document', { p_id: id });
-    if (error || !chemin) return NextResponse.json({ error: error?.message ?? 'Document introuvable.' }, { status: 404 });
-    cible = ['ops-api', { action: 'get_signed_url', bucket: 'documents', path: chemin }];
-  } else return NextResponse.json({ error: 'Demande invalide.' }, { status: 400 });
+  // Pièce jointe : ops-api vérifie le droit avec le jeton de la personne (gestionnaire compris), puis signe le lien.
+  else if (action === 'document') cible = ['ops-api', { action: 'maintenance_document', id }]; else return NextResponse.json({ error: 'Demande invalide.' }, { status: 400 });
   const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/${cible[0]}`, {
     method: 'POST', cache: 'no-store', body: JSON.stringify(cible[1]),
     headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },

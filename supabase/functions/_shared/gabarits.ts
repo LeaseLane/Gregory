@@ -39,7 +39,9 @@ export function remplir(s: string, vars: Record<string, unknown>): string {
 const typo = (s: string) => esc(s).replace(/(\d) (?=\d{3}(?!\d))/g, "$1&nbsp;").replace(/ ([$%])/g, "&nbsp;$1");
 const tx = (s: unknown, v: Record<string, unknown>) => typo(remplir(String(s ?? ""), v));
 // Lien dont une variable manque : le portail plutôt qu'une adresse cassée.
-const url = (s: unknown, v: Record<string, unknown>) => { const u = remplir(String(s ?? ""), v); return esc(/\{[a-z_]+\}/.test(u) ? SITE_BASE_URL : u); };
+// Lien relatif (« /locataire/demandes?d=… », écrit par la base) : un bouton de courriel a besoin de l'adresse complète (audit du 2026-11-06 :
+// « Confirmer » et « Signaler un problème » du courriel LOC-04 ne menaient nulle part).
+const url = (s: unknown, v: Record<string, unknown>) => { const u = remplir(String(s ?? ""), v); return esc(/\{[a-z_]+\}/.test(u) ? SITE_BASE_URL : u.startsWith("/") ? SITE_BASE_URL + u : u); };
 
 const td = (style: string, html: string) => `<td style="font-family:${F};${style}">${html}</td>`;
 const table = (style: string, rows: string) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="${style}">${rows}</table>`;

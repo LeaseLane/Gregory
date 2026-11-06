@@ -2,7 +2,7 @@ import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { courrielTravailleur } from "../_shared/journal-travailleur.ts";
 import { ajouterMessageDemande, courrielDemande } from "../_shared/fil-demande.ts";
-import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
+import { aLeDroit, corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 import { montantSigne } from "../_shared/fiducie.ts";
 import { fichierCpa005 } from "../_shared/cpa005.ts";
 import { classer, type Bail } from "../_shared/rapprochement-fiducie.ts";
@@ -41,7 +41,11 @@ Deno.serve(async (req) => {
     const userRes = await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${userId}&select=is_admin`, { headers: adminHeaders });
     const userRows = await userRes.json();
     if (!userRows?.[0]?.is_admin) {
-      return new Response(JSON.stringify({ error: "Accès refusé — compte non admin" }), { status: 403, headers: corsHeaders });
+      // Gestionnaire (maintenance.ecrire) : seulement les pièces jointes de la maintenance ouvertes depuis Lanceur.
+      const demandee = (await req.clone().json().catch(() => ({})))?.action;
+      if (!(["inscription_document", "maintenance_document"].includes(demandee) && await aLeDroit(req, "maintenance.ecrire"))) {
+        return new Response(JSON.stringify({ error: "Accès refusé — compte non admin" }), { status: 403, headers: corsHeaders });
+      }
     }
 
     const logAudit = (action: string, entityType: string, entityId: string | null, details: Record<string, unknown>) =>
@@ -1472,6 +1476,19 @@ Deno.serve(async (req) => {
       const [i] = await res.json().catch(() => []);
       if (!i?.fichier_chemin) return new Response(JSON.stringify({ error: "Document introuvable" }), { status: 404, headers: corsHeaders });
       const sRes = await fetch(`${supabaseUrl}/storage/v1/object/sign/documents/${i.fichier_chemin}`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ expiresIn: 600 }) });
+      const sData = await sRes.json().catch(() => ({}));
+      if (!sRes.ok || !sData.signedURL) return new Response(JSON.stringify({ error: sData.message || "Lien indisponible" }), { status: 502, headers: corsHeaders });
+      return new Response(JSON.stringify({ signed_url: `${supabaseUrl}/storage/v1${sData.signedURL}` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Pièce jointe de la maintenance (facture d'un bon, document d'un fournisseur) : la base vérifie le droit de la personne et donne
+    // le chemin (son propre jeton), puis lien signé de 5 minutes. Remplace get_signed_url (réservé aux comptes admin) pour Lanceur.
+    if (action === "maintenance_document") {
+      const r = await fetch(`${supabaseUrl}/rest/v1/rpc/lanceur_maintenance_document`, { method: "POST", body: JSON.stringify({ p_id: body.id }),
+        headers: { apikey: anonKey, Authorization: req.headers.get("Authorization") ?? "", "Content-Type": "application/json" } });
+      const chemin = r.ok ? await r.json().catch(() => null) : null;
+      if (typeof chemin !== "string" || !chemin) return new Response(JSON.stringify({ error: "Document introuvable" }), { status: 404, headers: corsHeaders });
+      const sRes = await fetch(`${supabaseUrl}/storage/v1/object/sign/documents/${chemin}`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ expiresIn: 300 }) });
       const sData = await sRes.json().catch(() => ({}));
       if (!sRes.ok || !sData.signedURL) return new Response(JSON.stringify({ error: sData.message || "Lien indisponible" }), { status: 502, headers: corsHeaders });
       return new Response(JSON.stringify({ signed_url: `${supabaseUrl}/storage/v1${sData.signedURL}` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });

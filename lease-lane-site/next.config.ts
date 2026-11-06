@@ -39,6 +39,8 @@ const nextConfig: NextConfig = {
       { source: '/en/connexion', destination: PORTAIL, permanent: false },
       { source: '/app/:onglet*', destination: APP + '/', permanent: false },
       { source: '/pro', destination: APP + '/pro', permanent: false },
+      /* Audit du 2026-11-06 : les portails liaient /conditions (404). */
+      { source: '/conditions', destination: '/conditions-utilisation', statusCode: 301 },
       /* Steven, 2026-11-06 : anciennes adresses des guides de secteur (partagées ou indexées) → /quartiers/<secteur>. Avant la règle des .html. */
       { source: '/quartier-:secteur([a-z0-9-]+)\\.html', destination: '/quartiers/:secteur', statusCode: 301 },
       { source: '/:page([^/]+\\.html)', destination: APP + '/:page', permanent: false },

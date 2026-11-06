@@ -79,7 +79,7 @@ export function MonCompte({ donnees: D, sessions, erreurLecture }: { donnees: Do
         </div></div>}
       {onglet === 'aide' && <div className="grille-2-1">
         <section className="carte-l18"><h2 className="titre-carte">Questions fréquentes</h2>{FAQ.map(([q, r]) => <details key={q} className="faq"><summary>{q}</summary><p className="texte-13">{r}</p></details>)}
-          <p className="gris texte-12" style={{ marginTop: 16 }}><a href="https://leaselane.ca/confidentialite" target="_blank" rel="noreferrer">Politique de confidentialité</a> · <a href="https://leaselane.ca/conditions" target="_blank" rel="noreferrer">Conditions d’utilisation</a></p></section>
+          <p className="gris texte-12" style={{ marginTop: 16 }}><a href="https://leaselane.ca/confidentialite" target="_blank" rel="noreferrer">Politique de confidentialité</a> · <a href="https://leaselane.ca/conditions-utilisation" target="_blank" rel="noreferrer">Conditions d’utilisation</a></p></section>
         <form className="carte-l18" onSubmit={async (e) => { e.preventDefault(); if (await rpc('lanceur_nous_joindre', aide, 'Message envoyé aux administrateurs.')) setAide({ sujet: '', message: '' }); }}>
           <h2 className="titre-carte">Nous joindre</h2>
           <label className="fenetre-lib" htmlFor="mc-s">Sujet</label><input id="mc-s" className="e70-raison" value={aide.sujet} onChange={(e) => setAide({ ...aide, sujet: e.target.value })} />

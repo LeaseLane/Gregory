@@ -233,7 +233,7 @@ function VueRappels({ D }: { D: DonneesJur }) {
             {!R.lignes.length && <tr><td colSpan={5} className="gris">Aucun loyer en retard ni séquence arrêtée cette semaine.</td></tr>}</tbody></table>
         {(R.semaine.payes > 0 || R.semaine.ententes > 0) && <div className="bande-arrets"><span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>
           <span>{R.semaine.payes + R.semaine.ententes} séquence{R.semaine.payes + R.semaine.ententes > 1 ? 's' : ''} arrêtée{R.semaine.payes + R.semaine.ententes > 1 ? 's' : ''} cette semaine : {R.semaine.payes} paiement{R.semaine.payes > 1 ? 's' : ''} reçu{R.semaine.payes > 1 ? 's' : ''}, {R.semaine.ententes} entente{R.semaine.ententes > 1 ? 's' : ''}.</span>
-          <Link className="lien" href="/reglages/journal">Voir l’historique</Link></div>}
+          <Link className="lien" href="/reglages/journal/envois">Voir l’historique</Link></div>}
       </section>
       <div className="colonne-l18">
         <section className="carte-l18" aria-label="Efficacité des rappels"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{E.total ? `${pct(E.sms)} % paient après le premier rappel` : 'Pas encore de loyer payé en retard'}</h2>

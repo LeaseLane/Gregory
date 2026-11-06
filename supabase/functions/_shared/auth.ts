@@ -187,3 +187,13 @@ export async function requireUserWithMfa(
   }
   return { userId: auth.userId, claims: auth.claims, aal };
 }
+
+// Droit nommé de la personne connectée (crm.can, 2FA comprise), vérifié par la base avec son propre jeton. Pour les fonctions
+// réservées jusqu'ici aux comptes « is_admin » : un gestionnaire y a droit pour les actions de son rôle (audit du 2026-11-06).
+export async function aLeDroit(req: Request, droit: string): Promise<boolean> {
+  const r = await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/rpc/lanceur_a_le_droit`, {
+    method: "POST", body: JSON.stringify({ p_droit: droit }),
+    headers: { apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "", Authorization: req.headers.get("Authorization") ?? "", "Content-Type": "application/json" },
+  }).catch(() => null);
+  return !!r?.ok && (await r.json().catch(() => false)) === true;
+}
