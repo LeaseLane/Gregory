@@ -192,6 +192,7 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
       body: JSON.stringify(avecContexte({ model: MODELE_RAPIDE, max_tokens: 600, tools: [OUTIL_FILTRES], tool_choice: { type: "tool", name: "filtres" },
         messages: [{ role: "user", content: `Traduis cette demande de prospection immobilière (Québec) en filtres. Ne mets QUE ce qui est demandé explicitement.
 - statut : seulement si la demande dit « entreprise », « compagnie », « société » (morale) ou « particulier », « personne » (physique). « Propriétaires » seul : null.
+- Types : duplex = 2 logements, triplex = 3, quadruplex = 4, sixplex = 6 (min = max). « Tour », « grand immeuble » sans chiffre : null.
 - Années : « avant 1990 » → annee_max 1989; « après 2015 » → annee_min 2016; « depuis 2015 » → annee_min 2015.
 - pres_de.adresse : une adresse civique complète avec la ville. Pour un lieu connu (édifice, parc, centre commercial), écris son adresse civique
   (ex. Château Frontenac → 1 rue des Carrières, Québec). Rayon non précisé : 2 km.
