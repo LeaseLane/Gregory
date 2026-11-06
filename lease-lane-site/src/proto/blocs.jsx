@@ -3,6 +3,7 @@
 
 /* Converti depuis ui_kits/site-public/blocs.jsx (prototype) — ne pas réintroduire de globaux window. */
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { Icon, Button, Badge, Overline, Input, Select, Checkbox } from '@/components/ds';
 import { ouvrirCleo } from '@/proto/seo';
 import { naviguer } from '@/lib/routeur';
@@ -93,8 +94,9 @@ const LLSol = ({
   sombre,
   h = '72%'
 }) => {
-  /* Route réelle (le prototype lisait « #/chemin », toujours vide ici). */
-  const r = ((__ssr() ? "undefined" : typeof location) !== "undefined" ? location.pathname : "/") || "/";
+  /* Route réelle (le prototype lisait « #/chemin », toujours vide ici). usePathname : même valeur au serveur et au navigateur; lire
+     location donnait « / » au serveur et la vraie adresse au navigateur, d'où l'erreur React #418 sur 179 pages (audit du 2026-11-06). */
+  const r = usePathname() || "/";
   if (!undefined && r !== '/' && r !== '/gestion-immobiliere') return null;
   return <LLSolB sombre={sombre} h={h} />;
 };

@@ -106253,17 +106253,7 @@ try { (() => {
     };
   const ic = n => '<svg class="ic" aria-hidden="true" focusable="false"><use href="#' + n + '"></use></svg>';
   const rm = () => W.matchMedia && W.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!W.__c5sprite) {
-    W.__c5sprite = 1;
-    fetch('../refonte/icones.svg').then(r => r.ok ? r.text() : '').then(t => {
-      if (!t) return;
-      const d = document.createElement('div');
-      d.hidden = true;
-      d.setAttribute('aria-hidden', 'true');
-      d.innerHTML = t;
-      document.body.prepend(d);
-    }).catch(() => {});
-  }
+  /* Planche d'icônes « ../refonte/icones.svg » : n'a jamais existé (404 hérité du prototype, audit du 2026-11-06). Chargement retiré. */
   function animer(el) {
     const S = W.LL_SITE || {},
       D = W.LL_DATA || {
