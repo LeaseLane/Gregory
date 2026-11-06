@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(6);
+select plan(7);
 
 insert into workers (id, name, email, requires_rbq) values ('00000000-0000-4000-a000-0000000f3301', 'Fournisseur Essai RBQ', 'rbq@exemple-essai.test', true);
 select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = 'equipe-admin@leaselane.test'), 'aal', 'aal2', 'role', 'authenticated')::text, true);
@@ -13,6 +13,8 @@ select is(lanceur_fournisseur_document('{"worker_id":"00000000-0000-4000-a000-00
 select is((select rbq_license || ' · ' || rbq_license_expiry from workers where id = '00000000-0000-4000-a000-0000000f3301'), '5678-1234-01 · 2027-03-31', 'numéro mis en forme et échéance enregistrés sur le fournisseur');
 select ok(lanceur_fournisseur_document('{"worker_id":"00000000-0000-4000-a000-0000000f3301","type":"rbq","chemin":"workers/00000000-0000-4000-a000-0000000f3301/licence.pdf"}') is not null,
   'fichier ajouté plus tard : numéro déjà connu, document rattaché');
+select ok(lanceur_fournisseur_document('{"worker_id":"00000000-0000-4000-a000-0000000f3301","type":"autre","titre":"Contrat","chemin":"workers/00000000-0000-4000-a000-0000000f3301/contrat.pdf"}') is not null,
+  '« Autre document » accepté');
 select throws_ok($$ select lanceur_fournisseur_document('{"worker_id":"00000000-0000-4000-a000-0000000f3301","type":"assurance"}') $$, 'PT422', null, 'assurance sans fichier : refusée');
 
 select * from finish();
