@@ -47,11 +47,18 @@ const VOIES: Record<string, string> = { RU: "rue", BO: "boulevard", AV: "avenue"
   TE: "terrasse", CA: "carré", AL: "allée", PR: "promenade", CO: "côte", IM: "impasse", RL: "ruelle", QU: "quai", SE: "sentier", AU: "autoroute", CV: "cour" };
 const nettoyerAdresse = (a: string) => a.replace(/^(\d+)[A-Z]?-\d+[A-Z]?\b/, "$1").replace(/^(\S+)\s+([A-Z]{2})\s/, (m, no, c) => `${no} ${VOIES[c] ?? ""} `).replace(/\s+/g, " ").trim();
 const sansAccents = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-async function geocoder(adresse: string, ville?: string): Promise<{ lat: number; lon: number; libelle: string } | null> {
+// null = adresse introuvable; undefined = service indisponible (503 au-delà d'environ 150 requêtes rapprochées) : à refaire plus tard.
+async function geocoder(adresse: string, ville?: string): Promise<{ lat: number; lon: number; libelle: string } | null | undefined> {
   const u = new URL("https://geoegl.msp.gouv.qc.ca/apis/icherche/geocode");
   u.searchParams.set("type", "adresses"); u.searchParams.set("limit", "1"); u.searchParams.set("geometry", "1"); u.searchParams.set("q", ville ? `${adresse}, ${ville}` : adresse);
-  const r = await fetch(u, { signal: AbortSignal.timeout(15000) }).catch(() => null);
-  const f = r?.ok ? (await r.json().catch(() => ({})))?.features?.[0] : null;
+  let r: Response | null = null;
+  for (let essai = 0; essai < 3; essai++) {
+    r = await fetch(u, { signal: AbortSignal.timeout(15000) }).catch(() => null);
+    if (r?.ok) break;
+    await new Promise((ok) => setTimeout(ok, 1500 * (essai + 1)));
+  }
+  if (!r?.ok) return undefined;
+  const f = (await r.json().catch(() => ({})))?.features?.[0];
   const c = f?.geometry?.coordinates, nom = String(f?.properties?.nom ?? "");
   if (!Array.isArray(c) || (ville && !sansAccents(nom).includes(sansAccents(ville)))) return null;   // autre ville : faux positif
   return { lon: Number(c[0]), lat: Number(c[1]), libelle: nom };
@@ -192,7 +199,7 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
     if (!f) return json({ error: ai?.error?.message || "La demande n'a pas été comprise." }, 502);
     if (f.pres_de?.adresse) {
       const pt = await geocoder(String(f.pres_de.adresse));
-      if (!pt) return json({ error: `Adresse introuvable : ${f.pres_de.adresse}`, filtres: { ...f, pres_de: null } }, 422);
+      if (!pt) return json({ error: pt === undefined ? "Le service d'adresses du Québec ne répond pas; réessayez dans une minute." : `Adresse introuvable : ${f.pres_de.adresse}`, filtres: { ...f, pres_de: null } }, pt === undefined ? 503 : 422);
       f.pres_de = { ...f.pres_de, ...pt, km: Number(f.pres_de.km) || 2 };
     }
     return json({ ok: true, filtres: f });
@@ -202,14 +209,15 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
     if (!par) return json({ error: "Réservé à une personne de l'équipe." }, 403);
     const lot: { id: string; adresse: string; municipalite: string }[] = await rpc("service_role_a_geocoder", { p_n: n, p_villes: villes });
     const faits: { id: string; lat: number | null; lon: number | null }[] = [];
-    for (let k = 0; k < lot.length; k += 8) {   // 8 à la fois : poli envers le service public
-      faits.push(...await Promise.all(lot.slice(k, k + 8).map(async (i) => {
-        const pt = await geocoder(nettoyerAdresse(i.adresse), i.municipalite);
-        return { id: i.id, lat: pt?.lat ?? null, lon: pt?.lon ?? null };
-      })));
+    let indisponibles = 0;
+    for (let k = 0; k < lot.length; k += 4) {   // 4 à la fois : le service public limite les requêtes rapprochées
+      for (const [i, pt] of await Promise.all(lot.slice(k, k + 4).map(async (i) => [i, await geocoder(nettoyerAdresse(i.adresse), i.municipalite)] as const))) {
+        if (pt === undefined) indisponibles++;   // pas marqué : refait au prochain lot
+        else faits.push({ id: i.id, lat: pt?.lat ?? null, lon: pt?.lon ?? null });
+      }
     }
     if (faits.length) await rpc("service_role_geocode", { p: faits });
-    return json({ ok: true, faits: faits.length, trouves: faits.filter((x) => x.lat != null).length, restants: await rpc("service_role_geocode_restants", { p_villes: villes }) });
+    return json({ ok: true, faits: faits.length, trouves: faits.filter((x) => x.lat != null).length, indisponibles, restants: await rpc("service_role_geocode_restants", { p_villes: villes }) });
   }
   let run: string | null = null;
   try {
