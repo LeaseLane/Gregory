@@ -22,7 +22,7 @@ const dl = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso
 
 export function FicheFournisseur({ donnees: D, erreurLecture }: { donnees: DonneesFournisseur | null; erreurLecture: string | null }) {
   const router = useRouter();
-  const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [refus, setRefus] = useState<string | null>(null), [ajout, setAjout] = useState(false), [envoi, setEnvoi] = useState(false);
+  const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [refus, setRefus] = useState<string | null>(null), [ajout, setAjout] = useState<string | null>(null), [envoi, setEnvoi] = useState(false);
   if (!D) return <><Link className="lien po-retour" href="/maintenance/fournisseurs"><Icone nom="arrow" taille={14} couleur="#2E5788" />Fournisseurs</Link><div className="bandeau erreur" role="alert">{bandeau}</div></>;
   const I = D.indicateurs, maxS = Math.max(1, ...I.serie), [ic, lib, cl] = etatAssurance({ etat_assurance: D.etat_assurance, assurance: D.assurance, prochain: D.travaux.find((t) => t.rendez_vous && new Date(t.rendez_vous) > new Date())?.rendez_vous ?? null });
   const sp = D.specialites.filter(Boolean) as string[];
@@ -79,10 +79,11 @@ export function FicheFournisseur({ donnees: D, erreurLecture }: { donnees: Donne
             <ul className="lo-docs">
               <li><span className="a-faire-ic"><Icone nom="shield" taille={18} couleur="#0C2147" /></span><div><strong>Attestation d’assurance</strong><span className={`texte-13 ${cl || 'gris'}`}>{D.assurance ? `Au ${dl(D.assurance)}` : 'À recevoir'}</span></div><span className="ligne-ic">{ic}</span></li>
               <li><span className="a-faire-ic"><Icone nom="file" taille={18} couleur="#0C2147" /></span><div><strong>{D.rbq ? `Licence RBQ ${D.rbq}` : 'Licence RBQ'}</strong>
-                <span className="gris texte-13">{D.rbq ? (D.rbq_expiration ? `Valide jusqu’au ${dl(D.rbq_expiration)}` : 'Échéance à saisir') : D.rbq_requise ? 'Requise · manquante' : 'Non requise pour ses travaux'}</span></div></li>
+                <span className="gris texte-13">{D.rbq ? (D.rbq_expiration ? `Valide jusqu’au ${dl(D.rbq_expiration)}` : 'Échéance à saisir') : D.rbq_requise ? 'Requise · manquante' : 'Non requise pour ses travaux'}</span></div>
+                {D.peut_ecrire && <span className="ligne-ic"><button className="lien" onClick={() => setAjout('rbq')}>{D.rbq ? 'Modifier' : 'Ajouter'}</button></span>}</li>
               {D.documents.map((d) => <li key={d.id}><span className="a-faire-ic"><Icone nom="file" taille={18} couleur="#0C2147" /></span><div><strong>{d.titre}</strong><span className="gris texte-13">Ajouté le {dl(d.le)}</span></div>
                 <span className="ligne-ic">{d.valide === 'valide' && <Icone nom="check" taille={16} couleur="#12694F" />}<button className="lien" onClick={() => voir(d.id)}>Voir</button></span></li>)}</ul>
-            {D.peut_ecrire && <button className="bouton bouton-contour" style={{ marginTop: 12, width: '100%' }} onClick={() => setAjout(true)}><Icone nom="upload" taille={16} couleur="#0C2147" />Ajouter un document</button>}
+            {D.peut_ecrire && <button className="bouton bouton-contour" style={{ marginTop: 12, width: '100%' }} onClick={() => setAjout('assurance')}><Icone nom="upload" taille={16} couleur="#0C2147" />Ajouter un document</button>}
             {D.peut_ecrire && <div className="fiche-actions" style={{ marginTop: 12 }}>{refus == null ? <>
               {D.verification !== 'verified' && <button className="bouton bouton-principal" onClick={() => verifier('verified')}><Icone nom="check" taille={16} couleur="#fff" />Marquer vérifié</button>}
               {D.verification !== 'rejected' && <button className="bouton bouton-contour" onClick={() => setRefus('')}>Refuser</button>}</>
@@ -95,23 +96,23 @@ export function FicheFournisseur({ donnees: D, erreurLecture }: { donnees: Donne
             {!D.evaluations.length && <p className="gris texte-13">Aucun commentaire écrit.</p>}</section>
         </div>
       </div>
-      {ajout && <AjoutDocument id={D.id} fermer={() => setAjout(false)} fait={(m) => { setAjout(false); setBandeau(null); setOk(m); router.refresh(); }} />}
+      {ajout && <AjoutDocument id={D.id} type0={ajout} rbq0={D.rbq ?? ''} fermer={() => setAjout(null)} fait={(m) => { setAjout(null); setBandeau(null); setOk(m); router.refresh(); }} />}
     </>
   );
 }
 
 // Attestation d'assurance (met à jour l'échéance), licence RBQ ou autre document : dépôt dans workers/<id>/, puis rattachement en base.
-function AjoutDocument({ id, fermer, fait }: { id: string; fermer: () => void; fait: (m: string) => void }) {
-  const [type, setType] = useState('assurance'), [titre, setTitre] = useState(''), [exp, setExp] = useState(''), [f, setF] = useState<File | null>(null);
+function AjoutDocument({ id, type0, rbq0, fermer, fait }: { id: string; type0: string; rbq0: string; fermer: () => void; fait: (m: string) => void }) {
+  const [type, setType] = useState(type0), [numero, setNumero] = useState(rbq0), [titre, setTitre] = useState(''), [exp, setExp] = useState(''), [f, setF] = useState<File | null>(null);
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
   async function ok() {
-    if (!f) return;
+    if (!f && type !== 'rbq') return;
     setEnvoi(true); setErreur(null);
     try {
-      const d = await deposer(`workers/${id}`, f);
-      const { error } = await supabaseNavigateur().rpc('lanceur_fournisseur_document', { p: { worker_id: id, type, titre, expiration: exp, ...d } });
-      if (error) { await retirer(d.chemin); throw new Error(error.message); }
-      fait(type === 'assurance' ? `Attestation d’assurance ajoutée${exp ? `, valide jusqu’au ${dl(exp)}` : ''}.` : 'Document ajouté.');
+      const d = f ? await deposer(`workers/${id}`, f) : null;   // licence RBQ : le numéro suffit, le fichier est facultatif
+      const { error } = await supabaseNavigateur().rpc('lanceur_fournisseur_document', { p: { worker_id: id, type, titre, expiration: exp, ...(type === 'rbq' ? { numero } : {}), ...(d ?? {}) } });
+      if (error) { if (d) await retirer(d.chemin); throw new Error(error.message); }
+      fait(type === 'assurance' ? `Attestation d’assurance ajoutée${exp ? `, valide jusqu’au ${dl(exp)}` : ''}.` : type === 'rbq' ? `Licence RBQ ${numero} enregistrée${exp ? `, valide jusqu’au ${dl(exp)}` : ''}.` : 'Document ajouté.');
     } catch (e) { setErreur((e as Error).message); } finally { setEnvoi(false); }
   }
   return (
@@ -120,15 +121,17 @@ function AjoutDocument({ id, fermer, fait }: { id: string; fermer: () => void; f
         <div className="fenetre-tete"><h2 id="ad-t">Ajouter un document</h2><button type="button" className="fermer" onClick={fermer} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
         <label className="fenetre-lib">Type<select className="e70-raison" value={type} onChange={(e) => setType(e.target.value)}>
           <option value="assurance">Attestation d’assurance</option><option value="rbq">Licence RBQ</option><option value="autre">Autre document</option></select></label>
+        {type === 'rbq' && <label className="fenetre-lib">Numéro de licence<input className="e70-raison" value={numero} inputMode="numeric" placeholder="1234-5678-90" maxLength={12} required
+          onChange={(e) => { const c = e.target.value.replace(/\D/g, '').slice(0, 10); setNumero([c.slice(0, 4), c.slice(4, 8), c.slice(8)].filter(Boolean).join('-')); }} /></label>}
         {type === 'autre' ? <label className="fenetre-lib">Titre<input className="e70-raison" value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex. : contrat de service" /></label>
-          : <label className="fenetre-lib">Valide jusqu’au<span>facultatif</span><input type="date" className="e70-raison" value={exp} onChange={(e) => setExp(e.target.value)} /></label>}
-        <span className="fenetre-lib">Fichier<span>PDF, JPG ou PNG · 10 Mo maximum</span></span>
+          : <label className="fenetre-lib">Valide jusqu’au<span>facultatif</span><input type="date" min="2000-01-01" max="2099-12-31" className="e70-raison" value={exp} onChange={(e) => setExp(e.target.value)} /></label>}
+        <span className="fenetre-lib">Fichier<span>{type === 'rbq' ? 'facultatif · ' : ''}PDF, JPG ou PNG · 10 Mo maximum</span></span>
         <label className="bouton bouton-contour" style={{ width: '100%', justifyContent: 'flex-start', padding: '0 16px', cursor: 'pointer', marginBottom: 16 }}>
           <Icone nom={f ? 'check' : 'upload'} taille={18} couleur="#0C2147" /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f ? f.name : 'Choisir le fichier'}</span>
           <input type="file" hidden accept={ACCEPTE} onChange={(e) => setF(e.target.files?.[0] ?? null)} /></label>
         {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
         <div className="fenetre-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>Annuler</button>
-          <button className="bouton bouton-principal" disabled={envoi || !f || (type === 'autre' && titre.trim().length < 2)}>{envoi ? 'Envoi…' : 'Ajouter'}</button></div>
+          <button className="bouton bouton-principal" disabled={envoi || (type === 'rbq' ? numero.replace(/\D/g, '').length !== 10 : !f) || (type === 'autre' && titre.trim().length < 2)}>{envoi ? 'Envoi…' : 'Ajouter'}</button></div>
       </form>
     </div>
   );
