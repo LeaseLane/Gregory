@@ -81,6 +81,8 @@ export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, e
     setEnvoi(false); if (error) return setBandeau(error.message); setOk('Document supprimé.'); router.refresh();
   }
   const fichier = (rappel: (f: File) => void) => (e: React.ChangeEvent<HTMLInputElement>) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) rappel(f); };
+  // crm.bail_locataire rend aussi le dernier bail terminé (historique du portail) : passé sa date de fin, il n'est plus « en cours ».
+  const termine = !!D.bail?.fin && D.bail.fin < new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
   const B = D.bail, champ = (k: keyof typeof f, l: string, type = 'text') => <div><label className="fenetre-lib" htmlFor={`fl-${k}`}>{l}</label><input id={`fl-${k}`} className="e70-raison" type={type} value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} /></div>;
   return (
     <>
@@ -97,7 +99,7 @@ export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, e
           {!D.anonymise && <button className="bouton bouton-contour" onClick={() => setEdit(true)}><Icone nom="pencil" taille={16} couleur="#0C2147" />Modifier</button>}
           {D.dossier && <Link className="bouton bouton-contour" href={`/juridique?d=${D.dossier.id}`}><Icone nom="flag" taille={16} couleur="#0C2147" />Ouvrir le dossier {D.dossier.numero}</Link>}
           {D.telephone && <a className="bouton bouton-principal" href={`tel:${D.telephone}`}><Icone nom="phone" taille={16} couleur="#fff" />Appeler</a>}
-          {admin && !B && <button className="haut-ibtn" style={{ width: 44, height: 44 }} onClick={() => setSupprimer(true)} aria-label="Supprimer le locataire" title="Supprimer le locataire"><Icone nom="trash" taille={18} couleur="#9B2E28" /></button>}</div>
+          {admin && (!B || termine) && <button className="haut-ibtn" style={{ width: 44, height: 44 }} onClick={() => setSupprimer(true)} aria-label="Supprimer le locataire" title="Supprimer le locataire"><Icone nom="trash" taille={18} couleur="#9B2E28" /></button>}</div>
       </section>
       <div className="grille-2-1" style={{ marginTop: 24 }}>
         <div className="po-colonne">
@@ -116,12 +118,12 @@ export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, e
               {!D.demandes.length && <li className="gris texte-13">Aucune demande dans les 12 derniers mois.</li>}</ul></section>
         </div>
         <div className="po-colonne">
-          <section className="carte-l18 e2" aria-label="Bail"><div className="tete-action"><h2 className="titre-carte">Bail</h2>
-            {!D.anonymise && (B ? <button type="button" className="lien" style={{ color: '#9B2E28' }} onClick={() => setBail({ mode: 'terminer', leaseId: B.id, libelle: adresse(B.logement), nom: D.nom })}>Mettre fin au bail</button>
+          <section className="carte-l18 e2" aria-label="Bail"><div className="tete-action"><h2 className="titre-carte">Bail{termine && <span className="puce neutral" style={{ marginLeft: 8 }}>Terminé</span>}</h2>
+            {!D.anonymise && (B && !termine ? <button type="button" className="lien" style={{ color: '#9B2E28' }} onClick={() => setBail({ mode: 'terminer', leaseId: B.id, libelle: adresse(B.logement), nom: D.nom })}>Mettre fin au bail</button>
               : <button type="button" className="lien" onClick={() => setBail({ mode: 'ajouter', tenantId: D.id, nom: D.nom })}>Ajouter un bail</button>)}</div>
             {B ? <dl className="fiche-dl"><div><dt>Logement</dt><dd>{adresse(B.logement)}{B.type ? ` · ${piece(B.type)}` : ''}</dd></div><div><dt>Loyer</dt><dd>{argent(B.loyer)} / mois</dd></div>
               <div><dt>Période</dt><dd>{date(B.debut)} au {B.fin ? date(B.fin) : 'indéterminée'}</dd></div><div><dt>Paiement</dt><dd>{B.mode}</dd></div>
-              {B.fenetre && <div><dt>Avis de modification</dt><dd>{(([a, b]) => b ? `du ${date(a)} au ${date(b)}` : B.fenetre)(B.fenetre.replace(/[\[\]()]/g, '').split(','))}</dd></div>}</dl> : <p className="gris" style={{ margin: 0 }}>Aucun bail actif.</p>}
+              {B.fenetre && /\d/.test(B.fenetre) && <div><dt>Avis de modification</dt><dd>{(([a, b]) => b ? `du ${date(a)} au ${date(b)}` : B.fenetre)(B.fenetre.replace(/[\[\]()]/g, '').split(','))}</dd></div>}</dl> : <p className="gris" style={{ margin: 0 }}>Aucun bail actif.</p>}
             {B && <div style={{ marginTop: 16 }}><div className="tete-action"><h3 className="titre-carte" style={{ fontSize: 15, margin: 0 }}>Locataires du bail</h3>
               {!D.anonymise && <button type="button" className="lien" onClick={() => setColoc(true)}>Ajouter un colocataire</button>}</div>
               <ul className="lo-docs">{colocataires.map((c) => <li key={c.id}><span className="a-faire-ic"><Icone nom="users" taille={18} couleur="#0C2147" /></span>
