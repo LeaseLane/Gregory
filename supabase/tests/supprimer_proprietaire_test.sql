@@ -1,9 +1,10 @@
--- Tests pgTAP · supprimer un propriétaire (migration 20261111200000_supprimer_proprietaire.sql). Préproduction; transaction annulée.
+-- Tests pgTAP · supprimer un propriétaire (migrations 20261111200000_supprimer_proprietaire.sql et 20261112130000_supprimer_proprietaire_liens.sql). Préproduction; transaction annulée.
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir ../migrations/20261111200000_supprimer_proprietaire.sql
+\ir ../migrations/20261112130000_supprimer_proprietaire_liens.sql
 set local search_path = public, extensions;
-select plan(9);
+select plan(11);
 
 -- Propriétaire d'essai complet : immeuble, logement, bail, locataire, loyer, document, visite.
 insert into owners (id, full_name) values ('00000000-0000-4000-a000-0000000e5101', 'Proprio Essai Suppression');
@@ -12,7 +13,13 @@ insert into units (id, building_id, unit_number) values ('00000000-0000-4000-a00
 insert into tenants (id, full_name, email) values ('00000000-0000-4000-a000-0000000e5104', 'Locataire Essai Suppression', 'sup@exemple-essai.test');
 insert into leases (id, unit_id, tenant_id, start_date, monthly_rent, status) values
   ('00000000-0000-4000-a000-0000000e5105', '00000000-0000-4000-a000-0000000e5103', '00000000-0000-4000-a000-0000000e5104', '2026-07-01', 900, 'active');
-insert into payments (lease_id, amount, due_date, status) values ('00000000-0000-4000-a000-0000000e5105', 900, '2026-12-01', 'pending');
+insert into payments (id, lease_id, amount, due_date, status) values ('00000000-0000-4000-a000-0000000e5106', '00000000-0000-4000-a000-0000000e5105', 900, '2026-12-01', 'pending');
+-- Liens qui bloquaient « Twin » et « test demo » en production : ligne bancaire liée au loyer, dépense du logement, demande d'entretien du locataire.
+insert into bank_transactions (owner_id, transaction_date, description, amount, match_status, matched_payment_id, lease_id, unit_id, ai_suggested_tenant_id)
+  values ('00000000-0000-4000-a000-0000000e5101', '2026-10-01', 'Virement essai', 900, 'unmatched', '00000000-0000-4000-a000-0000000e5106',
+          '00000000-0000-4000-a000-0000000e5105', '00000000-0000-4000-a000-0000000e5103', '00000000-0000-4000-a000-0000000e5104');
+insert into expenses (unit_id, building_id, description, amount, expense_date) values ('00000000-0000-4000-a000-0000000e5103', '00000000-0000-4000-a000-0000000e5102', 'Dépense essai suppression', 50, '2026-10-02');
+insert into service_requests (unit_id, tenant_id, description) values ('00000000-0000-4000-a000-0000000e5103', '00000000-0000-4000-a000-0000000e5104', 'Demande essai suppression');
 insert into documents (owner_id, lease_id, tenant_id, title) values ('00000000-0000-4000-a000-0000000e5101', '00000000-0000-4000-a000-0000000e5105', '00000000-0000-4000-a000-0000000e5104', 'Bail (essai)');
 insert into visits (unit_id, prospect_name, prospect_email, proposed_at, status) values ('00000000-0000-4000-a000-0000000e5103', 'Visiteur', 'v@exemple-essai.test', '2031-01-06 10:00 America/Toronto', 'proposed');
 -- Deuxième propriétaire, avec un mouvement au fidéicommis : non supprimable.
@@ -36,6 +43,9 @@ select is((select count(*)::int from payments where lease_id = '00000000-0000-40
   + (select count(*)::int from visits where prospect_email = 'v@exemple-essai.test'), 0, '7 · ni loyer, ni document, ni visite');
 select is((select count(*)::int from tenants where id = '00000000-0000-4000-a000-0000000e5104'), 0, '8 · le locataire sans autre bail est parti');
 select ok(exists (select 1 from public.audit_log where action = 'owner.deleted' and entity_id = '00000000-0000-4000-a000-0000000e5101'), '9 · inscrit au journal');
+select is((select count(*)::int from bank_transactions where description = 'Virement essai'), 0, '10 · ses lignes bancaires sont parties');
+select is((select count(*)::int from expenses where description = 'Dépense essai suppression') + (select count(*)::int from service_requests where description = 'Demande essai suppression'), 0,
+  '11 · ni dépense, ni demande d’entretien');
 
 select * from finish();
 rollback;
