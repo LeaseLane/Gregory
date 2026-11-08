@@ -219,7 +219,7 @@ a.haut-ibtn { text-decoration: none; }
 .espace-pastille { width: 56px; height: 56px; border-radius: 16px; background: #0C2147; display: grid; place-items: center; flex: none; }
 .espace-tete h1 { margin: 0; font-size: 28px; line-height: 38px; font-weight: 700; letter-spacing: -0.4px; }
 .espace-tete-haut p { margin: 0; font-size: 14px; color: #58697F; }
-.onglets { display: flex; gap: 8px; padding: 12px 0 23px; overflow-x: auto; } /* onglets à HY+108, bas de l'en-tête à HY+176 */
+.onglets { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0 23px; overflow-x: auto; }  /* trop d’onglets (Finances : 11) : 2e ligne plutôt qu’onglets cachés; téléphone : défilement (plus bas) */ /* onglets à HY+108, bas de l'en-tête à HY+176 */
 .onglet { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 600; color: #3E4A59; text-decoration: none; white-space: nowrap; }
 .onglet.actif { background: #ECF2F9; color: #0C2147; }
 .onglet.actif::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: -4px; height: 3px; border-radius: 1.5px; background: #4581CB; } /* trait à HY+HH−23 */
