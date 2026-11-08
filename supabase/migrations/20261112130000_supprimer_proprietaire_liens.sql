@@ -2,7 +2,9 @@
 -- (Grégory, 2026-11-08 : « Twin » et « Test démo » impossibles à supprimer). Vérifié en lecture seule en prod : 92 lignes bancaires
 -- importées liées à leurs loyers/baux/logements, 3 dépenses, 2 demandes d'entretien. Partent maintenant avec le propriétaire :
 -- ses lignes bancaires (les 646 « à rapprocher » de test), dépenses, comptes à payer, débours, projets, anomalies liées, et les demandes
--- d'entretien de ses locataires supprimés. Toujours refusé : fidéicommis, prélèvements BMO, relevés 31.
+-- d'entretien de ses locataires supprimés. Toujours refusé : fidéicommis, prélèvements BMO, relevés 31, et maintenant écritures au grand
+-- livre (immuable par conception; avant, l'erreur du déclencheur sortait telle quelle). Les deux comptes d'essai de production ont été
+-- nettoyés une fois, à part, avec l'accord d'Octa (2026-11-08).
 
 create or replace function public.lanceur_proprietaire_supprimer(p jsonb) returns jsonb language plpgsql security definer set search_path = '' as $$
 declare o public.owners; v_imm uuid[]; v_log uuid[]; v_baux uuid[]; v_loc uuid[]; v_pay uuid[]; v_bons uuid[]; v_dep uuid[]; v_t uuid; n_loc int := 0;
@@ -28,6 +30,9 @@ begin
      or exists (select 1 from public.prelevement_lignes where payment_id = any(v_pay))
      or exists (select 1 from public.prelevement_lots pl join public.bank_transactions bt on bt.id = pl.transaction_id where bt.owner_id = o.id) then
     raise exception 'Impossible : ce propriétaire a des mouvements au compte en fidéicommis, des prélèvements ou des relevés 31, qui doivent être conservés.' using errcode = 'PT409';
+  end if;
+  if exists (select 1 from public.gl_journal_entries where owner_id = o.id) then
+    raise exception 'Impossible : ce propriétaire a des écritures comptables (loyers payés, dépenses). Le grand livre ne s''efface pas; demandez à l''équipe technique pour un compte d''essai.' using errcode = 'PT409';
   end if;
   -- Liens qui ne partent pas tout seuls avec le propriétaire.
   update crm.deals set converted_owner_id = null where converted_owner_id = o.id;
