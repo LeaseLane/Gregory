@@ -11,7 +11,7 @@
 create or replace function public.lanceur_bail_creer(p jsonb) returns jsonb language plpgsql security definer set search_path = '' as $$
 declare
   v_unite uuid := nullif(p ->> 'unit_id', '')::uuid; v_t uuid := nullif(p ->> 'tenant_id', '')::uuid; v_mail text := nullif(lower(btrim(p ->> 'courriel')), '');
-  v_loyer numeric := nullif(replace(regexp_replace(coalesce(p ->> 'loyer', ''), '[^0-9.,]', '', 'g'), ',', '.'), '')::numeric;  -- « 1 200,50 » accepté v_debut date := nullif(p ->> 'debut', '')::date; v_fin date := nullif(p ->> 'fin', '')::date;
+  v_loyer numeric := nullif(replace(regexp_replace(coalesce(p ->> 'loyer', ''), '[^0-9.,]', '', 'g'), ',', '.'), '')::numeric; v_debut date := nullif(p ->> 'debut', '')::date; v_fin date := nullif(p ->> 'fin', '')::date;
   v_en_cours public.leases; v_statut text; v_bail uuid; v_nouveau boolean := false;
 begin
   perform crm.require_aal2();
