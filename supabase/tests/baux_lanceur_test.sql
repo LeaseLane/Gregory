@@ -41,7 +41,7 @@ select throws_ok($$ select lanceur_locataire_supprimer('{"id":"00000000-0000-400
 select lanceur_bail_terminer(jsonb_build_object('lease_id', (select l.id from leases l join tenants t on t.id = l.tenant_id where t.full_name = 'Nouveau Essai Baux'),
   'fin', date_quebec() - 1, 'motif', 'entente'));
 select is((select status from units where id = '00000000-0000-4000-a000-0000000ba103'), 'available', '10 · fin de bail passée : logement libre');
-select throws_ok($$ select lanceur_locataire_supprimer('{"id":"' || (select id from tenants where full_name = 'Nouveau Essai Baux') || '","confirmation":"Nouveau"}') $$, 'PT422', null,
+select throws_ok($$ select lanceur_locataire_supprimer(jsonb_build_object('id', (select id from tenants where full_name = 'Nouveau Essai Baux'), 'confirmation', 'Nouveau')) $$, 'PT422', null,
   '11 · le nom exact est exigé');
 select is(lanceur_locataire_supprimer(jsonb_build_object('id', (select id from tenants where full_name = 'Nouveau Essai Baux'), 'confirmation', 'nouveau essai baux')) ->> 'baux', '1',
   '12 · locataire supprimé avec son bail terminé');
