@@ -2,8 +2,9 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir ../migrations/20261112140000_baux_lanceur.sql
+\ir ../migrations/20261112150000_client_courriel_facultatif.sql
 set local search_path = public, extensions;
-select plan(13);
+select plan(15);
 
 -- Un immeuble d'essai : logement 1 libre, logement 2 loué (bail sans fin) avec un loyer d'octobre en retard.
 insert into owners (id, full_name) values ('00000000-0000-4000-a000-0000000ba101', 'Proprio Essai Baux');
@@ -49,6 +50,10 @@ select is(lanceur_locataire_supprimer(jsonb_build_object('id', (select id from t
 -- Opérations : le loyer en retard mène à « Marquer payé » sur la fiche, fenêtre ouverte sur ce loyer.
 select ok(exists (select 1 from jsonb_array_elements(crm.file_a_traiter()) x where x ->> 'id' = 'loy:00000000-0000-4000-a000-0000000ba107'
   and x ->> 'action' = 'Marquer payé' and x ->> 'href' like '%?payer=00000000-0000-4000-a000-0000000ba107'), '13 · À traiter : « Marquer payé » sur un loyer en retard');
+
+-- Nouveau client : courriel facultatif pour un locataire, requis pour un propriétaire.
+select ok((lanceur_creer_client('{"type":"locataire","nom":"Sans Courriel Essai","inviter":false}') ->> 'id') is not null, '14 · un locataire sans courriel se crée');
+select throws_ok($$ select lanceur_creer_client('{"type":"proprietaire","nom":"Proprio Sans Courriel","inviter":false}') $$, 'PT422', null, '15 · un propriétaire sans courriel est refusé');
 
 select * from finish();
 rollback;
