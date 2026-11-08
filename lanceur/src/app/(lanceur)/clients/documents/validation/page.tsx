@@ -9,7 +9,7 @@ export default async function Page() {
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_documents_validation');
   const d = (data as DonneesValidation | null) ?? null;
   return (
-    <CadreEspace icone="users" nom="Clients" sous={SOUS_CLI} actif={5}
+    <CadreEspace icone="users" nom="Clients" sous={SOUS_CLI} actif={4}
       onglets={ONGLETS_CLI}>
       <nav className="sous-onglets" aria-label="Documents"><Link href="/clients/documents">Documents et signatures</Link><Link href="/clients/documents/validation" className="actif" aria-current="page">Validation IA{d?.a_valider.length ? ` · ${d.a_valider.length}` : ''}</Link></nav>
       <Validation donnees={d} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les documents n’ont pas pu être lus.') : null} />

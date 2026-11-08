@@ -9,7 +9,7 @@ export default async function Page() {
   const supabase = await supabaseServeur();
   const { data, error } = await supabase.rpc('lanceur_documents');
   return (
-    <CadreEspace icone="users" nom="Clients" sous={SOUS_CLI} actif={5}
+    <CadreEspace icone="users" nom="Clients" sous={SOUS_CLI} actif={4}
       onglets={ONGLETS_CLI}>
       <nav className="sous-onglets" aria-label="Documents"><Link href="/clients/documents" className="actif" aria-current="page">Documents et signatures</Link><Link href="/clients/documents/validation">Validation IA</Link></nav>
       <Documents donnees={(data as DonneesDocs | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les documents n’ont pas pu être lus.') : null} />
