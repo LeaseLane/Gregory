@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     }
 
     const leaseRes = await fetch(
-      `${supabaseUrl}/rest/v1/leases?id=eq.${lease_id}&select=*,tenants(full_name,email),units(unit_number,buildings(address))`,
+      `${supabaseUrl}/rest/v1/leases?id=eq.${lease_id}&select=*,tenants!leases_tenant_id_fkey(full_name,email),units(unit_number,buildings(address))`,
       { headers: adminHeaders },
     );
     const [lease] = await leaseRes.json();

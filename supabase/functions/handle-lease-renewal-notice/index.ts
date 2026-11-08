@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
 
     if (action === "list") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/lease_renewal_tracking?select=*,leases(tenants(full_name,email),units(unit_number,buildings(address)))&order=end_date.asc`,
+        `${supabaseUrl}/rest/v1/lease_renewal_tracking?select=*,leases(tenants!leases_tenant_id_fkey(full_name,email),units(unit_number,buildings(address)))&order=end_date.asc`,
         { headers: adminHeaders },
       );
       return new Response(JSON.stringify({ leases: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
       }
 
       const leaseRes = await fetch(
-        `${supabaseUrl}/rest/v1/leases?id=eq.${lease_id}&select=*,tenants(full_name,email),units(unit_number,buildings(address))`,
+        `${supabaseUrl}/rest/v1/leases?id=eq.${lease_id}&select=*,tenants!leases_tenant_id_fkey(full_name,email),units(unit_number,buildings(address))`,
         { headers: adminHeaders },
       );
       const [lease] = await leaseRes.json();

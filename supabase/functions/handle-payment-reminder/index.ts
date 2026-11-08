@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
     };
 
     const payRes = await fetch(
-      `${supabaseUrl}/rest/v1/payments?id=eq.${payment_id}&select=*,leases(monthly_rent,tenants(full_name,email,archived_at),units(unit_number,buildings(address)))`,
+      `${supabaseUrl}/rest/v1/payments?id=eq.${payment_id}&select=*,leases(monthly_rent,tenants!leases_tenant_id_fkey(full_name,email,archived_at),units(unit_number,buildings(address)))`,
       { headers: adminHeaders },
     );
     const [payment] = await payRes.json();

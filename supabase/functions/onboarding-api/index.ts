@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
     // Logements d'un propriétaire avec le bail en cours et le bail à venir (fenêtre « Logements et baux »).
     if (action === "list_owner_units") {
       if (!/^[0-9a-f-]{36}$/i.test(String(body.owner_id ?? ""))) return new Response(JSON.stringify({ error: "owner_id invalide" }), { status: 400, headers: corsHeaders });
-      const sel = "id,address,units(id,unit_number,status,leases(id,status,start_date,end_date,monthly_rent,fin_motif,fin_note,renewal_response,tenants(id,full_name,email,phone)))";
+      const sel = "id,address,units(id,unit_number,status,leases(id,status,start_date,end_date,monthly_rent,fin_motif,fin_note,renewal_response,tenants!leases_tenant_id_fkey(id,full_name,email,phone)))";
       const res = await fetch(`${supabaseUrl}/rest/v1/buildings?owner_id=eq.${body.owner_id}&select=${sel}&units.leases.status=in.(active,renewed,a_venir)&order=address.asc&units.order=unit_number.asc`, { headers: adminHeaders });
       if (!res.ok) return new Response(JSON.stringify({ error: "Logements illisibles" }), { status: 502, headers: corsHeaders });
       return new Response(JSON.stringify({ buildings: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -879,7 +879,7 @@ Deno.serve(async (req) => {
 
     if (action === "list_tenants") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/tenants?select=id,full_name,email,phone,user_id,created_at,archived_at,leases(status,monthly_rent,end_date,units(unit_number,reference_paiement,buildings(address,owners(full_name))),payments(status))&order=full_name.asc`,
+        `${supabaseUrl}/rest/v1/tenants?select=id,full_name,email,phone,user_id,created_at,archived_at,leases!leases_tenant_id_fkey(status,monthly_rent,end_date,units(unit_number,reference_paiement,buildings(address,owners(full_name))),payments(status))&order=full_name.asc`,
         { headers: adminHeaders },
       );
       const tenants = await res.json();

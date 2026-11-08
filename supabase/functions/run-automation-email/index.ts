@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     let recipientName = "";
     if (entity_type === "payments") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/payments?id=eq.${entity_id}&select=leases(tenants(full_name,email))`,
+        `${supabaseUrl}/rest/v1/payments?id=eq.${entity_id}&select=leases(tenants!leases_tenant_id_fkey(full_name,email))`,
         { headers: adminHeaders },
       );
       const [row] = await res.json();
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       recipientName = row?.leases?.tenants?.full_name || "";
     } else if (entity_type === "leases") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/leases?id=eq.${entity_id}&select=tenants(full_name,email)`,
+        `${supabaseUrl}/rest/v1/leases?id=eq.${entity_id}&select=tenants!leases_tenant_id_fkey(full_name,email)`,
         { headers: adminHeaders },
       );
       const [row] = await res.json();

@@ -222,7 +222,7 @@ Deno.serve(async (req) => {
 
       if (request_type === "access") {
         const exportQueries: Record<string, string> = {
-          tenant: `${supabaseUrl}/rest/v1/tenants?id=eq.${subject_id}&select=*,leases(*,payments(*),units(unit_number,buildings(address))),service_requests(*)`,
+          tenant: `${supabaseUrl}/rest/v1/tenants?id=eq.${subject_id}&select=*,leases!leases_tenant_id_fkey(*,payments(*),units(unit_number,buildings(address))),service_requests(*)`,
           prospect: `${supabaseUrl}/rest/v1/prospects?id=eq.${subject_id}&select=*`,
           owner: `${supabaseUrl}/rest/v1/owners?id=eq.${subject_id}&select=*,buildings(*,units(*))`,
           worker: `${supabaseUrl}/rest/v1/workers?id=eq.${subject_id}&select=*,work_orders(*)`,

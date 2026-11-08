@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
     // travailleurs…) : l'admin n'a pas de droit de lecture direct sur le
     // stockage « documents » ; il passe par ici.
     if (action === "list_documents") {
-      const champs = "id,title,doc_type,file_url,created_at,owner_id,building_id,worker_id,lease_id,ai_summary,owners(full_name),buildings(address),leases(tenants(full_name),units(unit_number))";
+      const champs = "id,title,doc_type,file_url,created_at,owner_id,building_id,worker_id,lease_id,ai_summary,owners(full_name),buildings(address),leases(tenants!leases_tenant_id_fkey(full_name),units(unit_number))";
       let res = await fetch(`${supabaseUrl}/rest/v1/documents?select=${champs},workers(name)&order=created_at.desc&limit=2000`, { headers: adminHeaders });
       // Lien documents → workers absent en prod (schéma parfois différent du dépôt) : on s'en passe.
       if (!res.ok) res = await fetch(`${supabaseUrl}/rest/v1/documents?select=${champs}&order=created_at.desc&limit=2000`, { headers: adminHeaders });
@@ -419,7 +419,7 @@ Deno.serve(async (req) => {
     // ---- Étape 3 : dépôts du compte en fidéicommis ----
     // Baux actifs avec leur référence, le locataire et ce qui reste dû (pour classer).
     const bauxFiducie = async (): Promise<Bail[]> => {
-      const rows = await fetch(`${supabaseUrl}/rest/v1/leases?status=eq.active&select=id,monthly_rent,tenants(full_name),units(reference_paiement),payments(amount,amount_received,status)`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+      const rows = await fetch(`${supabaseUrl}/rest/v1/leases?status=eq.active&select=id,monthly_rent,tenants!leases_tenant_id_fkey(full_name),units(reference_paiement),payments(amount,amount_received,status)`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
       return (Array.isArray(rows) ? rows : []).filter((l: any) => l.units?.reference_paiement).map((l: any) => ({
         lease_id: l.id, reference: l.units.reference_paiement, locataire: l.tenants?.full_name || "", loyer: Number(l.monthly_rent || 0),
         du_ouvert: (l.payments || []).filter((p: any) => p.status === "pending" || p.status === "late").map((p: any) => Number(p.amount) - Number(p.amount_received || 0)),
@@ -471,7 +471,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "fiducie_depots") {
-      const res = await fetch(`${supabaseUrl}/rest/v1/bank_transactions?compte=eq.fiducie&select=id,transaction_date,description,amount,match_status,reference_detectee,ai_suggestion_note,lease_id,leases(tenants(full_name),units(unit_number,reference_paiement,buildings(address,owners(full_name))))&order=transaction_date.desc,created_at.desc&limit=300`, { headers: adminHeaders });
+      const res = await fetch(`${supabaseUrl}/rest/v1/bank_transactions?compte=eq.fiducie&select=id,transaction_date,description,amount,match_status,reference_detectee,ai_suggestion_note,lease_id,leases(tenants!leases_tenant_id_fkey(full_name),units(unit_number,reference_paiement,buildings(address,owners(full_name))))&order=transaction_date.desc,created_at.desc&limit=300`, { headers: adminHeaders });
       const baux = (await bauxFiducie()).map((b) => ({ lease_id: b.lease_id, reference: b.reference, locataire: b.locataire, loyer: b.loyer }));
       return new Response(JSON.stringify({ depots: await res.json().catch(() => []), baux }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -701,7 +701,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "list_resolved_payments") {
-      const res = await fetch(`${supabaseUrl}/rest/v1/payments?resolu_le=not.is.null&select=id,amount,due_date,status,paid_date,resolu_le,resolu_note,leases(tenants(full_name),units(unit_number,buildings(address)))&order=resolu_le.desc&limit=100`, { headers: adminHeaders });
+      const res = await fetch(`${supabaseUrl}/rest/v1/payments?resolu_le=not.is.null&select=id,amount,due_date,status,paid_date,resolu_le,resolu_note,leases(tenants!leases_tenant_id_fkey(full_name),units(unit_number,buildings(address)))&order=resolu_le.desc&limit=100`, { headers: adminHeaders });
       return new Response(JSON.stringify({ payments: await res.json().catch(() => []) }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -1585,7 +1585,7 @@ Deno.serve(async (req) => {
 
     if (action === "list_late_payments") {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/payments?status=eq.late&resolu_le=is.null&select=*,leases(monthly_rent,tenants(full_name,email),units(unit_number,buildings(address)))&order=due_date.asc`,
+        `${supabaseUrl}/rest/v1/payments?status=eq.late&resolu_le=is.null&select=*,leases(monthly_rent,tenants!leases_tenant_id_fkey(full_name,email),units(unit_number,buildings(address)))&order=due_date.asc`,
         { headers: adminHeaders },
       );
       return new Response(JSON.stringify({ payments: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -1599,7 +1599,7 @@ Deno.serve(async (req) => {
       const { lease_id } = body;
       const filter = lease_id ? `lease_id=eq.${lease_id}&` : "";
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/external_disbursements?${filter}select=*,leases(tenants(full_name),units(unit_number,buildings(address)))&order=created_at.desc&limit=200`,
+        `${supabaseUrl}/rest/v1/external_disbursements?${filter}select=*,leases(tenants!leases_tenant_id_fkey(full_name),units(unit_number,buildings(address)))&order=created_at.desc&limit=200`,
         { headers: adminHeaders },
       );
       return new Response(JSON.stringify({ disbursements: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -1763,7 +1763,7 @@ Deno.serve(async (req) => {
     // bail. Voir supabase/migrations/20260818073900_pad_locataire_squelette.sql —
     // squelette en attente du branchement du processeur par l'équipe TWIM.
     if (action === "list_active_leases") {
-      const res = await fetch(`${supabaseUrl}/rest/v1/leases?status=eq.active&select=id,tenant_id,monthly_rent,tenants(full_name),units(unit_number,buildings(address))&order=created_at.desc`, { headers: adminHeaders });
+      const res = await fetch(`${supabaseUrl}/rest/v1/leases?status=eq.active&select=id,tenant_id,monthly_rent,tenants!leases_tenant_id_fkey(full_name),units(unit_number,buildings(address))&order=created_at.desc`, { headers: adminHeaders });
       return new Response(JSON.stringify({ leases: await res.json() }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

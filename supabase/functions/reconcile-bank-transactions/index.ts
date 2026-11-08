@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
       const unitIds = units.map((u: any) => u.id);
       const unitFilter = unitIds.length ? `(${unitIds.join(",")})` : "(00000000-0000-0000-0000-000000000000)";
 
-      const leasesRes = await fetch(`${supabaseUrl}/rest/v1/leases?unit_id=in.${unitFilter}&select=id,tenant_id,monthly_rent,tenants(full_name)`, { headers: adminHeaders });
+      const leasesRes = await fetch(`${supabaseUrl}/rest/v1/leases?unit_id=in.${unitFilter}&select=id,tenant_id,monthly_rent,tenants!leases_tenant_id_fkey(full_name)`, { headers: adminHeaders });
       const leases = await leasesRes.json();
       const leaseFilter = leases.length ? `(${leases.map((l: any) => l.id).join(",")})` : "(00000000-0000-0000-0000-000000000000)";
       // Types explicites : `new Map(...)` inféré donnait Map<any, {}>, et
