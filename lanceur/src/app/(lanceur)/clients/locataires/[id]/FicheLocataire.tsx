@@ -6,6 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
 import { adresse, piece } from '@/lib/format';
+import { BailFenetre, type BailMode } from '../../../immeubles/BailFenetre';
 
 /* e22 · Fiche locataire : dossier de recouvrement ouvert en tête; paiements des 12 derniers mois (un carré par mois); demandes d'entretien;
    bail; documents et avis; consentements LCAP. Chaque ouverture est inscrite au journal (lecture sensible). */
@@ -23,9 +24,10 @@ const date = (iso: string, an = true) => new Date(iso.length === 10 ? `${iso}T12
 const ETAPE: Record<string, string> = { ouvert: 'Recouvrement en cours', mise_en_demeure: 'Mise en demeure envoyée', tal: 'Au TAL' };
 const STATUT: Record<string, string> = { new: 'Reçue', open: 'Ouverte', assigned: 'Assignée', in_progress: 'En cours', scheduled: 'Planifiée', completed: 'Terminée', closed: 'Fermée' };
 
-export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, erreurLecture }: { donnees: DonneesLocataire | null; colocataires?: Colocataire[]; loyers?: LoyersDus | null; erreurLecture: string | null }) {
+export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, erreurLecture, admin = false, payerLoyer = null }: { donnees: DonneesLocataire | null; colocataires?: Colocataire[]; loyers?: LoyersDus | null; erreurLecture: string | null; admin?: boolean; payerLoyer?: string | null }) {
   const router = useRouter();
-  const [payer, setPayer] = useState(false), [coloc, setColoc] = useState(false), [nc, setNc] = useState({ nom: '', courriel: '', telephone: '' });
+  const [bail, setBail] = useState<BailMode | null>(null), [supprimer, setSupprimer] = useState(false);
+  const [payer, setPayer] = useState(!!payerLoyer && !!loyers?.peut_inscrire && !!loyers.loyers.some((l) => l.id === payerLoyer)), [coloc, setColoc] = useState(false), [nc, setNc] = useState({ nom: '', courriel: '', telephone: '' });
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [edit, setEdit] = useState(false), [envoi, setEnvoi] = useState(false);
   const [f, setF] = useState({ nom: D?.nom ?? '', courriel: D?.courriel ?? '', telephone: D?.telephone ?? '', langue: D?.langue ?? 'fr' });
   if (!D) return <><Link className="lien po-retour" href="/clients/locataires"><Icone nom="arrow" taille={14} couleur="#2E5788" />Locataires</Link><div className="bandeau erreur" role="alert">{bandeau}</div></>;
@@ -94,7 +96,8 @@ export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, e
           {!D.portail && !D.anonymise && D.courriel && <button className="bouton bouton-contour" disabled={envoi} onClick={inviter}><Icone nom="send" taille={16} couleur="#0C2147" />Inviter au portail</button>}
           {!D.anonymise && <button className="bouton bouton-contour" onClick={() => setEdit(true)}><Icone nom="pencil" taille={16} couleur="#0C2147" />Modifier</button>}
           {D.dossier && <Link className="bouton bouton-contour" href={`/juridique?d=${D.dossier.id}`}><Icone nom="flag" taille={16} couleur="#0C2147" />Ouvrir le dossier {D.dossier.numero}</Link>}
-          {D.telephone && <a className="bouton bouton-principal" href={`tel:${D.telephone}`}><Icone nom="phone" taille={16} couleur="#fff" />Appeler</a>}</div>
+          {D.telephone && <a className="bouton bouton-principal" href={`tel:${D.telephone}`}><Icone nom="phone" taille={16} couleur="#fff" />Appeler</a>}
+          {admin && !B && <button className="haut-ibtn" style={{ width: 44, height: 44 }} onClick={() => setSupprimer(true)} aria-label="Supprimer le locataire" title="Supprimer le locataire"><Icone nom="trash" taille={18} couleur="#9B2E28" /></button>}</div>
       </section>
       <div className="grille-2-1" style={{ marginTop: 24 }}>
         <div className="po-colonne">
@@ -113,7 +116,9 @@ export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, e
               {!D.demandes.length && <li className="gris texte-13">Aucune demande dans les 12 derniers mois.</li>}</ul></section>
         </div>
         <div className="po-colonne">
-          <section className="carte-l18 e2" aria-label="Bail"><h2 className="titre-carte">Bail</h2>
+          <section className="carte-l18 e2" aria-label="Bail"><div className="tete-action"><h2 className="titre-carte">Bail</h2>
+            {!D.anonymise && (B ? <button type="button" className="lien" style={{ color: '#9B2E28' }} onClick={() => setBail({ mode: 'terminer', leaseId: B.id, libelle: adresse(B.logement), nom: D.nom })}>Mettre fin au bail</button>
+              : <button type="button" className="lien" onClick={() => setBail({ mode: 'ajouter', tenantId: D.id, nom: D.nom })}>Ajouter un bail</button>)}</div>
             {B ? <dl className="fiche-dl"><div><dt>Logement</dt><dd>{adresse(B.logement)}{B.type ? ` · ${piece(B.type)}` : ''}</dd></div><div><dt>Loyer</dt><dd>{argent(B.loyer)} / mois</dd></div>
               <div><dt>Période</dt><dd>{date(B.debut)} au {B.fin ? date(B.fin) : 'indéterminée'}</dd></div><div><dt>Paiement</dt><dd>{B.mode}</dd></div>
               {B.fenetre && <div><dt>Avis de modification</dt><dd>{(([a, b]) => b ? `du ${date(a)} au ${date(b)}` : B.fenetre)(B.fenetre.replace(/[\[\]()]/g, '').split(','))}</dd></div>}</dl> : <p className="gris" style={{ margin: 0 }}>Aucun bail actif.</p>}
@@ -152,16 +157,19 @@ export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, e
             <label className="fenetre-lib" htmlFor="fl-l">Langue</label><select id="fl-l" className="e70-raison" value={f.langue} onChange={(e) => setF({ ...f, langue: e.target.value })}><option value="fr">Français</option><option value="en">English</option></select></div>
           <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={() => setEdit(false)}>Annuler</button><button className="bouton bouton-principal" disabled={envoi || f.nom.trim().length < 2}>Enregistrer</button></footer>
         </form></div>}
-      {payer && loyers && <MarquerPaye loyers={loyers.loyers} mode={B?.mode ?? ''} fermer={() => setPayer(false)} fait={(m) => { setPayer(false); setBandeau(null); setOk(m); router.refresh(); }} />}
+      {bail && <BailFenetre quoi={bail} fermer={() => setBail(null)} fait={(m) => { setBail(null); setBandeau(null); setOk(m); }} />}
+      {supprimer && <SupprimerLocataire id={D.id} nom={D.nom} fermer={() => setSupprimer(false)} />}
+      {payer && loyers && <MarquerPaye initial={payerLoyer} loyers={loyers.loyers} mode={B?.mode ?? ''} fermer={() => setPayer(false)} fait={(m) => { setPayer(false); setBandeau(null); setOk(m); router.refresh(); }} />}
     </>
   );
 }
 
 // Marquer un loyer payé à la main (payé au propriétaire, chèque, comptant…) : montant partiel permis, le solde reste dû. Inscrit au journal.
-function MarquerPaye({ loyers, mode, fermer, fait }: { loyers: LoyersDus['loyers']; mode: string; fermer: () => void; fait: (message: string) => void }) {
+function MarquerPaye({ loyers, mode, fermer, fait, initial = null }: { loyers: LoyersDus['loyers']; mode: string; fermer: () => void; fait: (message: string) => void; initial?: string | null }) {
   const reste = (l: LoyersDus['loyers'][number]) => Math.round((Number(l.montant) - Number(l.recu)) * 100) / 100;
   const auj = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
-  const [id, setId] = useState(loyers[0].id), [montant, setMontant] = useState(String(reste(loyers[0]))), [le, setLe] = useState(auj);
+  const premier = loyers.find((l) => l.id === initial) ?? loyers[0];
+  const [id, setId] = useState(premier.id), [montant, setMontant] = useState(String(reste(premier))), [le, setLe] = useState(auj);
   const [moyen, setMoyen] = useState(/ch[eè]que/i.test(mode) ? 'cheque' : /pr[ée]l/i.test(mode) ? 'prelevement' : /comptant/i.test(mode) ? 'comptant' : 'virement');
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
   const choisi = loyers.find((l) => l.id === id)!;
@@ -189,6 +197,30 @@ function MarquerPaye({ loyers, mode, fermer, fait }: { loyers: LoyersDus['loyers
         {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
         <div className="fenetre-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>Annuler</button>
           <button className="bouton bouton-principal" disabled={envoi || !(Number(montant.replace(',', '.')) > 0) || !le}>{envoi ? 'Enregistrement…' : 'Marquer payé'}</button></div>
+      </form>
+    </div>
+  );
+}
+
+// Supprimer un locataire (administrateur, nom tapé) : refusé avec un bail en cours ou à venir, ou une trace à conserver (fidéicommis, prélèvements, relevés 31).
+function SupprimerLocataire({ id, nom, fermer }: { id: string; nom: string; fermer: () => void }) {
+  const router = useRouter();
+  const [saisie, setSaisie] = useState(''), [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
+  async function ok() {
+    setEnvoi(true); setErreur(null);
+    const { error } = await supabaseNavigateur().rpc('lanceur_locataire_supprimer', { p: { id, confirmation: saisie } });
+    setEnvoi(false); if (error) return setErreur(error.message);
+    router.push('/clients/locataires'); router.refresh();
+  }
+  return (
+    <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermer()}>
+      <form className="fenetre" role="dialog" aria-modal="true" aria-labelledby="sl-t" style={{ marginTop: 120, width: 'min(520px, 100%)' }} onSubmit={(e) => { e.preventDefault(); ok(); }}>
+        <div className="fenetre-tete"><h2 id="sl-t">Supprimer {nom} ?</h2><button type="button" className="fermer" onClick={fermer} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
+        <p className="fenetre-texte">Part définitivement : la fiche, ses baux terminés et leurs loyers, ses demandes d’entretien et les documents de ses baux. Refusé si un bail est en cours ou à venir (mettez-y fin d’abord).</p>
+        <label className="fenetre-lib">Tapez {nom} pour confirmer<input className="e70-raison" value={saisie} onChange={(e) => setSaisie(e.target.value)} autoFocus /></label>
+        {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
+        <div className="fenetre-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>Annuler</button>
+          <button className="bouton bouton-danger" disabled={envoi || saisie.trim().toLowerCase() !== nom.trim().toLowerCase()}>{envoi ? 'Suppression…' : 'Supprimer définitivement'}</button></div>
       </form>
     </div>
   );

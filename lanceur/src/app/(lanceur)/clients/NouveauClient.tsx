@@ -36,7 +36,7 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
               <button type="button" key={k} className={f.type === k ? 'actif' : ''} onClick={() => setF({ ...f, type: k })}>{l}</button>)}</div>
             <p className="gris texte-12">Un locataire se crée aussi depuis une candidature acceptée.</p>
             <div className="po-deux">{champ('nom', 'Nom')}{f.type === 'proprietaire' ? champ('entreprise', 'Entreprise (facultatif)', { ph: 'Ex. : Placements Nguyen inc.' }) : <div />}
-              {champ('courriel', 'Courriel', { type: 'email' })}{champ('telephone', 'Téléphone', { type: 'tel' })}
+              {champ('courriel', f.type === 'locataire' && !f.inviter ? 'Courriel (facultatif)' : 'Courriel', { type: 'email' })}{champ('telephone', 'Téléphone', { type: 'tel' })}
               <div><label className="fenetre-lib" htmlFor="nc-l">Langue</label><select id="nc-l" className="e70-raison" value={f.langue} onChange={(e) => setF({ ...f, langue: e.target.value })}><option value="fr">Français</option><option value="en">English</option></select></div></div>
             {f.type === 'proprietaire' && <><p className="fenetre-lib">Immeubles</p>
               {imm.map((i, k) => <div key={k} className="nc-imm"><input className="e70-raison" placeholder="Adresse" value={i.adresse} onChange={(e) => setImm(imm.map((x, j) => j === k ? { ...x, adresse: e.target.value } : x))} />
@@ -52,7 +52,7 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
               <div><strong>Inviter au portail {f.type === 'proprietaire' ? 'propriétaire' : 'locataire'}</strong><span className="gris texte-13">Un courriel avec un code personnel part à la création du client.</span></div></label>
           </div>
           <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={() => setOuvert(false)}>Annuler</button>
-            <button className="bouton bouton-principal" disabled={envoi || f.nom.trim().length < 2 || !f.courriel.includes('@')}>{envoi ? 'Création…' : 'Créer le client'}</button></footer>
+            <button className="bouton bouton-principal" disabled={envoi || f.nom.trim().length < 2 || ((f.type === 'proprietaire' || f.inviter) ? !f.courriel.includes('@') : !!f.courriel.trim() && !f.courriel.includes('@'))}>{envoi ? 'Création…' : 'Créer le client'}</button></footer>
         </form></div>}
     </>
   );

@@ -88,7 +88,7 @@ export function FicheImmeuble({ donnees: D, erreurLecture }: { donnees: DonneesI
             <Courbe valeurs={D.revenu.map((r) => Number(r.paye))} largeur={300} hauteur={48} /></section>
         </div>
       </div>
-      {logement && <LogementTiroir buildingId={D.id} logement={logement} fermer={() => setLogement(false)} />}
+      {logement && <LogementTiroir buildingId={D.id} adresse={D.adresse.replace(/,\s*(Québec|Lévis)$/, '')} logement={logement} fermer={() => setLogement(false)} fait={(m) => { setBandeau(null); setOk(m); }} />}
       {edit && <div className="voile tiroir-voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setEdit(false)}>
         <form className="tiroir" role="dialog" aria-modal="true" aria-labelledby="fi-t" onSubmit={(e) => { e.preventDefault(); enregistrer(); }}>
           <header className="tiroir-tete"><h2 id="fi-t">Modifier l’immeuble</h2><button type="button" className="haut-ibtn" onClick={() => setEdit(false)} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
