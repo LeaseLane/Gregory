@@ -1,6 +1,6 @@
 // DocuSeal (code ouvert, hébergé sur le Coolify de TWIM) : remplace eZsign pour les baux, mandats et avis (2026-11-09).
-// Aucun courriel de DocuSeal (send_email: false) : Lease Lane envoie LOC-11 avec un lien vers sa propre page (/signer/<slug>),
-// où le formulaire DocuSeal est intégré à ses couleurs. Les statuts se relisent toujours dans l'API de DocuSeal (jamais dans un webhook).
+// Aucun courriel de DocuSeal (send_email: false) : Lease Lane envoie LOC-11 (son gabarit) avec le lien de signature de DocuSeal (/s/<slug>).
+// Les statuts se relisent toujours dans l'API de DocuSeal (jamais dans le contenu d'un webhook).
 export const DOCUSEAL_URL = (Deno.env.get("DOCUSEAL_URL") ?? "").replace(/\/$/, "");
 const CLE = Deno.env.get("DOCUSEAL_API_KEY") ?? "";
 export const docusealActif = () => !!(DOCUSEAL_URL && CLE);

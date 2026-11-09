@@ -1,9 +1,10 @@
 import { corsHeadersFor } from "../_shared/auth.ts";
-import { docuseal, docusealActif, synchroniserSoumission } from "../_shared/docuseal.ts";
+import { DOCUSEAL_URL, docuseal, docusealActif, synchroniserSoumission } from "../_shared/docuseal.ts";
 // signatures (T6a; DocuSeal le 2026-11-09) : envoi des enveloppes et simulateur de signature.
 //   envoyer  { id }                     brouillon → envoyé (droit et 2FA vérifiés en base avec le jeton), puis soumission DocuSeal à partir du
 //                                       modèle nommé « [<type>] … » (bail, mandat, avenant_cession, avis_renouvellement, autre), sans courriel
-//                                       de DocuSeal; LOC-11 part à chaque signataire avec le lien Lease Lane. Sans DocuSeal : simulateur hors
+//                                       de DocuSeal; LOC-11 (gabarit Lease Lane) part à chaque signataire avec le lien de signature DocuSeal
+//                                       (page de DocuSeal : l'intégration à nos pages est une option payante, laissée de côté le 2026-11-09). Sans DocuSeal : simulateur hors
 //                                       production, refus en production (retour au brouillon).
 //   actualiser { id }                   relit les statuts dans DocuSeal (même chemin que le webhook signatures-webhook).
 //   simuler  { id, ord, type, event_id? } hors production seulement : un signataire ouvre, signe ou refuse. Même chemin que le webhook
@@ -12,7 +13,6 @@ import { docuseal, docusealActif, synchroniserSoumission } from "../_shared/docu
 
 const url = Deno.env.get("SUPABASE_URL") ?? "", cle = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", anon = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const PROD = url.includes("kdmwfbcziokygfcmjxeq");
-const PORTAIL = PROD ? "https://app.leaselane.ca" : "https://demo.leaselane.ca";   // page /signer/<slug> du Lanceur
 const TYPES: Record<string, string> = { mandat: "mandat", bail: "bail", avenant_cession: "avenant_cession", avis_renouvellement: "avis_renouvellement", autre: "autre" };
 
 Deno.serve(async (req) => {
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
           submitters: env.signataires.map((s, i) => ({ role: roles[i], email: s.courriel, name: s.nom, external_id: `${id}:${s.ord}` })),
         });
         await rpc("service_dossier_signature", { p: { id, provider: "docuseal", folder_id: String(faits[0].submission_id) } });
-        const inv = await rpc("service_inviter_signataires", { p: { id, signataires: faits.map((x) => ({ ord: Number(String(x.external_id).split(":")[1]), lien: `${PORTAIL}/signer/${x.slug}`, submitter_id: String(x.id) })) } });
+        const inv = await rpc("service_inviter_signataires", { p: { id, signataires: faits.map((x) => ({ ord: Number(String(x.external_id).split(":")[1]), lien: `${DOCUSEAL_URL}/s/${x.slug}`, submitter_id: String(x.id) })) } });
         if (!inv.ok) throw new Error(inv.d?.message ?? "Invitations non envoyées.");
         return json({ ok: true, simule: false, modele: modele.name });
       } catch (err) {
