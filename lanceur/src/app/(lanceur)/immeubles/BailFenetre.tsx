@@ -10,7 +10,7 @@ import { Icone } from '@/composants/Icones';
    - terminer : fin du bail (loyers après la fin retirés, logement libéré à la date). */
 export type BailMode =
   | { mode: 'ajouter'; unitId: string; libelle: string; loyer?: number | null }
-  | { mode: 'ajouter'; tenantId: string; nom: string; logement?: string }
+  | { mode: 'ajouter'; tenantId: string; nom: string; logement?: string; loyer?: number | null; debut?: string; fin?: string }
   | { mode: 'changer'; unitId: string; libelle: string; ancien: string; loyer?: number | null }
   | { mode: 'terminer'; leaseId: string; libelle: string; nom: string };
 
@@ -22,7 +22,7 @@ export function BailFenetre({ quoi, fermer, fait }: { quoi: BailMode; fermer: ()
   const router = useRouter();
   const nouveauLocataire = quoi.mode === 'changer' || (quoi.mode === 'ajouter' && 'unitId' in quoi);
   const [f, setF] = useState({ unit_id: 'unitId' in quoi ? quoi.unitId : 'logement' in quoi ? quoi.logement ?? '' : '', nom: '', courriel: '', telephone: '',
-    loyer: 'loyer' in quoi && quoi.loyer ? String(quoi.loyer) : '', debut: quoi.mode === 'changer' ? '' : auj(), fin: '', depart: '', motif: 'depart', note: '' });
+    loyer: 'loyer' in quoi && quoi.loyer ? String(quoi.loyer) : '', debut: quoi.mode === 'changer' ? '' : ('debut' in quoi && quoi.debut) || auj(), fin: ('fin' in quoi && quoi.fin) || '', depart: '', motif: 'depart', note: '' });
   const [logements, setLogements] = useState<{ id: string; libelle: string; loyer: number | null }[] | null>(null);
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
   const choixLogement = quoi.mode === 'ajouter' && 'tenantId' in quoi;

@@ -24,9 +24,9 @@ const date = (iso: string, an = true) => new Date(iso.length === 10 ? `${iso}T12
 const ETAPE: Record<string, string> = { ouvert: 'Recouvrement en cours', mise_en_demeure: 'Mise en demeure envoyée', tal: 'Au TAL' };
 const STATUT: Record<string, string> = { new: 'Reçue', open: 'Ouverte', assigned: 'Assignée', in_progress: 'En cours', scheduled: 'Planifiée', completed: 'Terminée', closed: 'Fermée' };
 
-export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, erreurLecture, admin = false, payerLoyer = null, bailLogement = null, invitation = null }: { bailLogement?: string | null; invitation?: string | null; donnees: DonneesLocataire | null; colocataires?: Colocataire[]; loyers?: LoyersDus | null; erreurLecture: string | null; admin?: boolean; payerLoyer?: string | null }) {
+export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, erreurLecture, admin = false, payerLoyer = null, bailLogement = null, bailLu = null, invitation = null }: { bailLogement?: string | null; bailLu?: { loyer: number | null; debut?: string; fin?: string } | null; invitation?: string | null; donnees: DonneesLocataire | null; colocataires?: Colocataire[]; loyers?: LoyersDus | null; erreurLecture: string | null; admin?: boolean; payerLoyer?: string | null }) {
   const router = useRouter();
-  const [bail, setBail] = useState<BailMode | null>(bailLogement && D && !D.bail ? { mode: 'ajouter', tenantId: D.id, nom: D.nom, logement: bailLogement } : null), [supprimer, setSupprimer] = useState(false);
+  const [bail, setBail] = useState<BailMode | null>(bailLogement && D && !D.bail ? { mode: 'ajouter', tenantId: D.id, nom: D.nom, logement: bailLogement === 'choisir' ? undefined : bailLogement, ...bailLu } : null), [supprimer, setSupprimer] = useState(false);
   const [payer, setPayer] = useState(!!payerLoyer && !!loyers?.peut_inscrire && !!loyers.loyers.some((l) => l.id === payerLoyer)), [coloc, setColoc] = useState(false), [nc, setNc] = useState({ nom: '', courriel: '', telephone: '' });
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [edit, setEdit] = useState(false), [envoi, setEnvoi] = useState(false);
   const [f, setF] = useState({ nom: D?.nom ?? '', courriel: D?.courriel ?? '', telephone: D?.telephone ?? '', langue: D?.langue ?? 'fr' });
