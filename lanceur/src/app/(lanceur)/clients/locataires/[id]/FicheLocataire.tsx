@@ -24,9 +24,9 @@ const date = (iso: string, an = true) => new Date(iso.length === 10 ? `${iso}T12
 const ETAPE: Record<string, string> = { ouvert: 'Recouvrement en cours', mise_en_demeure: 'Mise en demeure envoyée', tal: 'Au TAL' };
 const STATUT: Record<string, string> = { new: 'Reçue', open: 'Ouverte', assigned: 'Assignée', in_progress: 'En cours', scheduled: 'Planifiée', completed: 'Terminée', closed: 'Fermée' };
 
-export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, erreurLecture, admin = false, payerLoyer = null }: { donnees: DonneesLocataire | null; colocataires?: Colocataire[]; loyers?: LoyersDus | null; erreurLecture: string | null; admin?: boolean; payerLoyer?: string | null }) {
+export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, erreurLecture, admin = false, payerLoyer = null, bailLogement = null, invitation = null }: { bailLogement?: string | null; invitation?: string | null; donnees: DonneesLocataire | null; colocataires?: Colocataire[]; loyers?: LoyersDus | null; erreurLecture: string | null; admin?: boolean; payerLoyer?: string | null }) {
   const router = useRouter();
-  const [bail, setBail] = useState<BailMode | null>(null), [supprimer, setSupprimer] = useState(false);
+  const [bail, setBail] = useState<BailMode | null>(bailLogement && D && !D.bail ? { mode: 'ajouter', tenantId: D.id, nom: D.nom, logement: bailLogement } : null), [supprimer, setSupprimer] = useState(false);
   const [payer, setPayer] = useState(!!payerLoyer && !!loyers?.peut_inscrire && !!loyers.loyers.some((l) => l.id === payerLoyer)), [coloc, setColoc] = useState(false), [nc, setNc] = useState({ nom: '', courriel: '', telephone: '' });
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [edit, setEdit] = useState(false), [envoi, setEnvoi] = useState(false);
   const [f, setF] = useState({ nom: D?.nom ?? '', courriel: D?.courriel ?? '', telephone: D?.telephone ?? '', langue: D?.langue ?? 'fr' });
@@ -93,9 +93,9 @@ export function FicheLocataire({ donnees: D, colocataires = [], loyers = null, e
         <span className="ini" style={{ width: 56, height: 56, fontSize: 18 }}>{initiales(D.nom)}</span>
         <div><div className="ligne-ic"><h2 className="releve-titre" style={{ margin: 0 }}>{D.nom}</h2>{D.dossier && <span className="puce todo">{ETAPE[D.dossier.etape] ?? 'Dossier ouvert'}</span>}{D.anonymise && <span className="puce neutral">Anonymisé</span>}</div>
           <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{[B?.logement && adresse(B.logement), D.depuis && `locataire depuis ${new Date(`${D.depuis}T12:00:00`).toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' })}`, D.courriel, D.telephone].filter(Boolean).join(' · ')}</p>
-          <p className="ligne-ic texte-13" style={{ margin: '6px 0 0' }}><i className={`point-etat ${D.portail ? 'ok' : 'off'}`} />{D.portail ? 'Portail actif' : 'Sans portail'}<span className="gris">· consultation inscrite au journal</span></p></div>
+          <p className="ligne-ic texte-13" style={{ margin: '6px 0 0' }}><i className={`point-etat ${D.portail ? 'ok' : invitation ? 'att' : 'off'}`} />{D.portail ? 'Portail actif' : invitation ? `Invitation au portail envoyée le ${new Date(invitation).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })}` : 'Sans portail'}<span className="gris">· consultation inscrite au journal</span></p></div>
         <div className="fiche-actions">
-          {!D.portail && !D.anonymise && D.courriel && <button className="bouton bouton-contour" disabled={envoi} onClick={inviter}><Icone nom="send" taille={16} couleur="#0C2147" />Inviter au portail</button>}
+          {!D.portail && !D.anonymise && D.courriel && <button className="bouton bouton-contour" disabled={envoi} onClick={inviter}><Icone nom="send" taille={16} couleur="#0C2147" />{invitation ? 'Renvoyer l’invitation' : 'Inviter au portail'}</button>}
           {!D.anonymise && <button className="bouton bouton-contour" onClick={() => setEdit(true)}><Icone nom="pencil" taille={16} couleur="#0C2147" />Modifier</button>}
           {D.dossier && <Link className="bouton bouton-contour" href={`/juridique?d=${D.dossier.id}`}><Icone nom="flag" taille={16} couleur="#0C2147" />Ouvrir le dossier {D.dossier.numero}</Link>}
           {D.telephone && <a className="bouton bouton-principal" href={`tel:${D.telephone}`}><Icone nom="phone" taille={16} couleur="#fff" />Appeler</a>}

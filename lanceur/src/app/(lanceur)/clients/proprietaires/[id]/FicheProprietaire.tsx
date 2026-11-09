@@ -18,7 +18,7 @@ export type DonneesProprio = { id: string; nom: string; entreprise: string | nul
   approbations: { id: string; quoi: string; montant: number; fournisseur: string | null; le: string }[];
   consentements: { courriel: { le: string; base: string } | null; sms: { le: string; base: string } | null };
   documents: { nombre: number; mandat: { titre: string; le: string } | null }; journal: { action: string; le: string; qui: string | null }[] };
-export type Candidat = { id: string; candidat: string; courriel: string; telephone: string | null; logement: string; statut: string; raison: string | null; recue: string; date: string | null; note: string | null; tenant_id: string | null };
+export type Candidat = { id: string; unit_id: string; candidat: string; courriel: string; telephone: string | null; logement: string; statut: string; raison: string | null; recue: string; date: string | null; note: string | null; tenant_id: string | null };
 const STATUTS_CAND: Record<string, [string, string]> = { proposee: ['À décider', 'todo'], verification: ['Vérifications en cours', 'info'], acceptee: ['Validé', 'ok'], refusee: ['Non retenu', 'neutral'], retiree: ['Retiré', 'neutral'] };
 const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
 const jour = jourCourt;
@@ -83,7 +83,7 @@ export function FicheProprietaire({ donnees: D, propositions = [], erreurLecture
         <div className="po-colonne">
           <section className="carte-l18" id="propositions" aria-label="Candidats proposés"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Candidats proposés</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>Proposés dans son portail · la décision et la raison lui sont montrées</p>
             <ul className="lo-docs">{propositions.map((c) => { const [lib, ton] = STATUTS_CAND[c.statut] ?? [c.statut, 'neutral'], ouvert = c.statut === 'proposee' || c.statut === 'verification';
-              const creer = `/clients/locataires?nouveau=1&nom=${encodeURIComponent(c.candidat)}&courriel=${encodeURIComponent(c.courriel)}&telephone=${encodeURIComponent(c.telephone ?? '')}`;
+              const creer = `/clients/locataires?nouveau=1&nom=${encodeURIComponent(c.candidat)}&courriel=${encodeURIComponent(c.courriel)}&telephone=${encodeURIComponent(c.telephone ?? '')}&logement=${c.unit_id}`;
               return <li key={c.id}><span className="a-faire-ic"><Icone nom="users" taille={18} couleur="#0C2147" /></span><div style={{ flex: 1 }}>
                 <span className="tete-action"><strong>{c.candidat}</strong><span className={`puce ${ton}`}>{lib}</span></span>
                 <span className="gris texte-13">{c.logement} · {c.courriel}{c.telephone ? ` · ${c.telephone}` : ''} · proposé le {jour(c.recue)}{c.date ? ` · arrivée souhaitée le ${jour(c.date)}` : ''}</span>

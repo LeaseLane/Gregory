@@ -9,19 +9,20 @@ import { Icone } from '@/composants/Icones';
 export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'proprietaire' | 'locataire' }) {
   const router = useRouter();
   const vide = { type: type0, nom: '', entreprise: '', courriel: '', telephone: '', langue: 'fr', consentement_courriel: false, consentement_sms: false, inviter: true };
-  const [ouvert, setOuvert] = useState(false), [f, setF] = useState(vide), [imm, setImm] = useState<{ adresse: string; logements: string; secteur: string }[]>([]);
+  const [logement, setLogement] = useState<string | null>(null), [ouvert, setOuvert] = useState(false), [f, setF] = useState(vide), [imm, setImm] = useState<{ adresse: string; logements: string; secteur: string }[]>([]);
 
   // Bouton d'en-tête d'espace (CadreEspace) : ?nouveau=1 ouvre le tiroir à l'arrivée.
   useEffect(() => { const q = new URLSearchParams(window.location.search); if (q.get('nouveau') !== '1') return;
     // Depuis un candidat validé (fiche propriétaire) : nom, courriel et téléphone déjà connus.
     if (q.get('nom')) setF((v) => ({ ...v, type: type0, nom: q.get('nom') ?? '', courriel: q.get('courriel') ?? '', telephone: q.get('telephone') ?? '' }));
+    setLogement(q.get('logement'));
     setOuvert(true); }, [type0]);
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
   async function creer() {
     setEnvoi(true); setErreur(null);
     const { data, error } = await supabaseNavigateur().rpc('lanceur_creer_client', { p: { ...f, immeubles: f.type === 'proprietaire' ? imm.filter((i) => i.adresse.trim()).map((i) => ({ ...i, logements: Number(i.logements) || 1 })) : [] } });
     setEnvoi(false); if (error) return setErreur(error.message);
-    setOuvert(false); setF(vide); setImm([]); router.push(`/clients/${f.type === 'proprietaire' ? 'proprietaires' : 'locataires'}/${(data as { id: string }).id}`);
+    setOuvert(false); setF(vide); setImm([]); router.push(`/clients/${f.type === 'proprietaire' ? 'proprietaires' : 'locataires'}/${(data as { id: string }).id}${logement && f.type === 'locataire' ? `?bail=${logement}` : ''}`);
   }
   const champ = (k: keyof typeof f, l: string, opt?: { type?: string; ph?: string }) => <div><label className="fenetre-lib" htmlFor={`nc-${k}`}>{l}</label>
     <input id={`nc-${k}`} className="e70-raison" type={opt?.type ?? 'text'} placeholder={opt?.ph} value={f[k] as string} onChange={(e) => setF({ ...f, [k]: e.target.value })} /></div>;

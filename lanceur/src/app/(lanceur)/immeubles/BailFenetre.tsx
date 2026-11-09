@@ -10,7 +10,7 @@ import { Icone } from '@/composants/Icones';
    - terminer : fin du bail (loyers après la fin retirés, logement libéré à la date). */
 export type BailMode =
   | { mode: 'ajouter'; unitId: string; libelle: string; loyer?: number | null }
-  | { mode: 'ajouter'; tenantId: string; nom: string }
+  | { mode: 'ajouter'; tenantId: string; nom: string; logement?: string }
   | { mode: 'changer'; unitId: string; libelle: string; ancien: string; loyer?: number | null }
   | { mode: 'terminer'; leaseId: string; libelle: string; nom: string };
 
@@ -21,7 +21,7 @@ const lendemain = (d: string) => { const x = new Date(`${d}T12:00:00`); x.setDat
 export function BailFenetre({ quoi, fermer, fait }: { quoi: BailMode; fermer: () => void; fait: (message: string) => void }) {
   const router = useRouter();
   const nouveauLocataire = quoi.mode === 'changer' || (quoi.mode === 'ajouter' && 'unitId' in quoi);
-  const [f, setF] = useState({ unit_id: 'unitId' in quoi ? quoi.unitId : '', nom: '', courriel: '', telephone: '',
+  const [f, setF] = useState({ unit_id: 'unitId' in quoi ? quoi.unitId : 'logement' in quoi ? quoi.logement ?? '' : '', nom: '', courriel: '', telephone: '',
     loyer: 'loyer' in quoi && quoi.loyer ? String(quoi.loyer) : '', debut: quoi.mode === 'changer' ? '' : auj(), fin: '', depart: '', motif: 'depart', note: '' });
   const [logements, setLogements] = useState<{ id: string; libelle: string; loyer: number | null }[] | null>(null);
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
@@ -30,7 +30,9 @@ export function BailFenetre({ quoi, fermer, fait }: { quoi: BailMode; fermer: ()
     if (!choixLogement) return;
     supabaseNavigateur().rpc('lanceur_logements', { p: {} }).then(({ data, error }) => {
       if (error) return setErreur(error.message);
-      setLogements(((data as { vacants: { id: string; libelle: string; loyer: number | null }[] } | null)?.vacants) ?? []);
+      const v = ((data as { vacants: { id: string; libelle: string; loyer: number | null }[] } | null)?.vacants) ?? []; setLogements(v);
+      // Logement déjà choisi (candidat proposé par le propriétaire) : son loyer affiché.
+      setF((x) => ({ ...x, loyer: x.loyer || String(v.find((l) => l.id === x.unit_id)?.loyer ?? '') }));
     });
   }, [choixLogement]);
   const maj = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
