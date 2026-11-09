@@ -29,6 +29,8 @@ verify_jwt = false
 verify_jwt = false
 [functions.caller-api]
 verify_jwt = false
+[functions.signatures-webhook]
+verify_jwt = false
 [functions.crm-api]
 verify_jwt = false
 [functions.handle-lease-renewal-notice]
