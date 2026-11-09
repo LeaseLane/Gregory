@@ -76,6 +76,9 @@ ${logements.map((l) => `- ${l.id} : ${l.libelle}`).join("\n") || "(aucun)"}`;
   const texte = (data?.content ?? []).filter((b: { type: string }) => b.type === "text").map((b: { text: string }) => b.text).join("");
   const brut = extraireJson(texte);
   if (!brut) { await journal("reponse illisible"); return json({ error: "Le bail n'a pas pu être lu. Essayez une copie plus nette." }, 422); }
+  const bail = nettoyer(brut, logements);
+  // Rien qui ressemble à un bail (ni locataire, ni adresse, ni loyer) : on le dit plutôt que de montrer une fiche vide.
+  if (!bail.locataires.length && !bail.adresse && !bail.loyer) { await journal("pas un bail"); return json({ error: "Ce document ne ressemble pas à un bail. Déposez le bail signé (PDF ou photo)." }, 422); }
   await journal(null);
-  return json({ bail: nettoyer(brut, logements) });
+  return json({ bail });
 });
