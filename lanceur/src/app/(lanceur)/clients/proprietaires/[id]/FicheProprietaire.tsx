@@ -18,15 +18,18 @@ export type DonneesProprio = { id: string; nom: string; entreprise: string | nul
   approbations: { id: string; quoi: string; montant: number; fournisseur: string | null; le: string }[];
   consentements: { courriel: { le: string; base: string } | null; sms: { le: string; base: string } | null };
   documents: { nombre: number; mandat: { titre: string; le: string } | null }; journal: { action: string; le: string; qui: string | null }[] };
+export type Candidat = { id: string; candidat: string; courriel: string; telephone: string | null; logement: string; statut: string; raison: string | null; recue: string; date: string | null; note: string | null; tenant_id: string | null };
+const STATUTS_CAND: Record<string, [string, string]> = { proposee: ['À décider', 'todo'], verification: ['Vérifications en cours', 'info'], acceptee: ['Validé', 'ok'], refusee: ['Non retenu', 'neutral'], retiree: ['Retiré', 'neutral'] };
 const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
 const jour = jourCourt;
 const moisLib = (iso: string, f: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' }) => new Date(`${iso.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', f);
 const ACTIONS: Record<string, string> = { 'owner.created': 'Client créé', 'owner.updated': 'Fiche modifiée', 'owner.reminded': 'Relance envoyée', 'approval.decided': 'Approbation décidée', 'statement.issued': 'Relevé émis', 'statement.resent': 'Relevé renvoyé',
   'owner_statement.issued': 'Relevé émis', 'owner_statement.resent': 'Relevé renvoyé', 'owner.profile_updated': 'Profil modifié dans le portail', 'owner.preferences_updated': 'Préférences modifiées dans le portail' };
 
-export function FicheProprietaire({ donnees: D, erreurLecture }: { donnees: DonneesProprio | null; erreurLecture: string | null }) {
+export function FicheProprietaire({ donnees: D, propositions = [], erreurLecture }: { donnees: DonneesProprio | null; propositions?: Candidat[]; erreurLecture: string | null }) {
   const router = useRouter();
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [edit, setEdit] = useState(false), [envoi, setEnvoi] = useState(false);
+  const [refus, setRefus] = useState<{ id: string; raison: string } | null>(null);
   const [f, setF] = useState({ nom: D?.nom ?? '', entreprise: D?.entreprise ?? '', courriel: D?.courriel ?? '', telephone: D?.telephone ?? '', adresse: D?.adresse ?? '', langue: D?.langue ?? 'fr' });
   if (!D) return <><Link className="lien po-retour" href="/clients/proprietaires"><Icone nom="arrow" taille={14} couleur="#2E5788" />Propriétaires</Link><div className="bandeau erreur" role="alert">{bandeau}</div></>;
   const I = D.indicateurs, max = Math.max(1, ...I.loyers_6.map((m) => m.montant)), dernier = I.loyers_6[I.loyers_6.length - 1];
@@ -78,6 +81,25 @@ export function FicheProprietaire({ donnees: D, erreurLecture }: { donnees: Donn
               {!D.releves.length && <li className="gris texte-13">Aucun relevé émis.</li>}</ul></section>
         </div>
         <div className="po-colonne">
+          <section className="carte-l18" id="propositions" aria-label="Candidats proposés"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Candidats proposés</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>Proposés dans son portail · la décision et la raison lui sont montrées</p>
+            <ul className="lo-docs">{propositions.map((c) => { const [lib, ton] = STATUTS_CAND[c.statut] ?? [c.statut, 'neutral'], ouvert = c.statut === 'proposee' || c.statut === 'verification';
+              const creer = `/clients/locataires?nouveau=1&nom=${encodeURIComponent(c.candidat)}&courriel=${encodeURIComponent(c.courriel)}&telephone=${encodeURIComponent(c.telephone ?? '')}`;
+              return <li key={c.id}><span className="a-faire-ic"><Icone nom="users" taille={18} couleur="#0C2147" /></span><div style={{ flex: 1 }}>
+                <span className="tete-action"><strong>{c.candidat}</strong><span className={`puce ${ton}`}>{lib}</span></span>
+                <span className="gris texte-13">{c.logement} · {c.courriel}{c.telephone ? ` · ${c.telephone}` : ''} · proposé le {jour(c.recue)}{c.date ? ` · arrivée souhaitée le ${jour(c.date)}` : ''}</span>
+                {c.note && <span className="texte-13">« {c.note} »</span>}
+                {c.raison && <span className="gris texte-13">Raison : {c.raison}</span>}
+                {ouvert && refus?.id !== c.id && <span className="a-faire-actions" style={{ marginTop: 8 }}>
+                  {c.statut === 'proposee' && <button className="bouton bouton-contour" disabled={envoi} onClick={() => rpc('lanceur_proposition_decider', { id: c.id, decision: 'verification' }, `${c.candidat} : vérifications en cours (le propriétaire est avisé).`)}>Vérifications en cours</button>}
+                  <button className="bouton bouton-contour" disabled={envoi} onClick={() => setRefus({ id: c.id, raison: '' })}>Refuser</button>
+                  <button className="bouton bouton-principal" disabled={envoi} onClick={() => rpc('lanceur_proposition_decider', { id: c.id, decision: 'acceptee' }, `${c.candidat} est validé : créez sa fiche locataire, puis le bail.`)}>Valider</button></span>}
+                {refus?.id === c.id && <span style={{ display: 'block', marginTop: 8 }}><label className="fenetre-lib" htmlFor={`rf-${c.id}`}>Raison montrée au propriétaire (10 caractères au moins)</label>
+                  <textarea id={`rf-${c.id}`} className="e70-raison" rows={2} value={refus.raison} onChange={(e) => setRefus({ ...refus, raison: e.target.value })} />
+                  <span className="a-faire-actions" style={{ marginTop: 8 }}><button className="bouton bouton-contour" onClick={() => setRefus(null)}>Annuler</button>
+                    <button className="bouton bouton-principal" disabled={envoi || refus.raison.trim().length < 10} onClick={async () => { if (await rpc('lanceur_proposition_decider', { id: c.id, decision: 'refusee', raison: refus.raison }, `${c.candidat} : non retenu, raison transmise.`)) setRefus(null); }}>Refuser le candidat</button></span></span>}
+                {c.statut === 'acceptee' && (c.tenant_id ? <Link className="lien" href={`/clients/locataires/${c.tenant_id}`}>Voir sa fiche locataire</Link> : <Link className="lien" href={creer}>Créer sa fiche locataire</Link>)}
+              </div></li>; })}
+              {!propositions.length && <li className="gris texte-13">Aucun candidat proposé.</li>}</ul></section>
           <section className="carte-l18 e2" aria-label="Approbations"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Approbations en attente</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>Plafond du mandat : {argent(D.plafond ?? 500)}</p>
             <ul className="lo-docs">{D.approbations.map((a) => <li key={a.id}><span className="a-faire-ic"><Icone nom="wrench" taille={18} couleur="#0C2147" /></span><div>
               <span className="tete-action"><strong>{a.quoi} · {argent(a.montant)}</strong><button className="lien" disabled={envoi} onClick={() => rpc('lanceur_relancer_proprietaire', { type: 'depense', id: a.id }, 'Relance envoyée dans son portail.')}>Relancer</button></span>

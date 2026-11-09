@@ -22,7 +22,7 @@ export type DemandeDetail = { id: string; genre: string; numero: string; titre: 
   echanges?: { id: string; de_moi: boolean; auteur: string; texte: string; le: string; pieces: Piece[] }[];
   contact?: { nom?: string; initiales?: string } | null;
   echeance?: string; debut?: string; fin?: string | null; motif_refus?: string | null; a_signer?: { id: string; statut: string; titre: string } | null };
-const ETATS: Record<string, [string, string]> = { recue: ['Reçue', 'neutral'], qualifiee: ['Qualifiée', 'neutral'], assignee: ['Assignée', 'info'], planifiee: ['Planifiée', 'info'], fermee: ['Fermée', 'ok'],
+const ETATS: Record<string, [string, string]> = { recue: ['Reçue', 'neutral'], qualifiee: ['Qualifiée', 'neutral'], assignee: ['Assignée', 'info'], planifiee: ['Planifiée', 'info'], realisee: ['Travaux terminés', 'action'], fermee: ['Fermée', 'ok'],
   en_cours: ['En cours', 'info'], acceptee: ['Acceptée', 'ok'], refusee: ['Refusée', 'todo'] };
 const URG: Record<string, string> = { normale: 'urgence normale', elevee: 'urgence élevée', urgence: 'urgence' };
 const momentQc = (iso: string) => `${jourQc(iso)} · ${heureQc(iso)}`;
@@ -34,12 +34,20 @@ export function Demandes({ lignes, detail: D, filtre, autre, maintenant, erreur 
   const router = useRouter();
   const [f, setF] = useState(filtre), [envoi, setEnvoi] = useState(false), [bandeau, setBandeau] = useState<string | null>(erreur), [toast, setToast] = useState<string | null>(null);
   const [fenetreAutre, setFenetreAutre] = useState(autre), [moment, setMoment] = useState(''), [note, setNote] = useState(''), [texte, setTexte] = useState('');
+  const [probleme, setProbleme] = useState<string | null>(null);
   const vocal = useVocal();
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   const enCours = lignes.filter((x) => !['fermee', 'acceptee', 'refusee'].includes(x.etat)), fermees = lignes.filter((x) => ['fermee', 'acceptee', 'refusee'].includes(x.etat));
   const visibles = f === 'en_cours' ? enCours : f === 'fermees' ? fermees : lignes;
   const prenom = D?.contact?.nom?.split(' ')[0] ?? 'l’équipe';
 
+  // Après les travaux : « C'est réparé » ferme la demande; « Encore un problème » la rouvre (tâche à l'équipe).
+  async function reparation(ok: boolean) {
+    if (!D) return; setEnvoi(true); setBandeau(null);
+    const { error } = await supabaseNavigateur().rpc('portail_locataire_reparation', { p: { demande: D.id, ok, note: ok ? undefined : probleme } });
+    setEnvoi(false); if (error) return setBandeau(error.message);
+    setProbleme(null); setToast(ok ? 'Merci! La demande est fermée.' : `C’est transmis à ${prenom} : la demande est rouverte.`); router.refresh();
+  }
   async function presence(choix: 'present' | 'acces' | 'autre') {
     if (!D?.intervention) return; setEnvoi(true); setBandeau(null);
     const n = choix === 'autre' ? [moment && new Date(moment).toLocaleString('fr-CA', { dateStyle: 'full', timeStyle: 'short' }), note.trim()].filter(Boolean).join(' — ') : undefined;
@@ -84,6 +92,17 @@ export function Demandes({ lignes, detail: D, filtre, autre, maintenant, erreur 
             <div className="lo-desc"><p>{D.description}</p>{!!D.photos && <div className="lo-vignettes">{Array.from({ length: D.photos }, (_, i) =>
               <button key={i} aria-label={`Voir la photo ${i + 1}`} onClick={() => ouvrirFichier({ type: 'photo_demande', id: D.id, index: i })}><Icone nom="image" taille={20} couleur="#8A99AB" /></button>)}</div>}</div>
 
+            {D.etat === 'realisee' && <div className="lo-interv">
+              <header className="tete-action"><p className="surtitre">Travaux terminés</p><span className="puce action">À confirmer</span></header>
+              <strong>Est-ce que c’est réparé?</strong>
+              {probleme === null ? <div className="lo-interv-actions">
+                <button className="bouton bouton-principal" disabled={envoi} onClick={() => reparation(true)}>Oui, c’est réparé</button>
+                <button className="bouton bouton-contour" disabled={envoi} onClick={() => setProbleme('')}>Non, il reste un problème</button></div>
+              : <div><label className="fenetre-lib" htmlFor="rep-note">Qu’est-ce qui ne va pas encore?</label>
+                <textarea id="rep-note" className="e70-raison" rows={3} value={probleme} onChange={(e) => setProbleme(e.target.value)} />
+                <div className="lo-interv-actions"><button className="bouton bouton-contour" onClick={() => setProbleme(null)}>Annuler</button>
+                  <button className="bouton bouton-principal" disabled={envoi || probleme.trim().length < 3} onClick={() => reparation(false)}>Envoyer à l’équipe</button></div></div>}
+            </div>}
             {D.intervention && <div className="lo-interv">
               <header className="tete-action"><p className="surtitre">Intervention planifiée</p>
                 {D.intervention.presence ? <span className="puce ok">{D.intervention.presence === 'present' ? 'Présence confirmée' : D.intervention.presence === 'acces' ? 'Accès autorisé' : 'Autre moment proposé'}</span> : <span className="puce action">À confirmer</span>}</header>

@@ -46,7 +46,7 @@ export function FormulaireConnexion({ espace }: { espace?: Espace } = {}) {
       return;
     }
     // Le proxy envoie à l'étape due : code 2FA, ou inscription du facteur (Lanceur); /espace choisit la coquille (portails).
-    window.location.assign(espace ? '/espace' : '/connexion/code');
+    window.location.assign(espace ? `/espace?p=${espace}` : '/connexion/code');
   }
 
   async function lien() {

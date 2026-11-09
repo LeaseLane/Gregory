@@ -46,7 +46,7 @@ export function Finance({ rl31, donnees, erreur }: { rl31: DonneesRL31 | null; d
             <tbody>{E.map((e, i) => <tr key={i}><td>{jour(e.le)}</td><td style={{ whiteSpace: 'normal' }}>{e.libelle.replace(/(\d+)\.(\d*?)0* %/, (_, a, b) => `${a}${b ? `,${b}` : ''} %`)}</td><td><span className={`puce ${CAT[e.categorie] ?? 'neutral'}`}>{e.categorie}</span></td>
               <td className="droite fort">{e.montant > 0 ? '+' : ''}{argent(e.montant)}</td></tr>)}
               {!E.length && <tr><td colSpan={4} className="gris">Aucune écriture pour ce mois.</td></tr>}</tbody></table>
-          <p className="po-note" style={{ margin: '0 24px 24px' }}><Icone nom="help" taille={14} couleur="#3E4A59" />Les loyers sont payés directement chez vous : Lease Lane les suit et relance les retards. La facture du fournisseur vous est remise telle quelle; 10 % de coordination s’ajoute seulement dès 1 000 $.</p>
+          <p className="po-note" style={{ margin: '0 24px 24px' }}><Icone nom="help" taille={14} couleur="#3E4A59" />Les loyers sont payés directement chez vous, sauf ceux en prélèvement automatique, que Lease Lane perçoit dans son compte en fidéicommis. Lease Lane suit chaque loyer et relance les retards. La facture du fournisseur vous est remise telle quelle; 10 % de coordination s’ajoute seulement dès 1 000 $.</p>
         </section>
         <div className="colonne-l18">
           <section className="carte-l18" aria-label="Répartition">

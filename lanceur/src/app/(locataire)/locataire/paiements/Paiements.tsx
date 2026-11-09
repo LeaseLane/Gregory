@@ -12,7 +12,7 @@ import { argent, dateCourte, dateLongue, moisAnnee } from '@/composants/portail/
    signé ici (règle H1 de Paiements Canada), débité par Lease Lane dans son compte en fidéicommis. Carte de crédit : processeur à choisir, non offerte. États « en retard » et « prélèvement
    refusé » sans blâme, avec la marche à suivre (CONCORDANCE 2.10, 2.14). */
 export type PaiementsLoc = { prochain: { echeance: string; montant: number; en_retard: boolean; jours: number; echec: boolean } | null; annee: { paye: number; loyers: number; prevus: number };
-  retards: number; en_retard: number; historique: { id: string; periode: string; recu_le: string | null; mode: string | null; montant: number; statut: string }[];
+  retards: number; en_retard: number; historique: { id: string; periode: string; recu_le: string | null; mode: string | null; montant: number; recu?: number | null; statut: string }[];
   mode: { type: string; depuis?: string; compte?: string | null; montant?: number | null; premier?: string | null; accord?: boolean }; interac: string | null; reference: string | null; releve31: { id: string; annee: number } | null };
 type Dpa = { actif: false; montant: number; premier: string; modele: string } | { actif: true; montant: number; premier: string; texte: string; signe_le: string; compte: string };
 export type RL31 = { id: string; annee: number; code: string; remis_le: string; donnees: { numero_logement: string; logement: { adresse: string; ville: string | null; code_postal: string | null };
@@ -61,7 +61,7 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
       <div className="lo-grille trois lo-remonte">
         <section className="carte-l18 e2 lo-kpi" aria-label="Prochain loyer">
           {P?.en_retard ? <><span className="texte-13 fort">{P.echec ? 'Prélèvement refusé' : 'Loyer en retard'}</span><b className="rouge">{argent(P.montant)}</b>
-              <small>{P.echec ? `Le prélèvement du ${dateCourte(P.echeance)} n’a pas abouti. Un nouvel essai est prévu; vous pouvez aussi payer par virement Interac.` : `dû depuis le ${dateCourte(P.echeance)} (${P.jours} jour${P.jours > 1 ? 's' : ''}) · payable au propriétaire`}</small>
+              <small>{P.echec ? `Le prélèvement du ${dateCourte(P.echeance)} n’a pas abouti. Un nouvel essai est prévu; vous pouvez aussi payer par virement Interac.` : `dû depuis le ${dateCourte(P.echeance)} (${P.jours} jour${P.jours > 1 ? 's' : ''})${pad ? '' : ' · payable au propriétaire'}`}</small>
               <Link className="lien ligne-ic" href="/locataire/messages?nouveau=1&sujet=Entente%20de%20paiement">Proposer une entente de paiement<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link></>
             : <><span className="texte-13 fort">{pad ? 'Prochain prélèvement' : 'Prochain loyer'}</span><b>{P ? dateCourte(P.echeance, true) : '—'}</b>
               <small>{P ? `${argent(P.montant)}${pad ? ` · ${D.mode.compte ? `compte ${D.mode.compte.replace(/^.*?(·+ ?\d+)$/, '$1')}` : 'prélèvement automatique'}` : ' · à payer au propriétaire'}` : 'Aucun loyer à venir'}</small>
@@ -78,9 +78,9 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
           <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>Historique</h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>Chaque loyer, daté et reçu</p></div>
             <button className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="download" taille={16} couleur="#0C2147" />Relevé annuel</button></header>
           <table className="tableau lo-histo"><colgroup><col style={{ width: '20%' }} /><col style={{ width: '18%' }} /><col style={{ width: '14%' }} /><col style={{ width: '16%' }} /><col style={{ width: '18%' }} /><col /></colgroup><thead><tr><th>Période</th><th>Réception</th><th>Mode</th><th className="droite">Montant</th><th>État</th><th /></tr></thead>
-            <tbody>{D.historique.map((p) => <tr key={p.id}><td className="fort">{moisAnnee(p.periode)}</td><td>{p.recu_le ? `Reçu le ${dateCourte(p.recu_le)}` : '—'}</td><td>{p.mode ?? '—'}</td>
+            <tbody>{D.historique.map((p) => <tr key={p.id}><td className="fort">{moisAnnee(p.periode)}</td><td>{p.recu_le ? `Reçu le ${dateCourte(p.recu_le)}` : p.statut === 'partiel' && p.recu ? `${argent(p.recu)} reçus` : '—'}</td><td>{p.mode ?? '—'}</td>
               <td className="droite fort">{argent(p.montant, true)}</td>
-              <td>{p.statut === 'paye' ? <span className="ligne-ic"><span className="okdot" style={{ marginTop: 0 }}><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>Payé</span> : p.statut === 'retard' ? <span className="puce todo">En retard</span> : <span className="puce neutral">À venir</span>}</td>
+              <td>{p.statut === 'paye' ? <span className="ligne-ic"><span className="okdot" style={{ marginTop: 0 }}><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>Payé</span> : p.statut === 'partiel' ? <span className="puce todo">Reste {argent(p.montant - (p.recu ?? 0))}</span> : p.statut === 'retard' ? <span className="puce todo">En retard</span> : <span className="puce neutral">À venir</span>}</td>
               <td className="droite">{p.statut === 'paye' && <Link className="lien ligne-ic" scroll={false} href={`/locataire/paiements?r=${p.id}`}><Icone nom="receipt" taille={16} couleur="#2E5788" />Reçu</Link>}</td></tr>)}
               {!D.historique.length && <tr><td colSpan={6} className="gris">Aucun loyer pour l’instant.</td></tr>}</tbody></table>
         </section>

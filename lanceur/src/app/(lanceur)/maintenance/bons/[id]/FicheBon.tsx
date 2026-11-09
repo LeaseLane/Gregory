@@ -22,7 +22,8 @@ const LIB: Record<string, string> = { cree: 'Créé', soumissions: 'Soumissions'
 const FIL: Record<string, [string, string]> = { 'work_order.created': ['flag', 'Bon de travail créé'], 'work_order.create': ['flag', 'Bon de travail créé'], 'work_order.assigned': ['users', 'Fournisseur assigné'], 'work_order.reassigned': ['users', 'Fournisseur changé'],
   'work_order.reassign': ['users', 'Fournisseur changé'], 'work_order.scheduled': ['calendar', 'Rendez-vous fixé'], 'work_order.completed': ['check', 'Réalisé · facture saisie'], 'work_order.complete': ['check', 'Réalisé'],
   'work_order.verified': ['shieldc', 'Fermé'], 'work_order.cancelled': ['close', 'Annulé'], 'work_order.note': ['message', 'Note'], 'quote.selected': ['spark', 'Soumission choisie'], 'quote.added': ['file', 'Soumission reçue'], 'quote.owner_approved': ['check', 'Accord du propriétaire consigné'],
-  'quote.owner_requested': ['send', 'Accord demandé au propriétaire'], 'quote.approval_requested': ['send', 'Accord demandé au propriétaire'], 'approval.decided': ['check', 'Décision du propriétaire'], 'approval.created': ['clock', 'Accord demandé'] };
+  'quote.owner_requested': ['send', 'Accord demandé au propriétaire'], 'quote.approval_requested': ['send', 'Accord demandé au propriétaire'], 'approval.decided': ['check', 'Décision du propriétaire'], 'approval.created': ['clock', 'Accord demandé'],
+  'approval.approved': ['check', 'Dépense approuvée par le propriétaire'], 'approval.rejected': ['close', 'Dépense refusée par le propriétaire'], 'approval.revision_requested': ['message', 'Révision humaine demandée par le propriétaire'] };
 const argent = (n: number | null | undefined, c = true) => n == null ? '—' : `${Number(n).toLocaleString('fr-CA', { minimumFractionDigits: c ? 2 : 0, maximumFractionDigits: c ? 2 : 0 }).replace(/[  ]/g, ' ')} $`;
 const jour = (iso: string) => new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
 const local = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
@@ -51,7 +52,7 @@ export function FicheBon({ donnees: D, maintenant, erreurLecture, factures = nul
       setOk('Facture jointe au bon. Le propriétaire la voit avec ses documents.'); router.refresh();
     } catch (e) { setBandeau((e as Error).message); } finally { setEnvoi(false); }
   }
-  const fil = tout ? D.fil : D.fil.slice(0, 5);
+  const filVu = D.fil.filter((f) => f.action !== 'approval.decided_by_owner'), fil = tout ? filVu : filVu.slice(0, 5);
   return (
     <>
       <Link className="lien po-retour" href="/maintenance/bons"><Icone nom="arrow" taille={14} couleur="#2E5788" />Bons de travail</Link>
@@ -73,7 +74,7 @@ export function FicheBon({ donnees: D, maintenant, erreurLecture, factures = nul
               {D.en_soumissions && <Link className="bouton bouton-contour" href={`/maintenance/soumissions?bt=${D.id}`}>Comparer les soumissions</Link>}
               {!D.en_soumissions && <button className="bouton bouton-contour" onClick={() => setModal('assigner')}>{D.worker_id ? 'Changer de fournisseur' : 'Assigner un fournisseur'}</button>}
               {D.worker_id && <button className="bouton bouton-contour" onClick={() => setModal('planifier')}>{D.rendez_vous ? 'Déplacer le rendez-vous' : 'Fixer le rendez-vous'}</button>}
-              {D.worker_id && <button className="bouton bouton-principal" onClick={() => setModal('realiser')}>Marquer réalisé</button>}
+              {D.worker_id && <button className="bouton bouton-principal" disabled={C.accord?.statut === 'pending' || C.accord?.statut === 'rejected'} title={C.accord?.statut === 'pending' ? 'En attente de l’accord du propriétaire' : C.accord?.statut === 'rejected' ? 'Dépense refusée par le propriétaire' : undefined} onClick={() => setModal('realiser')}>Marquer réalisé</button>}
               <button className="lien" onClick={() => setModal('annuler')}>Annuler le bon</button></div>}
             {D.peut_ecrire && D.etape === 'a_verifier' && <div className="fiche-actions" style={{ marginTop: 20 }}><button className="bouton bouton-principal" onClick={() => setModal('fermer')}>Fermer le bon</button>
               <span className="gris texte-13">{D.acces.confirmation ? `Confirmation demandée au locataire le ${jour(D.acces.confirmation)}` : ''}</span></div>}
@@ -92,9 +93,9 @@ export function FicheBon({ donnees: D, maintenant, erreurLecture, factures = nul
               {D.peut_ecrire && <form className="ligne-ic" onSubmit={async (e) => { e.preventDefault(); if (await rpc('lanceur_bon_note', { id: D.id, note }, 'Note ajoutée au fil.')) setNote(''); }}>
                 <input className="e70-raison" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note…" aria-label="Note" /><button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 14px' }} disabled={envoi || note.trim().length < 2}>Ajouter</button></form>}
               <ul className="fil">{fil.map((f, i) => { const [ic, l] = FIL[f.action] ?? ['history', 'Événement inscrit au journal'];
-                return <li key={i}><span><Icone nom={ic} taille={16} couleur="#0C2147" /></span><div><strong>{l}</strong><span className="gris texte-12" style={{ display: 'block' }}>{f.qui}{f.action === 'work_order.note' && f.details?.note ? ` · « ${String(f.details.note)} »` : ''}</span></div>
+                return <li key={i}><span><Icone nom={ic} taille={16} couleur="#0C2147" /></span><div><strong>{l}</strong><span className="gris texte-12" style={{ display: 'block' }}>{f.qui === 'une autre personne' ? (f.action.startsWith('approval.') ? 'dans son portail' : '') : f.qui}{f.action === 'work_order.note' && f.details?.note ? ` · « ${String(f.details.note)} »` : ''}</span></div>
                   <span className="gris texte-12">{jour(f.le)}</span></li>; })}{!D.fil.length && <li className="gris texte-13">Rien d’inscrit.</li>}</ul>
-              {D.fil.length > 5 && !tout && <button className="lien" onClick={() => setTout(true)}>Voir les {D.fil.length - 5} événements plus anciens</button>}</section>
+              {filVu.length > 5 && !tout && <button className="lien" onClick={() => setTout(true)}>Voir les {filVu.length - 5} événements plus anciens</button>}</section>
           </div>
         </div>
         <div className="po-colonne">

@@ -12,7 +12,10 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
   const [ouvert, setOuvert] = useState(false), [f, setF] = useState(vide), [imm, setImm] = useState<{ adresse: string; logements: string; secteur: string }[]>([]);
 
   // Bouton d'en-tête d'espace (CadreEspace) : ?nouveau=1 ouvre le tiroir à l'arrivée.
-  useEffect(() => { if (new URLSearchParams(window.location.search).get('nouveau') === '1') setOuvert(true); }, []);
+  useEffect(() => { const q = new URLSearchParams(window.location.search); if (q.get('nouveau') !== '1') return;
+    // Depuis un candidat validé (fiche propriétaire) : nom, courriel et téléphone déjà connus.
+    if (q.get('nom')) setF((v) => ({ ...v, type: type0, nom: q.get('nom') ?? '', courriel: q.get('courriel') ?? '', telephone: q.get('telephone') ?? '' }));
+    setOuvert(true); }, [type0]);
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
   async function creer() {
     setEnvoi(true); setErreur(null);
