@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { extraireJson, nettoyer } from "./lecture.ts";
+import { estUnBail, extraireJson, nettoyer } from "./lecture.ts";
 
 const L = [{ id: "u1", libelle: "2880, chemin Sainte-Foy, Québec — 3", loyer: 1100 }];
 
@@ -17,4 +17,8 @@ Deno.test("extraireJson : JSON entouré de texte, ou rien", () => {
   assertEquals(extraireJson('Voici :\n{"loyer": 900}\nFin.'), { loyer: 900 });
   assertEquals(extraireJson("aucun objet"), null);
   assertEquals(extraireJson("{ cassé"), null);
+});
+
+Deno.test("estUnBail : seul un true explicite passe", () => {
+  assertEquals([estUnBail({ est_un_bail: true }), estUnBail({ est_un_bail: false }), estUnBail({ est_un_bail: "oui" }), estUnBail({}), estUnBail(null)], [true, false, false, false, false]);
 });

@@ -22,6 +22,9 @@ export function nettoyer(brut: unknown, logements: Logement[]): BailLu {
     loyer, debut: date(o.debut), fin: date(o.fin), remarques: txt(o.remarques) };
 }
 
+// Le modèle dit d'abord si le document EST un bail résidentiel; seul un « true » explicite passe (absent, « oui », null : refusé).
+export const estUnBail = (brut: unknown): boolean => !!brut && typeof brut === "object" && (brut as Record<string, unknown>).est_un_bail === true;
+
 export function extraireJson(texte: string): unknown {
   const i = texte.indexOf("{"), j = texte.lastIndexOf("}");
   if (i < 0 || j <= i) return null;

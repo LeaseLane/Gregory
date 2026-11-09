@@ -8,7 +8,7 @@ const PROMPT_VERSION = "lire-bail-v1";
 const TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 const MAX_B64 = 20 * 1024 * 1024; // ≈ 15 Mo de fichier
 
-import { extraireJson, nettoyer, type Logement } from "./lecture.ts";
+import { estUnBail, extraireJson, nettoyer, type Logement } from "./lecture.ts";
 
 Deno.serve(async (req) => {
   const cors = corsHeadersFor(req.headers.get("origin"));
@@ -35,6 +35,7 @@ Deno.serve(async (req) => {
   const consigne = `Voici un bail résidentiel du Québec (souvent le formulaire obligatoire du Tribunal administratif du logement : section A les parties, B le logement, C la durée, D le loyer).
 Lis-le et réponds UNIQUEMENT par un objet JSON, sans texte autour :
 {
+  "est_un_bail": true seulement si ce document est un bail de logement (le contrat de location lui-même, signé ou à signer, sur le formulaire du TAL ou non); false pour tout autre document, même s'il contient des noms, une adresse ou un montant (facture, lettre, avis de modification ou de renouvellement, reçu, annonce, règlement d'immeuble, menu…),
   "locataires": [{"nom": "Prénom Nom", "courriel": "… ou null", "telephone": "… ou null"}],
   "adresse": "numéro, rue, ville du logement loué, ou null",
   "logement": "numéro d'appartement, ou null",
@@ -78,7 +79,7 @@ ${logements.map((l) => `- ${l.id} : ${l.libelle}`).join("\n") || "(aucun)"}`;
   if (!brut) { await journal("reponse illisible"); return json({ error: "Le bail n'a pas pu être lu. Essayez une copie plus nette." }, 422); }
   const bail = nettoyer(brut, logements);
   // Rien qui ressemble à un bail (ni locataire, ni adresse, ni loyer) : on le dit plutôt que de montrer une fiche vide.
-  if (!bail.locataires.length && !bail.adresse && !bail.loyer) { await journal("pas un bail"); return json({ error: "Ce document ne ressemble pas à un bail. Déposez le bail signé (PDF ou photo)." }, 422); }
+  if (!estUnBail(brut) || (!bail.locataires.length && !bail.adresse && !bail.loyer)) { await journal("pas un bail"); return json({ error: "Ce document ne ressemble pas à un bail. Déposez le bail signé (PDF ou photo)." }, 422); }
   await journal(null);
   return json({ bail });
 });
