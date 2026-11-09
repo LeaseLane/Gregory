@@ -4,10 +4,11 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { BailFenetre, type BailMode } from './BailFenetre';
+import { Photos } from './Photos';
 
 /* Logement : ajout ou modification (numéro, type, loyer demandé, superficie, étage, disponibilité). Rendre un logement disponible lance l'annonce automatique. */
 export type LogementEdit = { id?: string; numero: string; type: string | null; loyer: number | null; superficie: number | null; etage: number | null; statut: string; locataire?: string | null; tenant_id?: string | null };
-export function LogementTiroir({ buildingId, adresse, logement, fermer, fait }: { buildingId: string; adresse?: string; logement: LogementEdit | null; fermer: () => void; fait?: (message: string) => void }) {
+export function LogementTiroir({ buildingId, adresse, logement, fermer, fait, photos }: { buildingId: string; adresse?: string; logement: LogementEdit | null; fermer: () => void; fait?: (message: string) => void; photos?: string[] }) {
   const router = useRouter();
   const [f, setF] = useState({ numero: logement?.numero ?? '', type: logement?.type ?? '', loyer: logement?.loyer?.toString() ?? '', superficie: logement?.superficie?.toString() ?? '', etage: logement?.etage?.toString() ?? '', statut: logement?.statut ?? 'occupied' });
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null), [bail, setBail] = useState<BailMode | null>(null);
@@ -37,6 +38,9 @@ export function LogementTiroir({ buildingId, adresse, logement, fermer, fait }: 
             <div><label className="fenetre-lib" htmlFor="lg-s">Disponibilité</label><select id="lg-s" className="e70-raison" value={f.statut} onChange={(e) => setF({ ...f, statut: e.target.value })}>
               <option value="occupied">Loué</option><option value="soon_available">Libre bientôt</option><option value="available">Libre maintenant</option></select></div></div>
           {f.statut !== 'occupied' && logement?.statut === 'occupied' && <p className="gris texte-13" style={{ marginTop: 12 }}>L’annonce sera rédigée automatiquement, puis à relire dans Mise en marché.</p>}
+          {logement?.id && photos && <div style={{ marginTop: 20 }}><Photos dossier={logement.id} chemins={photos} titre="Photos du logement"
+            aide="Déposez-les dès l’intégration, même si le logement est loué : elles servent à l’annonce le jour où il se libère."
+            enregistrer={async (c) => { const { error } = await supabaseNavigateur().rpc('lanceur_annonce_photos', { p: { unit_id: logement.id, photos: c } }); return error?.message ?? null; }} /></div>}
         </div>
         <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>Annuler</button><button className="bouton bouton-principal" disabled={envoi || !f.numero.trim()}>Enregistrer</button></footer>
       </form>

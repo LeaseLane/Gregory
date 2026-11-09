@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
@@ -8,6 +8,7 @@ import { Courbe } from '@/composants/Graphes';
 import { argent, dateCourte } from '../onglets';
 import { LogementTiroir, type LogementEdit } from '../LogementTiroir';
 import { piece } from '@/lib/format';
+import { Photos, urlPhoto } from '../Photos';
 
 /* e27 · Fiche immeuble : identité, chiffres clés, logements en deux demi-tableaux, historique d'entretien (en cours d'abord), documents, revenu des loyers sur 12 mois.
    Le retard se dit en mots; le rouge reste à l'urgence. */
@@ -22,6 +23,10 @@ export function FicheImmeuble({ donnees: D, erreurLecture }: { donnees: DonneesI
   const router = useRouter();
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [edit, setEdit] = useState(false), [envoi, setEnvoi] = useState(false), [logement, setLogement] = useState<LogementEdit | false>(false);
   const [f, setF] = useState({ adresse: D?.adresse ?? '', quartier: D?.quartier ?? '', annee: D?.annee?.toString() ?? '', etages: D?.etages?.toString() ?? '', chauffage: D?.chauffage ?? '', stationnement: D?.stationnement ?? '' });
+  // Photos de l'immeuble et de ses logements (point 9 de Grégory) : relues à l'ouverture et à la fermeture d'un logement.
+  const [photos, setPhotos] = useState<{ immeuble: string[]; logements: Record<string, string[]> } | null>(null);
+  const lirePhotos = useCallback(async () => { if (!D) return; const { data } = await supabaseNavigateur().rpc('lanceur_photos_immeuble', { p_id: D.id }); if (data) setPhotos(data as { immeuble: string[]; logements: Record<string, string[]> }); }, [D]);
+  useEffect(() => { lirePhotos(); }, [lirePhotos]);
   if (!D) return <><Link className="lien po-retour" href="/immeubles"><Icone nom="arrow" taille={14} couleur="#2E5788" />Immeubles</Link><div className="bandeau erreur" role="alert">{bandeau}</div></>;
   const L = D.logements, occ = L.filter((u) => u.etat !== 'vacant').length, loyers = L.filter((u) => u.locataire).reduce((s, u) => s + Number(u.loyer ?? 0), 0);
   const dernier = D.revenu[D.revenu.length - 1], total12 = D.revenu.reduce((s, r) => s + Number(r.paye), 0);
@@ -47,7 +52,9 @@ export function FicheImmeuble({ donnees: D, erreurLecture }: { donnees: DonneesI
       <div className="grille-2-1">
         <div className="po-colonne">
           <section className="carte-l18 e2 imm-tete" aria-label="Immeuble">
-            <div className="imm-photo"><Icone nom="building" taille={48} couleur="#2E5788" /><span className="medias"><Icone nom="camera" taille={16} couleur="#0C2147" />{L.reduce((s, u) => s + u.photos, 0)} photos</span></div>
+            <div className="imm-photo" style={photos?.immeuble[0] ? { backgroundImage: `url(${urlPhoto(photos.immeuble[0])})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
+              {!photos?.immeuble[0] && <Icone nom="building" taille={48} couleur="#2E5788" />}<span className="medias"><Icone nom="camera" taille={16} couleur="#0C2147" />
+                {(photos?.immeuble.length ?? 0) + Object.values(photos?.logements ?? {}).reduce((s, x) => s + x.length, 0)} photos</span></div>
             <div><div className="tete-action"><p className="surtitre" style={{ margin: 0 }}>Immeuble géré depuis {new Date(D.depuis).getFullYear()}</p>
               <button className="haut-ibtn" onClick={() => setEdit(true)} aria-label="Modifier la fiche"><Icone nom="pencil" taille={18} couleur="#0C2147" /></button></div>
               <h2 className="releve-titre" style={{ margin: '4px 0' }}>{D.adresse.replace(/,\s*(Québec|Lévis)$/, '')}</h2>
@@ -77,6 +84,11 @@ export function FicheImmeuble({ donnees: D, erreurLecture }: { donnees: DonneesI
                   <span className="gris texte-13">{[w.fournisseur, w.accord ? 'accord attendu' : enCours && w.soumissions ? `soumissions · ${w.soumissions}` : enCours ? 'en cours' : dateCourte(w.le)].filter(Boolean).join(' · ')}</span></div></li>; })}
               {!D.entretien.derniers.length && <li className="gris texte-13">Aucun travail.</li>}</ul>
           </section>
+          <section className="carte-l18" aria-label="Photos de l’immeuble">
+            {photos ? <Photos key={D.id} dossier={`immeubles/${D.id}`} chemins={photos.immeuble} titre="Photos de l’immeuble"
+              aide="Façade, entrée, stationnement, cour. Les photos de chaque logement se déposent dans sa fiche (cliquez le logement), même s’il est loué : elles seront prêtes pour l’annonce."
+              enregistrer={async (c) => { const { error } = await supabaseNavigateur().rpc('lanceur_immeuble_photos', { p: { building_id: D.id, photos: c } }); if (!error) lirePhotos(); return error?.message ?? null; }} /> : <p className="gris">Chargement des photos…</p>}
+          </section>
           <section className="carte-l18" aria-label="Documents">
             <p className="ligne-ic" style={{ margin: '0 0 8px' }}><strong>Documents</strong><span className="gris texte-13">{D.documents.length} document{D.documents.length > 1 ? 's' : ''}</span></p>
             <ul className="lo-docs">{D.documents.slice(0, 3).map((d) => <li key={d.id}><span className="a-faire-ic"><Icone nom={d.type === 'assurance' ? 'shield' : 'file'} taille={18} couleur="#0C2147" /></span>
@@ -88,7 +100,7 @@ export function FicheImmeuble({ donnees: D, erreurLecture }: { donnees: DonneesI
             <Courbe valeurs={D.revenu.map((r) => Number(r.paye))} largeur={300} hauteur={48} /></section>
         </div>
       </div>
-      {logement && <LogementTiroir buildingId={D.id} adresse={D.adresse.replace(/,\s*(Québec|Lévis)$/, '')} logement={logement} fermer={() => setLogement(false)} fait={(m) => { setBandeau(null); setOk(m); }} />}
+      {logement && <LogementTiroir photos={logement.id ? photos?.logements[logement.id] ?? [] : undefined} buildingId={D.id} adresse={D.adresse.replace(/,\s*(Québec|Lévis)$/, '')} logement={logement} fermer={() => { setLogement(false); lirePhotos(); }} fait={(m) => { setBandeau(null); setOk(m); }} />}
       {edit && <div className="voile tiroir-voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setEdit(false)}>
         <form className="tiroir" role="dialog" aria-modal="true" aria-labelledby="fi-t" onSubmit={(e) => { e.preventDefault(); enregistrer(); }}>
           <header className="tiroir-tete"><h2 id="fi-t">Modifier l’immeuble</h2><button type="button" className="haut-ibtn" onClick={() => setEdit(false)} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
