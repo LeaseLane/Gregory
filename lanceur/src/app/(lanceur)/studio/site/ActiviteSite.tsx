@@ -140,7 +140,7 @@ export function ActiviteSite({ initial, demo = false, site }: { initial: Activit
               <span className="ga-kpi-tete"><span>{m.nom}</span><span className="ga-kpi-ic"><Icone nom={m.icone} taille={16} couleur="#2E5788" /></span></span>
               <b>{S ? nb(tc) + unite(m.id) : !A && !m.ga4 ? '…' : '—'}</b>
               <span className="ga-kpi-pied">
-                <span>{S ? (delta == null ? (tc > 0 ? <span className="ga-hausse">nouveau</span> : `0 les ${jours} jours précédents`) : <><span className={delta >= 0 ? 'ga-hausse' : 'ga-baisse'}>{(delta >= 0 ? '+' : '') + nb(delta)} %</span> vs {jours} jours précédents</>) : m.ga4 ? 'Google Analytics 4 à brancher' : ''}</span>
+                <span>{S ? (delta == null ? (tc > 0 ? <span className="ga-hausse">nouveau</span> : `0 les ${jours} jours précédents`) : <><span className={delta >= 0 ? 'ga-hausse' : 'ga-baisse'}>{(delta >= 0 ? '+' : '') + nb(delta)} %</span> vs {jours} jours précédents</>) : m.ga4 ? 'Google Analytics 4 à brancher' : ''}</span>
                 {S && <Sparkline points={S.courant} />}
               </span>
             </button>
@@ -177,7 +177,7 @@ type Mesure = [string, string, number | null, boolean?];
 
 function Delta({ v, inv }: { v: number; inv?: boolean }) {
   const bon = inv ? v < 0 : v >= 0;
-  return <span className={bon ? 'ga-hausse' : 'ga-baisse'}>{(v >= 0 ? '+' : '−') + nb(Math.abs(Math.round(v * 1000) / 10))} %<span className="sr"> par rapport à la période précédente</span></span>;
+  return <span className={bon ? 'ga-hausse' : 'ga-baisse'}>{(v >= 0 ? '+' : '−') + nb(Math.abs(Math.round(v * 1000) / 10))} %<span className="sr"> par rapport à la période précédente</span></span>;
 }
 function Mesures({ items, cols = 2 }: { items: Mesure[]; cols?: number }) {
   return <dl className="vd-ms" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>{items.map(([t, v, d, inv]) => <div key={t}><dt>{t}</dt><dd><b>{v}</b>{d != null && <Delta v={d} inv={inv} />}</dd></div>)}</dl>;

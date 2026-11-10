@@ -14,4 +14,4 @@ export const heureCourte = (iso: string) => { const d = new Date(iso), z = { tim
 // Projets (e74) : 5 étapes, dates de chacune
 export const ETAPES_PROJET: [string, string][] = [['cadrage', 'Cadrage'], ['approbation', 'Approbation'], ['soumissions', 'Soumissions'], ['travaux', 'Travaux'], ['termine', 'Terminé']];
 export const jourMois = (iso: string | null) => (iso ? new Date(`${iso.slice(0, 10)}T12:00:00`).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' }) : '');
-export const dollars = (n: number | null) => (n === null ? '—' : `${Math.round(Number(n)).toLocaleString('fr-CA').replace(/[\u202f\u00a0]/g, ' ')} $`);
+export const dollars = (n: number | null) => (n === null ? '—' : `${Math.round(Number(n)).toLocaleString('fr-CA').replace(/[\u202f\u00a0]/g, ' ')}\u00a0$`);

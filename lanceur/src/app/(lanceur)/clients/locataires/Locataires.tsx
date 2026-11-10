@@ -9,7 +9,7 @@ import { adresse, piece } from '@/lib/format';
 /* e21 · Locataires : segments (tous, en retard, fin de bail dans 6 mois, sans portail); loyers du mois (un carré par loyer); fins de bail à venir. */
 type Loc = { id: string; nom: string; depuis: string | null; lease_id: string; logement: string; type: string | null; secteur: string | null; fin: string | null; fin_note: string | null; loyer: number; retard: number | null; pad_refuse: boolean; portail: boolean };
 export type DonneesLocataires = { locataires: Loc[]; loyers_mois: { total: number; en_retard: number; refuses: number }; fins: { id: string; nom: string; logement: string; fin: string; note: string | null }[]; fins_total: number };
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')}\u00a0$`;
 const date = (iso: string, an = true) => new Date(`${iso}T12:00:00`).toLocaleDateString('fr-CA', an ? { day: 'numeric', month: 'short', year: 'numeric' } : { day: 'numeric', month: 'short' });
 const SEG = [['tous', 'Tous'], ['retard', 'En retard'], ['fin', 'Fin de bail dans 6 mois'], ['sans_portail', 'Sans portail']] as const;
 
@@ -36,7 +36,7 @@ export function Locataires({ donnees: D, filtres, erreurLecture }: { donnees: Do
               <td>{adresse(t.logement)}<span className="sous gris">{[piece(t.type), t.secteur].filter(Boolean).join(' · ') || '—'}</span></td>
               <td>{t.fin ? date(t.fin) : '—'}{t.fin_note && <span className="sous gris">{t.fin_note}</span>}</td>
               <td className="droite">{argent(t.loyer)}</td>
-              <td>{t.retard ? <span className="puce todo">En retard · {t.retard} j</span> : t.pad_refuse ? <span className="puce todo">PAD refusé</span> : <span className="puce info">À jour</span>}</td>
+              <td>{t.retard ? <span className={`puce ${t.retard >= 30 ? 'todo' : 'attention'}`}>En retard · {t.retard} j</span> : t.pad_refuse ? <span className="puce todo">PAD refusé</span> : <span className="puce info">À jour</span>}</td>
               <td><span className="ligne-ic"><i className={`point-etat ${t.portail ? 'ok' : 'off'}`} />{t.portail ? 'Actif' : 'Sans compte'}</span></td></tr>)}
               {!D.locataires.length && <tr><td colSpan={6} className="gris">Aucun locataire dans ce filtre.</td></tr>}</tbody></table>
           {D.locataires.length > 10 && !tous && <button className="lien" onClick={() => setTous(true)}>Afficher les {D.locataires.length - 10} autres</button>}

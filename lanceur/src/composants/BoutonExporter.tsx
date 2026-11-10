@@ -1,4 +1,6 @@
 'use client';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 
 /* « Exporter » de l'en-tête d'espace (maquette B.SP.actions) : les tableaux affichés sur la page, en un fichier CSV
@@ -6,6 +8,9 @@ import { Icone } from '@/composants/Icones';
 const cellule = (t: string) => `"${t.replace(/\s+/g, ' ').trim().replace(/"/g, '""')}"`;
 
 export function BoutonExporter({ nom }: { nom: string }) {
+  const chemin = usePathname(), [aTable, setATable] = useState(true);
+  /* Sans tableau à la page (Clés d'API, Sécurité…), le bouton n'aurait aucun effet : on ne l'affiche pas. Deuxième lecture après 600 ms pour les tableaux qui arrivent après l'hydratation. */
+  useEffect(() => { const lire = () => setATable(!!document.querySelector('.espace-page table')); lire(); const t = setTimeout(lire, 600); return () => clearTimeout(t); }, [chemin]);
   function exporter() {
     const tables = [...document.querySelectorAll<HTMLTableElement>('.espace-page table')];
     if (!tables.length) return;
@@ -21,5 +26,6 @@ export function BoutonExporter({ nom }: { nom: string }) {
     a.click();
     URL.revokeObjectURL(url);
   }
+  if (!aTable) return null;
   return <button type="button" className="bouton bouton-contour" style={{ width: 136 }} onClick={exporter}><Icone nom="download" taille={20} couleur="#0C2147" />Exporter</button>;
 }

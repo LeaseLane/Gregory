@@ -20,7 +20,7 @@ export type DonneesProprio = { id: string; nom: string; entreprise: string | nul
   documents: { nombre: number; mandat: { titre: string; le: string } | null }; journal: { action: string; le: string; qui: string | null }[] };
 export type Candidat = { id: string; unit_id: string; candidat: string; courriel: string; telephone: string | null; logement: string; statut: string; raison: string | null; recue: string; date: string | null; note: string | null; tenant_id: string | null };
 const STATUTS_CAND: Record<string, [string, string]> = { proposee: ['À décider', 'todo'], verification: ['Vérifications en cours', 'info'], acceptee: ['Validé', 'ok'], refusee: ['Non retenu', 'neutral'], retiree: ['Retiré', 'neutral'] };
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')}\u00a0$`;
 const jour = jourCourt;
 const moisLib = (iso: string, f: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' }) => new Date(`${iso.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', f);
 const ACTIONS: Record<string, string> = { 'owner.created': 'Client créé', 'owner.updated': 'Fiche modifiée', 'owner.reminded': 'Relance envoyée', 'approval.decided': 'Approbation décidée', 'statement.issued': 'Relevé émis', 'statement.resent': 'Relevé renvoyé',
@@ -60,7 +60,7 @@ export function FicheProprietaire({ donnees: D, propositions = [], erreurLecture
           <span className="mini-barres" aria-label="Loyers payés, 6 derniers mois">{I.loyers_6.map((m, k) => <i key={m.mois} className={k === I.loyers_6.length - 1 ? 'accent' : ''} style={{ height: `${Math.max(6, (100 * m.montant) / max)}%` }} title={`${moisLib(m.mois)} : ${argent(m.montant)}`} />)}</span></div>
         <div className="kpi"><span>Occupation</span><b>{I.occupes} / {I.logements}</b><span>{I.logements - I.occupes ? `${I.logements - I.occupes} logement${I.logements - I.occupes > 1 ? 's' : ''} libre${I.logements - I.occupes > 1 ? 's' : ''}` : 'Tout est loué'}</span>
           <span className="jauge"><i style={{ width: `${(100 * I.occupes) / Math.max(1, I.logements)}%` }} /></span></div>
-        <div className="kpi"><span>Dépenses · 12 mois</span><b>{argent(I.depenses_12)}</b><span>{I.loyers_12 ? `${Math.round((100 * I.depenses_12) / I.loyers_12)} % des loyers payés` : '—'}</span></div>
+        <div className="kpi"><span>Dépenses · 12 mois</span><b>{argent(I.depenses_12)}</b><span>{I.loyers_12 ? `${Math.round((100 * I.depenses_12) / I.loyers_12)} % des loyers payés` : '—'}</span></div>
         <div className="kpi"><span>Demandes ouvertes</span><b>{I.demandes}</b><span>{I.demande ?? 'Aucune'}</span></div>
       </div>
       <div className="grille-2-1">
@@ -72,7 +72,7 @@ export function FicheProprietaire({ donnees: D, propositions = [], erreurLecture
               <tbody>{[...(b.logements ?? [])].sort((x, y) => x.numero.localeCompare(y.numero, 'fr', { numeric: true })).map((u) => <tr key={u.numero}><td className="fort">{u.numero}</td>
                 <td>{u.tenant_id ? <Link href={`/clients/locataires/${u.tenant_id}`}>{u.locataire}</Link> : <span className="gris">{u.statut === 'occupied' ? '—' : 'Libre'}</span>}</td>
                 <td>{u.type ?? '—'}</td><td className="droite">{u.loyer ? argent(u.loyer) : '—'}</td>
-                <td>{!u.tenant_id ? <span className="gris">—</span> : u.retard ? <span className="puce todo">En retard · {u.retard} j</span> : <span className="puce info">À jour</span>}</td></tr>)}
+                <td>{!u.tenant_id ? <span className="gris">—</span> : u.retard ? <span className={`puce ${u.retard >= 30 ? 'todo' : 'attention'}`}>En retard · {u.retard} j</span> : <span className="puce info">À jour</span>}</td></tr>)}
                 {!b.logements?.length && <tr><td colSpan={5} className="gris">Aucun logement saisi.</td></tr>}</tbody></table></section>)}
           {!D.immeubles.length && <section className="carte-l18"><p className="gris" style={{ margin: 0 }}>Aucun immeuble rattaché.</p></section>}
           <section className="carte-l18" aria-label="Relevés mensuels"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Relevés mensuels</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>Émis le 5 avec la facture d’honoraires</p>

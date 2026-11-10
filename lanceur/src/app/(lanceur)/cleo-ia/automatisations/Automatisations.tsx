@@ -89,8 +89,8 @@ export function Automatisations({ etat, auto, erreurLecture }: { etat: Etat | nu
                   <tr key={r.code}>
                     <td><strong className="fort">{r.lien ? <Link className="lien-texte" href={r.lien}>{r.nom}</Link> : r.nom}</strong><span className="sous">{r.declencheur}</span></td>
                     <td><Colonnes v={r.jours} /></td>
-                    <td className={'droite ' + (r.reussite !== null ? 'fort' : 'gris')}>{r.reussite !== null ? `${r.reussite} %` : '—'}</td>
-                    <td className={r.active ? '' : 'gris'}>{r.active ? '100 %' : '—'}</td>
+                    <td className={'droite ' + (r.reussite !== null ? 'fort' : 'gris')}>{r.reussite !== null ? `${r.reussite} %` : '—'}</td>
+                    <td className={r.active ? '' : 'gris'}>{r.active ? '100 %' : '—'}</td>
                     <td>{k.active ? <><strong className="fort">En pause · {k.par ?? 'coupe-circuit'}</strong><span className="sous">« {k.reason} »</span></>
                       : r.pause ? <><strong className="fort">En pause · {r.pause.par ?? '—'} · {heure(r.pause.le)}</strong><span className="sous">« {r.pause.raison} »</span></>
                       : r.active ? 'Active' : r.code === 'rappels_loyer' ? <><strong>Désactivée</strong><span className="sous">Pas encore en production : les anciens rappels de loyer y tournent encore</span></> : <><strong>Désactivée</strong><span className="sous">Tâche planifiée arrêtée</span></>}</td>

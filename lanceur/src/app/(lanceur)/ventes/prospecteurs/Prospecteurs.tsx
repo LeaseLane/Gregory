@@ -10,7 +10,7 @@ export function Prospecteurs({ liste, erreurLecture, peutInviter = false }: { li
   const [vue, setVue] = useState<'liste' | 'classement'>('liste'), [ajout, setAjout] = useState(false), [ok, setOk] = useState<string | null>(null);
   if (erreurLecture) return <div className="bandeau erreur" role="alert">{erreurLecture}</div>;
   const classement = [...liste].filter((p) => p.appels > 0).sort((a, b) => b.signes / Math.max(1, b.appels) - a.signes / Math.max(1, a.appels) || b.signes - a.signes);
-  const taux = (p: Prospecteur) => p.appels ? `${(Math.round((1000 * p.signes) / p.appels) / 10).toString().replace('.', ',')} %` : '—';
+  const taux = (p: Prospecteur) => p.appels ? `${(Math.round((1000 * p.signes) / p.appels) / 10).toString().replace('.', ',')} %` : '—';
   return (
     <section className="studio-liste" aria-label="Prospecteurs">
       <header className="carte-tete studio-tete">

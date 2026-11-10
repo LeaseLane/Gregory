@@ -35,7 +35,7 @@ export function AAppeler({ ville, donnees: D, erreurLecture }: { ville: string; 
     <>
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       {ok && <div className="bandeau info" role="status">{ok}</div>}
-      <div style={{ display: 'grid', gridTemplateColumns: '300px minmax(0, 1fr) 340px', gap: 16, alignItems: 'start' }}>
+      <div className="appel-grille">
         <section className="carte-l18" aria-label="File d’appels" style={{ padding: 16 }}>
           <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>À appeler</h2>
             <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{D.file.length} propriétaire{D.file.length > 1 ? 's' : ''} prêt{D.file.length > 1 ? 's' : ''}</p></div></header>
@@ -61,7 +61,7 @@ export function AAppeler({ ville, donnees: D, erreurLecture }: { ville: string; 
             {P.courriel && <span className="texte-13">{P.courriel}</span>}
             {P.site && <a className="lien texte-13" href={P.site.startsWith('http') ? P.site : `https://${P.site}`} target="_blank" rel="noreferrer">{hote(P.site)}</a>}
           </div>
-          <div className="bandeau info" style={{ margin: '0 0 20px' }}><b>Pourquoi l’appeler :</b> {P.pourquoi}</div>
+          <div className="bandeau info" style={{ margin: '0 0 20px' }}><span><b>Pourquoi l’appeler :</b> {P.pourquoi}</span></div>
           {P.derniere_note && <p className="texte-13">Dernier appel : {P.derniere_note}</p>}
           <h3 className="titre-carte" style={{ fontSize: 15 }}>Ses immeubles</h3>
           <table className="tableau"><thead><tr><th>Adresse</th><th>Ville</th><th className="droite">Logements</th><th className="droite">Construit</th></tr></thead>

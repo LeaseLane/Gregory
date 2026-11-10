@@ -3,7 +3,10 @@ import { supabaseServeur } from '@/lib/supabase/serveur';
 import { destination } from '@/lib/acces';
 import { BarreHaut } from '@/composants/BarreHaut';
 import { AccesReserve } from '@/composants/AccesReserve';
-import { lireMoi, ROLES } from '@/lib/moi';
+import { lireMoi, peut, ROLES } from '@/lib/moi';
+import { BarreBasAdmin } from '@/composants/BarreBasAdmin';
+import { TableauxCartes } from '@/composants/TableauxCartes';
+import { ESPACES_ADMIN } from '@/lib/espaces';
 import { Inactivite } from '@/composants/Inactivite';
 
 /* Coquille Lanceur. Revérifie côté serveur ce que le proxy a déjà filtré (session, 2FA), puis l'appartenance
@@ -25,7 +28,7 @@ export default async function LanceurLayout({ children }: { children: React.Reac
       {moi && <Inactivite minutes={Number((politique as { inactivite_minutes?: number } | null)?.inactivite_minutes ?? 0)} />}
       <BarreHaut initiales={initiales} courriel={u.email ?? ''} nom={moi?.nom && !moi.nom.includes('@') ? moi.nom : (u.email ?? '')} role={moi ? (ROLES[moi.role] ?? moi.role) : ''} nonLues={Number((notifs as { non_lues?: number } | null)?.non_lues ?? 0)} moi={u.id} />
       {moi ? (
-        children
+        <>{children}<BarreBasAdmin espaces={ESPACES_ADMIN.filter((e) => peut(moi, e.droit))} /><TableauxCartes /></>
       ) : (
         <AccesReserve
           titre="L’espace admin est réservé à l’équipe Lease Lane"

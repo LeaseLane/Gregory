@@ -15,7 +15,7 @@ export type Accueil = { a_faire: AFaire[]; occupation: { total: number; occupes:
 
 const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juill.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 const MOIS_LONG = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')}\u00a0$`;
 const k = (n: number) => `${Math.round(n / 1000)} k$`;
 const d = (iso: string) => dateCourte(iso);
 const ETATS: Record<string, [string, string]> = { attente_vous: ['En attente de vous', 'action'], urgence: ['Urgence prise en charge', 'todo'], en_cours: ['En cours', 'neutral'], qualifiee: ['Qualifiée', ''] };
@@ -61,7 +61,7 @@ export function TableauDeBord({ prenom, portes, immeubles, donnees, erreur, lect
         </section>
         <section className="carte-l18" aria-label="Occupation">
           <h2 className="titre-carte" style={{ margin: 0 }}>Occupation</h2><p className="gris texte-13" style={{ margin: '4px 0 20px' }}>{D.occupation.total} logements · {immeubles} immeubles</p>
-          <p className="po-grand">{occ} %</p><p className="gris texte-13" style={{ margin: '4px 0 12px' }}>{D.occupation.occupes} logements occupés sur {D.occupation.total}</p>
+          <p className="po-grand">{occ} %</p><p className="gris texte-13" style={{ margin: '4px 0 12px' }}>{D.occupation.occupes} logements occupés sur {D.occupation.total}</p>
           <span className="jauge large"><i style={{ width: `${occ}%` }} /></span>
           <dl className="po-liste">
             <div><dt>Occupés</dt><dd>{D.occupation.occupes}</dd></div>
@@ -75,7 +75,7 @@ export function TableauDeBord({ prenom, portes, immeubles, donnees, erreur, lect
       <div className="po-kpis">
         <div className="carte-l18 kpi-po"><span>Loyers payés chez vous<Icone nom="dollar" taille={18} couleur="#58697F" /></span><b>{argent(D.mois.payes)}</b><small>sur {argent(D.mois.prevus)} prévus · suivis par Lease Lane</small></div>
         <div className="carte-l18 kpi-po"><span><i className="point" style={{ background: '#9B2E28' }} />Arriérés<Icone nom="alert" taille={18} couleur="#58697F" /></span><b className={D.mois.arrieres ? 'rouge' : ''}>{argent(D.mois.arrieres)}</b><small>{D.mois.logements_arrieres} logement{D.mois.logements_arrieres > 1 ? 's' : ''} · relances en cours</small></div>
-        <div className="carte-l18 kpi-po"><span>Honoraires du mois<Icone nom="card" taille={18} couleur="#58697F" /></span><b>{argent(D.mois.honoraires)}</b><small>{String(D.mois.taux).replace('.', ',')} % des loyers payés · facturés le 5</small></div>
+        <div className="carte-l18 kpi-po"><span>Honoraires du mois<Icone nom="card" taille={18} couleur="#58697F" /></span><b>{argent(D.mois.honoraires)}</b><small>{String(D.mois.taux).replace('.', ',')} % des loyers payés · facturés le 5</small></div>
         <div className="carte-l18 kpi-po"><span>Demandes ouvertes<Icone nom="wrench" taille={18} couleur="#58697F" /></span><b>{D.demandes_ouvertes}</b><small>{D.accords_attendus} attend{D.accords_attendus > 1 ? 'ent' : ''} votre accord</small></div>
       </div>
 
@@ -88,7 +88,7 @@ export function TableauDeBord({ prenom, portes, immeubles, donnees, erreur, lect
         </section>
         <section className="carte-l18" aria-label="Par secteur">
           <h2 className="titre-carte" style={{ margin: 0 }}>Par secteur</h2><p className="gris texte-13" style={{ margin: '4px 0 20px' }}>Part des loyers payés · 12 mois</p>
-          {D.secteurs.length ? <ul className="secteurs">{D.secteurs.map((s) => <li key={s.secteur}><span>{s.secteur}</span><b>{s.part} %</b><span className="jauge large"><i style={{ width: `${s.part}%` }} /></span></li>)}</ul>
+          {D.secteurs.length ? <ul className="secteurs">{D.secteurs.map((s) => <li key={s.secteur}><span>{s.secteur}</span><b>{s.part} %</b><span className="jauge large"><i style={{ width: `${s.part}%` }} /></span></li>)}</ul>
             : <p className="gris texte-13">Aucun loyer payé depuis 12 mois.</p>}
         </section>
       </div>

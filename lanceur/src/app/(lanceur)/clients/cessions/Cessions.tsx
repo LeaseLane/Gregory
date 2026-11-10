@@ -17,7 +17,7 @@ const TYPES: Record<string, string> = { cession: 'Cession de bail', sous_locatio
 const OUVERTES = ['recue', 'solvabilite', 'accord_proprietaire'];
 const d = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
 const dLong = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' }).replace(/^1 /, '1er ');
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')}\u00a0$`;
 const restants = (x: Demande) => Math.max(0, Math.ceil((new Date(x.limite).getTime() - Date.now()) / 86400000));
 
 function etat(x: Demande): [string, 'meter' | 'wait' | 'fin'] {
@@ -90,9 +90,9 @@ export function Cessions({ donnees, erreurLecture }: { donnees: DonneesCessions 
             <div className="colonne-l18">
               <section className="carte-l18" aria-label="Solvabilité">
                 <header className="carte-tete sans-marge"><h2>Solvabilité{x.enquete?.resultat === 'ok' && x.enquete.cote ? ` : ${COTES[x.enquete.cote - 1].toLowerCase()}` : ''}</h2>
-                  <p>{!x.enquete ? 'Pas encore vérifiée' : x.enquete.statut === 'done' ? `Reçue le ${d(x.enquete.le!)} · consentement reçu (Loi 25)` : x.enquete.consentement ? 'Consentement reçu · à approuver dans Solvabilité' : 'Consentement demandé (LOC-14)'}</p></header>
+                  <p>{!x.enquete ? 'Pas encore vérifiée' : x.enquete.statut === 'done' ? `Reçue le ${d(x.enquete.le!)} · consentement reçu (Loi 25)` : x.enquete.consentement ? 'Consentement reçu · à approuver dans Solvabilité' : 'Consentement demandé'}</p></header>
                 {x.enquete?.resultat === 'ok' && x.enquete.cote ? <ol className="bandes5">{COTES.map((c, i) => <li key={c} className={i === x.enquete!.cote! - 1 ? 'choisi' : ''}>{c}</li>)}</ol>
-                  : D.peut_ecrire && ouverte && !x.enquete && <button className="bouton bouton-contour" disabled={envoi} onClick={() => rpc('lanceur_cession_solvabilite', { p_id: x.id }, 'Consentement demandé (LOC-14).')}>Vérifier la solvabilité</button>}
+                  : D.peut_ecrire && ouverte && !x.enquete && <button className="bouton bouton-contour" disabled={envoi} onClick={() => rpc('lanceur_cession_solvabilite', { p_id: x.id }, 'Consentement demandé.')}>Vérifier la solvabilité</button>}
               </section>
               <section className="carte-l18" aria-label="Décision">
                 <header className="carte-tete sans-marge"><h2>Décision</h2><p>Refus permis seulement pour un motif sérieux</p></header>

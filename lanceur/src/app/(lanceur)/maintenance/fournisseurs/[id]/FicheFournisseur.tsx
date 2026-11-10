@@ -17,7 +17,7 @@ export type DonneesFournisseur = FournEdit & { etat_assurance: string; verificat
   indicateurs: { travaux_12: number; urgences_12: number; serie: number[]; reponse: number | null; reponse_serie: (number | null)[]; cout_moyen: number | null; ecart_catalogue: number | null; note: number | null; avis: number; avis_trimestre: number };
   travaux: (Carte & { reponse: number | null; evaluation: { etoiles: number; par: string } | null })[]; total_12: number;
   documents: { id: string; titre: string; type: string | null; le: string; valide: string | null }[]; evaluations: { etoiles: number; commentaire: string; le: string; par: string; logement: string | null }[]; peut_ecrire: boolean };
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')}\u00a0$`;
 const dl = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' });
 
 export function FicheFournisseur({ donnees: D, erreurLecture }: { donnees: DonneesFournisseur | null; erreurLecture: string | null }) {
@@ -59,7 +59,7 @@ export function FicheFournisseur({ donnees: D, erreurLecture }: { donnees: Donne
             <div className="kpi"><span>Travaux en 12 mois</span><b>{I.travaux_12}</b><span>{I.urgences_12} urgence{I.urgences_12 > 1 ? 's' : ''} · {I.travaux_12 - I.urgences_12} planifiés</span>
               <span className="mini-barres">{I.serie.map((n, k) => <i key={k} className={k === I.serie.length - 1 ? 'accent' : ''} style={{ height: `${Math.max(6, (100 * n) / maxS)}%` }} />)}</span></div>
             <div className="kpi"><span>Première réponse</span><b>{I.reponse != null ? `${String(I.reponse).replace('.', ',')} h` : '—'}</b><span>médiane · 90 jours</span><Courbe valeurs={I.reponse_serie.filter((x): x is number => x != null).map(Number)} largeur={120} /></div>
-            <div className="kpi"><span>Coût moyen</span><b>{I.cout_moyen != null ? argent(I.cout_moyen) : '—'}</b><span>{I.ecart_catalogue != null ? `${I.ecart_catalogue < 0 ? 'sous' : 'au-dessus du'} catalogue de ${Math.abs(I.ecart_catalogue)} %` : 'sans référence du catalogue'}</span></div>
+            <div className="kpi"><span>Coût moyen</span><b>{I.cout_moyen != null ? argent(I.cout_moyen) : '—'}</b><span>{I.ecart_catalogue != null ? `${I.ecart_catalogue < 0 ? 'sous' : 'au-dessus du'} catalogue de ${Math.abs(I.ecart_catalogue)} %` : 'sans référence du catalogue'}</span></div>
             <div className="kpi"><span>Note des locataires</span><b>{I.note != null ? String(I.note).replace('.', ',') : '—'}</b><span>{I.avis} avis · {I.avis_trimestre} ce trimestre</span>{I.note != null && <span className="jauge"><i style={{ width: `${(100 * I.note) / 5}%` }} /></span>}</div>
           </div>
           <section className="carte-l18" aria-label="Historique des travaux"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Historique des travaux</h2>

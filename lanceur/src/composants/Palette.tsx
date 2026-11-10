@@ -7,6 +7,8 @@ import { initiales } from '@/lib/ventes';
 
 /* Palette ⌘K (maquette e02) : une saisie, et l'admin répond : actions, fiches, pages, ou une question à Cléo.
    Le terme trouvé est en gras; ↑ ↓ naviguent, Entrée ouvre, Échap ferme. Seules les pages qui existent sont listées. */
+const ESPACES: [string, string, string][] = [['Accueil', '/', 'home'], ['Opérations', '/operations', 'inbox'], ['Ventes', '/ventes/mandats', 'trend'], ['Clients', '/clients/proprietaires', 'users'], ['Immeubles', '/immeubles', 'building'], ['Maintenance', '/maintenance/bons', 'wrench'],
+  ['Finances', '/finances/paiements', 'dollar'], ['Juridique', '/juridique', 'scale'], ['Studio', '/studio/site', 'globe'], ['Cléo et IA', '/cleo-ia', 'spark'], ['Rapports et réglages', '/reglages', 'chart']];
 const PAGES: [string, string, string][] = [
   ['Opérations', 'À approuver', '/operations/a-approuver'], ['Opérations', 'Inbox', '/operations/inbox'], ['Opérations', 'Mes tâches', '/operations/taches'],
   ['Opérations', 'Agenda', '/operations/agenda'], ['Opérations', 'Appels', '/operations/appels'],
@@ -41,7 +43,7 @@ export function Palette({ fermer, demanderCleo }: { fermer: () => void; demander
     }, 180);
     return () => clearTimeout(t);
   }, [q]);
-  const pages: Ligne[] = q.trim() ? PAGES.filter(([e, p]) => sansAccents(`${e} ${p}`).includes(sansAccents(q.trim()))).slice(0, 4).map(([e, p, l]) => ({ groupe: 'Pages', titre: p, chemin: [e, p], lien: l, icone: 'file' })) : [];
+  const pages: Ligne[] = q.trim() ? PAGES.filter(([e, p]) => sansAccents(`${e} ${p}`).includes(sansAccents(q.trim()))).slice(0, 4).map(([e, p, l]) => ({ groupe: 'Pages', titre: p, chemin: [e, p], lien: l, icone: 'file' })) : ESPACES.map(([e, l, ic]) => ({ groupe: 'Aller à', titre: e, lien: l, icone: ic }));
   const lignes: Ligne[] = [...res.actions, ...res.fiches, ...pages, ...(q.trim() ? [{ groupe: 'Demander à Cléo', titre: `« ${q.trim()} »`, droite: 'Cléo cite ses sources', cleo: q.trim() }] : [])];
   useEffect(() => { setI(0); }, [q, res]);
   function ouvrir(l: Ligne) {
@@ -59,7 +61,8 @@ export function Palette({ fermer, demanderCleo }: { fermer: () => void; demander
               if (e.key === 'Enter' && lignes[i]) ouvrir(lignes[i]); }} />
           {q && <button className="fermer" onClick={() => setQ('')} aria-label="Effacer la saisie"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button>}
         </div>
-        {!q.trim() ? <p className="palette-vide">Cherchez une personne, un logement, un dossier ou une page, ou posez une question à Cléo.</p> : (
+        {!q.trim() && <p className="palette-vide">Cherchez une personne, un logement, un dossier ou une page, ou posez une question à Cléo.</p>}
+        {lignes.length > 0 && (
           <div className="palette-res" role="listbox">
             {lignes.map((l, k) => <div key={k}>
               {(k === 0 || lignes[k - 1].groupe !== l.groupe) && <p className="surtitre gris">{l.groupe}</p>}

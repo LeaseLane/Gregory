@@ -14,7 +14,7 @@ export type DonneesSoumissions = { bons: Bon[]; fournisseurs: { id: string; nom:
   candidats: { nom: string; rbq: string; statut: string }[]; recherche: string | null; peut_ecrire: boolean };
 
 const d = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')}\u00a0$`;
 const delai = (iso: string | null) => { if (!iso) return '—'; const j = Math.round((new Date(`${iso}T12:00:00`).getTime() - Date.now()) / 86400000);
   return j <= 0 ? 'aujourd’hui' : j === 1 ? 'demain' : `dans ${j} jours`; };
 const CAND: Record<string, [string, string]> = { proposed: ['Nouveau', 'neutral'], approved: ['Approuvé', ''], invited: ['Invité', 'neutral'] };

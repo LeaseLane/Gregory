@@ -49,9 +49,9 @@ export function Annonces({ donnees: D, motifs, erreurLecture }: { donnees: Donne
               {!D.annonces.length && <tr><td colSpan={5} className="gris">Aucune annonce en ligne.</td></tr>}</tbody></table>
         </section>
         <div className="po-colonne">
-          <section className="carte-l18" aria-label="Performance des canaux"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{totDem ? `${CANAUX[can[0][0]]} amène ${Math.round((100 * can[0][1]) / totDem)} % des demandes` : 'Performance des canaux'}</h2>
+          <section className="carte-l18" aria-label="Performance des canaux"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{totDem ? `${CANAUX[can[0][0]]} amène ${Math.round((100 * can[0][1]) / totDem)} % des demandes` : 'Performance des canaux'}</h2>
             <p className="gris texte-13" style={{ margin: '0 0 16px' }}>Demandes par canal · {D.annonces.length} annonces · 30 jours</p>
-            {totDem ? <BarresClassees lignes={can.map(([k, n]) => ({ libelle: CANAUX[k] ?? k, valeur: n, texte: `${n} · ${Math.round((100 * n) / totDem)} %` }))} /> : <p className="gris texte-13">Aucune demande depuis 30 jours.</p>}
+            {totDem ? <BarresClassees lignes={can.map(([k, n]) => ({ libelle: CANAUX[k] ?? k, valeur: n, texte: `${n} · ${Math.round((100 * n) / totDem)} %` }))} /> : <p className="gris texte-13">Aucune demande depuis 30 jours.</p>}
             <p className="gris texte-13" style={{ marginBottom: 0 }}>{['louer', 'kijiji', 'marketplace'].filter((k) => (D.diffusion[k] ?? 0) < D.annonces.length).map((k) => `${CANAUX[k]} ne diffuse que ${D.diffusion[k] ?? 0} annonce${(D.diffusion[k] ?? 0) > 1 ? 's' : ''} sur ${D.annonces.length}.`)[0] ?? 'Toutes les annonces sont sur tous les canaux.'}</p></section>
           {P ? <section className="carte-l18 e2" aria-label="Proposition de Cléo">
             <div className="ligne-ic"><span className="av-agent" style={{ width: 36, height: 36 }}><Icone nom="spark" taille={20} couleur="#0C2147" /></span><div><p className="surtitre" style={{ margin: 0 }}>Proposition de Cléo</p><strong>{P.libelle}</strong></div></div>

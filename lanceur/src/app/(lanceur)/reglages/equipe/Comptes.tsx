@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
@@ -21,6 +21,8 @@ export function Comptes({ donnees: D, erreurLecture }: { donnees: DonneesComptes
   const router = useRouter();
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [filtre, setFiltre] = useState('tous'), [q, setQ] = useState('');
   const [menu, setMenu] = useState<string | null>(null), [fiche, setFiche] = useState<Compte | null>(null), [inviter, setInviter] = useState(false), [f, setF] = useState({ nom: '', courriel: '', role: 'gestionnaire' });
+  // Le menu d'une ligne près du bas de l'écran passait sous la barre de navigation (téléphone) : on le fait défiler dans la vue.
+  useEffect(() => { if (menu) document.querySelector('.menu-ligne')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, [menu]);
   const [confirmer, setConfirmer] = useState<null | { texte: string; faire: () => Promise<void> }>(null), [envoi, setEnvoi] = useState(false);
   if (!D) return <div className="bandeau erreur" role="alert">{bandeau}</div>;
   const actifs = D.comptes.filter((c) => c.statut === 'actif'), sans2fa = actifs.filter((c) => !c.deux_facteurs), susp = D.comptes.filter((c) => c.statut === 'suspendu');
@@ -72,7 +74,7 @@ export function Comptes({ donnees: D, erreurLecture }: { donnees: DonneesComptes
                 <button role="menuitem" onClick={() => { setMenu(null); setFiche(c); }}>Voir la fiche</button>
                 <button role="menuitem" onClick={() => reinitialiser(c)}>Lien de réinitialisation</button>
                 {!c.deux_facteurs && <button role="menuitem" onClick={() => action(c, 'rappel_2fa', 'Rappel 2FA envoyé.')}>Rappel 2FA</button>}
-                {c.user_id !== D.moi && (c.statut === 'actif' ? <button role="menuitem" onClick={() => action(c, 'suspendre', `${c.nom} est suspendu·e; ses sessions sont fermées.`)}>Suspendre</button>
+                {c.user_id !== D.moi && (c.statut === 'actif' ? <button role="menuitem" onClick={() => setConfirmer({ texte: `Suspendre ${c.nom}? Ses sessions sont fermées tout de suite; l’accès revient avec « Réactiver ».`, faire: async () => { await action(c, 'suspendre', `${c.nom} est suspendu·e; ses sessions sont fermées.`); } })}>Suspendre</button>
                   : <button role="menuitem" onClick={() => action(c, 'reactiver', `${c.nom} est réactivé·e.`)}>Réactiver</button>)}
                 {c.user_id !== D.moi && <button role="menuitem" className="rouge-txt" onClick={() => setConfirmer({ texte: `Retirer l’accès de ${c.nom}? Ses sessions sont fermées tout de suite; l’accès se redonne seulement par une nouvelle invitation.`, faire: async () => { await action(c, 'retirer', `Accès de ${c.nom} retiré.`); } })}>Retirer l’accès</button>}
               </div>}</td></tr>)}

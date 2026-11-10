@@ -10,7 +10,7 @@ type Travail = { id: string; libelle: string; categorie: string | null; type: st
   observes: { n: number; min: number | null; med: number | null; max: number | null }; fournisseur: string | null };
 export type DonneesCatalogue = { travaux: Travail[]; histogramme: { libelle: string; valeurs: number[] } | null;
   comparaisons: { numero: string; reference: number | null; soumissions: { fournisseur: string; montant: number; statut: string }[] } | null; peut_ecrire: boolean };
-const argent = (n: number | null) => n == null ? '—' : `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
+const argent = (n: number | null) => n == null ? '—' : `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')}\u00a0$`;
 const duree = (m: number | null) => m == null ? '—' : m < 60 ? `${m} min` : m < 1440 ? `${Math.round(m / 60)} h` : m < 10080 ? `${Math.round(m / 1440)} jour${m >= 2880 ? 's' : ''}` : `${Math.round(m / 10080)} semaine${m >= 20160 ? 's' : ''}`;
 const VIDE = { id: '', label: '', category: '', task_type: '', pricing_model: 'forfait', fixed_owner_price: '', fixed_worker_pay: '', estimated_duration_minutes: '', requires_rbq: false, urgent_eligible: true, active: true };
 
@@ -36,7 +36,7 @@ export function Catalogue({ donnees: D, erreurLecture }: { donnees: DonneesCatal
       {erreur && !edit && <div className="bandeau erreur" role="alert">{erreur}</div>}
       <div className="grille-2-1">
         <section className="carte-l18" aria-label="Travaux types">
-          <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Travaux types</h2><p className="gris texte-13" style={{ margin: 0 }}>{D.travaux.length} travaux · prix observés sur 24 mois · fourchette placée de −50 % à +50 % de la référence</p></div>
+          <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Travaux types</h2><p className="gris texte-13" style={{ margin: 0 }}>{D.travaux.length} travaux · prix observés sur 24 mois · fourchette placée de −50 % à +50 % de la référence</p></div>
             <span className="legende-cat"><span><i className="tic" />Référence</span><span><i className="pt" />Médiane</span><span><i className="br" />Fourchette observée</span></span></div>
           <table className="tableau tab-fixe" style={{ marginTop: 16 }}><colgroup><col style={{ width: '30%' }} /><col style={{ width: '11%' }} /><col style={{ width: '26%' }} /><col style={{ width: '12%' }} /><col /></colgroup>
             <thead><tr><th>Travaux</th><th className="droite">Référence</th><th>Fourchette observée</th><th>Délai</th><th>Fournisseur</th></tr></thead>
@@ -53,7 +53,7 @@ export function Catalogue({ donnees: D, erreurLecture }: { donnees: DonneesCatal
         <div className="po-colonne">
           <section className="carte-l18 e2" aria-label="Prix observés">{H && bins.length ? <>
             <h2 className="titre-carte" style={{ marginBottom: 2 }}>{H.libelle} : de {argent(Math.min(...H.valeurs))} à {argent(Math.max(...H.valeurs))}</h2>
-            <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{H.valeurs.length} prix sur 24 mois · par tranche de 100 $</p>
+            <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{H.valeurs.length} prix sur 24 mois · par tranche de 100 $</p>
             <div className="colonnes">{bins.map((b) => <div key={b.de}><i className={b.de === top.de ? 'accent' : ''} style={{ height: `${(100 * b.n) / maxB}%` }} title={`${b.n} prix`} /><small>{b.de.toLocaleString('fr-CA')}</small></div>)}</div>
             <p className="texte-13" style={{ color: '#3E4A59' }}>La tranche de {top.de.toLocaleString('fr-CA')} $ à {(top.de + 100).toLocaleString('fr-CA')} $ est la plus fréquente.</p></>
             : <><h2 className="titre-carte">Prix observés</h2><p className="gris texte-13">Les prix apparaissent dès que des bons de travail sont liés au catalogue.</p></>}</section>
@@ -63,7 +63,7 @@ export function Catalogue({ donnees: D, erreurLecture }: { donnees: DonneesCatal
             {C?.soumissions?.length ? <><p className="surtitre gris" style={{ marginTop: 16 }}>Dernières comparaisons · {C.numero}</p>
               <ul className="lo-docs">{C.soumissions.map((s) => { const e = C.reference ? Math.round(((s.montant - C.reference) / C.reference) * 100) : null;
                 return <li key={s.fournisseur} className="texte-13"><Icone nom={e != null && e > 15 ? 'alert' : 'check'} taille={16} couleur={e != null && e > 15 ? '#9B2E28' : '#12694F'} /><div><strong>{s.fournisseur}</strong></div>
-                  <span>{argent(s.montant)}{e != null ? ` · ${e > 0 ? '+' : e < 0 ? '−' : ''}${Math.abs(e)} %` : ''}</span></li>; })}</ul></> : <p className="gris texte-13" style={{ marginTop: 16 }}>Aucune soumission liée au catalogue pour l’instant.</p>}
+                  <span>{argent(s.montant)}{e != null ? ` · ${e > 0 ? '+' : e < 0 ? '−' : ''}${Math.abs(e)} %` : ''}</span></li>; })}</ul></> : <p className="gris texte-13" style={{ marginTop: 16 }}>Aucune soumission liée au catalogue pour l’instant.</p>}
           </section>
         </div>
       </div>

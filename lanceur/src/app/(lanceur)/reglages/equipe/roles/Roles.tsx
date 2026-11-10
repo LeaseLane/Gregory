@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
@@ -17,12 +17,20 @@ const ROLES = ['gestionnaire', 'location', 'prospection', 'comptabilite', 'lectu
 export function Roles({ donnees: D, erreurLecture }: { donnees: DonneesComptes | null; erreurLecture: string | null }) {
   const router = useRouter();
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [envoi, setEnvoi] = useState(false);
+  const [annuler, setAnnuler] = useState<null | { role: string; perm: string; texte: string; actif: boolean }>(null), minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (minuteur.current) clearTimeout(minuteur.current); }, []);
   if (!D) return <div className="bandeau erreur" role="alert">{bandeau}</div>;
   const a = (role: string, perm: string) => D.roles.find((r) => r.role === role)?.permissions.includes(perm) ?? false;
-  async function basculer(role: string, perm: string) {
+  async function basculer(role: string, perm: string, voulu?: boolean, annulation = false) {
+    const actif = voulu ?? !a(role, perm);
     setEnvoi(true); setBandeau(null);
-    const { error } = await supabaseNavigateur().rpc('lanceur_permission_maj', { p: { role, permission: perm, actif: !a(role, perm) } });
+    const { error } = await supabaseNavigateur().rpc('lanceur_permission_maj', { p: { role, permission: perm, actif } });
     setEnvoi(false); if (error) return setBandeau(error.message); router.refresh();
+    if (minuteur.current) clearTimeout(minuteur.current);
+    if (annulation) { setAnnuler(null); return; }
+    const lib = ESPACES.find(([, b]) => perm.startsWith(b + '.'))?.[0] ?? perm, op = perm.split('.').pop();
+    setAnnuler({ role, perm, actif, texte: `Droit ${actif ? 'donné' : 'retiré'} : ${lib} (${op === 'lire' ? 'lecture' : op === 'ecrire' ? 'écriture' : op}) · ${D!.roles.find((r) => r.role === role)?.libelle ?? role}.` });
+    minuteur.current = setTimeout(() => setAnnuler(null), 8000);
   }
   function exporter() {
     const l = [['Droit', 'Administrateur', ...ROLES.map((r) => D!.roles.find((x) => x.role === r)?.libelle ?? r)],
@@ -32,6 +40,7 @@ export function Roles({ donnees: D, erreurLecture }: { donnees: DonneesComptes |
   return (
     <>
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
+      {annuler && <div className="bandeau info" role="status" style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}><span>{annuler.texte}</span><button type="button" className="lien" disabled={envoi} onClick={() => basculer(annuler.role, annuler.perm, !annuler.actif, true)}>Annuler</button></div>}
       <section className="carte-l18" aria-label="Rôles et permissions">
         <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Rôles et permissions</h2><p className="gris texte-13" style={{ margin: 0 }}>Cliquez une case pour donner ou retirer un droit · inscrit au journal</p></div>
           <span className="ligne-ic"><span className="legende texte-12" style={{ margin: 0 }}><span className="ligne-ic"><i className="palier oui" style={{ width: 14, height: 14 }} />oui</span><span className="ligne-ic"><i className="palier" style={{ width: 14, height: 14 }} />non</span></span>

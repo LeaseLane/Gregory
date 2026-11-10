@@ -9,7 +9,7 @@ type Source = { id: string; code: string; nom: string; detail: string | null; ic
 export type DonneesSources = { sources: Source[]; campagnes: { utm: string; page: string | null; source: string | null }[];
   proposition: { id: string; reason: string; source: string; vers: string | null } | null; peut_ecrire: boolean };
 
-const argent = (c: number) => `${Math.round(c / 100).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
+const argent = (c: number) => `${Math.round(c / 100).toLocaleString('fr-CA').replace(/[  ]/g, ' ')}\u00a0$`;
 // utm_source et utm_medium de chaque source (le lien porte le nom que la régie comprend)
 const UTM: Record<string, [string, string]> = { google_ads: ['google', 'cpc'], meta: ['meta', 'cpc'], marketplace: ['facebook', 'marketplace'], courriel: ['courriel', 'email'], site: ['site', 'referral'] };
 const PAGES = ['/', '/gestion-immobiliere-quebec', '/evaluation-gratuite', '/logements-a-louer', '/quartiers/limoilou', '/levis'];
@@ -28,7 +28,7 @@ export function Sources({ donnees: D }: { donnees: DonneesSources }) {
   const nomSource = (c: string) => S.find((s) => s.code === c)?.nom ?? ({ google_ads: 'Google Ads', meta: 'Meta', marketplace: 'Marketplace', courriel: 'Courriel', site: 'Site web' } as Record<string, string>)[c] ?? c;
   return (
     <div className="grille-2-1">
-      <section className="carte-l18 sources-carte" aria-label="Sources des leads"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{meneur && tot.mandats ? `${meneur.nom === 'Site web' ? 'Le site' : meneur.nom} amène ${part >= 45 && part <= 55 ? 'la moitié' : `${part} %`} des mandats` : 'Aucun mandat signé en 90 jours'}</h2>
+      <section className="carte-l18 sources-carte" aria-label="Sources des leads"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{meneur && tot.mandats ? `${meneur.nom === 'Site web' ? 'Le site' : meneur.nom} amène ${part >= 45 && part <= 55 ? 'la moitié' : `${part} %`} des mandats` : 'Aucun mandat signé en 90 jours'}</h2>
         <p className="gris texte-13" style={{ margin: '0 0 12px' }}>90 derniers jours · du premier contact au mandat signé</p>
         <table className="tableau tab-fixe tab-sources"><colgroup><col style={{ width: '36%' }} /><col style={{ width: '11%' }} /><col style={{ width: '17%' }} /><col style={{ width: '15%' }} /><col /></colgroup>
           <thead><tr><th>Source</th><th className="droite">Leads</th><th className="droite">Mandats signés</th><th className="droite">Coût</th><th className="droite">Coût par mandat</th></tr></thead>
@@ -42,9 +42,9 @@ export function Sources({ donnees: D }: { donnees: DonneesSources }) {
           <Link className="bouton bouton-contour" href="/operations/a-approuver">Voir la proposition</Link></div>}
       </section>
       <div className="po-colonne">
-        <section className="carte-l18" aria-label="Conversion par source"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{conv[0] ? `${conv[0].s.nom === 'Site web' ? 'Le site' : conv[0].s.nom} convertit le mieux : ${conv[0].pct} %` : 'Pas assez de leads pour comparer'}</h2>
+        <section className="carte-l18" aria-label="Conversion par source"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{conv[0] ? `${conv[0].s.nom === 'Site web' ? 'Le site' : conv[0].s.nom} convertit le mieux : ${conv[0].pct} %` : 'Pas assez de leads pour comparer'}</h2>
           <p className="gris texte-13" style={{ margin: '0 0 16px' }}>Leads devenus mandats · 90 jours · 10 leads et plus</p>
-          {conv.length ? <BarresClassees lignes={conv.map((c) => ({ libelle: c.s.nom, valeur: c.pct, texte: `${c.pct} %` }))} /> : <p className="gris texte-13">Une source apparaît ici dès qu’elle a amené 10 leads en 90 jours.</p>}
+          {conv.length ? <BarresClassees lignes={conv.map((c) => ({ libelle: c.s.nom, valeur: c.pct, texte: `${c.pct} %` }))} /> : <p className="gris texte-13">Une source apparaît ici dès qu’elle a amené 10 leads en 90 jours.</p>}
         </section>
         <section className="carte-l18 e2" aria-label="Lien de suivi"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Créer un lien de suivi (UTM)</h2>
           <p className="gris texte-13" style={{ margin: '0 0 16px' }}>Chaque lead arrivé par ce lien est attribué à sa source</p>

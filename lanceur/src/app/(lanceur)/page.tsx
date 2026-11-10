@@ -17,11 +17,28 @@ function Carte({ href, label, children }: { href?: string; label: string; childr
     : <article className="espace" tabIndex={0} aria-label={label}>{children}</article>;
 }
 
+function Tuile_({ t, urgente }: { t: Tuile; urgente?: boolean }) {
+  return (
+    <Carte href={t.href} label={`${t.nom} : ${t.valeur} ${t.libelle}`}>
+      <span className="espace-ic"><Icone nom={t.icone} taille={urgente ? 24 : 20} couleur="#0C2147" /></span>
+      <span className="espace-fl"><Icone nom="arrow" taille={20} couleur="#2E5788" /></span>
+      <h2>{t.nom}</h2>
+      <p className="espace-val">{t.valeur}</p>
+      <p className="espace-lib">{t.libelle}</p>
+      <div className="espace-pied">
+        <span className={`puce ${t.puce.ton}`}>{t.puce.texte}</span>
+        <Micro viz={t.viz} />
+      </div>
+    </Carte>
+  );
+}
+
 export default async function Accueil() {
   const moi = (await lireMoi())!;
   const nom = moi.nom && !moi.nom.includes('@') ? moi.nom : '';
   const prenom = nom.split(/\s+/)[0];
   const a = await lireAccueil(moi);
+  const urgentes = a.tuiles.filter((t) => t.puce.ton === 'todo'), calmes = a.tuiles.filter((t) => t.puce.ton !== 'todo');
   const jour = new Intl.DateTimeFormat('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Toronto' }).format(new Date());
 
   return (
@@ -41,22 +58,12 @@ export default async function Accueil() {
       </div>
       {a.erreur && <p className="erreur" role="alert" style={{ marginBottom: 24 }}>{a.erreur} Rechargez la page; si l’erreur revient, écrivez à l’équipe.</p>}
 
-      <p className="surtitre gris">Vos espaces</p>
-      <div className="espaces">
-        {a.tuiles.map((t) => (
-          <Carte key={t.nom} href={t.href} label={`${t.nom} : ${t.valeur} ${t.libelle}`}>
-            <span className="espace-ic"><Icone nom={t.icone} taille={24} couleur="#0C2147" /></span>
-            <span className="espace-fl"><Icone nom="arrow" taille={20} couleur="#2E5788" /></span>
-            <h2>{t.nom}</h2>
-            <p className="espace-val">{t.valeur}</p>
-            <p className="espace-lib">{t.libelle}</p>
-            <div className="espace-pied">
-              <span className={`puce ${t.puce.ton}`}>{t.puce.texte}</span>
-              <Micro viz={t.viz} />
-            </div>
-          </Carte>
-        ))}
-      </div>
+      {urgentes.length > 0 && <>
+        <p className="surtitre gris">À faire maintenant</p>
+        <div className="espaces-urgents">{urgentes.map((t) => <Tuile_ key={t.nom} t={t} urgente />)}</div>
+      </>}
+      <p className="surtitre gris">{urgentes.length ? 'Autres espaces' : 'Vos espaces'}</p>
+      <div className="espaces compact">{calmes.map((t) => <Tuile_ key={t.nom} t={t} />)}</div>
 
       <p className="surtitre gris">Reprendre où vous étiez</p>
       <div className="recents-vide">

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { executer } from '@/lib/ops';
 import { Icone } from '@/composants/Icones';
+import { EtatVide } from '@/composants/EtatVide';
 import { AGENTS, ESPACES, ETAPES, INTERETS, SOURCES, age, heure, titre, valeur, type Motif, type Proposition } from '@/lib/propositions';
 
 /* À approuver (l02), Modifier puis approuver (e11), Rejeter (e10). Chaque décision passe par le registre
@@ -31,6 +32,8 @@ export function AApprouver({ liste, motifs, selection, modification, erreurLectu
   }, [router]);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   useEffect(() => { setBandeau(null); }, [p?.id]);
+  // Écran étroit : la liste est au-dessus du détail; choisir une proposition (ou ouvrir un lien direct) amène le détail à l'écran.
+  useEffect(() => { if (selection && matchMedia('(max-width: 1100px)').matches) document.querySelector('.appro-detail')?.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, [selection]);
 
   async function decider(nom: 'approve-proposal' | 'reject-proposal', entree: Record<string, unknown>, succes: string) {
     setEnvoi(true);
@@ -49,14 +52,14 @@ export function AApprouver({ liste, motifs, selection, modification, erreurLectu
   const plusVieille = liste.length ? age(liste[liste.length - 1].created_at) : null;
   return (
     <>
-      <div className="appro">
+      <div className={'appro' + (liste.length === 0 && !p ? ' vide' : '')}>
         <section className="appro-liste" aria-label="Propositions">
           <header className="carte-tete">
             <h2>À approuver</h2>
-            <p>{liste.length ? `${liste.length} proposition${liste.length > 1 ? 's' : ''} · la plus ancienne attend depuis ${plusVieille}` : 'Aucune proposition en attente'}</p>
+            {liste.length > 0 && <p>{`${liste.length} proposition${liste.length > 1 ? 's' : ''} · la plus ancienne attend depuis ${plusVieille}`}</p>}
           </header>
           {liste.length === 0 ? (
-            <p className="appro-vide">Rien à approuver. Quand Cléo ou un agent propose un changement, il attend ici.</p>
+            <EtatVide icone="check" titre="Rien à approuver" texte="Quand Cléo ou un agent propose un changement, il attend ici, avec ce qui change et pourquoi." />
           ) : (
             <ul role="listbox" aria-label="Propositions en attente">
               {liste.map((x) => (
@@ -122,7 +125,7 @@ function Detail({ p, envoi, bandeau, approuver, modifier, rejeter }: { p: Propos
       <div className="appro-source">
         <Icone nom={src.icone} taille={20} couleur="#3E4A59" />
         <div>
-          <strong>{p.source_ref ?? src.libelle}{p.confidence != null ? ` · confiance ${Math.round(p.confidence)} %` : ''}</strong>
+          <strong>{p.source_ref ?? src.libelle}{p.confidence != null ? ` · confiance ${Math.round(p.confidence)} %` : ''}</strong>
           {p.source_excerpt && <p>{p.source_excerpt.startsWith('«') ? p.source_excerpt : `« ${p.source_excerpt} »`}</p>}
         </div>
       </div>

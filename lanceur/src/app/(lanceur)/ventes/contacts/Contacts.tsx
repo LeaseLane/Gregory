@@ -72,7 +72,7 @@ export function Contacts({ donnees, role, q, tout, erreurLecture }: { donnees: D
             <ul className="paires">{donnees.doublons.slice(0, 3).map((p, i) => (
               <li key={p.a + p.b} className={i === sel ? 'sel' : ''}><button onClick={() => { setSel(i); setComparer(false); }}>
                 <span className="appel-ic"><Icone nom="layers" taille={20} couleur="#0C2147" /></span>
-                <span><strong>{p.nom}</strong><span>{p.pourquoi}</span></span><span className="conf"><b>{p.confiance} %</b><span>confiance</span></span></button></li>))}</ul>
+                <span><strong>{p.nom}</strong><span>{p.pourquoi}</span></span><span className="conf"><b>{p.confiance} %</b><span>confiance</span></span></button></li>))}</ul>
             {d && (comparer ? <>
               <p className="surtitre gris">Garder comme fiche principale</p>
               <fieldset className="durees">{(['a', 'b'] as const).map((k) => <label key={k} className={survivant === k ? 'choisi' : ''}><input type="radio" name="s" checked={survivant === k} onChange={() => setSurvivant(k)} />{k === 'a' ? d.nom : d.nom_b} · {k === 'a' ? d.detail_a : d.detail_b}</label>)}</fieldset>
@@ -84,8 +84,8 @@ export function Contacts({ donnees, role, q, tout, erreurLecture }: { donnees: D
                 <button className="bouton bouton-contour" disabled={envoi} onClick={() => agir(() => supabaseNavigateur().rpc('lanceur_garder_les_deux', { p_a: d.a, p_b: d.b }), 'Les deux fiches sont gardées.')}>Garder les deux fiches</button></div>)}
           </section>
           <section className="carte-l18" aria-label="Consentements LCAP">
-            <header className="carte-tete sans-marge"><h2>{`Le ${faible[0] === 'SMS' ? 'SMS' : 'courriel'} n’atteint que ${pct(faible[1])} % des contacts`}</h2><p>Consentements LCAP · part des {donnees.total} contacts</p></header>
-            <ul className="barres">{barres.map(([l, n]) => <li key={l} style={{ gridTemplateColumns: '88px minmax(0,1fr) 48px' }}><span>{l}</span><i style={{ width: `${pct(n)}%`, background: l === faible[0] ? '#4581CB' : '#A6B1BE' }} /><b>{pct(n)} %</b></li>)}</ul>
+            <header className="carte-tete sans-marge"><h2>{`Le ${faible[0] === 'SMS' ? 'SMS' : 'courriel'} n’atteint que ${pct(faible[1])} % des contacts`}</h2><p>Consentements LCAP · part des {donnees.total} contacts</p></header>
+            <ul className="barres">{barres.map(([l, n]) => <li key={l} style={{ gridTemplateColumns: '88px minmax(0,1fr) 48px' }}><span>{l}</span><i style={{ width: `${pct(n)}%`, background: l === faible[0] ? '#4581CB' : '#A6B1BE' }} /><b>{pct(n)} %</b></li>)}</ul>
             <p className="note">Sans consentement, aucun envoi commercial : seulement les messages liés au dossier (bail, mandat, paiement).</p>
           </section>
         </div>

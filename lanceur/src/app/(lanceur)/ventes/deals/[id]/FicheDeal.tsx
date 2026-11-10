@@ -68,7 +68,7 @@ export function FicheDeal({ donnees, erreurLecture, historique = null }: { donne
         <div className="colonne-l18">
           <section className="carte-deal" aria-label="Deal">
             <div className="deal-tete">
-              <div><p className="surtitre">{donnees.pipeline.name} · deal n° {d.number}</p><h1>{d.title}</h1>
+              <div><p className="surtitre">{donnees.pipeline.name} · deal n° {d.number}</p><h2>{d.title}</h2>
                 <p className="gris">{[d.doors ? `${d.doors} porte${d.doors > 1 ? 's' : ''}` : null, d.subtitle, d.owner ? `responsable : ${court(d.owner)}` : 'sans responsable'].filter(Boolean).join(' · ')}</p></div>
               <div className="deal-valeur"><b>{argent(d.monthly_value_cents)}</b><span>par mois, estimé</span></div>
             </div>
@@ -125,7 +125,7 @@ export function FicheDeal({ donnees, erreurLecture, historique = null }: { donne
             {onglet === 'taches' && (donnees.taches.length ? <ul className="planifier" style={{ padding: '0 24px 24px' }}>{donnees.taches.map((t) => <li key={t.id}><div><strong>{t.title}</strong><span>{[t.due_at && new Date(t.due_at).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' }), court(t.assignee)].filter(Boolean).join(' · ')}</span></div></li>)}</ul>
               : <p className="appro-vide">Aucune tâche ouverte.</p>)}
             {onglet === 'details' && <dl className="details-deal"><div><dt>Source</dt><dd>{d.source ?? '—'}</dd></div><div><dt>Créé</dt><dd>{new Date(d.created_at).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })}</dd></div>
-              <div><dt>Portes</dt><dd>{d.doors ?? '—'}</dd></div><div><dt>Revenu de gestion</dt><dd>{argent(d.monthly_value_cents)} par mois (6 % des loyers)</dd></div></dl>}
+              <div><dt>Portes</dt><dd>{d.doors ?? '—'}</dd></div><div><dt>Revenu de gestion</dt><dd>{argent(d.monthly_value_cents)} par mois (6 % des loyers)</dd></div></dl>}
           </section>
         </div>
 

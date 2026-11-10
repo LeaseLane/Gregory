@@ -141,7 +141,7 @@ export function Immeubles({ filtres: F, donnees: D, erreurLecture }: { filtres: 
           <div className="fenetre-tete"><h2 id="imm-t">{edit.i.adresse} · {edit.i.logements} logements</h2><button type="button" className="fermer" onClick={() => setEdit(null)} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
           <p className="fenetre-aide">Matricule <b>{edit.i.matricule}</b> · lot <b>{edit.i.lots ?? '—'}</b> · {edit.i.municipalite}.{' '}
             {ROLE_EN_LIGNE[edit.i.municipalite] && <><a className="lien" href={ROLE_EN_LIGNE[edit.i.municipalite]} target="_blank" rel="noreferrer">Rôle en ligne de la ville</a> (gratuit, par matricule) ou </>}
-            <a className="lien" href={REGISTRE} target="_blank" rel="noreferrer">Registre foncier</a> (par lot, environ 1 $). Puis le{' '}
+            <a className="lien" href={REGISTRE} target="_blank" rel="noreferrer">Registre foncier</a> (par lot, environ 1 $). Puis le{' '}
             <a className="lien" href={REQ} target="_blank" rel="noreferrer">Registre des entreprises</a> (gratuit) : NEQ, adresse et administrateurs, pour réunir les sociétés d’un même décideur sous un groupe.</p>
           <label className="fenetre-lib" htmlFor="imm-p">Propriétaire inscrit au rôle</label>
           <input id="imm-p" className="e70-raison" value={edit.proprietaire} onChange={(e) => setEdit({ ...edit, proprietaire: e.target.value })} placeholder="Ex. : 9123-4567 Québec inc." />

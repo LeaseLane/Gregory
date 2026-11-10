@@ -52,7 +52,7 @@ export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, mo
   return (
     <>
       <header className="haut">
-        <img className="haut-logo logo-clair" src="/img/logo-sur-blanc.svg" alt="Lease Lane" /><img className="haut-logo logo-sombre" src="/img/logo-sur-marine.svg" alt="" aria-hidden="true" />
+        <a href="/" className="haut-logo-lien" aria-label="Lease Lane : accueil"><img className="haut-logo logo-clair" src="/img/logo-sur-blanc.svg" alt="" /><img className="haut-logo logo-sombre" src="/img/logo-sur-marine.svg" alt="" aria-hidden="true" /></a>
         <span className="haut-filet" aria-hidden="true" />
         {espace ? (
           <nav className="haut-fil" aria-label="Fil d’Ariane">
@@ -63,9 +63,9 @@ export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, mo
         ) : (
           <a className="haut-lieu" href="/"><Icone nom="home" taille={20} couleur="#0C2147" />Accueil</a>
         )}
-        <button type="button" className="haut-cherche" onClick={() => setPalette(true)}>
+        <button type="button" className="haut-cherche" aria-label="Demandez à Cléo ou cherchez une page" onClick={() => setPalette(true)}>
           <img src="/img/cleo.png" alt="" className="avatar-cleo" />
-          <span>Demandez à Cléo ou cherchez…</span>
+          <span>Demandez à Cléo ou cherchez…</span><span className="haut-cherche-court" aria-hidden="true">Chercher</span>
           <kbd className="touche"><Icone nom="command" taille={12} couleur="#3E4A59" trait={2} />K</kbd>
         </button>
         <span className="haut-espace" />

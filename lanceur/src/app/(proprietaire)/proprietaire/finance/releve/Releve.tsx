@@ -6,7 +6,7 @@ import { Icone } from '@/composants/Icones';
    Aucun « total versé » (décision du 13 oct.). Imprimable; « Télécharger le PDF » passe par l'impression du navigateur. */
 export type DonneesReleve = { numero: string; mois: string; emis_le: string; destinataire: { nom: string; entreprise: string | null; courriel: string | null; logements: number; immeubles: number };
   lignes: { libelle: string; categorie: string; le: string; montant: number; immeuble: string | null }[]; facture: { honoraires: number; coordination: number; tps: number; tvq: number; total: number } };
-const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, ' ')}\u00a0$`;
 const jour = (iso: string) => { const x = new Date(`${iso}T12:00:00`); return `${x.getDate() === 1 ? '1er' : x.getDate()} ${x.toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' })}`; };
 const moisNom = (iso: string) => new Date(`${iso.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' });
 
@@ -26,12 +26,12 @@ export function Releve({ donnees, erreur }: { donnees: DonneesReleve | null; err
           <tbody>{loyers.map((l, i) => <tr key={i}><td>{l.libelle.replace('Loyers payés chez vous — ', '')}{l.categorie === 'Loyer partiel' ? ' (partiel)' : ''}</td><td>{moisNom(R.mois)}</td><td className="droite">{argent(l.montant)}</td></tr>)}
             {!loyers.length && <tr><td colSpan={3} className="gris">Aucun loyer payé ce mois-ci.</td></tr>}</tbody></table>
         {frais.length > 0 && <table className="tableau"><thead><tr><th>Travaux (factures remises telles quelles)</th><th>Date</th><th className="droite">Montant</th></tr></thead>
-          <tbody>{frais.map((l, i) => <tr key={i}><td>{l.libelle.replace(/(\d+)\.(\d*?)0* %/, (_, a, b) => `${a}${b ? `,${b}` : ''} %`)}</td><td>{jour(l.le)}</td><td className="droite">{argent(-l.montant)}</td></tr>)}</tbody></table>}
+          <tbody>{frais.map((l, i) => <tr key={i}><td>{l.libelle.replace(/(\d+)\.(\d*?)0* %/, (_, a, b) => `${a}${b ? `,${b}` : ''} %`)}</td><td>{jour(l.le)}</td><td className="droite">{argent(-l.montant)}</td></tr>)}</tbody></table>}
         <table className="tableau"><thead><tr><th>Facture d’honoraires du 5</th><th /><th className="droite">Montant</th></tr></thead>
-          <tbody>{[['Honoraires de gestion', R.facture.honoraires], ['Coordination 10 % (travaux de 1 000 $ ou plus)', R.facture.coordination], ['TPS 5 %', R.facture.tps], ['TVQ 9,975 %', R.facture.tvq]].filter(([, v]) => (v as number) > 0 || true).map(([t, v]) =>
+          <tbody>{[['Honoraires de gestion', R.facture.honoraires], ['Coordination 10 % (travaux de 1 000 $ ou plus)', R.facture.coordination], ['TPS 5 %', R.facture.tps], ['TVQ 9,975 %', R.facture.tvq]].filter(([, v]) => (v as number) > 0 || true).map(([t, v]) =>
             <tr key={t as string}><td>{t}</td><td /><td className="droite">{argent(v as number)}</td></tr>)}</tbody></table>
         <p className="releve-total"><span>Total de la facture du 5</span><b>{argent(R.facture.total)}</b></p>
-        <p className="po-note">Les loyers sont payés directement à vous; Lease Lane les suit et relance les retards. La facture d’honoraires est prélevée ou payable le 5. Les factures des fournisseurs sont jointes telles quelles au dossier; les frais de coordination de 10 % s’appliquent seulement dès 1 000 $.</p>
+        <p className="po-note">Les loyers sont payés directement à vous; Lease Lane les suit et relance les retards. La facture d’honoraires est prélevée ou payable le 5. Les factures des fournisseurs sont jointes telles quelles au dossier; les frais de coordination de 10 % s’appliquent seulement dès 1 000 $.</p>
       </article>
     </>
   );

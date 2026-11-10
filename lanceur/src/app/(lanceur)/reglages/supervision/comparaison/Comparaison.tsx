@@ -15,10 +15,10 @@ function Telephone({ apres, ecart }: { apres: boolean; ecart: boolean }) {
   return (
     <div className="telephone"><div className="tel-haut"><b>12 h 04</b><i /></div>
       <p className="tel-titre">‹ Payer le loyer</p><span className="tel-puce">Compte témoin</span>
-      <div className="tel-carte"><span>Loyer de novembre</span><b>1 000,00 $</b><span>Prélevé le 1er nov.</span></div>
+      <div className="tel-carte"><span>Loyer de novembre</span><b>1 000,00 $</b><span>Prélevé le 1er nov.</span></div>
       <p className="tel-compte"><Icone nom="card" taille={14} couleur="#3E4A59" />Compte •••• 0000</p>
       {apres && ecart ? <div className="tel-barre"><Icone nom="home" taille={18} couleur="#0C2147" /><Icone nom="card" taille={18} couleur="#4581CB" /><Icone nom="wrench" taille={18} couleur="#0C2147" /><Icone nom="message" taille={18} couleur="#0C2147" /></div>
-        : <span className="tel-bouton">Payer 1 000,00 $</span>}
+        : <span className="tel-bouton">Payer 1 000,00 $</span>}
     </div>);
 }
 
@@ -53,7 +53,7 @@ export function Comparaison({ donnees: D, erreurLecture }: { donnees: DonneesCom
             <div className="lo-segments" style={{ maxWidth: 340 }}>{([['cote', 'Côte à côte'], ['superposition', 'Superposition'], ['difference', 'Différence']] as const).map(([k, l]) => <button key={k} className={vue === k ? 'actif' : ''} onClick={() => setVue(k)}>{l}</button>)}</div>
             <div className={'telephones ' + vue}>
               {vue !== 'difference' && <div><span className="puce neutral">Avant · {D.reference}</span><Telephone apres={false} ecart /></div>}
-              <div><span className="puce action">Après · {D.version}</span><div className="tel-zone"><Telephone apres ecart />{vue !== 'cote' && <span className="tel-ecart">{String(E.pixels).replace('.', ',')} % des pixels</span>}</div></div>
+              <div><span className="puce action">Après · {D.version}</span><div className="tel-zone"><Telephone apres ecart />{vue !== 'cote' && <span className="tel-ecart">{String(E.pixels).replace('.', ',')} % des pixels</span>}</div></div>
             </div>
             <p className="texte-13">{E.texte}</p></> : <><h2 className="titre-carte">Aucun écart</h2><p className="gris texte-13">Les {D.captures} captures sont identiques à la référence {D.reference}.</p></>}
         </section>
@@ -61,7 +61,7 @@ export function Comparaison({ donnees: D, erreurLecture }: { donnees: DonneesCom
           <h2 className="titre-carte" style={{ margin: '4px 0 16px' }}>{E ? `L’écart vient de ${D.interrupteur ? `la nouveauté « ${D.interrupteur} »` : `la version ${D.version}`}` : 'Rien à décider'}</h2>
           {D.interrupteur && <div className="carte-case" style={{ display: 'grid', gap: 8 }}><span className="ligne-ic"><span className={'interrupteur' + (D.decision === 'retiree' ? '' : ' on')} role="img" aria-label={D.decision === 'retiree' ? 'Retirée' : 'Active'} />
             <span className="deux-lignes"><strong>{D.interrupteur} ({D.version})</strong><span className="gris texte-12">Interrupteur{D.interrupteur_par ? ` · ${D.interrupteur_par}` : ''} · {heure(D.deploye_le)}</span></span></span>
-            {D.interrupteur_pct !== null && <span className="ligne-entre texte-12"><span className="jauge" style={{ flex: 1 }}><i style={{ width: `${D.interrupteur_pct}%` }} /></span><b>{D.interrupteur_pct} % des locataires</b></span>}</div>}
+            {D.interrupteur_pct !== null && <span className="ligne-entre texte-12"><span className="jauge" style={{ flex: 1 }}><i style={{ width: `${D.interrupteur_pct}%` }} /></span><b>{D.interrupteur_pct} % des locataires</b></span>}</div>}
           {D.decision ? <p className="cleo-note texte-13">{D.decision === 'retiree' ? 'Nouveauté retirée' : D.decision === 'signalee' ? 'Défaut signalé' : 'Acceptée comme référence'}{D.decide_par_nom ? ` par ${D.decide_par_nom}` : ''}{D.decide_le ? ` à ${heure(D.decide_le)}` : ''}.</p>
             : E && D.peut_decider ? <div style={{ display: 'grid', gap: 12, marginTop: 16 }}>
               <p className="texte-13" style={{ margin: 0 }}>Désactiver l’interrupteur retire la nouveauté sans redéployer : ces locataires retrouvent l’écran de la version {D.reference}.</p>

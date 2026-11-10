@@ -20,7 +20,7 @@ export default function MotDePasse() {
   }
 
   return (
-    <main className="page">
+    <main className="page" style={{ maxWidth: 560, margin: '48px auto' }}>
       <form className="carte-vide" onSubmit={changer}>
         <h1 style={{ fontSize: 20 }}>Choisir un nouveau mot de passe</h1>
         {fait ? (

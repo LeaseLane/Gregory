@@ -8,7 +8,7 @@ export type DonneesTdb = { portes: number; occupees: number; loyers: { attendu: 
   propositions: number; taches_en_retard: number; loi25: number; mandats: { gagnes: number; actifs: number } };
 export type DonneesPipeline = { pipeline: { code: string; nom: string }; jours: number; etapes: { code: string; nom: string; categorie: string; cible_jours: number | null; entres: number; passes: number; conversion: number | null; jours_moyens: number | null; actuels: number }[];
   gagnes: number; perdus: number; cycle_jours: number | null; raisons_perte: { raison: string; n: number }[]; pipelines: { code: string; nom: string }[] };
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')}\u00a0$`;
 const j = (n: number | null) => (n == null ? '—' : `${String(n).replace('.', ',')} j`);
 
 export function TableauDeBord({ donnees: D, pipeline: P, filtres, erreurLecture }: { donnees: DonneesTdb | null; pipeline: DonneesPipeline | null; filtres: Record<string, string | undefined>; erreurLecture: string | null }) {
@@ -21,7 +21,7 @@ export function TableauDeBord({ donnees: D, pipeline: P, filtres, erreurLecture 
     <>
       <div className="kpis" style={{ marginBottom: 24 }}>
         <div className="kpi"><span>Portes gérées</span><b>{D.portes}</b><span>{occ} % occupées</span><span className="jauge"><i style={{ width: `${occ}%` }} /></span></div>
-        <div className="kpi"><span>Loyers payés ce mois-ci</span><b>{pct} %</b><span>{argent(D.loyers.paye)} sur {argent(D.loyers.attendu)} · payés aux propriétaires</span></div>
+        <div className="kpi"><span>Loyers payés ce mois-ci</span><b>{pct} %</b><span>{argent(D.loyers.paye)} sur {argent(D.loyers.attendu)} · payés aux propriétaires</span></div>
         <div className="kpi"><span>Revenu de gestion · mois dernier</span><b>{argent(D.revenu_gestion)}</b><span>honoraires facturés le 5</span><Courbe valeurs={D.revenu_serie.map(Number)} /></div>
         <div className="kpi"><span>Mandats</span><b>{D.mandats.gagnes}</b><span>gagnés en 90 jours · {D.mandats.actifs} en cours</span></div>
       </div>
@@ -40,7 +40,7 @@ export function TableauDeBord({ donnees: D, pipeline: P, filtres, erreurLecture 
             <thead><tr><th>Étape</th><th>Deals entrés</th><th className="droite">Passage</th><th className="droite">Temps moyen</th><th className="droite">En ce moment</th></tr></thead>
             <tbody>{actives.map((e) => <tr key={e.code}><td className="fort">{e.nom}</td>
               <td><span className="ligne-ic"><span className="piste-h"><i style={{ width: `${(100 * e.entres) / max}%` }} /></span><b>{e.entres}</b></span></td>
-              <td className="droite fort">{e.conversion == null ? '—' : `${e.conversion} %`}</td>
+              <td className="droite fort">{e.conversion == null ? '—' : `${e.conversion} %`}</td>
               <td className="droite"><span className={e.cible_jours && e.jours_moyens && e.jours_moyens > e.cible_jours ? 'rouge-txt' : ''}>{j(e.jours_moyens)}</span>{e.cible_jours ? <span className="sous gris">cible {e.cible_jours} j</span> : null}</td>
               <td className="droite">{e.actuels}</td></tr>)}
               {!actives.length && <tr><td colSpan={5} className="gris">Aucune étape active.</td></tr>}</tbody></table></section>

@@ -13,7 +13,7 @@ type Fiche = { id: string; libelle: string; quartier: string | null; adresse: st
   inclus: Record<string, boolean>; site_statut: string; etat: string; disponible_le: string };
 const INCLUS: [string, string][] = [['chauffe', 'Chauffé'], ['eclaire', 'Éclairé'], ['meuble', 'Meublé'], ['stationnement', 'Stationnement'], ['animaux', 'Animaux acceptés'], ['laveuse', 'Entrées laveuse-sécheuse'], ['climatisation', 'Climatisation'], ['balcon', 'Balcon']];
 const photo = (c: string) => `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/listing-photos/${c}`;
-const argent = (n: number | null) => (n == null ? '—' : `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`);
+const argent = (n: number | null) => (n == null ? '—' : `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')}\u00a0$`);
 
 export function LogementsSite({ donnees: D, erreurLecture }: { donnees: DonneesSite | null; erreurLecture: string | null }) {
   const router = useRouter();

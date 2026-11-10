@@ -37,7 +37,7 @@ export function Rapprochement({ donnees: D, erreurLecture }: { donnees: DonneesR
             <p className="gris texte-13" style={{ margin: 0 }}>{D.dernier_import ? `Dernier relevé importé le ${jour(D.dernier_import)}` : 'Aucun relevé importé pour l’instant : relevé CSV du compte en fidéicommis (BMO)'}{a ? ' · Cléo propose une correspondance pour chacune' : ''}</p></div>
             <div style={{ width: 260 }}><p className="surtitre gris" style={{ margin: 0 }}>Rapprochées ce mois-ci</p><b style={{ fontSize: 24 }}>{M.rapprochees} sur {M.total}</b>
               <span className="jauge" style={{ display: 'block', margin: '8px 0 4px' }}><i style={{ width: `${M.total ? (100 * M.rapprochees) / M.total : 0}%` }} /></span>
-              <span className="gris texte-12">{M.total ? `${String(Math.round((1000 * M.rapprochees) / M.total) / 10).replace('.', ',')} %` : '—'} · {a} attendent votre décision</span></div></div>
+              <span className="gris texte-12">{M.total ? `${String(Math.round((1000 * M.rapprochees) / M.total) / 10).replace('.', ',')} %` : '—'} · {a} attendent votre décision</span></div></div>
           <ul className="ops">{D.operations.map((o) => { const s = o.suggestion, p = s?.paiement;
             return <li key={o.id}><div><p className="surtitre gris" style={{ margin: 0 }}>{jour(o.date)} · opération bancaire</p><b className="montant">{o.montant > 0 ? '+' : '−'}{argent(Math.abs(o.montant), true)}</b>
               <span className="texte-13" style={{ color: '#3E4A59' }}>{o.description}</span><span className="gris texte-12">{o.ref ? `Réf. ${o.ref}` : o.proprietaire}</span>
@@ -46,7 +46,7 @@ export function Rapprochement({ donnees: D, erreurLecture }: { donnees: DonneesR
               <div><p className="surtitre" style={{ margin: 0 }}><Icone nom="spark" taille={14} couleur="#2E5788" /> Suggestion de Cléo</p>
                 {p ? <><strong>Loyer · {s!.locataire}</strong><span className="gris texte-13">{adresse(p.logement)} · {argent(p.montant, true)} attendus le {jour(p.echeance)}</span></>
                   : <><strong>{s ? s.locataire : 'Aucune correspondance trouvée'}</strong><span className="gris texte-13">{s ? 'Aucun loyer impayé pour ce locataire' : o.note ?? 'À rapprocher à la main'}</span></>}
-                {o.confiance != null && <span className="texte-12"><b>{Math.round(o.confiance)} % de confiance</b>{o.note ? <span className="gris"> · {o.note}</span> : p && Math.abs(Number(p.montant) - o.montant) > 0.01 ? <span className="gris"> · écart de {argent(Math.abs(Number(p.montant) - o.montant), true)}</span> : null}</span>}</div>
+                {o.confiance != null && <span className="texte-12"><b>{Math.round(o.confiance)} % de confiance</b>{o.note ? <span className="gris"> · {o.note}</span> : p && Math.abs(Number(p.montant) - o.montant) > 0.01 ? <span className="gris"> · écart de {argent(Math.abs(Number(p.montant) - o.montant), true)}</span> : null}</span>}</div>
               {D.peut_ecrire && <div className="ops-actions"><button className="bouton bouton-principal" disabled={envoi || !p} onClick={() => rpc({ id: o.id, payment_id: p!.id }, 'Opération rapprochée; le loyer est inscrit.')}>Rapprocher</button>
                 <button className="bouton bouton-contour" onClick={() => { setNote(''); setIgnorer(o); }}>Ignorer</button>
                 <Link className="lien texte-13" href="/finances/comptabilite">Créer une écriture</Link></div>}</li>; })}</ul>
@@ -54,8 +54,8 @@ export function Rapprochement({ donnees: D, erreurLecture }: { donnees: DonneesR
         <div className="po-colonne">
           <section className="carte-l18" aria-label="Règles de rapprochement"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Règles de rapprochement automatique</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>Appliquées à chaque import du relevé</p>
             <ul className="lo-docs">{REGLES.map(([t, s, on]) => <li key={t}><div><strong>{t}</strong><span className="gris texte-13">{s}</span></div><span className={'interrupteur' + (on ? ' on' : '')} role="img" aria-label={on ? 'Règle active' : 'Toujours confirmé par une personne'} /></li>)}</ul>
-            <p className="ligne-ic gris texte-13"><Icone nom="shieldc" taille={18} couleur="#58697F" />Sous 95 % de confiance, une personne décide.</p></section>
-          <section className="carte-l18" aria-label="Qui rapproche"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{M.rapprochees ? `Les règles font ${Math.round((100 * M.regles) / M.rapprochees)} % du travail` : 'Qui rapproche'}</h2>
+            <p className="ligne-ic gris texte-13"><Icone nom="shieldc" taille={18} couleur="#58697F" />Sous 95 % de confiance, une personne décide.</p></section>
+          <section className="carte-l18" aria-label="Qui rapproche"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{M.rapprochees ? `Les règles font ${Math.round((100 * M.regles) / M.rapprochees)} % du travail` : 'Qui rapproche'}</h2>
             <p className="gris texte-13" style={{ margin: '0 0 16px' }}>Ce mois-ci · {M.rapprochees} opérations rapprochées</p>
             <BarresClassees lignes={[{ libelle: 'Règles automatiques', valeur: M.regles, texte: String(M.regles) }, { libelle: 'Décidées par une personne', valeur: M.personnes, texte: String(M.personnes) }]} />
             <p className="gris texte-12">Chaque proposition de Cléo est approuvée par une personne.</p></section>

@@ -15,8 +15,9 @@ type Lu = { nom: string; resultat: string | null; rapport: Rapport | null; recu:
 const COTES = ['Faible', 'Passable', 'Bonne', 'Très bonne', 'Excellente'];
 const MOTIFS: Record<string, string> = { candidature: 'Candidature', cession: 'Cession', sous_location: 'Sous-location' };
 const AVIS: Record<string, string> = { favorable: 'favorable', reserve: 'avec réserve', defavorable: 'défavorable' };
+const de = (nom: string) => (/^[AEIOUYÀÂÉÈÊËÎÏÔÙÛÜ]/i.test(nom) ? `d’${nom}` : `de ${nom}`);
 const d = (iso: string) => new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
-const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, ' ')}\u00a0$`;
 const MOIS = new Date().toLocaleDateString('fr-CA', { month: 'long' });
 
 function statut(e: Enquete, fournisseur: string): [string, string] {
@@ -83,7 +84,7 @@ export function Solvabilite({ donnees, erreurLecture }: { donnees: DonneesSolva 
 
           <section className="carte-l18" aria-label="Rapport">
             {!choisie || choisie.resultat !== 'ok' ? <p className="gris" style={{ margin: 0 }}>{choisie ? `Aucun rapport pour ${choisie.nom} : ${statut(choisie, B.fournisseur)[0].toLowerCase()}.` : 'Choisissez une enquête.'}</p>
-              : !lu ? <div className="rapport-ferme"><div><h2>Rapport de {choisie.nom}{choisie.avis ? ` : ${AVIS[choisie.avis]}` : ''}</h2><p className="gris">Chaque consultation est inscrite au journal (Loi 25).</p></div>
+              : !lu ? <div className="rapport-ferme"><div><h2>Rapport {de(choisie.nom)}{choisie.avis ? ` : ${AVIS[choisie.avis]}` : ''}</h2><p className="gris">Chaque consultation est inscrite au journal (Loi 25).</p></div>
                   <button className="bouton bouton-contour" disabled={lecture || choisie.purge} onClick={() => lire(choisie.id)}>{choisie.purge ? 'Rapport supprimé' : 'Afficher le rapport'}</button></div>
               : lu.rapport ? <Rapport lu={lu} conservation={B.conservation_mois} /> : <p className="gris" style={{ margin: 0 }}>Rapport supprimé (conservation de {B.conservation_mois} mois).</p>}
           </section>
@@ -105,7 +106,7 @@ export function Solvabilite({ donnees, erreurLecture }: { donnees: DonneesSolva 
                 <button className="bouton bouton-contour" disabled={envoi} onClick={() => rpc('lanceur_refuser_enquete', { p_id: aApprouver.id }, 'Enquête refusée : elle ne part pas.')}>Refuser</button></div>}
             </>}
             {aApprouver?.statut === 'consent_pending' && <>
-              <p className="fenetre-texte" style={{ marginBottom: 12 }}>Consentement demandé{aApprouver.demande ? ` le ${d(aApprouver.demande)}` : ''} (LOC-14). L’enquête attend la réponse de la personne.</p>
+              <p className="fenetre-texte" style={{ marginBottom: 12 }}>Consentement demandé{aApprouver.demande ? ` le ${d(aApprouver.demande)}` : ''}. L’enquête attend la réponse de la personne.</p>
               {donnees.peut_enqueter && <>
                 <label className="fenetre-lib" htmlFor="pv">Consentement écrit reçu autrement<span>preuve</span></label>
                 <div className="ligne-champ"><input id="pv" className="e70-raison" value={preuve} onChange={(e) => setPreuve(e.target.value)} placeholder="Ex. : formulaire signé du 12 oct." />
@@ -156,14 +157,14 @@ function Rapport({ lu, conservation }: { lu: Lu; conservation: number }) {
   const r = lu.rapport!;
   return (
     <div className="rapport">
-      <header><h2>Rapport de {lu.nom} : {AVIS[r.avis]}</h2><span className="gris">Reçu le {d(lu.recu!)} · conservé {conservation} mois{lu.simule ? ' · simulateur' : ''}</span></header>
+      <header><h2>Rapport {de(lu.nom)} : {AVIS[r.avis]}</h2><span className="gris">Reçu le {d(lu.recu!)} · conservé {conservation} mois{lu.simule ? ' · simulateur' : ''}</span></header>
       <div className="rapport-cols">
         <div>
           <p className="surtitre gris">Cote de crédit</p>
           <ol className="bandes5">{COTES.map((c, i) => <li key={c} className={i === r.cote - 1 ? 'choisi' : ''}>{c}</li>)}</ol>
           <p className="surtitre gris" style={{ marginTop: 28 }}>Loyer sur revenu</p>
-          <div className="seuil"><span className="piste"><i style={{ width: `${Math.min(100, r.ratio * 2)}%` }} className={r.ratio > 33 ? 'au-dessus' : ''} /><b style={{ left: '66%' }} title="seuil de 33 %" /></span><strong>{Math.round(r.ratio)} %</strong></div>
-          <span className="gris" style={{ fontSize: 12 }}>seuil de 33 %</span>
+          <div className="seuil"><span className="piste"><i style={{ width: `${Math.min(100, r.ratio * 2)}%` }} className={r.ratio > 33 ? 'au-dessus' : ''} /><b style={{ left: '66%' }} title="seuil de 33 %" /></span><strong>{Math.round(r.ratio)} %</strong></div>
+          <span className="gris" style={{ fontSize: 12 }}>seuil de 33 %</span>
         </div>
         <div>
           <p className="surtitre gris">Paiements des 12 derniers mois</p>

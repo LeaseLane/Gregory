@@ -33,7 +33,7 @@ export function Validation({ donnees: D, erreurLecture }: { donnees: DonneesVali
           <button key={k} className={onglet === k ? 'actif' : ''} onClick={() => setOnglet(k)}>{l}</button>)}</div>
         {onglet === 'valider' ? <table className="tableau"><thead><tr><th>Document</th><th>Problème</th><th className="droite">Confiance</th><th>Type</th><th /></tr></thead>
           <tbody>{D.a_valider.map((d) => <tr key={d.id}><td><strong>{d.titre}</strong><span className="sous gris">{d.lie ?? '—'} · {jour(d.le)}</span></td>
-            <td>{d.probleme}{d.doublon_de ? ` de « ${d.doublon_de} »` : ''}</td><td className={`droite ${d.confiance != null && d.confiance < 85 ? 'rouge fort' : ''}`}>{d.confiance == null ? '—' : `${Math.round(d.confiance)} %`}</td>
+            <td>{d.probleme}{d.doublon_de ? ` de « ${d.doublon_de} »` : ''}</td><td className={`droite ${d.confiance != null && d.confiance < 85 ? 'rouge fort' : ''}`}>{d.confiance == null ? '—' : `${Math.round(d.confiance)} %`}</td>
             <td><select className="e70-raison" style={{ margin: 0, height: 36, width: 190 }} value={types[d.id] ?? d.type_detecte ?? d.type ?? ''} onChange={(e) => setTypes({ ...types, [d.id]: e.target.value })} aria-label={`Type de ${d.titre}`}>
               <option value="">—</option>{TYPES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></td>
             <td className="droite"><span className="po-actions">

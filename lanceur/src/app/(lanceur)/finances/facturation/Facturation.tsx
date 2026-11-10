@@ -34,7 +34,7 @@ export function Facturation({ donnees: D, erreurLecture }: { donnees: DonneesFac
       <div className="bandeau info" role="status" style={{ marginBottom: 16 }}>Optimal Paiement {D.branchements.optimal} : les prélèvements ci-dessous sont planifiés, aucun ne part tant que le processeur n’est pas branché.</div>
       <div className="kpis" style={{ marginBottom: 24 }}>
         <div className="kpi"><span>Prochain prélèvement</span><b>{I.prochain.le ? jour(I.prochain.le) : '—'}</b><span>{I.prochain.n} loyer{I.prochain.n > 1 ? 's' : ''} · {argent(I.prochain.montant)}</span></div>
-        <div className="kpi"><span>Mandats PAD actifs</span><b>{I.mandats}</b><span>sur {I.baux} baux · {I.baux ? Math.round((100 * I.mandats) / I.baux) : 0} %</span><span className="jauge"><i style={{ width: `${I.baux ? (100 * I.mandats) / I.baux : 0}%` }} /></span></div>
+        <div className="kpi"><span>Mandats PAD actifs</span><b>{I.mandats}</b><span>sur {I.baux} baux · {I.baux ? Math.round((100 * I.mandats) / I.baux) : 0} %</span><span className="jauge"><i style={{ width: `${I.baux ? (100 * I.mandats) / I.baux : 0}%` }} /></span></div>
         <div className="kpi"><span>Factures d’honoraires du mois</span><b>{argent(I.factures.total)}</b><span>{I.factures.n} facture{I.factures.n > 1 ? 's' : ''} · émises le 5</span><Courbe valeurs={I.factures_serie.map(Number)} /></div>
         <div className="kpi"><span>Échecs de prélèvement</span><b style={e ? { color: '#9B2E28' } : undefined}>{I.echecs.length}</b><span>{e ? `${e.locataire} · ${argent(e.montant)}` : 'Aucun'}</span></div>
       </div>
@@ -65,14 +65,14 @@ export function Facturation({ donnees: D, erreurLecture }: { donnees: DonneesFac
           </section>
         </div>
         <div className="po-colonne">
-          <section className="carte-l18" aria-label="Modes de paiement"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{tot ? `${Math.round((100 * D.modes.pad) / tot)} % des loyers arrivent par prélèvement` : 'Modes de paiement'}</h2>
+          <section className="carte-l18" aria-label="Modes de paiement"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{tot ? `${Math.round((100 * D.modes.pad) / tot)} % des loyers arrivent par prélèvement` : 'Modes de paiement'}</h2>
             <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{tot} baux actifs, par mode de paiement</p>
             <BarresClassees lignes={[{ libelle: 'Prélèvement (PAD)', valeur: D.modes.pad, texte: `${tot ? Math.round((100 * D.modes.pad) / tot) : 0} % · ${D.modes.pad}` }, { libelle: 'Virement ou chèque', valeur: D.modes.autre, texte: `${tot ? Math.round((100 * D.modes.autre) / tot) : 0} % · ${D.modes.autre}` }]} /></section>
           <section className="carte-l18 e2" aria-label="Locataires sans prélèvement"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{D.sans_pad.n} locataire{D.sans_pad.n > 1 ? 's' : ''} sans prélèvement</h2>
             <p className="gris texte-13" style={{ margin: '0 0 12px' }}>Ils paient par virement ou par chèque</p>
             {!!D.sans_pad.noms.length && <p className="ligne-ic texte-13"><span className="pile-ini">{D.sans_pad.noms.map((n) => <span key={n} className="ini" style={{ width: 28, height: 28, fontSize: 10 }}>{initiales(n)}</span>)}</span>
               {D.sans_pad.noms.slice(0, 2).join(', ')}{D.sans_pad.n > 2 ? ` et ${D.sans_pad.n - 2} autres` : ''}</p>}
-            {D.sans_pad.a_temps_pad != null && <p className="ligne-ic texte-13" style={{ color: '#3E4A59' }}><Icone nom="trend" taille={18} couleur="#2E5788" />{D.sans_pad.a_temps_pad} % à temps par prélèvement, contre {D.sans_pad.a_temps_autre ?? '—'} % autrement</p>}
+            {D.sans_pad.a_temps_pad != null && <p className="ligne-ic texte-13" style={{ color: '#3E4A59' }}><Icone nom="trend" taille={18} couleur="#2E5788" />{D.sans_pad.a_temps_pad} % à temps par prélèvement, contre {D.sans_pad.a_temps_autre ?? '—'} % autrement</p>}
             <button className="bouton bouton-principal" disabled title="Arrive avec Optimal Paiement"><Icone nom="send" taille={16} couleur="#fff" />Inviter au prélèvement</button>
             <p className="gris texte-12">L’invitation arrive avec le branchement d’Optimal Paiement : les mandats se signent chez le processeur.</p></section>
         </div>

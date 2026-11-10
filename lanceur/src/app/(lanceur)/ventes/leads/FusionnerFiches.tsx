@@ -45,7 +45,7 @@ export function FusionnerFiches({ a, b, fermer, fait }: { a: string; b: string; 
       <div className="fenetre fusion" role="dialog" aria-modal="true" aria-labelledby="fu-t">
         <div className="fenetre-tete"><h2 id="fu-t">Fusionner les fiches de {P.a.nom}?</h2>
           <button className="fermer" onClick={fermer} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
-        <p className="fenetre-texte">Cléo a trouvé {[P.courriel && 'le même courriel', P.telephone && 'le même téléphone', P.nom && 'le même nom'].filter(Boolean).join(' et ')} (confiance {P.confiance} %). Choisissez la fiche principale, puis la valeur à garder pour chaque champ.</p>
+        <p className="fenetre-texte">Cléo a trouvé {[P.courriel && 'le même courriel', P.telephone && 'le même téléphone', P.nom && 'le même nom'].filter(Boolean).join(' et ')} (confiance {P.confiance} %). Choisissez la fiche principale, puis la valeur à garder pour chaque champ.</p>
         {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
         <div className="fusion-grille">
           <span className="fusion-lib">Fiche principale</span>

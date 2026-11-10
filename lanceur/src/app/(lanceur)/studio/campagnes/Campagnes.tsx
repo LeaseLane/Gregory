@@ -13,7 +13,7 @@ type Proposition = { id: string; target_id: string; before: Record<string, unkno
 export type DonneesCampagnes = { mois: string; leads_mois: number[]; depense_mois: number[]; budget_mois: number; campagnes: Campagne[]; pages: { page: string; n: number }[];
   sources: { id: string; code: string; nom: string }[]; proposition: Proposition | null; peut_ecrire: boolean };
 
-const argent = (c: number, dec = false) => `${(c / 100).toLocaleString('fr-CA', dec ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 0 }).replace(/[  ]/g, ' ')} $`;
+const argent = (c: number, dec = false) => `${(c / 100).toLocaleString('fr-CA', dec ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 0 }).replace(/[  ]/g, ' ')}\u00a0$`;
 const nomMois = (iso: string, decal = 0) => { const d = new Date(`${iso}T12:00:00`); d.setMonth(d.getMonth() + decal); return d.toLocaleDateString('fr-CA', { month: 'long' }); };
 const STATUT = { active: ['Active', ''], pause: ['En pause', 'neutral'], terminee: ['Terminée', 'neutral'] } as const;
 const slug = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
@@ -65,7 +65,7 @@ export function Campagnes({ donnees: D, nouvelle: n0, demo }: { donnees: Donnees
         <div className="kpi"><span>Budget dépensé</span><b>{argent(S[n])}</b><span>{D.budget_mois ? `sur ${argent(D.budget_mois)} · ${nomMois(D.mois)}` : `${nomMois(D.mois)} · aucun budget actif`}</span>
           {D.budget_mois > 0 && <span className="jauge"><i style={{ width: `${Math.min(100, (100 * S[n]) / D.budget_mois)}%` }} /></span>}</div>
         <div className="kpi"><span>Visites du site</span><b>{visitesMois ? visitesMois[11].toLocaleString('fr-CA').replace(/[  ]/g, ' ') : '—'}</b>
-          <span>{visitesMois ? `${Math.round((100 * (visitesMois[11] - visitesMois[10])) / Math.max(1, visitesMois[10]))} % sur ${nomMois(D.mois, -1)} · exemple, GA4 à brancher` : 'Google Analytics 4 à brancher'}</span>
+          <span>{visitesMois ? `${Math.round((100 * (visitesMois[11] - visitesMois[10])) / Math.max(1, visitesMois[10]))} % sur ${nomMois(D.mois, -1)} · exemple, GA4 à brancher` : 'Google Analytics 4 à brancher'}</span>
           {visitesMois && <Courbe valeurs={visitesMois} largeur={110} hauteur={26} />}</div>
       </div>
       <div className="grille-2-1">

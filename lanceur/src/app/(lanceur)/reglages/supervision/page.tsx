@@ -31,13 +31,13 @@ export default async function Page() {
     <tbody>{L.map((x) => { const [l, t] = ETAT[x.etat] ?? ETAT.inconnu; return <tr key={x.code} className={x.etat === 'incident' ? 'ligne-alerte' : ''}>
       <td><b className="fort">{x.nom}</b> <span className="gris texte-13">{x.detail}</span></td>
       <td><span className={'etat-service ' + t}><i />{l}</span></td>
-      <td><span className="ligne-ic"><span className="dispo-jours" aria-hidden="true">{x.jours.map((j, k) => <i key={k} className={j === null ? '' : j ? 'ok' : 'ko'} />)}</span><b>{x.dispo !== null ? `${String(x.dispo).replace('.', ',')} %` : '—'}</b></span></td>
+      <td><span className="ligne-ic"><span className="dispo-jours" aria-hidden="true">{x.jours.map((j, k) => <i key={k} className={j === null ? '' : j ? 'ok' : 'ko'} />)}</span><b>{x.dispo !== null ? `${String(x.dispo).replace('.', ',')} %` : '—'}</b></span></td>
       <td className={'droite' + (x.ms !== null && x.ms > x.cible ? ' rouge-txt fort' : '')}>{s(x.ms)}</td><td className="droite gris">{x.source === 'aucune' ? '—' : depuis(x.derniere)}</td></tr>; })}</tbody></>;
   return (
     <CadreEspace icone="chart" nom="Rapports et réglages" sous={SOUS_REG} actif={6} onglets={ONGLETS_REG}>
       {!X ? <div className="bandeau erreur" role="alert">{error?.code === 'PT403' ? error.message : 'La supervision n’a pas pu être lue.'}</div> : <>
         <div className="kpis graphe-droite" style={{ marginBottom: 24 }}>
-          <div className="kpi"><span>Disponibilité 30 jours</span><b>{dispo !== null ? `${String(Math.round(dispo * 100) / 100).replace('.', ',')} %` : '—'}</b><span>moyenne des {mesures.length} services mesurés</span></div>
+          <div className="kpi"><span>Disponibilité 30 jours</span><b>{dispo !== null ? `${String(Math.round(dispo * 100) / 100).replace('.', ',')} %` : '—'}</b><span>moyenne des {mesures.length} services mesurés</span></div>
           <div className="kpi"><span>Parcours critiques</span><b>{P.length ? `${normaux} sur ${P.length}` : '—'}</b><span>{P.length ? `normaux${P.length - normaux ? ` · ${P.length - normaux} ralenti${P.length - normaux > 1 ? 's' : ''}` : ''}` : 'pas encore rejoués'}</span></div>
           <div className="kpi"><span>{X.incident && <i className="point-rouge" />}Incidents ce mois</span><b className={X.incident ? 'rouge-txt' : ''}>{X.incidents_mois}</b><span className={X.incident ? 'rouge-txt' : ''}>{X.incident ? `dont 1 en cours · ${X.incident.titre}` : 'aucun en cours'}</span></div>
           <div className="kpi"><span>Réponse médiane</span><b>{s(med)}</b><span>{I.length} interfaces · cible : 1 s</span></div>

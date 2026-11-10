@@ -4,7 +4,7 @@ import { ONGLETS_IA } from '../onglets';
 import { Decisions, type DonneesDecisions } from './Decisions';
 
 /* Cléo et IA · Décisions automatisées (maquette e57) : ce que les agents décident seuls, leur exactitude mesurée sur un échantillon
-   vérifié par une personne, et la file des décisions à réviser (sous 80 % de confiance, rien n'est appliqué avant votre décision). */
+   vérifié par une personne, et la file des décisions à réviser (sous 80 % de confiance, rien n'est appliqué avant votre décision). */
 export default async function Page() {
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_decisions_ia');
   return (

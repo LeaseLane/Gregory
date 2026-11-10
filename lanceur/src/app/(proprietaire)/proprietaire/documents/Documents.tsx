@@ -39,7 +39,7 @@ export function Documents({ donnees, erreur, lectureSeule = false }: { donnees: 
         <section className="carte-l18 po-dossiers" aria-label="Dossiers">
           <h2 className="titre-carte">Dossiers</h2>
           <nav className="po-dem-filtres">{dossiers.map(([k, l, ic]) => <button key={k} className={dossier === k ? 'actif' : ''} onClick={() => setDossier(k)}><Icone nom={ic} taille={16} couleur="#0C2147" /><span>{l}</span><b>{compte(k)}</b></button>)}</nav>
-          <div className="po-espace"><p><strong>Espace utilisé</strong><span className="gris">{Go(donnees.espace)} sur 50 Go</span></p><span className="jauge large"><i style={{ width: `${Math.max(1, (100 * donnees.espace) / 50e9)}%` }} /></span>
+          <div className="po-stockage"><p><strong>Espace utilisé</strong><span className="gris">{Go(donnees.espace)} sur 50 Go</span></p><span className="jauge large"><i style={{ width: `${Math.max(1, (100 * donnees.espace) / 50e9)}%` }} /></span>
             <span className="gris texte-13">Chiffré au repos · accès journalisés (Loi 25)</span></div>
         </section>
         <div className="colonne-l18">

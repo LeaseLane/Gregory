@@ -40,7 +40,7 @@ export function Anomalies({ donnees: D, erreurLecture }: { donnees: DonneesAnoma
         <div className="po-colonne">
           {A ? <section className="carte-l18 e2" aria-label="Anomalie à vérifier">
             <div className="tete-action"><p className="surtitre" style={{ margin: 0 }}>Anomalie · détectée le {jour(A.le)}{A.proprietaire ? ` · ${A.proprietaire}` : ''}</p>
-              <span className="ligne-ic">{D.ouvertes.length > 1 && <span className="gris texte-13">{i + 1} sur {D.ouvertes.length}<button className="lien" onClick={() => setI((i + 1) % D.ouvertes.length)}>Suivante</button></span>}<span className="puce action">À vérifier</span></span></div>
+              <span className="ligne-ic">{D.ouvertes.length > 1 && <span className="gris texte-13">{i + 1} sur {D.ouvertes.length}<button className="lien" style={{ marginLeft: 12 }} onClick={() => setI((i + 1) % D.ouvertes.length)}>Suivante</button></span>}<span className="puce action">À vérifier</span></span></div>
             <h2 className="releve-titre" style={{ margin: '8px 0 16px' }}>{TYPE[A.type] ?? A.type} : {A.description}</h2>
             {A.depense && <div className="po-deux">{op('Opération 1', A.depense, A.bon ? `Liée au bon ${A.bon.numero}` : 'Dépense inscrite', true)}{op('Opération 2', A.doublon, 'Aucune facture distincte', false)}</div>}
             {A.paiement && <div className="op-cote"><p className="surtitre gris" style={{ margin: 0 }}>Loyer · {A.paiement.locataire}</p><span className="texte-13">Attendu <mark>{argent(A.paiement.montant, true)}</mark> · reçu <mark>{argent(A.paiement.recu, true)}</mark> · échéance {jour(A.paiement.echeance)}</span></div>}

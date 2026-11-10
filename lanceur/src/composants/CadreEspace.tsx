@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { cache } from 'react';
 import { Icone } from '@/composants/Icones';
 import { BoutonExporter } from '@/composants/BoutonExporter';
+import { DefileActif } from '@/composants/DefileActif';
 import { supabaseServeur } from '@/lib/supabase/serveur';
 
 /* En-tête d'un espace (B.space de la maquette) : pastille marine 56, titre 28, sous-titre, filet, onglets
@@ -23,21 +24,21 @@ const lien = (href: string, libelle: string, icone: string, principal = false) =
   <Link key={libelle} href={href} className={'bouton ' + (principal ? 'bouton-principal' : 'bouton-contour')} style={{ width: LARGEURS[libelle] }}><Icone nom={icone} taille={20} couleur={principal ? '#fff' : '#0C2147'} />{libelle}</Link>;
 
 /* Boutons de la maquette par espace; un bouton dont l'écran n'existe pas encore n'est pas affiché. */
-const ACTIONS: Record<string, () => React.ReactNode> = {
+const ACTIONS: Record<string, (onglet: string) => React.ReactNode> = {
   'Opérations': () => <><BoutonExporter nom="operations" />{lien('/operations?nouveau=1', 'Nouvelle demande', 'plus', true)}</>,
   'Ventes': () => <>{lien('/ventes/leads/import', 'Importer un CSV', 'upload')}{lien('/ventes/leads?nouveau=1', 'Nouveau lead', 'plus', true)}</>,
   'Clients': () => lien('/clients/proprietaires?nouveau=1', 'Nouveau client', 'plus', true),
   'Immeubles': () => lien('/immeubles?nouveau=1', 'Ajouter un immeuble', 'plus', true),
   'Maintenance': () => lien('/maintenance/bons?nouveau=1', 'Nouveau bon de travail', 'plus', true),
   'Finances': () => <BoutonExporter nom="finances" />,
-  'Studio': () => lien('/studio/campagnes?nouvelle=1', 'Nouvelle campagne', 'plus', true),
+  'Studio': (onglet) => onglet === 'Campagnes' ? lien('/studio/campagnes?nouvelle=1', 'Nouvelle campagne', 'plus', true) : null, // le bouton d'une autre page (Nouvel article…) vient de la page
   'Rapports et réglages': () => <BoutonExporter nom="rapports" />,
 };
 
 export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, children }: { icone: string; nom: string; sous: string; onglets: Onglet[]; actif: number; actions?: React.ReactNode; children: React.ReactNode }) {
   const p = (await lirePastilles())[nom] ?? {};
   const tabs = onglets.map((o) => (o.compte === undefined && p[o.libelle]?.n ? { ...o, compte: p[o.libelle].n, rouge: o.rouge ?? p[o.libelle].r } : o));
-  const boutons = actions === undefined ? ACTIONS[nom]?.() : actions;
+  const boutons = actions === undefined ? ACTIONS[nom]?.(onglets[actif]?.libelle ?? '') : actions;
   return (
     <main className="espace-page">
       <section className="espace-tete">
@@ -50,6 +51,7 @@ export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, c
           {boutons && <div className="espace-actions">{boutons}</div>}
         </div>
         <nav className="onglets" aria-label={`Pages de ${nom}`}>
+          <DefileActif />
           {tabs.map((o, i) => {
             if (o.cache) return null;
             const contenu = <>{o.libelle}{o.compte ? <span className={'compte' + (o.rouge ? ' rouge' : '')}>{o.compte}</span> : null}</>;

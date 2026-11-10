@@ -11,7 +11,7 @@ type Facture = { honoraires: number; coordination: number; sous_total: number; t
 export type DonneesReleves = { mois: string; parametres: { gestion_pct: number; travaux_seuil: number; travaux_pct: number; valid_from: string } | null;
   releves: { proprietaire: string; owner_id: string; numero: string; facture: Facture; emis_le: string; courriel: string | null; facture_courriel: string | null }[];
   a_emettre: { proprietaire: string; owner_id: string; apercu: Facture }[] };
-const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')} $`;
+const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')}\u00a0$`;
 const moisLib = (iso: string) => { const s = new Date(`${iso.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' }); return s[0].toUpperCase() + s.slice(1); };
 const decale = (iso: string, k: number) => { const d = new Date(`${iso.slice(0, 7)}-15T12:00:00`); d.setMonth(d.getMonth() + k); return d.toISOString().slice(0, 7); };
 const ENVOI: Record<string, [string, string]> = { sent: ['Envoyé', 'final'], delivered: ['Remis', 'final'], queued: ['En file', 'neutral'], scheduled: ['Prévu', 'neutral'], failed: ['Échec', 'todo'] };
@@ -37,7 +37,7 @@ export function Releves({ donnees: D, maintenant, erreurLecture }: { donnees: Do
         <nav className="lo-cal-nav" aria-label="Mois"><Link className="haut-ibtn" href={`/finances/releves?m=${decale(D.mois, -1)}`} aria-label="Mois précédent"><Icone nom="chevron" taille={18} couleur="#0C2147" /></Link>
           <strong style={{ fontSize: 18, minWidth: 180, textAlign: 'center' }}>{moisLib(D.mois)}</strong>
           <Link className="haut-ibtn" href={`/finances/releves?m=${decale(D.mois, 1)}`} aria-label="Mois suivant"><Icone nom="chevron" taille={18} couleur="#0C2147" /></Link></nav>
-        {D.parametres && <p className="gris texte-13" style={{ margin: 0 }}>Honoraires en vigueur depuis le {new Date(`${D.parametres.valid_from}T12:00:00`).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })} : {D.parametres.gestion_pct} % des loyers; travaux : rien jusqu’à {argent(D.parametres.travaux_seuil)}, au-delà {D.parametres.travaux_pct} % de la facture avant taxes.</p>}
+        {D.parametres && <p className="gris texte-13" style={{ margin: 0 }}>Honoraires en vigueur depuis le {new Date(`${D.parametres.valid_from}T12:00:00`).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })} : {D.parametres.gestion_pct} % des loyers; travaux : rien jusqu’à {argent(D.parametres.travaux_seuil)}, au-delà {D.parametres.travaux_pct} % de la facture avant taxes.</p>}
       </div>
       <div className="po-kpis trois">
         <div className="carte-l18 kpi-po"><span>Relevés émis</span><b>{D.releves.length}</b><small>{D.a_emettre.length ? `${D.a_emettre.length} à émettre` : 'tous émis'}</small></div>

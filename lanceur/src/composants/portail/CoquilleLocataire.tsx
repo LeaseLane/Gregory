@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
@@ -14,6 +14,8 @@ export type Pastilles = { demandes: number; messages: number; contact: { nom?: s
 const MENU: [string, string, string][] = [['home', 'Accueil', '/locataire'], ['key', 'Logement', '/locataire/logement'], ['wrench', 'Demandes', '/locataire/demandes'], ['card', 'Paiements', '/locataire/paiements'],
   ['folder', 'Documents', '/locataire/documents'], ['message', 'Messages', '/locataire/messages'], ['calendar', 'Calendrier', '/locataire/calendrier'], ['help', 'Aide', '/locataire/aide']];
 
+/* Téléphone : 4 destinations dans la barre du bas, le reste (et Cléo, Profil) sous « Plus » : la barre de 10 éléments défilait et coupait « Me… ». */
+const PRIMAIRES = ['Accueil', 'Logement', 'Demandes', 'Paiements'];
 const Ctx = createContext<{ ouvrirCleo: (q?: string) => void; pastilles: Pastilles; prenom: string }>({ ouvrirCleo: () => {}, pastilles: null, prenom: '' });
 export const useLocataire = () => useContext(Ctx);
 
@@ -21,19 +23,29 @@ export function CoquilleLocataire({ moi, pastilles, children }: { moi: MoiPortai
   const chemin = usePathname();
   const [cleo, setCleo] = useState<string | null>(null);
   const actif = (href: string) => href === '/locataire' ? chemin === href : chemin.startsWith(href);
+  const [plus, setPlus] = useState(false);
+  useEffect(() => setPlus(false), [chemin]);
+  const secondaires = MENU.filter(([, l]) => !PRIMAIRES.includes(l));
+  const enPlus = secondaires.some(([, , h]) => actif(h)) || actif('/locataire/profil');
   return (
     <Ctx.Provider value={{ ouvrirCleo: (q = '') => setCleo(q), pastilles, prenom: moi.prenom }}>
       <div className={`lo lo-${moi.menu}`}>
         <nav className="lo-rail" aria-label="Espace locataire">
           <img className="lo-logo" src="/img/logo-icone-blanc.svg" alt="Lease Lane" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           {MENU.map(([ic, l, href]) => { const n = l === 'Demandes' ? pastilles?.demandes : l === 'Messages' ? pastilles?.messages : 0;
-            return <Link key={l} href={href} className={actif(href) ? 'actif' : ''} aria-current={actif(href) ? 'page' : undefined}>
+            return <Link key={l} href={href} className={(actif(href) ? 'actif' : '') + (PRIMAIRES.includes(l) ? '' : ' lo-sec')} aria-current={actif(href) ? 'page' : undefined}>
               <span className="lo-ic"><Icone nom={ic} taille={22} couleur="currentColor" />{!!n && <b aria-label={`${n} à voir`}>{n}</b>}</span><span>{l}</span></Link>; })}
           <span className="lo-sep" />
-          <button type="button" className={`lo-cleo ${cleo !== null ? 'actif' : ''}`} onClick={() => setCleo('')}><span className="po-cleo-av"><img src="/img/cleo.png" alt="" /><i /></span><span>Cléo</span></button>
-          <Link href="/locataire/profil" className={`lo-profil ${actif('/locataire/profil') ? 'actif' : ''}`} aria-label={`${moi.nom} · mon profil`}><b>{moi.initiales}</b><span>Profil</span></Link>
+          <button type="button" className={`lo-cleo lo-sec ${cleo !== null ? 'actif' : ''}`} onClick={() => setCleo('')}><span className="po-cleo-av"><img src="/img/cleo.png" alt="" /><i /></span><span>Cléo</span></button>
+          <Link href="/locataire/profil" className={`lo-profil lo-sec ${actif('/locataire/profil') ? 'actif' : ''}`} aria-label={`${moi.nom} · mon profil`}><b>{moi.initiales}</b><span>Profil</span></Link>
           <form action="/deconnexion?p=locataire" method="post" className="lo-sortir-f"><button className="lo-sortir" title="Me déconnecter"><Icone nom="sortir" taille={20} couleur="currentColor" /><span>Déconnexion</span></button></form>
+          <button type="button" className={'lo-plus-bouton' + (plus || enPlus ? ' actif' : '')} aria-expanded={plus} aria-haspopup="true" onClick={() => setPlus((v) => !v)}><span className="lo-ic"><Icone nom="list" taille={22} couleur="currentColor" />{!!pastilles?.messages && <b aria-label={`${pastilles.messages} message${pastilles.messages > 1 ? 's' : ''} à voir`}>{pastilles.messages}</b>}</span><span>Plus</span></button>
         </nav>
+        {plus && <><div className="lo-plus-fond" onClick={() => setPlus(false)} /><div className="lo-plus" role="menu" aria-label="Plus de rubriques">
+          {secondaires.map(([ic, l, href]) => <Link key={l} href={href} role="menuitem" onClick={() => setPlus(false)} className={actif(href) ? 'actif' : ''}><Icone nom={ic} taille={20} couleur="currentColor" /><span>{l}</span>{l === 'Messages' && !!pastilles?.messages && <b>{pastilles.messages}</b>}</Link>)}
+          <button type="button" role="menuitem" onClick={() => { setPlus(false); setCleo(''); }}><Icone nom="spark" taille={20} couleur="currentColor" /><span>Cléo</span></button>
+          <Link href="/locataire/profil" role="menuitem" onClick={() => setPlus(false)} className={actif('/locataire/profil') ? 'actif' : ''}><Icone nom="user" taille={20} couleur="currentColor" /><span>Profil</span></Link>
+        </div></>}
         <main className="lo-contenu">{children}</main>
         {cleo !== null && <Cleo question={cleo} fermer={() => setCleo(null)} locataire={{ prenom: moi.prenom, aConfirmer: pastilles?.a_confirmer ?? null, gestionnaire: pastilles?.contact?.nom ?? null }} />}
       </div>

@@ -24,7 +24,7 @@ const FIL: Record<string, [string, string]> = { 'work_order.created': ['flag', '
   'work_order.verified': ['shieldc', 'Fermé'], 'work_order.cancelled': ['close', 'Annulé'], 'work_order.note': ['message', 'Note'], 'quote.selected': ['spark', 'Soumission choisie'], 'quote.added': ['file', 'Soumission reçue'], 'quote.owner_approved': ['check', 'Accord du propriétaire consigné'],
   'quote.owner_requested': ['send', 'Accord demandé au propriétaire'], 'quote.approval_requested': ['send', 'Accord demandé au propriétaire'], 'approval.decided': ['check', 'Décision du propriétaire'], 'approval.created': ['clock', 'Accord demandé'],
   'approval.approved': ['check', 'Dépense approuvée par le propriétaire'], 'approval.rejected': ['close', 'Dépense refusée par le propriétaire'], 'approval.revision_requested': ['message', 'Révision humaine demandée par le propriétaire'] };
-const argent = (n: number | null | undefined, c = true) => n == null ? '—' : `${Number(n).toLocaleString('fr-CA', { minimumFractionDigits: c ? 2 : 0, maximumFractionDigits: c ? 2 : 0 }).replace(/[  ]/g, ' ')} $`;
+const argent = (n: number | null | undefined, c = true) => n == null ? '—' : `${Number(n).toLocaleString('fr-CA', { minimumFractionDigits: c ? 2 : 0, maximumFractionDigits: c ? 2 : 0 }).replace(/[  ]/g, ' ')}\u00a0$`;
 const jour = (iso: string) => new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
 const local = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
 
@@ -110,7 +110,7 @@ export function FicheBon({ donnees: D, maintenant, erreurLecture, factures = nul
             : <><h2 className="titre-carte">Fournisseur</h2><p className="gris texte-13">{D.en_soumissions ? `En soumissions · ${D.soumissions} reçue${D.soumissions > 1 ? 's' : ''}` : 'Aucun fournisseur assigné.'}</p></>}</section>
           <section className="carte-l18" aria-label="Coûts"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Coûts</h2>
             <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{C.facture_ht ? 'Facture du fournisseur' : C.soumission ? `Soumission retenue le ${jour(C.soumission.le)}` : 'Budget estimé'}</p>
-            <div className="couts"><span>{C.facture_ht ? 'Facture avant taxes' : C.soumission ? 'Soumission' : 'Budget'}</span><span>{argent(C.base)}</span><span>TPS (5 %)</span><span>{argent(C.tps)}</span><span>TVQ (9,975 %)</span><span>{argent(C.tvq)}</span>
+            <div className="couts"><span>{C.facture_ht ? 'Facture avant taxes' : C.soumission ? 'Soumission' : 'Budget'}</span><span>{argent(C.base)}</span><span>TPS (5 %)</span><span>{argent(C.tps)}</span><span>TVQ (9,975 %)</span><span>{argent(C.tvq)}</span>
               <span className="total">Total</span><span className="total">{argent(C.facture_ttc ?? C.total)}</span></div>
             <p className="gris texte-12">{Number(C.honoraires) > 0 ? `Honoraires de Lease Lane au relevé du propriétaire : ${argent(C.honoraires)} (10 % dès 1 000 $ avant taxes).` : 'Aucun honoraire : 1 000 $ ou moins avant taxes.'}</p>
             {C.accord && <div className="cleo-lecture" style={{ background: '#F3F6FA' }}><Icone nom={C.accord.statut === 'approved' ? 'check' : C.accord.statut === 'rejected' ? 'close' : 'clock'} taille={18} couleur="#2E5788" />

@@ -10,6 +10,6 @@ export const ongletsVentes = (): Onglet[] => [
   { libelle: 'Leads entrants', href: '/ventes/leads' }, { libelle: 'Contacts', href: '/ventes/contacts' }, { libelle: 'Prospection IA', href: '/ventes/prospection' }, { libelle: 'Prospecteurs', href: '/ventes/prospecteurs' }, ...(ROLE_VISIBLE ? [{ libelle: 'Immeubles (rôle)', href: '/ventes/immeubles' }, { libelle: 'À appeler', href: '/ventes/a-appeler' }] : []),
   { libelle: 'Mes prospects', href: '/ventes/mes-prospects' },   // le pipeline des mandats, seulement les deals de la personne connectée
 ];
-export const argent = (cents: number | null | undefined) => cents == null ? '—' : `${Math.round(cents / 100).toLocaleString('fr-CA').replace(/ |,/g, ' ')} $`;
+export const argent = (cents: number | null | undefined) => cents == null ? '—' : `${Math.round(cents / 100).toLocaleString('fr-CA').replace(/ |,/g, ' ')}\u00a0$`;
 export const initiales = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((m) => m[0]).join('').toUpperCase();
 export const joursDepuis = (iso: string | null) => iso ? Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 864e5)) : 0;

@@ -12,7 +12,7 @@ type Facture = { honoraires: number; coordination: number; sous_total: number; t
 export type DonneesReleve = { id: string | null; proprietaire: string; logements: number; immeubles: string | null; mois: string; emis: boolean; numero: string | null; emis_le: string | null;
   envoi: { releve: { statut: string; le: string } | null; facture: { statut: string; le: string } | null }; lignes: Ligne[]; facture: Facture; historique: { mois: string; honoraires: number }[];
   parametres: { gestion_pct: number; travaux_seuil: number; travaux_pct: number } | null };
-const argent = (n: number, c = false) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: c ? 2 : 0, maximumFractionDigits: c ? 2 : 0 }).replace(/[  ]/g, ' ')} $`;
+const argent = (n: number, c = false) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: c ? 2 : 0, maximumFractionDigits: c ? 2 : 0 }).replace(/[  ]/g, ' ')}\u00a0$`;
 const jour = jourCourt;
 const moisLib = (iso: string, an = true) => new Date(`${iso.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', an ? { month: 'long', year: 'numeric' } : { month: 'short' });
 
@@ -47,9 +47,9 @@ export function Releve({ donnees: D, erreurLecture }: { donnees: DonneesReleve |
             <table className="tableau"><thead><tr><th>Poste</th><th>Détail</th><th className="droite">Montant</th></tr></thead><tbody>
               <tr><td className="fort">Loyers payés chez vous</td><td>{loyers.length ? (loyers.length === 1 ? loyers[0].immeuble?.replace(/, Québec$/, '') : `${loyers.length} immeubles`) : 'Aucun loyer suivi'} · payés directement au propriétaire</td><td className="droite fort">{argent(sommeLoyers, true)}</td></tr>
               <tr><td className="fort">Entretien</td><td>{travaux.length ? `${travaux.length} facture${travaux.length > 1 ? 's' : ''} · taxes incluses` : 'Aucune facture'}</td><td className="droite">{sommeTravaux ? `−${argent(sommeTravaux, true)}` : '—'}</td></tr>
-              <tr><td className="fort">Honoraires de gestion</td><td>{P?.gestion_pct ?? 6} % des loyers payés</td><td className="droite">{argent(F.honoraires, true)}</td></tr>
-              <tr><td className="fort">Honoraires sur travaux</td><td>{P ? `${P.travaux_pct} % des factures de plus de ${argent(P.travaux_seuil)}, avant taxes` : '—'}</td><td className="droite">{argent(F.coordination, true)}</td></tr>
-              <tr><td className="fort">TPS et TVQ</td><td>Sur les honoraires · 5 % et 9,975 %</td><td className="droite">{argent(F.tps + F.tvq, true)}</td></tr>
+              <tr><td className="fort">Honoraires de gestion</td><td>{P?.gestion_pct ?? 6} % des loyers payés</td><td className="droite">{argent(F.honoraires, true)}</td></tr>
+              <tr><td className="fort">Honoraires sur travaux</td><td>{P ? `${P.travaux_pct} % des factures de plus de ${argent(P.travaux_seuil)}, avant taxes` : '—'}</td><td className="droite">{argent(F.coordination, true)}</td></tr>
+              <tr><td className="fort">TPS et TVQ</td><td>Sur les honoraires · 5 % et 9,975 %</td><td className="droite">{argent(F.tps + F.tvq, true)}</td></tr>
               <tr className="releve-somme"><td className="fort">Facture d’honoraires</td><td>{F.numero ?? 'Numérotée à l’émission'} · le 5 du mois suivant</td><td className="droite fort">{argent(F.total, true)}</td></tr></tbody></table>
           </section>
         </div>

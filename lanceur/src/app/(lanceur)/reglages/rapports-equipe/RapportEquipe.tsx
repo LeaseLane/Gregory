@@ -31,7 +31,7 @@ export function RapportEquipe({ donnees: D, semaines, erreurLecture }: { donnees
       <span className="gris texte-13" style={{ marginLeft: 'auto' }}>Source : Opérations et Inbox · tâches faites et réponses de l’équipe</span>
     </div>
     <div className="grille-2-1">
-      <section className="carte-l18" aria-label="Tâches par semaine"><h2 className="titre-carte" style={{ marginBottom: 2 }}>L’équipe fait {Math.round(recent)} tâche{Math.round(recent) > 1 ? 's' : ''} par semaine{avant > 0 ? `, ${recent >= avant ? `${Math.round((100 * (recent - avant)) / avant)} % de plus` : `${Math.round((100 * (avant - recent)) / avant)} % de moins`} qu’en ${mois(0)}` : ''}</h2>
+      <section className="carte-l18" aria-label="Tâches par semaine"><h2 className="titre-carte" style={{ marginBottom: 2 }}>L’équipe fait {Math.round(recent)} tâche{Math.round(recent) > 1 ? 's' : ''} par semaine{avant > 0 ? `, ${recent >= avant ? `${Math.round((100 * (recent - avant)) / avant)} % de plus` : `${Math.round((100 * (avant - recent)) / avant)} % de moins`} qu’en ${mois(0)}` : ''}</h2>
         <p className="gris texte-13" style={{ margin: '0 0 16px' }}>Tâches faites par semaine · 12 semaines · même échelle pour les {top.length} personne{top.length > 1 ? 's' : ''}</p>
         {top.length ? <div className="petits-multiples">{top.map((p) => <div key={p.user_id}><p className="ligne-entre texte-13"><b>{court(p.nom)}</b><b>{p.sem[11] ?? 0}</b></p>
           <span className="mini-barres" style={{ height: 40 }}>{p.sem.map((n, i) => <i key={i} className={i === 11 ? 'accent' : ''} style={{ height: `${Math.max(4, (100 * n) / maxSem)}%` }} />)}</span>

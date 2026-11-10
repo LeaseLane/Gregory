@@ -9,7 +9,7 @@ import { televerser } from '@/composants/portail/fichiers';
 /* Propriétaire · 04 Ajouter un immeuble : photos, informations, règles de gestion, aperçu. Devient une soumission que l'équipe valide
    (sous 2 jours ouvrables) avant que l'immeuble et ses logements apparaissent. */
 const SECTEURS = ['Limoilou', 'Montcalm', 'Saint-Roch', 'Saint-Jean-Baptiste', 'Sainte-Foy', 'Sillery', 'Beauport', 'Charlesbourg', 'Lévis', 'Autre'];
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')}\u00a0$`;
 
 export function Ajouter() {
   const router = useRouter();
@@ -60,7 +60,7 @@ export function Ajouter() {
           </section>
           <section className="carte-l18" aria-label="Règles de gestion">
             <h2 className="titre-carte">Règles de gestion</h2>
-            <ul className="po-regles">{([['seuil', 'Seuil d’autorisation à 500 $', 'Toute dépense au-delà vous est soumise.'], ['decision_locataires', 'Je garde la décision finale sur les locataires', 'Sinon, l’équipe sélectionne selon vos critères.'], ['recus_auto', 'Reçus de loyer automatiques aux locataires', '']] as const).map(([k, t, s]) =>
+            <ul className="po-regles">{([['seuil', 'Seuil d’autorisation à 500 $', 'Toute dépense au-delà vous est soumise.'], ['decision_locataires', 'Je garde la décision finale sur les locataires', 'Sinon, l’équipe sélectionne selon vos critères.'], ['recus_auto', 'Reçus de loyer automatiques aux locataires', '']] as const).map(([k, t, s]) =>
               <li key={k}><button role="switch" aria-checked={regles[k]} className={`interrupteur ${regles[k] ? 'actif' : ''}`} onClick={() => setRegles({ ...regles, [k]: !regles[k] })}><i /></button><div><strong>{t}</strong>{s && <span className="gris texte-13">{s}</span>}</div></li>)}</ul>
           </section>
         </div>

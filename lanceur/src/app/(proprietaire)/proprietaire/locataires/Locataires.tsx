@@ -8,7 +8,7 @@ import { aujQc, dateLongue } from '@/composants/portail/format';
 /* Propriétaire · 05 Locataires : chiffres, recherche, filtre par immeuble, une carte par locataire (loyer du mois, retard et relance). */
 type Loc = { id: string; nom: string; immeuble_id: string; logement: string; loyer: number; depuis: number | null; retard_jours: number | null; paye_ce_mois: boolean; depart?: string | null; arrivee?: string | null };
 export type DonneesLocataires = { locataires: Loc[]; occupes: number; documents: number; documents_semaine: number; immeubles: { id: string; adresse: string }[] };
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')}\u00a0$`;
 const MOIS = aujQc().toLocaleDateString('fr-CA', { month: 'long' });
 const DE = /^[aeiouéèêh]/i.test(MOIS) ? 'd’' : 'de ';
 const relance = (j: number) => (j >= 12 ? 'mise en demeure' : j >= 7 ? 'relance J+7' : 'rappel J+1');
@@ -34,7 +34,7 @@ export function Locataires({ donnees, erreur }: { donnees: DonneesLocataires | n
       </div>
       <div className="po-cartes">{liste.map((l) => <Link key={l.id} href={`/proprietaire/locataires/${l.id}`} className="carte-l18 po-carte-loc">
         <div className="personne-ligne"><span className="ini" style={{ width: 48, height: 48, fontSize: 14 }}>{initiales(l.nom)}</span><div><strong>{l.nom}</strong><span className="gris">{l.logement}</span>{l.depart && <span className="puce neutral" style={{ marginTop: 4 }}>Départ le {dateLongue(l.depart)}</span>}{l.arrivee && <span className="puce info" style={{ marginTop: 4 }}>Arrive le {dateLongue(l.arrivee)}</span>}</div></div>
-        {l.retard_jours ? <span className="puce todo" style={{ justifySelf: 'start' }}>En retard · {relance(l.retard_jours)}</span>
+        {l.retard_jours ? <span className={`puce ${l.retard_jours >= 30 ? 'todo' : 'attention'}`} style={{ justifySelf: 'start' }}>En retard · {relance(l.retard_jours)}</span>
           : <span className="ligne-ic texte-13"><span className="okdot" style={{ marginTop: 0 }}><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>{l.paye_ce_mois ? `Loyer ${DE}${MOIS} reçu` : 'À jour'}</span>}
         <dl className="po-carte-pied"><div><dt>Loyer</dt><dd>{argent(l.loyer)}</dd></div><div className="droite"><dt>Depuis</dt><dd>{l.depuis ?? '—'}</dd></div></dl></Link>)}
         {!liste.length && <p className="gris">Aucun locataire.</p>}</div>

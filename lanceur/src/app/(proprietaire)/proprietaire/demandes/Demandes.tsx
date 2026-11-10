@@ -7,7 +7,7 @@ import { Icone } from '@/composants/Icones';
 import { heureQc, jourQc } from '@/composants/portail/dates';
 
 /* Propriétaire · 07 Demandes et travaux + 08 Autorisation de dépense. « En attente de vous » en puce marine (D3); fenêtre d'accord avec
-   titre en question, conséquence, note facultative; refus avec motif (D8). Coordination de 10 % seulement dès 1 000 $. */
+   titre en question, conséquence, note facultative; refus avec motif (D8). Coordination de 10 % seulement dès 1 000 $. */
 type Ligne = { id: string; numero: string; titre: string; logement: string; locataire: string; etat: string; recue: string };
 export type ListeDemandes = { seuil: number; demandes: Ligne[] };
 export type Detail = { id: string; numero: string; logement: string; locataire: string | null; titre: string; description: string; urgence: string | null; recue: string; etat: string; photos: number;
@@ -16,7 +16,7 @@ export type Detail = { id: string; numero: string; logement: string; locataire: 
   suivi: { etape: string; qui: string; le: string | null; attente?: boolean; requise?: boolean }[]; gestionnaire: { nom: string; initiales: string; courriel: string } | null; fil: string | null };
 const ETATS: Record<string, [string, string]> = { attente_vous: ['En attente de vous', 'action'], urgence: ['Urgence prise en charge', 'todo'], en_cours: ['En cours', 'neutral'], qualifiee: ['Qualifiée', ''], fermee: ['Fermée', 'ok'] };
 const FILTRES: [string, string, string][] = [['toutes', 'Toutes', 'layers'], ['attente_vous', 'En attente de vous', 'dollar'], ['urgence', 'Urgences', 'alert'], ['en_cours', 'En cours', 'wrench'], ['fermee', 'Fermées', 'check']];
-const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }).replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }).replace(/ /g, ' ')}\u00a0$`;
 const jour = (iso: string) => jourQc(iso);
 const heure = (iso: string) => `${jour(iso)} · ${heureQc(iso)}`;
 
@@ -67,7 +67,7 @@ export function Demandes({ liste, detail, filtre, erreur }: { liste: ListeDemand
           {a && <div className={`po-estim ${enAttente ? '' : 'faite'}`}>
             <p className="surtitre">{enAttente ? 'Estimation à autoriser' : a.statut === 'approved' ? `Autorisée le ${jour(a.decide_le!)}` : `Refusée le ${jour(a.decide_le!)}`}</p>
             <b className="po-grand">{argent(a.montant)}</b>
-            <p className="texte-13">{a.fournisseur ?? 'Fournisseur à confirmer'}{a.verifie ? ' · licence RBQ et assurances vérifiées' : ''}{a.coordination ? ` · + ${argent(a.coordination)} de coordination (10 %)` : ' · aucuns frais de coordination (1 000 $ ou moins)'}</p>
+            <p className="texte-13">{a.fournisseur ?? 'Fournisseur à confirmer'}{a.verifie ? ' · licence RBQ et assurances vérifiées' : ''}{a.coordination ? ` · + ${argent(a.coordination)} de coordination (10 %)` : ' · aucuns frais de coordination (1 000 $ ou moins)'}</p>
             {D.soumissions.length > 1 && <ul className="po-soum">{D.soumissions.map((s) => <li key={s.fournisseur} className={s.statut === 'selected' ? 'choisie' : ''}><span>{s.fournisseur}</span><b>{argent(s.montant)}</b><span className="gris">{s.statut === 'selected' ? 'proposée' : s.disponible ? `dès le ${jour(s.disponible)}` : ''}</span></li>)}</ul>}
             {a.note && <p className="texte-13">Votre note : {a.note}</p>}{a.motif && <p className="texte-13">Votre motif : {a.motif}</p>}
             {enAttente && <div className="a-faire-actions"><button className="bouton bouton-principal" onClick={() => { setFenetre('approuver'); setNote(''); }}>Approuver {argent(a.montant)}</button>
@@ -94,7 +94,7 @@ export function Demandes({ liste, detail, filtre, erreur }: { liste: ListeDemand
               <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{D.titre} · {D.logement} · {D.numero}</p></div>
               <button className="fermer" onClick={() => { setFenetre(null); setRevision(false); }} aria-label="Fermer"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button></div>
             {!revision && a && <div className="po-dep-cartes"><div><p className="surtitre gris">Fournisseur</p><strong>{a.fournisseur ?? '—'}</strong><span className="gris texte-13">{a.verifie ? 'Licence RBQ et assurances vérifiées' : 'Vérifications en cours'}</span></div>
-              <div><p className="surtitre gris">Estimation</p><strong className="po-grand" style={{ fontSize: 22 }}>{argent(a.montant)}</strong><span className="gris texte-13">{a.coordination ? `+ 10 % de coordination (${argent(a.coordination)})` : 'aucuns frais de coordination'}</span></div></div>}
+              <div><p className="surtitre gris">Estimation</p><strong className="po-grand" style={{ fontSize: 22 }}>{argent(a.montant)}</strong><span className="gris texte-13">{a.coordination ? `+ 10 % de coordination (${argent(a.coordination)})` : 'aucuns frais de coordination'}</span></div></div>}
             <p className="fenetre-texte">{revision ? 'Une personne de l’équipe revoit le classement et l’urgence décidés automatiquement, puis vous répond.' : fenetre === 'approuver' ? 'L’équipe planifie l’intervention avec le fournisseur et avise le locataire. La facture vous sera remise telle quelle.' : 'Les travaux ne seront pas commandés. L’équipe vous propose une autre solution selon votre motif.'}</p>
             <label className="fenetre-lib" htmlFor="dep-n">{fenetre === 'refuser' ? 'Motif' : revision ? 'Ce qui vous semble à revoir' : 'Note à notre équipe'}<span>{fenetre === 'refuser' ? 'obligatoire' : 'facultatif'}</span></label>
             <input id="dep-n" className="e70-raison" value={note} onChange={(e) => setNote(e.target.value)} placeholder={fenetre === 'refuser' ? 'Ex. : je préfère une autre soumission' : 'Une préférence, une contrainte d’accès…'} />

@@ -57,13 +57,13 @@ export function Prospection({ donnees, erreurLecture }: { donnees: DonneesProspe
                 <input className="e70-raison" type="number" min={2} value={portes} onChange={(e) => setPortes(e.target.value)} aria-label="Portes minimum" title="Portes minimum" />
                 <button className="bouton bouton-principal" disabled={cherche || !territoire.trim()} onClick={chercher}><Icone nom="spark" taille={20} couleur="#fff" />{cherche ? 'Recherche… (1 min)' : 'Lancer une recherche'}</button></div>}
             </header>
-            <div className="suggestions">
+            <div className="sugg-liste">
               {d.suggestions.length === 0 && <p className="appro-vide">Rien à réviser. Lancez une recherche : l’agent cherche des propriétaires qui gèrent eux-mêmes leurs immeubles, avec la source de chaque information.</p>}
               {d.suggestions.map((s) => (
                 <article key={s.id} className="suggestion">
                   <div className="sugg-tete"><span className="appel-ic"><Icone nom="building" taille={20} couleur="#0C2147" /></span>
                     <div><h3>{s.entreprise ?? s.nom}</h3><p>{[s.entreprise ? s.nom : null, s.immeubles ? `${s.immeubles} immeuble${s.immeubles > 1 ? 's' : ''}` : null, s.portes ? `${s.portes} portes` : null, s.ville].filter(Boolean).join(' · ')}</p></div>
-                    <div className="pertinence"><b>{s.pertinence ?? '—'} %</b><span>pertinence</span></div></div>
+                    <div className="pertinence"><b>{s.pertinence ?? '—'} %</b><span>pertinence</span></div></div>
                   <p className="pourquoi"><Icone nom="spark" taille={18} couleur="#2E5788" /><span>{s.raison}{s.extrait ? <> — <q>{s.extrait}</q></> : null}</span></p>
                   <div className="sugg-pied">
                     {d.peut_ecrire && <><button className="bouton bouton-principal" onClick={() => setAjout(s)}>{s.courriel ? 'Ajouter à la séquence' : 'Ajouter au pipeline'}</button>

@@ -24,7 +24,7 @@ export type DonneesJur = { dossiers: Dossier[]; envoyees: Envoyee[]; modeles: Mo
 const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 const d = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
 const dLong = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00`).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' }).replace(/^1 /, '1er ');
-const argent = (n: number) => `${n.toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${n.toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/ /g, ' ')}\u00a0$`;
 const ajoute = (iso: string, j: number) => { const x = new Date(`${iso}T12:00:00`); x.setDate(x.getDate() + j); return x.toISOString().slice(0, 10); };
 const joursDe = (iso: string) => Math.max(0, Math.floor((Date.now() - new Date(`${iso}T12:00:00`).getTime()) / 86400000));
 const PREUVES: Record<string, [string, string]> = { courriel: ['mail', 'Courriel'], poste: ['receipt', 'Poste recommandée'], huissier: ['file', 'Signifiée par huissier'] };
@@ -149,8 +149,9 @@ function VueDossier({ x, autres, D, envoi, rpc, ouvrirE50, texte, setTexte }: { 
                   <Verif ok={m.verifs.montant}>Montant conforme au registre</Verif><Verif ok={m.verifs.adresse}>Nom et adresse conformes au bail</Verif>
                   <Verif ok={m.verifs.delai}>Délai de 10 jours indiqué</Verif>
                   <li>{m.verifs.signature ? <span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span> : <i className="vide-c actuel" />}<span>Signature {m.verifs.signature ? 'apposée (eZsign)' : 'à apposer (eZsign)'}</span></li></ul>
+                {D.peut_ecrire && ouvert && m.statut !== 'sent' && (() => { const echecs = ([['montant', 'le montant'], ['adresse', 'le nom et l’adresse'], ['delai', 'le délai']] as const).filter(([k]) => !m.verifs[k]).map(([, l]) => l); return echecs.length > 0 && <p className="bandeau erreur" role="alert" style={{ margin: '12px 0 0' }}>Un contrôle a échoué : vérifiez {echecs.join(', ')} avant d’envoyer. L’envoi reste bloqué tant que ce n’est pas corrigé.</p>; })()}
                 {D.peut_ecrire && ouvert && m.statut !== 'sent' && <div className="med-actions">
-                  <button className="bouton bouton-principal" disabled={envoi} onClick={ouvrirE50}><Icone nom="send" taille={16} couleur="#fff" />{m.statut === 'draft' ? 'Approuver et envoyer' : 'Signer et envoyer'}</button>
+                  <button className={`bouton ${m.verifs.montant && m.verifs.adresse && m.verifs.delai ? 'bouton-principal' : 'bouton-contour'}`} disabled={envoi} onClick={ouvrirE50}><Icone nom="send" taille={16} couleur={m.verifs.montant && m.verifs.adresse && m.verifs.delai ? '#fff' : '#0C2147'} />{!(m.verifs.montant && m.verifs.adresse && m.verifs.delai) ? 'Revoir avant d’approuver' : m.statut === 'draft' ? 'Approuver et envoyer' : 'Signer et envoyer'}</button>
                   {m.statut === 'draft' && <div><button className="bouton bouton-contour" onClick={() => setTexte(texte === null ? m.texte : null)}>{texte === null ? 'Modifier' : 'Annuler'}</button>
                     <button className="bouton bouton-contour" onClick={() => setRejet(true)}>Rejeter</button></div>}</div>}
                 {m.statut === 'sent' && <p className="ligne-ic" style={{ marginTop: 20 }}><Icone nom={PREUVES[m.preuve ?? 'courriel'][0]} taille={18} couleur="#2E5788" />
@@ -238,7 +239,7 @@ function VueRappels({ D }: { D: DonneesJur }) {
       <div className="colonne-l18">
         <section className="carte-l18" aria-label="Efficacité des rappels"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{E.total ? `${pct(E.sms)} % paient après le premier rappel` : 'Pas encore de loyer payé en retard'}</h2>
           <p className="gris texte-13" style={{ margin: '0 0 16px' }}>12 mois · {E.total} loyer{E.total > 1 ? 's' : ''} en retard, selon le moment du paiement</p>
-          {E.total > 0 && <div className="pages-leads barres-rappels"><BarresClassees lignes={[['Après le SMS (J+1)', E.sms], ['Après le courriel (J+7)', E.courriel], ['Après la mise en demeure', E.med], ['Au TAL', E.tal]].map(([l, n]) => ({ libelle: l as string, valeur: pct(n as number), texte: `${pct(n as number)} %` }))} /></div>}
+          {E.total > 0 && <div className="pages-leads barres-rappels"><BarresClassees lignes={[['Après le SMS (J+1)', E.sms], ['Après le courriel (J+7)', E.courriel], ['Après la mise en demeure', E.med], ['Au TAL', E.tal]].map(([l, n]) => ({ libelle: l as string, valeur: pct(n as number), texte: `${pct(n as number)} %` }))} /></div>}
         </section>
         <section className="carte-l18" aria-label="Règles des rappels"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Règles des rappels</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>S’appliquent à chaque séquence, sans exception</p>
           <ul className="regles-rappels">{REGLES_RAPPELS.map(([t, s2]) => <li key={t}><span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span><span><b>{t}</b><span className="bloc gris texte-13">{s2}</span></span></li>)}</ul>

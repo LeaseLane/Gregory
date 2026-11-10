@@ -1,5 +1,5 @@
 /* Montants et dates des portails (dates « 1er », D13; espace insécable des milliers). */
-export const argent = (n: number, cents = false) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }).replace(/[  ]/g, ' ')} $`;
+export const argent = (n: number, cents = false) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }).replace(/[  ]/g, ' ')}\u00a0$`;
 // Un horodatage devient d'abord le jour du calendrier à Québec, ancré à midi : même texte au serveur (UTC) et dans tout navigateur.
 const jourIsoQc = (x: Date) => x.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
 const d = (iso: string) => new Date(`${iso.length === 10 ? iso : jourIsoQc(new Date(iso))}T12:00:00`);

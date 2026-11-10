@@ -35,7 +35,7 @@ export function FacturesFournisseurs({ donnees: D, statut, choisie, erreurLectur
   const verifs: [boolean | null, string][] = V ? [
     [V.bon ? V.bon.fait : null, V.bon ? `Bon de travail ${V.bon.numero}${V.bon.fait ? ` · fait${V.bon.le ? ` le ${jour(V.bon.le)}` : ''}` : ' · pas encore réalisé'}` : 'Aucun bon de travail lié'],
     [V.soumission ? true : V.urgent ? null : V.bon ? null : null, V.soumission ? `Soumission retenue : ${argent(V.soumission.montant, true)}` : V.urgent ? 'Soumission : aucune, intervention d’urgence' : 'Soumission : aucune'],
-    [V.ecart == null ? null : Math.abs(V.ecart) <= 10, V.ecart == null ? 'Montant : aucune référence pour comparer' : `Montant : ${V.ecart > 0 ? '+' : ''}${V.ecart} % par rapport à ${argent(V.reference, true)} (avant taxes)`],
+    [V.ecart == null ? null : Math.abs(V.ecart) <= 10, V.ecart == null ? 'Montant : aucune référence pour comparer' : `Montant : ${V.ecart > 0 ? '+' : ''}${V.ecart} % par rapport à ${argent(V.reference, true)} (avant taxes)`],
     [V.facture, V.facture ? 'Pièce jointe : facture reçue' : 'Pièce jointe : facture à joindre']] : [];
   return (
     <>

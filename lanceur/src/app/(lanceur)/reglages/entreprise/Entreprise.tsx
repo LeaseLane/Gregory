@@ -6,7 +6,7 @@ import { Icone } from '@/composants/Icones';
 import { CATALOGUE_SERVICES } from '@/lib/drapeaux';
 
 /* x13 · Réglages › Entreprise : identité et taxes (admin), honoraires datés (un nouveau taux s'ajoute à une date, jamais au passé), catalogue
-   de services (maintenance). La règle du 13 oct. vit dans les honoraires : 6 % des loyers; travaux : rien jusqu'au seuil, au-delà le taux sur
+   de services (maintenance). La règle du 13 oct. vit dans les honoraires : 6 % des loyers; travaux : rien jusqu'au seuil, au-delà le taux sur
    la facture complète avant taxes. */
 type Ent = { legal_name: string | null; address: string | null; gst_number: string | null; qst_number: string | null; gst_rate: number; qst_rate: number; neq: string | null; phone_main: string | null; phone_emergency: string | null };
 type Hon = { valid_from: string; gestion_pct: number; travaux_seuil: number; travaux_pct: number; source: string; valide: boolean; en_vigueur: boolean };
@@ -15,7 +15,7 @@ export type DonneesEntreprise = { admin: boolean; entreprise: Ent | null; honora
 const CHAMPS: [keyof Ent, string][] = [['legal_name', 'Nom légal'], ['neq', 'NEQ'], ['address', 'Adresse'], ['gst_number', 'Numéro de TPS'], ['qst_number', 'Numéro de TVQ'], ['gst_rate', 'TPS (%)'], ['qst_rate', 'TVQ (%)'],
   ['phone_main', 'Téléphone principal'], ['phone_emergency', 'Ligne d’urgence 24/7']];
 const TARIF: Record<string, string> = { forfait: 'Forfait', horaire: 'Horaire', diagnostic: 'Diagnostic' };
-const argent = (n: number | null) => n == null ? '—' : `${n.toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')} $`;
+const argent = (n: number | null) => n == null ? '—' : `${n.toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')}\u00a0$`;
 
 export function Entreprise({ donnees: D, erreurLecture }: { donnees: DonneesEntreprise | null; erreurLecture: string | null }) {
   const router = useRouter();
@@ -41,7 +41,7 @@ export function Entreprise({ donnees: D, erreurLecture }: { donnees: DonneesEntr
           {D.admin && <button className="lien" onClick={() => setHon({ valid_from: new Date().toISOString().slice(0, 10), gestion_pct: '6', travaux_seuil: '1000', travaux_pct: '10', source: '' })}>Nouveau taux à une date</button>}</header>
           <p className="gris texte-13">Le taux en vigueur à la date du loyer ou de la facture s’applique; un taux ne change jamais le passé.</p>
           <ul className="planifier">{D.honoraires.map((h) => <li key={h.valid_from}><div><strong>Depuis le {new Date(`${h.valid_from}T12:00:00`).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
-            <span>{h.gestion_pct} % des loyers · travaux : rien jusqu’à {argent(h.travaux_seuil)}, au-delà {h.travaux_pct} % avant taxes · {h.source}</span></div>
+            <span>{h.gestion_pct} % des loyers · travaux : rien jusqu’à {argent(h.travaux_seuil)}, au-delà {h.travaux_pct} % avant taxes · {h.source}</span></div>
             <span className={`puce ${h.en_vigueur ? 'final' : 'neutral'}`}>{h.en_vigueur ? 'En vigueur' : new Date(`${h.valid_from}T12:00:00`) > new Date() ? 'À venir' : 'Remplacé'}</span></li>)}</ul></section>
       </div>
       {CATALOGUE_SERVICES && <><section className="carte-l18" id="catalogue" aria-label="Catalogue de services"><header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>Catalogue de services</h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>Travaux types, prix au propriétaire et paie du fournisseur</p></div>

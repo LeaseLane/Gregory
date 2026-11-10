@@ -27,18 +27,18 @@ function Rythme({ mois, precedent, libM, libP }: { mois: (number | null)[]; prec
   const iM = fin(mois), iP = fin(precedent), ticks = Array.from({ length: (hi - lo) / 5 + 1 }, (_, k) => lo + k * 5);
   return <svg className="rythme" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Loyers payés cumulés, ${libM} contre ${libP}`}
     onMouseMove={(e) => { const r = (e.currentTarget as SVGSVGElement).getBoundingClientRect(), px = ((e.clientX - r.left) / r.width) * W; const i = Math.round(((px - g) * 30) / (W - g - d)); setSurvol(i >= 0 && i <= 30 ? i : null); }} onMouseLeave={() => setSurvol(null)}>
-    {ticks.map((t) => <g key={t}><line x1={g} x2={W - d} y1={y(t)} y2={y(t)} stroke={t === lo ? '#A6B1BE' : '#E1E6EC'} /><text x={g - 8} y={y(t) + 4} textAnchor="end" className="ax">{t} %</text></g>)}
+    {ticks.map((t) => <g key={t}><line x1={g} x2={W - d} y1={y(t)} y2={y(t)} stroke={t === lo ? '#A6B1BE' : '#E1E6EC'} /><text x={g - 8} y={y(t) + 4} textAnchor="end" className="ax">{t} %</text></g>)}
     {[1, 5, 10, 15, 20, 25, 31].map((j) => <text key={j} x={x(j - 1)} y={H - 6} textAnchor="middle" className="ax">{j}</text>)}
     <polyline points={ligne(precedent)} fill="none" stroke="#A6B1BE" strokeWidth="2.5" /><polyline points={ligne(mois)} fill="none" stroke="#4581CB" strokeWidth="3" />
-    {iP >= 0 && <><circle cx={x(iP)} cy={y(precedent[iP]!)} r="4" fill="#A6B1BE" stroke="#fff" strokeWidth="2" /><text x={x(iP) + 10} y={y(precedent[iP]!) + 4} className="et">{libP} · {String(precedent[iP]).replace('.', ',')} %</text></>}
-    {iM >= 0 && <><circle cx={x(iM)} cy={y(mois[iM]!)} r="5" fill="#4581CB" stroke="#fff" strokeWidth="2" /><text x={x(iM) + 10} y={y(mois[iM]!) + 18} className="et accent">{libM} · {String(mois[iM]).replace('.', ',')} %</text></>}
+    {iP >= 0 && <><circle cx={x(iP)} cy={y(precedent[iP]!)} r="4" fill="#A6B1BE" stroke="#fff" strokeWidth="2" /><text x={x(iP) + 10} y={y(precedent[iP]!) + 4} className="et">{libP} · {String(precedent[iP]).replace('.', ',')} %</text></>}
+    {iM >= 0 && <><circle cx={x(iM)} cy={y(mois[iM]!)} r="5" fill="#4581CB" stroke="#fff" strokeWidth="2" /><text x={x(iM) + 10} y={y(mois[iM]!) + 18} className="et accent">{libM} · {String(mois[iM]).replace('.', ',')} %</text></>}
     {survol != null && <g><line x1={x(survol)} x2={x(survol)} y1={12} y2={H - 28} stroke="#0C2147" strokeOpacity=".35" />
       {precedent[survol] != null && <circle cx={x(survol)} cy={y(precedent[survol]!)} r="4" fill="#A6B1BE" stroke="#fff" strokeWidth="2" />}
       {mois[survol] != null && <circle cx={x(survol)} cy={y(mois[survol]!)} r="4" fill="#4581CB" stroke="#fff" strokeWidth="2" />}
       <g transform={`translate(${Math.min(x(survol) + 12, W - 200)}, ${y(lo + (hi - lo) / 2)})`}><rect width="180" height="64" rx="8" fill="#fff" stroke="#E1E6EC" />
         <text x="12" y="20" className="ax">Jour {survol + 1}</text>
-        <text x="12" y="38" className="et accent">{mois[survol] != null ? `${String(mois[survol]).replace('.', ',')} %` : '—'} · {libM}</text>
-        <text x="12" y="56" className="et">{precedent[survol] != null ? `${String(precedent[survol]).replace('.', ',')} %` : '—'} · {libP}</text></g></g>}
+        <text x="12" y="38" className="et accent">{mois[survol] != null ? `${String(mois[survol]).replace('.', ',')} %` : '—'} · {libM}</text>
+        <text x="12" y="56" className="et">{precedent[survol] != null ? `${String(precedent[survol]).replace('.', ',')} %` : '—'} · {libP}</text></g></g>}
   </svg>;
 }
 
@@ -67,15 +67,15 @@ export function Paiements({ donnees: D, filtres, erreurLecture }: { donnees: Don
         <span className="ligne-ic gris texte-13" style={{ marginLeft: 'auto' }}><i className="point-etat" />QuickBooks {D.branchements.quickbooks} · Optimal Paiement {D.branchements.optimal}</span>
       </div>
       <div className="kpis" style={{ marginBottom: 24 }}>
-        <div className="kpi"><span>Loyers payés en {libM}</span><b>{argent(I.paye)}</b><span>{pct} % de {argent(I.attendu)} · payés aux propriétaires</span><span className="jauge"><i style={{ width: `${Math.min(100, pct)}%` }} /></span></div>
+        <div className="kpi"><span>Loyers payés en {libM}</span><b>{argent(I.paye)}</b><span>{pct} % de {argent(I.attendu)} · payés aux propriétaires</span><span className="jauge"><i style={{ width: `${Math.min(100, pct)}%` }} /></span></div>
         <div className="kpi"><span>À recevoir</span><b>{argent(I.a_recevoir.montant)}</b><span>{I.a_recevoir.n} loyer{I.a_recevoir.n > 1 ? 's' : ''}{I.a_recevoir.prochain ? ` · échéance le ${jour(I.a_recevoir.prochain)}` : ''}</span></div>
         <div className="kpi"><span>En retard</span><b style={I.en_retard.n ? { color: '#9B2E28' } : undefined}>{argent(I.en_retard.montant)}</b><span>{I.en_retard.n} loyer{I.en_retard.n > 1 ? 's' : ''}{I.en_retard.jours ? ` · jusqu’à ${I.en_retard.jours} jours` : ''}</span></div>
-        <div className="kpi"><span>Revenu de gestion</span><b>{argent(I.revenu_gestion)}</b><span>honoraires du mois : 6 % des loyers, travaux dès 1 000 $</span><Courbe valeurs={I.revenu_serie.map(Number)} /></div>
+        <div className="kpi"><span>Revenu de gestion</span><b>{argent(I.revenu_gestion)}</b><span>honoraires du mois : 6 % des loyers, travaux dès 1 000 $</span><Courbe valeurs={I.revenu_serie.map(Number)} /></div>
       </div>
       <div className="grille-2-1">
         <div className="po-colonne">
           <section className="carte-l18" aria-label="Loyers payés cumulés">
-            <h2 className="titre-carte" style={{ marginBottom: 2 }}>{dernierM != null ? `${libM.replace(/^./, (c) => c.toUpperCase())} : ${String(dernierM).replace('.', ',')} % des loyers payés` : 'Loyers payés cumulés'}</h2>
+            <h2 className="titre-carte" style={{ marginBottom: 2 }}>{dernierM != null ? `${libM.replace(/^./, (c) => c.toUpperCase())} : ${String(dernierM).replace('.', ',')} % des loyers payés` : 'Loyers payés cumulés'}</h2>
             <p className="gris texte-13" style={{ margin: '0 0 8px' }}>Loyers payés cumulés, en % de l’attendu · par jour du mois</p>
             <p className="legende" style={{ margin: '0 0 8px' }}><span className="ligne-ic texte-12"><i className="cle gris-c" />{libP}</span><span className="ligne-ic texte-12"><i className="cle bleu-c" />{libM}</span></p>
             <Rythme mois={cM} precedent={cP} libM={libM} libP={libP} />
@@ -88,9 +88,9 @@ export function Paiements({ donnees: D, filtres, erreurLecture }: { donnees: Don
                 {!D.a_venir.length && <tr><td colSpan={5} className="gris">Aucun loyer à venir.</td></tr>}</tbody></table></section>
         </div>
         <div className="po-colonne">
-          <section className="carte-l18" aria-label="Modes de paiement"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{totModes ? `${Math.round((100 * D.modes.pad) / totModes)} % des loyers arrivent par prélèvement` : 'Modes de paiement'}</h2>
+          <section className="carte-l18" aria-label="Modes de paiement"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{totModes ? `${Math.round((100 * D.modes.pad) / totModes)} % des loyers arrivent par prélèvement` : 'Modes de paiement'}</h2>
             <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{libM.replace(/^./, (c) => c.toUpperCase())} · part des loyers par mode de paiement</p>
-            <BarresClassees lignes={[{ libelle: 'Prélèvement (PAD)', valeur: D.modes.pad, texte: `${totModes ? Math.round((100 * D.modes.pad) / totModes) : 0} %` }, { libelle: 'Virement ou chèque', valeur: D.modes.autre, texte: `${totModes ? Math.round((100 * D.modes.autre) / totModes) : 0} %` }]} /></section>
+            <BarresClassees lignes={[{ libelle: 'Prélèvement (PAD)', valeur: D.modes.pad, texte: `${totModes ? Math.round((100 * D.modes.pad) / totModes) : 0} %` }, { libelle: 'Virement ou chèque', valeur: D.modes.autre, texte: `${totModes ? Math.round((100 * D.modes.autre) / totModes) : 0} %` }]} /></section>
           <section className="carte-l18" aria-label="Relances en cours"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Relances en cours</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>Rappel J+1, courriel J+7, mise en demeure à approuver</p>
             <ul className="lo-docs">{D.relances.map((r) => <li key={r.id}><span className="ini" style={{ width: 36, height: 36, fontSize: 12 }}>{initiales(r.locataire)}</span>
               <div><span className="tete-action"><Link className="fort" href={`/clients/locataires/${r.tenant_id}`}>{r.locataire}</Link><b>{argent(r.montant)}</b></span>

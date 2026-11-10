@@ -16,7 +16,7 @@ export type DonneesProcessus = {
 };
 const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 const d = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
-const argent = (n?: number) => n == null ? '—' : `${Math.round(n).toLocaleString('fr-CA').replace(/ |,/g, ' ')} $`;
+const argent = (n?: number) => n == null ? '—' : `${Math.round(n).toLocaleString('fr-CA').replace(/ |,/g, ' ')}\u00a0$`;
 const ROLES: Record<string, string> = { location: 'Location', gestionnaire: 'Gestion', comptabilite: 'Comptabilité', admin: 'Admin', prospection: 'Prospection' };
 const REPONSES: [string, string][] = [['accepte', 'Accepte'], ['refuse', 'Refuse la modification (reste, TAL)'], ['quitte', 'Quitte le logement'], ['reputee_acceptee', 'Sans réponse : réputée acceptée']];
 const delaiTexte = (p: DonneesProcessus['parametres'][number]) => p.code.startsWith('renewal_notice') ? `${p.value.min_mois} à ${p.value.max_mois} mois avant la fin` : `${p.value.mois} mois`;
@@ -135,7 +135,7 @@ function Fiche({ p, erreur, peut, envoi, fermer, agir }: { p: Proc; erreur: stri
             </>}
           </section>}
 
-          {p.step >= 2 && <section className="bloc-proc"><p className="surtitre gris">3 · Avis au locataire (LOC-10)</p>
+          {p.step >= 2 && <section className="bloc-proc"><p className="surtitre gris">3 · Avis au locataire</p>
             {p.notice_sent_at ? <p>Mis en file le {d(p.notice_sent_at)} · {p.envoi === 'sent' ? 'envoyé' : p.envoi ?? '—'} · à {p.courriel}</p>
               : peut && <button className="bouton bouton-principal" style={{ width: 'auto' }} disabled={envoi} onClick={() => agir(() => sb().rpc('lanceur_envoyer_avis_renouvellement', { p_process: p.id }), 'Avis mis en file : il part au prochain créneau permis.')}>Envoyer l’avis à {p.locataire?.split(' ')[0]}</button>}
           </section>}
@@ -164,7 +164,7 @@ function Emmenagement({ p, peut, envoi, agir }: { p: Proc; peut: boolean; envoi:
         {p.tache && <p>{p.tache.titre}<span className="gris">{p.tache.role ? ` · ${ROLES[p.tache.role] ?? p.tache.role}` : ''}{p.tache.due_at ? ` · avant le ${d(p.tache.due_at)}` : ''}</span></p>}
         {peut && <><input className="e70-raison" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Précision (facultatif)" aria-label="Précision" />
           <button className="bouton bouton-principal" style={{ width: 'auto' }} disabled={envoi} onClick={async () => { if (await agir(() => supabaseNavigateur().rpc('lanceur_etape_emmenagement', { p: { process_id: p.id, note } }), p.step + 1 >= p.etapes.length ? 'Emménagement terminé.' : 'Étape faite : la tâche suivante est créée.')) setNote(''); }}>Étape faite</button></>}
-        {peut && p.step === 1 && <button className="lien" disabled={envoi} onClick={() => agir(() => supabaseNavigateur().rpc('lanceur_demander_enquete', { p: { process_id: p.id, motif: 'candidature' } }), 'Consentement demandé (LOC-14) : suivez l’enquête dans Solvabilité.')}>Demander le consentement à l’enquête de crédit (LOC-14)</button>}
+        {peut && p.step === 1 && <button className="lien" disabled={envoi} onClick={() => agir(() => supabaseNavigateur().rpc('lanceur_demander_enquete', { p: { process_id: p.id, motif: 'candidature' } }), 'Consentement demandé : suivez l’enquête dans Solvabilité.')}>Demander le consentement à l’enquête de crédit</button>}
         {peut && p.step === 2 && <button className="lien" disabled={envoi} onClick={() => agir(() => supabaseNavigateur().rpc('lanceur_creer_signature', { p: { kind: 'bail', process_id: p.id } }), 'Bail préparé : envoyez-le depuis Documents et signatures.')}>Préparer le bail à signer (eZsign)</button>}
         <p className="gris" style={{ fontSize: 13 }}>Terminer la tâche dans Opérations › Tâches fait aussi avancer l’emménagement.</p>
       </section>

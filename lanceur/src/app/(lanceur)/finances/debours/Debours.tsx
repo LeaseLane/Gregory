@@ -4,13 +4,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { EtatVide } from '@/composants/EtatVide';
 
 /* x14 · Débours : toujours rattachés à un bail, au coût réel, pièce justificative obligatoire (422). Ils paraissent au relevé du mois et passent
    « facturé » à l'émission du 5, hors taxes et hors honoraires. */
 type Deb = { id: string; categorie: string; description: string; montant: number; statut: string; le: string; proprietaire: string | null; locataire: string | null; logement: string | null; piece: string | null };
 export type DonneesDebours = { debours: Deb[]; baux: { id: string; libelle: string }[]; pieces: { id: string; titre: string; lease_id: string | null }[] };
 const CAT: Record<string, string> = { depot_tal: 'Dépôt au TAL', huissier: 'Huissier', avocat: 'Avocat', autre: 'Autre' };
-const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')} $`;
+const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')}\u00a0$`;
 
 export function Debours({ donnees: D, erreurLecture }: { donnees: DonneesDebours | null; erreurLecture: string | null }) {
   const router = useRouter();
@@ -30,10 +31,10 @@ export function Debours({ donnees: D, erreurLecture }: { donnees: DonneesDebours
       <section className="carte-l18" aria-label="Débours externes">
         <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>Débours externes</h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>{argent(aFacturer)} à facturer · au coût réel, hors honoraires</p></div>
           <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setF({ lease_id: D.baux[0]?.id ?? '', categorie: 'depot_tal', description: '', montant: '', piece_id: '' })}><Icone nom="plus" taille={16} couleur="#fff" />Inscrire un débours</button></header>
-        <table className="tableau"><thead><tr><th>Débours</th><th>Catégorie</th><th className="droite">Montant</th><th>Pièce</th><th>Statut</th></tr></thead>
+        {!D.debours.length ? <EtatVide icone="card" titre="Aucun débours pour l’instant" texte="Les frais payés au nom d’un locataire (dépôt au TAL, serrurier, huissier…) s’inscrivent ici, au coût réel et avec leur pièce." action={{ libelle: 'Inscrire un débours', onClick: () => setF({ lease_id: D.baux[0]?.id ?? '', categorie: 'depot_tal', description: '', montant: '', piece_id: '' }) }} /> : <table className="tableau"><thead><tr><th>Débours</th><th>Catégorie</th><th className="droite">Montant</th><th>Pièce</th><th>Statut</th></tr></thead>
           <tbody>{D.debours.map((d) => <tr key={d.id}><td><strong>{d.description}</strong><span className="sous gris">{[d.locataire, d.logement, d.proprietaire].filter(Boolean).join(' · ')}</span></td><td>{CAT[d.categorie] ?? d.categorie}</td>
             <td className="droite fort">{argent(d.montant)}</td><td>{d.piece ?? <span className="rouge">Manquante</span>}</td><td><span className={`puce ${d.statut === 'facture' ? 'final' : 'action'}`}>{d.statut === 'facture' ? 'Facturé' : 'À facturer'}</span></td></tr>)}
-            {!D.debours.length && <tr><td colSpan={5} className="gris">Aucun débours.</td></tr>}</tbody></table>
+            </tbody></table>}
       </section>
       {f && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setF(null)}>
         <form className="fenetre" role="dialog" aria-modal="true" aria-labelledby="deb-t" style={{ marginTop: 100 }} onSubmit={(e) => { e.preventDefault(); creer(); }}>

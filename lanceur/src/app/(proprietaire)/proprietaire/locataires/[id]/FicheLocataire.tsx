@@ -15,7 +15,7 @@ export type FicheLoc = { id: string; nom: string; courriel: string | null; telep
   paiements: { echeance: string; montant: number; recu: number | null; paye_le: string | null; statut: string }[];
   demandes: { id: string; titre: string; statut: string; recue: string }[];
   documents: { id: string; titre: string; categorie: string; taille: number | null; le: string; par: string | null; lisible: boolean }[] };
-const argent = (n: number) => `${n.toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${n.toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/ /g, ' ')}\u00a0$`;
 const d = (iso: string) => dateCourte(iso, true);
 const dLong = (iso: string) => { const x = new Date(`${iso.slice(0, 10)}T12:00:00`); const j = x.getDate(); return `${j === 1 ? '1er' : j} ${x.toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' })}`; };
 const taille = (n: number | null) => n == null ? '' : n > 1e6 ? `${(n / 1e6).toFixed(1).replace('.', ',')} Mo` : `${Math.max(1, Math.round(n / 1e3))} ko`;

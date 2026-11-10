@@ -12,7 +12,7 @@ export type Carte = { id: string; numero: string; titre: string; etape: string; 
   urgent: boolean; cout: number | null; accord: boolean; soumissions: number; en_soumissions: boolean; demande: string | null; depart: boolean; photos: number; responsable: string | null; risque: string | null; cree: string };
 export type DonneesBons = { indicateurs: { ouverts: number; en_soumissions: number; serie: number[]; delai: number | null; delai_serie: (number | null)[]; cout_mois: number; budget: number | null; urgences: Carte[] };
   bons: Carte[]; immeubles: { id: string; adresse: string }[]; peut_ecrire: boolean };
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')}\u00a0$`;
 const COLS = ['a_planifier', 'planifie', 'en_cours', 'a_verifier'] as const;
 
 export function Bons({ donnees: D, filtres, maintenant, erreurLecture }: { donnees: DonneesBons | null; filtres: Record<string, string | undefined>; maintenant: string; erreurLecture: string | null }) {
@@ -37,7 +37,7 @@ export function Bons({ donnees: D, filtres, maintenant, erreurLecture }: { donne
           <span className="mini-barres">{I.serie.map((n, k) => <i key={k} className={k === I.serie.length - 1 ? 'accent' : ''} style={{ height: `${Math.max(6, (100 * n) / maxS)}%` }} />)}</span></div>
         <div className="kpi"><span>Délai moyen</span><b>{I.delai != null ? `${String(I.delai).replace('.', ',')} j` : '—'}</b><span>de la demande au bon de travail</span><Courbe valeurs={I.delai_serie.filter((x): x is number => x != null).map(Number)} /></div>
         <div className="kpi"><span>Coût du mois</span><b>{argent(I.cout_mois)}</b>
-          {I.budget ? <><span>{Math.round((100 * I.cout_mois) / I.budget)} % du budget de {argent(I.budget)}</span><span className="jauge"><i style={{ width: `${Math.min(100, (100 * I.cout_mois) / I.budget)}%` }} /></span></> : <span>Aucun budget mensuel fixé</span>}</div>
+          {I.budget ? <><span>{Math.round((100 * I.cout_mois) / I.budget)} % du budget de {argent(I.budget)}</span><span className="jauge"><i style={{ width: `${Math.min(100, (100 * I.cout_mois) / I.budget)}%` }} /></span></> : <span>Aucun budget mensuel fixé</span>}</div>
         <div className="kpi"><span>Urgence en cours</span><b style={u ? { color: '#9B2E28' } : undefined}>{I.urgences.length}</b><span>{u ? <Link href={`/maintenance/bons/${u.id}`}>{u.titre} · {adresse(u.logement)}</Link> : 'Aucune'}</span></div>
       </div>
       {filtres.immeuble && <p className="ligne-ic texte-13">Immeuble : <b>{D.immeubles.find((b) => b.id === filtres.immeuble)?.adresse}</b><button className="lien" onClick={() => router.push('/maintenance/bons')}>Tout afficher</button></p>}

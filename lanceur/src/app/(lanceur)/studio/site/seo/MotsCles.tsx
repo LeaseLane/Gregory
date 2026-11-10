@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { RetraitEnLigne } from '@/composants/RetraitEnLigne';
 import type { DonneesSite } from '../Commun';
 
 /* SE · Mots-clés : idées classées par intention; le volume est une ESTIMATION qualitative (aucune donnée mesurée); « Rédiger » envoie l'idée à l'éditeur, prérempli. */
@@ -31,7 +32,7 @@ export function MotsCles({ donnees: D, erreurLecture }: { donnees: DonneesSite |
             <thead><tr><th>Idée</th><th>Intention</th><th>Volume (estimé)</th><th /></tr></thead>
             <tbody>{D.mots_cles.map((m) => <tr key={m.id}><td className="fort">{m.idee}<span className="sous gris">{m.mot_cle}{m.note ? ` · ${m.note}` : ''}</span></td><td>{m.intention ? INTENTIONS[m.intention] : '—'}</td><td>{m.volume ?? '—'}</td>
               <td className="droite">{D.peut_ecrire && <><Link className="bouton bouton-contour" style={{ width: 'auto', padding: '0 12px' }} href={`/studio/site/articles/nouveau?titre=${encodeURIComponent(m.idee)}&mot_cle=${encodeURIComponent(m.mot_cle)}`}>Rédiger</Link>
-                <button className="lien rouge-txt" onClick={async () => { await supabaseNavigateur().rpc('lanceur_mot_cle', { p: { action: 'supprimer', id: m.id } }); router.refresh(); }}>Retirer</button></>}</td></tr>)}
+                <RetraitEnLigne question="Retirer cette idée ?" onConfirmer={async () => { await supabaseNavigateur().rpc('lanceur_mot_cle', { p: { action: 'supprimer', id: m.id } }); router.refresh(); }} /></>}</td></tr>)}
               {!D.mots_cles.length && <tr><td colSpan={4} className="gris">Aucune idée pour l’instant.</td></tr>}</tbody></table></section>
         <div className="po-colonne">
           {D.peut_ecrire && <section className="carte-l18"><h2 className="titre-carte">Trouver des idées avec Cléo</h2>

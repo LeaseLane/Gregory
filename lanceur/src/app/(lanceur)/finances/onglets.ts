@@ -5,6 +5,6 @@ export const ONGLETS_FIN: Onglet[] = [{ libelle: 'Paiements', href: '/finances/p
   { libelle: 'Relevés', href: '/finances/releves' }, { libelle: 'Relevés 31', href: '/finances/releves-31' }, { libelle: 'Débours', href: '/finances/debours' }, { libelle: 'Prélèvements', href: '/finances/prelevements' },
   { libelle: 'Fidéicommis', href: '/finances/fideicommis' }];
 export const SOUS_FIN = 'Facturation, paiements, comptabilité et banques';
-export const argent = (n: number | string | null | undefined, cents = false) => n == null ? '—' : `${Number(n).toLocaleString('fr-CA', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }).replace(/[  ]/g, ' ')} $`;
+export const argent = (n: number | string | null | undefined, cents = false) => n == null ? '—' : `${Number(n).toLocaleString('fr-CA', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }).replace(/[  ]/g, ' ')}\u00a0$`;
 export const jour = (iso: string | null | undefined) => !iso ? '—' : new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
 export const moisLong = (iso: string) => new Date(`${iso.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', { month: 'long' });

@@ -13,7 +13,7 @@ export type Ligne = { id: string; sujet: string; apercu: string | null; le: stri
 export type Fil = { id: string; sujet: string | null; avec: string; archive: boolean; dossier: { id: string; numero: string; attente: { id: string; montant: number } | null } | null;
   messages: { id: string; de_moi: boolean; auteur: string; initiales: string | null; texte: string; le: string; pieces: { nom: string; chemin: string }[] }[] };
 const quand = (iso: string) => memeJourQc(iso, new Date()) ? `Aujourd’hui · ${heureQc(iso)}` : jourQc(iso);
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')}\u00a0$`;
 
 export function Messages({ liste, fil, nouveau, demande, vue, erreur }: { liste: Ligne[]; fil: Fil | null; nouveau: boolean; demande: string | null; vue: string; erreur: string | null }) {
   const router = useRouter();

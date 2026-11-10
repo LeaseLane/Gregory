@@ -7,7 +7,7 @@ import { Photo } from './Photo';
 /* Propriétaire · 02 Vos immeubles : chiffres du parc, recherche, secteur, grille ou liste; les immeubles soumis restent « En validation ». */
 type Imm = { id: string; adresse: string; secteur: string | null; etages: number | null; photo: boolean; logements: number; vacants: number; loyers: number; arrieres: number };
 export type DonneesImmeubles = { immeubles: Imm[]; soumissions: { id: string; adresse: string; secteur: string | null; logements: number | null; etages: number | null; loyers: number | null; statut: string; le: string }[] };
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')}\u00a0$`;
 const pl = (n: number, s: string) => `${n} ${s}${n > 1 ? 's' : ''}`;
 
 export function Immeubles({ donnees, erreur }: { donnees: DonneesImmeubles | null; erreur: string | null }) {
@@ -22,7 +22,7 @@ export function Immeubles({ donnees, erreur }: { donnees: DonneesImmeubles | nul
         <Link className="bouton bouton-principal po-bouton" href="/proprietaire/immeubles/ajouter"><Icone nom="plus" taille={18} couleur="#fff" />Ajouter un immeuble</Link></div>
       <div className="po-kpis trois">
         <div className="carte-l18 kpi-po"><span>Logements<Icone nom="building" taille={18} couleur="#58697F" /></span><b>{total}</b><small>{pl(I.length, 'immeuble')} · Québec</small></div>
-        <div className="carte-l18 kpi-po"><span>Occupation<Icone nom="key" taille={18} couleur="#58697F" /></span><b>{total ? Math.round((100 * (total - vac)) / total) : 0} %</b><small>{pl(vac, 'logement')} vacant{vac > 1 ? 's' : ''} · aucuns frais</small></div>
+        <div className="carte-l18 kpi-po"><span>Occupation<Icone nom="key" taille={18} couleur="#58697F" /></span><b>{total ? Math.round((100 * (total - vac)) / total) : 0} %</b><small>{pl(vac, 'logement')} vacant{vac > 1 ? 's' : ''} · aucuns frais</small></div>
         <div className="carte-l18 kpi-po"><span>Loyers prévus<Icone nom="dollar" taille={18} couleur="#58697F" /></span><b>{argent(I.reduce((a, b) => a + b.loyers, 0))}</b><small>par mois, tous immeubles</small></div>
       </div>
       <div className="po-filtres">

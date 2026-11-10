@@ -36,7 +36,7 @@ export function FicheImmeuble({ donnees: D, erreurLecture }: { donnees: DonneesI
     const { error } = await supabaseNavigateur().rpc('lanceur_immeuble_maj', { p: { id: D!.id, ...f } });
     setEnvoi(false); if (error) return setBandeau(error.message); setEdit(false); setOk('Fiche mise à jour.'); router.refresh();
   }
-  const statut = (u: Log) => u.retard ? <span className="puce todo">Retard · {u.retard} j</span> : u.etat === 'vacant' ? <span className="puce action">À louer</span> : u.etat === 'preavis' ? <span className="puce">À louer</span> : <span className="puce neutral">Loué</span>;
+  const statut = (u: Log) => u.retard ? <span className={`puce ${u.retard >= 30 ? 'todo' : 'attention'}`}>Retard · {u.retard} j</span> : u.etat === 'vacant' ? <span className="puce action">À louer</span> : u.etat === 'preavis' ? <span className="puce">À louer</span> : <span className="puce neutral">Loué</span>;
   const demi = (part: Log[]) => <table className="tableau tab-fixe"><colgroup><col style={{ width: '22%' }} /><col style={{ width: '33%' }} /><col style={{ width: '17%' }} /><col /></colgroup>
     <thead><tr><th>Logement</th><th>Locataire</th><th className="droite">Loyer</th><th>Statut</th></tr></thead>
     <tbody>{part.map((u) => <tr key={u.id} className="ligne-lien" onClick={() => setLogement(u)}><td><span className="no-logement">{u.numero}</span>{piece(u.type) ?? '—'}</td>
@@ -61,7 +61,7 @@ export function FicheImmeuble({ donnees: D, erreurLecture }: { donnees: DonneesI
               <p className="gris texte-13" style={{ margin: 0 }}>{[D.quartier, `${L.length} logement${L.length > 1 ? 's' : ''}`, D.annee && `construit en ${D.annee}`].filter(Boolean).join(' · ')}
                 {D.proprietaire && <> · propriétaire <Link href={`/clients/proprietaires/${D.proprietaire.id}`}>{D.proprietaire.nom}</Link></>}</p>
               <div className="imm-chiffres">
-                <div><p className="surtitre">Occupation</p><span className="ligne-ic"><b>{L.length ? Math.round((100 * occ) / L.length) : 0} %</b><span className="jauge" style={{ width: 72, flex: 'none' }}><i style={{ width: `${L.length ? (100 * occ) / L.length : 0}%` }} /></span></span></div>
+                <div><p className="surtitre">Occupation</p><span className="ligne-ic"><b>{L.length ? Math.round((100 * occ) / L.length) : 0} %</b><span className="jauge" style={{ width: 72, flex: 'none' }}><i style={{ width: `${L.length ? (100 * occ) / L.length : 0}%` }} /></span></span></div>
                 <div><p className="surtitre">Loyers</p><b>{argent(loyers)}</b> <span className="gris texte-13">par mois</span></div>
                 <div><p className="surtitre">Responsable</p>{D.responsable ? <span className="ligne-ic"><span className="ini" style={{ width: 28, height: 28, fontSize: 11 }}>{D.responsable.initiales}</span><b style={{ fontSize: 14 }}>{D.responsable.nom}</b></span> : <span className="gris">—</span>}</div>
               </div></div>

@@ -44,7 +44,7 @@ export function Acces({ donnees, erreur }: { donnees: DonneesAcces | null; erreu
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       <div className="po-kpis">
         <div className="carte-l18 kpi-po"><span>Comptes<Icone nom="users" taille={18} couleur="#58697F" /></span><b>{U.length}</b><small>{U.filter((u) => u.actif).length} actifs</small></div>
-        <div className="carte-l18 kpi-po"><span>Double authentification<Icone nom="shield" taille={18} couleur="#58697F" /></span><b>{fa} %</b><small>{fa === 100 ? 'aucun compte à configurer' : `${U.filter((u) => !u.deux_fa).length} compte(s) sans 2FA`}</small></div>
+        <div className="carte-l18 kpi-po"><span>Double authentification<Icone nom="shield" taille={18} couleur="#58697F" /></span><b>{fa} %</b><small>{fa === 100 ? 'aucun compte à configurer' : `${U.filter((u) => !u.deux_fa).length} compte(s) sans 2FA`}</small></div>
         <div className="carte-l18 kpi-po"><span>Accès refusés (30 j)<Icone nom="lock" taille={18} couleur="#58697F" /></span><b>{donnees.refus}</b><small>journalisés et notifiés</small></div>
         <div className="carte-l18 kpi-po"><span>Décisions automatisées<Icone nom="calendar" taille={18} couleur="#58697F" /></span><b>{donnees.decisions.length}</b><small>révisables par une personne</small></div>
       </div>

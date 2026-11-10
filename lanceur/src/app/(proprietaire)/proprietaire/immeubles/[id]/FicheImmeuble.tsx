@@ -11,7 +11,7 @@ export type Fiche = { id: string; adresse: string; secteur: string | null; etage
   gestionnaire: { nom: string; initiales: string; courriel: string } | null; mois: { payes: number; arrieres: number; demandes: number; travaux: number };
   logements: { id: string; numero: string; type: string | null; loyer: number | null; occupe: boolean; locataire: string | null; locataire_id: string | null }[];
   demandes: { id: string; titre: string; logement: string; statut: string; recue: string }[]; documents: { id: string; titre: string; categorie: string | null; le: string }[] };
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')}\u00a0$`;
 const d = (iso: string) => dateCourte(iso, true);
 const STATUTS: Record<string, string> = { open: 'Reçue', in_progress: 'En cours', closed: 'Fermée' };
 

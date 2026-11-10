@@ -20,7 +20,7 @@ export type AccueilLoc = {
   indicateurs: { paye_annee: number; loyers_payes: number; prevu_annee: number; ponctualite: boolean[]; reponse_min: number | null; reglees_h: number | null };
   loyers: { debut: string; loyer: number }[]; marche: number | null;
 };
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/ /g, ' ')}\u00a0$`;
 const jour = (iso: string) => { const x = new Date(`${iso.slice(0, 10)}T12:00:00`); const j = x.getDate(); return `${j === 1 ? '1er' : j} ${x.toLocaleDateString('fr-CA', { month: 'short' })}`; };
 const jourLong = (iso: string) => { const x = new Date(`${iso.slice(0, 10)}T12:00:00`); const j = x.getDate(); return `${j === 1 ? '1er' : j} ${x.toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' })}`; };
 const ETAPES = ['Signalée', 'Qualifiée', 'Assignée', 'Visite', 'Fermée'];
@@ -34,8 +34,10 @@ export function Accueil({ prenom, maintenant, donnees, erreur }: { prenom: strin
   if (erreur || !donnees) return <div className="bandeau erreur" role="alert" style={{ margin: 24 }}>{erreur ?? 'Votre accueil n’a pas pu être lu.'}</div>;
   const D = donnees, I = D.indicateurs, c = D.a_confirmer[0];
   // Parcours : du 1er du mois à environ 6 semaines; position proportionnelle à la date.
-  const debut = new Date(auj.getFullYear(), auj.getMonth(), 1), fin = new Date(auj.getFullYear(), auj.getMonth() + 1, 15), duree = fin.getTime() - debut.getTime();
-  const pos = (iso: string) => Math.min(100, Math.max(0, (100 * (new Date(`${iso.slice(0, 10)}T12:00:00`).getTime() - debut.getTime())) / duree));
+  // Tout en UTC à partir du jour du Québec : serveur et navigateur donnent les mêmes pourcentages quel que soit le fuseau de l'appareil (sinon écart d'hydratation, surtout autour du changement d'heure).
+  const aujQc = auj.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' }), [AN, MO] = aujQc.split('-').map(Number);
+  const debut = new Date(Date.UTC(AN, MO - 1, 1)), fin = new Date(Date.UTC(AN, MO, 15)), duree = fin.getTime() - debut.getTime();
+  const pos = (iso: string) => Math.min(100, Math.max(0, (100 * (new Date(`${iso.slice(0, 10)}T12:00:00Z`).getTime() - debut.getTime())) / duree));
   const jalons = D.parcours.filter((e) => pos(e.date) < 100);
   // Deux jalons trop proches : on garde le libellé du plus récent (le premier reste lisible au survol).
   const muets = new Set(jalons.map((e, k) => (k + 1 < jalons.length && pos(jalons[k + 1].date) - pos(e.date) < 9 ? k : -1)).filter((k) => k >= 0));
@@ -57,7 +59,7 @@ export function Accueil({ prenom, maintenant, donnees, erreur }: { prenom: strin
         sous={c ? 'Une seule chose demande votre attention cette semaine.' : 'Rien ne demande votre attention cette semaine.'}>
         <div className="lo-parcours">
           <p className="lo-parcours-titre">Mon parcours · {auj.toLocaleDateString('fr-CA', { month: 'long' })} à {fin.toLocaleDateString('fr-CA', { month: 'long' })}</p>
-          <div className="lo-ligne"><i className="lo-fait" style={{ width: `${pos(auj.toISOString())}%` }} /><span className="lo-auj" style={{ left: `${pos(auj.toISOString())}%` }}>Aujourd’hui</span>
+          <div className="lo-ligne"><i className="lo-fait" style={{ width: `${pos(aujQc)}%` }} /><span className="lo-auj" style={{ left: `${pos(aujQc)}%` }}>Aujourd’hui</span>
             {jalons.map((e, k) => <div key={k} className={`lo-jalon ${e.fait ? 'fait' : ''} ${e.type} ${muets.has(k) ? 'muet' : ''}`} title={muets.has(k) ? `${e.titre} · ${e.sous}` : undefined} style={{ left: `${pos(e.date)}%` }}>
               <span className="lo-pastille">{e.fait && e.type === 'loyer' ? <Icone nom="check" taille={14} couleur="#0C2147" trait={2.6} /> : <Icone nom={ICONE_PARCOURS[e.type] ?? 'calendar'} taille={14} couleur="#fff" />}</span>
               <small>{jour(e.date)}</small><strong>{e.titre}</strong><span>{e.sous}</span></div>)}</div>

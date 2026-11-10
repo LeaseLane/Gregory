@@ -99,9 +99,9 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
             </>}
           </section>
           <section className="carte-l18" aria-label="Sources du mois">
-            <header className="carte-tete sans-marge"><h2>{donnees.sources[0] ? `${donnees.sources[0].nom} amène ${Math.round((100 * donnees.sources[0].n) / totalSources)} % des leads` : 'Aucun lead ce mois-ci'}</h2>
+            <header className="carte-tete sans-marge"><h2>{donnees.sources[0] ? `${donnees.sources[0].nom} amène ${Math.round((100 * donnees.sources[0].n) / totalSources)} % des leads` : 'Aucun lead ce mois-ci'}</h2>
               <p>{new Date().toLocaleDateString('fr-CA', { month: 'long' }).replace(/^./, (c) => c.toUpperCase())} · {totalSources} lead{totalSources > 1 ? 's' : ''}, par source</p></header>
-            <ul className="barres">{donnees.sources.map((s) => <li key={s.nom} style={{ gridTemplateColumns: '152px minmax(0,1fr) 72px' }}><span>{s.nom}</span><i style={{ width: `${(100 * s.n) / maxS}%` }} /><b>{s.n} · {Math.round((100 * s.n) / totalSources)} %</b></li>)}</ul>
+            <ul className="barres">{donnees.sources.map((s) => <li key={s.nom} style={{ gridTemplateColumns: '152px minmax(0,1fr) 72px' }}><span>{s.nom}</span><i style={{ width: `${(100 * s.n) / maxS}%` }} /><b>{s.n} · {Math.round((100 * s.n) / totalSources)} %</b></li>)}</ul>
           </section>
         </div>
       </div>

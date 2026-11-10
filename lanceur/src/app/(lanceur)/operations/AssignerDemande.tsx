@@ -59,7 +59,7 @@ export function AssignerDemande({ demande, fermer }: { demande: string; fermer: 
           <label className="case-ligne" style={{ marginTop: 24 }}>
             <input type="checkbox" checked={aviser} onChange={(e) => setAviser(e.target.checked)} disabled={!c.locataire} />
             <span><strong>Aviser le locataire 24 h à l’avance (art. 1931 C.c.Q.)</strong>
-              <span className="gris texte-13" style={{ display: 'block' }}>{c.locataire ? `Avis dans le portail de ${c.locataire.nom}${c.locataire.telephone ? ', et SMS quand l’avis d’entrée (LOC-03) est actif' : ''}` : 'Logement sans locataire actif'}</span></span>
+              <span className="gris texte-13" style={{ display: 'block' }}>{c.locataire ? `Avis dans le portail de ${c.locataire.nom}${c.locataire.telephone ? ', et SMS quand l’avis d’entrée est actif' : ''}` : 'Logement sans locataire actif'}</span></span>
           </label>
           <div className="fenetre-actions" style={{ marginTop: 24, justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="ligne-ic gris texte-12"><Icone nom="history" taille={14} couleur="#58697F" />Inscrit au journal</span>

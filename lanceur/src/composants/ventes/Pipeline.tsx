@@ -17,6 +17,7 @@ export type DonneesPipeline = { pipeline: { code: string; name: string; item_nam
   equipe: { id: string; nom: string }[]; sources: { id: string; name: string }[] };
 
 const MAX = 4;
+const portes = (n: number) => `${n} porte${n > 1 ? 's' : ''}`;
 const court = (n: string | null) => { if (!n) return ''; const [p, f] = n.split(/\s+/); return f ? `${p} ${f[0]}.` : p; };
 
 export function Pipeline({ donnees, raisons, erreurLecture }: { donnees: DonneesPipeline | null; raisons: { code: string; label: string }[]; erreurLecture: string | null }) {
@@ -52,16 +53,16 @@ export function Pipeline({ donnees, raisons, erreurLecture }: { donnees: Donnees
   const etapePerdu = etapes.find((e) => e.category === 'lost');
 
   const Carte = ({ d, e }: { d: Deal; e: Etape }) => {
-    const age = joursDepuis(d.entered_at), retard = e.category === 'active' && e.target_days != null && age > e.target_days;
+    const age = joursDepuis(d.entered_at), retard = e.category === 'active' && e.target_days != null && age > e.target_days, grave = retard && age > (e.target_days ?? 0) * 1.5; /* ambre : un peu en retard; rouge : plus de 1,5 fois la cible */
     return (
       <Link href={`/ventes/deals/${d.id}`} className="deal" draggable={donnees.peut_ecrire} onDragStart={() => setGlisse(d.id)} onDragEnd={() => { setGlisse(null); setSurvol(null); }}>
         <span className="deal-l1"><strong>{d.title}</strong><b>{argent(d.monthly_value_cents)}</b></span>
-        <span className="deal-l2" title={d.subtitle ?? undefined}>{[d.doors ? `${d.doors} porte${d.doors > 1 ? 's' : ''}` : null, d.subtitle].filter(Boolean).join(' · ')}</span>
+        <span className="deal-l2" title={d.subtitle ?? undefined}>{[d.doors ? portes(d.doors) : null, ...(d.subtitle ?? '').split(' · ').filter((x) => x && !(d.doors && x.trim().toLowerCase() === portes(d.doors)))].filter(Boolean).join(' · ')}</span>
         <span className="deal-l3">
           {d.source && <span className="puce">{d.source}</span>}
           {e.category === 'won' ? <span className="puce final">{d.converted_at ? 'Onboarding lancé' : 'Signé'}</span>
             : e.category === 'lost' ? <span className="deal-etat fort">Raison : {(d.loss_reason ?? '—').toLowerCase()}</span>
-            : retard ? <span className="deal-etat rouge"><i />{age} j · cible {e.target_days} j</span>
+            : retard ? <span className={`deal-etat ${grave ? 'rouge' : 'ambre'}`}><i />{age} j · cible {e.target_days} j</span>
             : <span className="deal-etat">{d.prochaine ?? (age ? `${age} j dans l’étape` : 'auj.')}</span>}
           {e.category !== 'won' && d.owner && <span className="ini" title={d.owner} style={{ width: 26, height: 26, fontSize: 11 }}>{initiales(d.owner)}</span>}
         </span>
@@ -80,7 +81,7 @@ export function Pipeline({ donnees, raisons, erreurLecture }: { donnees: Donnees
           <option value="">Responsable : tous</option>{donnees.equipe.map((m) => <option key={m.id} value={m.id}>Responsable : {m.nom}</option>)}</select><Icone nom="chevD" taille={18} couleur="#3E4A59" /></label>
         <label className="filtre"><span className="sr">Source</span><select value={source} onChange={(e) => setSource(e.target.value)}>
           <option value="">Source : toutes</option>{donnees.sources.map((s) => <option key={s.id} value={s.name}>Source : {s.name.toLowerCase()}</option>)}</select><Icone nom="chevD" taille={18} couleur="#3E4A59" /></label>
-        <strong className="pipeline-total">{t.n} deal{t.n > 1 ? 's' : ''} ouvert{t.n > 1 ? 's' : ''} · {t.portes} portes · {argent(t.v)} par mois</strong>
+        <strong className="pipeline-total">{t.n} deal{t.n > 1 ? 's' : ''} ouvert{t.n > 1 ? 's' : ''} {t.portes > 0 && <> · {portes(t.portes)}</>} · {argent(t.v)} par mois</strong>
       </div>
       {bandeau && <div className="bandeau info" role="status">{bandeau}</div>}
 
@@ -92,7 +93,7 @@ export function Pipeline({ donnees, raisons, erreurLecture }: { donnees: Donnees
               <section key={e.id} className={'colonne' + (survol === e.id ? ' survol' : '')} aria-label={`Étape ${e.name}`}
                 onDragOver={(ev) => { if (glisse) { ev.preventDefault(); setSurvol(e.id); } }} onDragLeave={() => setSurvol(null)}
                 onDrop={(ev) => { ev.preventDefault(); const d = deals.find((x) => x.id === glisse); setSurvol(null); if (d) deplacer(d, e); }}>
-                <header><h2>{e.name}</h2><p>{s.n}{e.category === 'won' ? ' sur 60 jours' : ''} · {s.portes} portes · {argent(s.v)}</p></header>
+                <header><h2>{e.name}</h2><p>{s.n}{e.category === 'won' ? ' sur 60 jours' : ''}{s.portes > 0 && <> · {portes(s.portes)}</>} · {argent(s.v)}</p></header>
                 {voir.map((d) => <Carte key={d.id} d={d} e={e} />)}
                 {l.length > MAX && <button className="lien" onClick={() => setTout((x) => x.includes(e.id) ? x.filter((y) => y !== e.id) : [...x, e.id])}>
                   {tout.includes(e.id) ? 'Afficher moins' : `Afficher ${l.length - MAX} autre${l.length - MAX > 1 ? 's' : ''} deal${l.length - MAX > 1 ? 's' : ''}`}</button>}

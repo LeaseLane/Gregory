@@ -112,7 +112,7 @@ export function Import() {
                   <td className="fort">{h || `Colonne ${i + 1}`}</td>
                   <td><select className={'champ-map' + (verif ? ' verif' : '')} value={map[i]} onChange={(e) => { const m = [...map]; m[i] = e.target.value as Champ; setMap(m); const k = [...conf]; k[i] = 1; setConf(k); }}>
                     {CHAMPS.map(([c, l]) => <option key={c} value={c}>{l}</option>)}</select></td>
-                  <td>{conf[i] > 0 && conf[i] < 1 ? <span className="conf-map"><b>{Math.round(conf[i] * 100)} %</b><span className="jauge"><i style={{ width: `${conf[i] * 100}%` }} /></span></span> : <span className="gris">{conf[i] === 1 ? 'choisi' : '—'}</span>}</td>
+                  <td>{conf[i] > 0 && conf[i] < 1 ? <span className="conf-map"><b>{Math.round(conf[i] * 100)} %</b><span className="jauge"><i style={{ width: `${conf[i] * 100}%` }} /></span></span> : <span className="gris">{conf[i] === 1 ? 'choisi' : '—'}</span>}</td>
                   <td>{verif ? <span className="puce action">À vérifier</span> : map[i] === 'ignorer' ? <span className="gris">Ignorée</span> : <span className="pastille-c"><span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>Associée</span>}</td>
                 </tr>); })}</tbody>
             </table>

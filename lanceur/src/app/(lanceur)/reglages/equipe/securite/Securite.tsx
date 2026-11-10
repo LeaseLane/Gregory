@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { RetraitEnLigne } from '@/composants/RetraitEnLigne';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
@@ -16,6 +17,7 @@ export function Securite({ donnees: D, revue: R, erreurLecture }: { donnees: Don
   const router = useRouter();
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null), [envoi, setEnvoi] = useState(false);
   const [f, setF] = useState(D ? { ...D.reglages, responsable_prp: D.responsable?.user_id ?? '' } : null);
+  const modifie = !!D && !!f && JSON.stringify(f) !== JSON.stringify({ ...D.reglages, responsable_prp: D.responsable?.user_id ?? '' }); // le formulaire diffère de ce qui est enregistré
   if (!D || !f) return <div className="bandeau erreur" role="alert">{bandeau}</div>;
   async function rpc(nom: string, p: object, msg: string) {
     setEnvoi(true); setBandeau(null); setOk(null);
@@ -50,7 +52,8 @@ export function Securite({ donnees: D, revue: R, erreurLecture }: { donnees: Don
           <p className="fenetre-lib" style={{ marginTop: 20 }}>Responsable de la protection des renseignements personnels</p>
           <select className="e70-raison" value={f.responsable_prp} onChange={(e) => setF({ ...f, responsable_prp: e.target.value })} aria-label="Responsable"><option value="">À désigner</option>{D.membres.map((m) => <option key={m.user_id} value={m.user_id}>{m.nom}</option>)}</select>
           <p className="gris texte-12">Son nom et ses coordonnées sont publiés dans la politique de confidentialité (Loi 25, art. 3.1).</p>
-          <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 20px', marginTop: 8 }} disabled={envoi}>Enregistrer</button>
+          <div className={'barre-enreg' + (modifie ? ' modifie' : '')}>{modifie ? <span className="texte-13" role="status">Modifications non enregistrées</span> : <span className="texte-13 gris">Aucune modification</span>}
+            <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 20px' }} disabled={envoi || !modifie}>Enregistrer</button></div>
         </form>
         <section className="carte-l18" aria-label="Revue trimestrielle des accès">
           <h2 className="titre-carte" style={{ marginBottom: 2 }}>Revue trimestrielle des accès</h2>
@@ -60,7 +63,7 @@ export function Securite({ donnees: D, revue: R, erreurLecture }: { donnees: Don
           {R?.ouverte && <><ul className="lo-docs">{R.comptes.map((c) => <li key={c.user_id} className="texte-13"><div><strong>{c.nom} · {c.role}</strong><span className="gris">Dernière connexion : {c.derniere_connexion ? new Date(c.derniere_connexion).toLocaleDateString('fr-CA') : 'jamais'}</span></div>
             {c.decision ? <span className={`puce ${c.decision === 'confirme' ? 'info' : 'neutral'}`}>{c.decision === 'confirme' ? 'Confirmé' : 'Retiré'}</span>
               : !R.fermee_le && <span className="ligne-ic"><button className="lien" onClick={() => rpc('lanceur_revue_action', { action: 'confirme', user_id: c.user_id }, `${c.nom} : accès confirmé.`)}>Confirmer</button>
-                <button className="lien rouge-txt" onClick={() => rpc('lanceur_revue_action', { action: 'retire', user_id: c.user_id }, `${c.nom} : accès retiré.`)}>Retirer</button></span>}</li>)}</ul>
+                <RetraitEnLigne question={`Retirer l’accès de ${c.nom} ?`} onConfirmer={() => rpc('lanceur_revue_action', { action: 'retire', user_id: c.user_id }, `${c.nom} : accès retiré.`)} /></span>}</li>)}</ul>
             {!R.fermee_le && <button className="bouton bouton-principal" style={{ marginTop: 12 }} disabled={envoi || decides < R.comptes.length} onClick={() => rpc('lanceur_revue_action', { action: 'fermer' }, 'Revue du trimestre fermée.')}>Fermer la revue</button>}</>}
         </section>
       </div>

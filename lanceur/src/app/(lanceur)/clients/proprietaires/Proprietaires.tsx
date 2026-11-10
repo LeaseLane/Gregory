@@ -13,7 +13,7 @@ const depuis = (iso: string) => Date.now() - new Date(iso).getTime() < 365 * 864
 type Pro = { id: string; nom: string; entreprise: string | null; depuis: string; immeubles: number; portes: number; quartiers: string | null; payes_mois: number; loyers_payes: number; loyers: number; portail: string; approbations: number };
 type Appro = { type: string; id: string; owner_id: string; proprietaire: string; quoi: string; demande_le: string | null; echeance?: string; recue?: string };
 export type DonneesProprios = { proprietaires: Pro[]; quartiers: string[]; approbations: Appro[]; seuil: number; releves: { mois: string; emis: number; attendus: number; a_verifier: { owner_id: string; proprietaire: string; raison: string }[] } };
-const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')} $`;
+const argent = (n: number) => `${Math.round(n).toLocaleString('fr-CA').replace(/[  ]/g, ' ')}\u00a0$`;
 const jour = jourCourt;
 const PORTAIL: Record<string, [string, string]> = { actif: ['Actif', 'ok'], invite: ['Invitation envoyée', 'att'], aucun: ['Sans portail', 'off'] };
 

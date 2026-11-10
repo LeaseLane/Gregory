@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { EtatVide } from '@/composants/EtatVide';
 
 /* e62 · API et MCP : une clé agit au nom de la personne qui la crée (jamais plus que ses droits) et seulement dans ses portées; le secret s'affiche une seule fois.
    Toute écriture par l'API ou le MCP devient une proposition à approuver. Chaque appel est inscrit au journal. */
@@ -37,12 +38,12 @@ export function ApiMcp({ donnees: D, base, erreurLecture }: { donnees: DonneesAp
         <section className="carte-l18" aria-label="Clés">
           <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Clés d’API et d’agents</h2><p className="gris texte-13" style={{ margin: 0 }}>Une clé agit au nom de la personne qui la crée, seulement dans ses portées</p></div>
             <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 16px' }} onClick={() => setCreer(true)}><Icone nom="plus" taille={16} couleur="#fff" />Créer une clé</button></div>
-          <table className="tableau tab-fixe" style={{ marginTop: 16 }}><colgroup><col style={{ width: '28%' }} /><col style={{ width: '30%' }} /><col style={{ width: '18%' }} /><col style={{ width: '12%' }} /><col /></colgroup>
+          {!D.cles.length ? <EtatVide icone="key" titre="Aucune clé d’API" texte="Une clé laisse un agent ou une intégration agir au nom de la personne qui la crée, seulement dans les portées choisies. Le secret n’est affiché qu’une fois." action={{ libelle: 'Créer une clé', onClick: () => setCreer(true) }} /> : <table className="tableau tab-fixe" style={{ marginTop: 16 }}><colgroup><col style={{ width: '28%' }} /><col style={{ width: '30%' }} /><col style={{ width: '18%' }} /><col style={{ width: '12%' }} /><col /></colgroup>
             <thead><tr><th>Clé</th><th>Portées</th><th>Dernier appel</th><th className="droite">Appels</th><th /></tr></thead>
             <tbody>{D.cles.map((c) => <tr key={c.id} style={c.revoquee_le ? { opacity: 0.5 } : undefined}><td><b>{c.nom}</b><span className="sous gris">{c.prefixe}… · {c.agent ? `agent ${c.agent}` : 'intégration'} · par {c.par}</span></td>
               <td><span className="puces">{c.portees.map((p) => <span key={p} className="puce neutral">{p}</span>)}</span></td><td className="texte-13">{d(c.utilisee_le)}{c.expire ? <span className="sous gris">expire le {d(c.expire)}</span> : null}</td>
               <td className="droite">{c.appels}</td><td className="droite">{c.revoquee_le ? <span className="gris texte-12">révoquée le {d(c.revoquee_le)}</span> : <button className="lien rouge-txt" onClick={() => revoquer(c)}>Révoquer</button>}</td></tr>)}
-              {!D.cles.length && <tr><td colSpan={5} className="gris">Aucune clé.</td></tr>}</tbody></table>
+              </tbody></table>}
           <h3 className="titre-carte" style={{ marginTop: 24, fontSize: 15 }}>Appels récents · 30 jours</h3>
           <ul className="lo-docs">{D.appels_30.slice(0, 12).map((a, i) => <li key={i} className="texte-13">{a.action === 'api.refused' ? <Icone nom="alert" taille={16} couleur="#9B2E28" /> : <Icone nom="check" taille={16} couleur="#12694F" />}
             <div><strong>{a.operation}</strong><span className="gris">{new Date(a.le).toLocaleString('fr-CA', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · {a.canal.toUpperCase()}{a.agent ? ` · ${a.agent}` : ''}{a.action === 'api.refused' ? ' · refusé (portée)' : ''}</span></div></li>)}

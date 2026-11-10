@@ -19,7 +19,7 @@ export type DonneesLocataire = { id: string; nom: string; courriel: string | nul
   consentements: { canal: string; but: string; base: string; le: string; retire: string | null }[] };
 export type LoyersDus = { peut_inscrire: boolean; loyers: { id: string; echeance: string; montant: number; recu: number }[] };
 export type Colocataire = { id: string; nom: string; courriel: string | null; telephone: string | null; principal: boolean };
-const argent = (n: number) => `${n.toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')} $`;
+const argent = (n: number) => `${n.toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')}\u00a0$`;
 const date = (iso: string, an = true) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('fr-CA', an ? { day: 'numeric', month: 'short', year: 'numeric' } : { day: 'numeric', month: 'short' });
 const ETAPE: Record<string, string> = { ouvert: 'Recouvrement en cours', mise_en_demeure: 'Mise en demeure envoyée', tal: 'Au TAL' };
 const STATUT: Record<string, string> = { new: 'Reçue', open: 'Ouverte', assigned: 'Assignée', in_progress: 'En cours', scheduled: 'Planifiée', completed: 'Terminée', closed: 'Fermée' };

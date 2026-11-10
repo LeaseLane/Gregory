@@ -8,7 +8,7 @@ import { Icone } from '@/composants/Icones';
 type Agent = { cle: string; agent: string; modele: string; route: boolean; delai: number | null; appels: number; cout: number; repli: string | null };
 export type DonneesRouteur = { reserve: true; responsable: string | null } | { reserve: false; depense: number; budget: number; projection: number; jour: number; jours_mois: number;
   agents: Agent[]; portes: number; clients: number; modeles: string[]; prix: Record<string, [number, number]> };
-const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')} $`;
+const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')}\u00a0$`;
 const NOM: Record<string, string> = { 'claude-haiku-4-5': 'Claude Haiku 4.5', 'claude-sonnet-5': 'Claude Sonnet 5', 'claude-opus-5': 'Claude Opus 5' };
 const nom = (m: string) => NOM[m] ?? m;
 // agents qui lisent leur modèle dans le routeur (modelePour, _shared/ia.ts) : les seuls qu'on peut changer ici
@@ -46,10 +46,10 @@ export function Routeur({ donnees: D, erreurLecture }: { donnees: DonneesRouteur
       <div className="grille-2-1">
         <section className="carte-l18" aria-label="Budget"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{depasse ? `Dépassement du budget prévu vers le ${jourDepasse} ${mois()}` : `Dans le budget en ${mois()}`}</h2>
           <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{mois().charAt(0).toUpperCase() + mois().slice(1)} · dépenses au {D.jour} et projection au rythme actuel</p>
-          <p className="cleo-gros"><b>{argent(D.depense)}</b> dépensés sur {argent(D.budget)} · {Math.round(ratio * 100)} %</p>
+          <p className="cleo-gros"><b>{argent(D.depense)}</b> dépensés sur {argent(D.budget)} · {Math.round(ratio * 100)} %</p>
           <div className="budget-barre"><i style={{ width: `${(100 * ratio) / echelle}%` }} /><s style={{ left: `${(100 * ratio) / echelle}%`, width: `${(100 * Math.max(0, projR - ratio)) / echelle}%` }} />
-            <b style={{ left: `${80 / echelle}%` }}><span>Alerte 80 %</span></b><b className="fort" style={{ left: `${100 / echelle}%` }}><span>Budget {argent(D.budget)}</span></b></div>
-          <p className="ligne-entre texte-12" style={{ marginTop: 8 }}><span className="gris">0 $</span><b>Projection {argent(D.projection)} au {D.jours_mois} {mois()}</b></p>
+            <b style={{ left: `${80 / echelle}%` }}><span>Alerte 80 %</span></b><b className="fort" style={{ left: `${100 / echelle}%` }}><span>Budget {argent(D.budget)}</span></b></div>
+          <p className="ligne-entre texte-12" style={{ marginTop: 8 }}><span className="gris">0 $</span><b>Projection {argent(D.projection)} au {D.jours_mois} {mois()}</b></p>
         </section>
         {cand ? <section className="carte-l18 e2" aria-label="Proposition"><p className="ligne-ic surtitre" style={{ margin: 0 }}><img src="/img/cleo.png" alt="" className="avatar-cleo" style={{ width: 32, height: 32 }} />Proposition de Cléo</p>
           <h2 className="titre-carte" style={{ margin: '8px 0 2px' }}>Passer {cand.agent.toLowerCase()} au modèle léger</h2>
@@ -62,7 +62,7 @@ export function Routeur({ donnees: D, erreurLecture }: { donnees: DonneesRouteur
         </section> : <section className="carte-l18"><h2 className="titre-carte">Aucune proposition</h2><p className="gris texte-13">Les agents branchés au routeur utilisent déjà le modèle léger.</p></section>}
       </div>
       <div className="grille-2-1" style={{ marginTop: 24 }}>
-        <section className="carte-l18" aria-label="Agents"><div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>{premier ? `${premier.agent} représente ${part >= 45 && part <= 55 ? 'la moitié' : `${part} %`} du coût IA` : 'Aucun appel ce mois-ci'}</h2>
+        <section className="carte-l18" aria-label="Agents"><div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>{premier ? `${premier.agent} représente ${part >= 45 && part <= 55 ? 'la moitié' : `${part} %`} du coût IA` : 'Aucun appel ce mois-ci'}</h2>
             <p className="gris texte-13" style={{ margin: 0 }}>{mois().charAt(0).toUpperCase() + mois().slice(1)}, au {D.jour} · coût, modèle principal et repli de chaque agent</p></div>
             <span className="puce neutral"><Icone nom="lock" taille={14} couleur="#3E4A59" />Réservé aux admins</span></div>
           <table className="tableau tab-fixe" style={{ marginTop: 12 }}><colgroup><col style={{ width: '27%' }} /><col style={{ width: '22%' }} /><col style={{ width: '17%' }} /><col style={{ width: '9%' }} /><col /></colgroup>

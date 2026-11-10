@@ -15,7 +15,7 @@ type Annonce = { id: string; libelle: string; type: string | null; loyer: number
   genere_le: string | null; photos: string[]; relue_par: string | null; relue_le: string | null; publiee_le: string | null; jours: number | null; libre: string | null;
   canaux: Record<string, Canal>; demandes_canal: Record<string, number> | null; entonnoir: { demandes: number; visites: number; candidatures: number }; location: string | null };
 export type DonneesMarche = { a_louer: ALouer[]; objectif: number; annonce: Annonce | null };
-const PORTEE: Record<string, string> = { site: 'Publié automatiquement dès que le logement se libère', marketplace: 'Publication à la main par la location', kijiji: 'Publication à la main par la location', louer: 'Publication à la main · 39 $ par annonce' };
+const PORTEE: Record<string, string> = { site: 'Publié automatiquement dès que le logement se libère', marketplace: 'Publication à la main par la location', kijiji: 'Publication à la main par la location', louer: 'Publication à la main · 39 $ par annonce' };
 
 export function MiseEnMarche({ donnees: D, erreurLecture }: { donnees: DonneesMarche | null; erreurLecture: string | null }) {
   const router = useRouter();
@@ -80,9 +80,9 @@ export function MiseEnMarche({ donnees: D, erreurLecture }: { donnees: DonneesMa
                 <button className="bouton bouton-contour" onClick={() => { setF({ titre: A.titre, texte: A.texte ?? '' }); setEdit(true); }}>{A.relue_le ? 'Modifier' : 'Relire et modifier'}</button></div></div>
           </section>
           <div className="po-deux">
-            <section className="carte-l18" aria-label="Diffusion"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{vues.length && totVues ? `${vues.sort((a, b) => b.valeur - a.valeur)[0].libelle} amène ${Math.round((100 * vues[0].valeur) / totVues)} % des vues` : 'Diffusion'}</h2>
+            <section className="carte-l18" aria-label="Diffusion"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{vues.length && totVues ? `${vues.sort((a, b) => b.valeur - a.valeur)[0].libelle} amène ${Math.round((100 * vues[0].valeur) / totVues)} % des vues` : 'Diffusion'}</h2>
               <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{A.publiee_le ? `Publiée le ${dateCourte(A.publiee_le)} · ${totVues} vues, par canal` : 'Pas encore publiée'}</p>
-              {totVues ? <BarresClassees lignes={vues.map((v) => ({ libelle: v.libelle, valeur: v.valeur, texte: `${v.valeur} · ${Math.round((100 * v.valeur) / totVues)} %` }))} /> : null}
+              {totVues ? <BarresClassees lignes={vues.map((v) => ({ libelle: v.libelle, valeur: v.valeur, texte: `${v.valeur} · ${Math.round((100 * v.valeur) / totVues)} %` }))} /> : null}
               <ul className="lo-docs" style={{ marginTop: 8 }}>{Object.keys(CANAUX).map((k) => [k, A.canaux[k] ?? (k === 'site' && A.publiee_le ? { statut: 'en_ligne', le: A.publiee_le, vues: 0, url: null } : null)] as [string, Canal]).map(([k, c]) => <li key={k} className="texte-13"><div><strong>{CANAUX[k]}</strong>
                 <span className="gris">{!c || c.statut === 'retiree' ? 'Pas publiée' : c.statut === 'a_publier' ? 'À publier par la location' : `En ligne depuis le ${dateCourte(c.le)}${k === 'site' && !A.canaux.site ? ' (automatique)' : ''}${c.vues ? ` · ${c.vues} vues` : ''}`}</span></div>
                 {!c || c.statut === 'retiree' ? <button className="lien" onClick={() => setPublier([k])}>Publier sur {CANAUX[k]}</button>
@@ -90,7 +90,7 @@ export function MiseEnMarche({ donnees: D, erreurLecture }: { donnees: DonneesMa
             <section className="carte-l18" aria-label="Entonnoir de location"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{E && E.visites ? `${E.candidatures} candidature${E.candidatures > 1 ? 's' : ''} pour ${E.visites} visite${E.visites > 1 ? 's' : ''}` : 'Entonnoir de location'}</h2>
               <p className="gris texte-13" style={{ margin: '0 0 12px' }}>Depuis la publication · passage d’une étape à la suivante</p>
               <ul className="entonnoir">{etapes.map(([l, n], i) => <li key={l}><span className="lib">{l}</span><span className="piste"><i className={`r${i}`} style={{ width: `${Math.max(2, (100 * n) / Math.max(1, etapes[0][1]))}%` }} /></span><b>{n}</b>
-                <span className="gris texte-12">{i && etapes[i - 1][1] ? `${Math.round((100 * n) / etapes[i - 1][1])} %` : ''}</span></li>)}</ul></section>
+                <span className="gris texte-12">{i && etapes[i - 1][1] ? `${Math.round((100 * n) / etapes[i - 1][1])} %` : ''}</span></li>)}</ul></section>
           </div>
         </div> : <section className="carte-l18"><p className="gris" style={{ margin: 0 }}>Aucun logement à louer.</p></section>}
       </div>

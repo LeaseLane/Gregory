@@ -30,9 +30,9 @@ export function valeur(champ: string, v: unknown): string {
   if (champ === 'stage') return ETAPES[String(v)] ?? String(v);
   if (champ === 'interest_level') return INTERETS[String(v)] ?? String(v);
   if (champ === 'next_followup_date') return date(String(v));
-  if (champ === 'potential_monthly_revenue') return `${Math.round(Number(v)).toLocaleString('fr-CA').replace(/[\u202f\u00a0]/g, ' ')} $`;
-  if (champ === 'amount') return `${Number(v).toLocaleString('fr-CA', { minimumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, ' ')} $`;
-  if (champ.endsWith('_cents')) return `${(Number(v) / 100).toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, ' ')} $`;
+  if (champ === 'potential_monthly_revenue') return `${Math.round(Number(v)).toLocaleString('fr-CA').replace(/[\u202f\u00a0]/g, ' ')}\u00a0$`;
+  if (champ === 'amount') return `${Number(v).toLocaleString('fr-CA', { minimumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, ' ')}\u00a0$`;
+  if (champ.endsWith('_cents')) return `${(Number(v) / 100).toLocaleString('fr-CA', { maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, ' ')}\u00a0$`;
   if (champ === 'statut') return ({ active: 'Active', pause: 'En pause', terminee: 'Terminée' } as Record<string, string>)[String(v)] ?? String(v);
   if (champ === 'num_doors') return `${v} porte${Number(v) > 1 ? 's' : ''}`;
   return String(v);
