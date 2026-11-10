@@ -27,7 +27,12 @@ export function FicheLocataire({ donnees, erreur }: { donnees: FicheLoc | null; 
   const [onglet, setOnglet] = useState<'documents' | 'paiements' | 'demandes'>('documents'), [envoi, setEnvoi] = useState(false), [cat, setCat] = useState(CATEGORIES[0]);
   const [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
-  if (erreur || !donnees) return <div className="bandeau erreur" role="alert">{erreur ?? 'Cette fiche n’a pas pu être lue.'}</div>;
+  if (erreur || !donnees) return (
+    <>
+      <div><Link className="lien po-retour" href="/proprietaire/locataires"><Icone nom="arrow" taille={14} couleur="#2E5788" />Tous les locataires</Link><h1 className="po-titre">Cette fiche n’est pas disponible</h1></div>
+      <div className="bandeau erreur" role="alert">{erreur ?? 'Cette fiche n’a pas pu être lue.'}</div>
+    </>
+  );
   const F = donnees, bailDoc = F.documents.find((x) => x.categorie === 'Bail et annexes' && x.lisible);
 
   async function deposer(fichiers: FileList | null) {

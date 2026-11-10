@@ -17,7 +17,12 @@ const STATUTS: Record<string, string> = { open: 'Reçue', in_progress: 'En cours
 
 export function FicheImmeuble({ donnees, erreur }: { donnees: Fiche | null; erreur: string | null }) {
   const [onglet, setOnglet] = useState<'logements' | 'locataires' | 'demandes' | 'documents'>('logements');
-  if (erreur || !donnees) return <div className="bandeau erreur" role="alert">{erreur ?? 'Cet immeuble n’a pas pu être lu.'}</div>;
+  if (erreur || !donnees) return (
+    <>
+      <div><Link className="lien po-retour" href="/proprietaire/immeubles"><Icone nom="arrow" taille={14} couleur="#2E5788" />Tous les immeubles</Link><h1 className="po-titre">Cet immeuble n’est pas disponible</h1></div>
+      <div className="bandeau erreur" role="alert">{erreur ?? 'Cet immeuble n’a pas pu être lu.'}</div>
+    </>
+  );
   const F = donnees, occupes = F.logements.filter((l) => l.occupe).length, loyers = F.logements.reduce((a, l) => a + (l.loyer ?? 0), 0);
   const locataires = F.logements.filter((l) => l.locataire);
   const puces = [`${F.logements.length} logements`, F.etages && `${F.etages} étages`, F.annee && `Construit en ${F.annee}`, `${occupes} occupés`, F.stationnement && `Stationnement : ${F.stationnement}`, F.chauffage && `Chauffage : ${F.chauffage}`].filter(Boolean) as string[];

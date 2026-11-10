@@ -2186,3 +2186,9 @@ small { font-size: 12px; }
 .segment a.actif { background: #fff; border-color: #E1E6EC; font-weight: 600; color: #0C2147; }
 .inscription .puce { flex: none; max-width: none; }
 .inscription .import-boutons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 0; } .inscription .import-boutons .bouton { width: auto; padding: 0 16px; }
+
+/* Zones de clic d'au moins 24 px de haut (WCAG 2.5.8), sans toucher à la mise en page : lien « Accueil » du fil d'Ariane (21 px), lien du lieu dans l'en-tête et liens du pied de la connexion (13 px). */
+.haut-lieu, .haut-fil a, .auth-pied a { position: relative; }
+.haut-lieu::after, .haut-fil a::after { content: ''; position: absolute; inset: -4px 0; }
+.auth-pied a::after { content: ''; position: absolute; inset: -6px 0; }
+.auth-gouv { min-height: 24px; }
