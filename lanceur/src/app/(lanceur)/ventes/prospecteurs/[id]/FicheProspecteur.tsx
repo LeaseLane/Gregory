@@ -49,6 +49,7 @@ export function FicheProspecteur({ donnees: D, erreurLecture }: { donnees: Donne
           <p className="ligne-ic texte-13" style={{ margin: '6px 0 0' }}><i className={`point-etat ${!P.actif ? 'off' : nouvelEspace ? 'ok' : 'att'}`} />
             {!P.actif ? 'Inactif' : nouvelEspace ? 'Nouvel espace : Prospection IA et « Mes prospects »' : 'Ancien portail des prospecteurs'}</p></div>
         <div className="fiche-actions">
+          {D.peut_acces && nouvelEspace && <Link className="bouton bouton-contour" href={`/ventes/mes-prospects?comme=${P.id}`}><Icone nom="eye" taille={16} couleur="#0C2147" />Voir son espace</Link>}
           {D.peut_acces && P.actif && P.compte && !nouvelEspace && <button className="bouton bouton-principal" disabled={envoi} onClick={acces}><Icone nom="spark" taille={16} couleur="#fff" />Donner accès au nouvel espace</button>}
         </div>
       </section>
