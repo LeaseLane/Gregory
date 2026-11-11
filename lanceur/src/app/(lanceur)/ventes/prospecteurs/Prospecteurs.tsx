@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
@@ -7,6 +8,7 @@ import { Icone } from '@/composants/Icones';
 export type Prospecteur = { id: string; nom: string; courriel: string | null; tel: string | null; actif: boolean; prospects: number; appels: number; signes: number; relances: number };
 
 export function Prospecteurs({ liste, erreurLecture, peutInviter = false }: { liste: Prospecteur[]; erreurLecture: string | null; peutInviter?: boolean }) {
+  const router = useRouter();
   const [vue, setVue] = useState<'liste' | 'classement'>('liste'), [ajout, setAjout] = useState(false), [ok, setOk] = useState<string | null>(null);
   if (erreurLecture) return <div className="bandeau erreur" role="alert">{erreurLecture}</div>;
   const classement = [...liste].filter((p) => p.appels > 0).sort((a, b) => b.signes / Math.max(1, b.appels) - a.signes / Math.max(1, a.appels) || b.signes - a.signes);
@@ -26,8 +28,8 @@ export function Prospecteurs({ liste, erreurLecture, peutInviter = false }: { li
         <table className="tableau">
           <thead><tr><th>Appelant</th><th className="droite">Prospects</th><th className="droite">Appels (30 j)</th><th className="droite">Signés</th><th className="droite">Relances dues</th><th>Actif</th></tr></thead>
           <tbody>{liste.map((p) => (
-            <tr key={p.id} style={{ cursor: 'default' }}>
-              <td><strong className="fort">{p.nom}</strong><span className="sous gris" style={{ display: 'block', fontSize: 13 }}>{[p.courriel, p.tel].filter(Boolean).join(' · ')}</span></td>
+            <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => router.push(`/ventes/prospecteurs/${p.id}`)} title={`Ouvrir la fiche de ${p.nom} : ce qu’il voit, assigner des prospects`}>
+              <td><Link className="fort" href={`/ventes/prospecteurs/${p.id}`} onClick={(e) => e.stopPropagation()}>{p.nom}</Link><span className="sous gris" style={{ display: 'block', fontSize: 13 }}>{[p.courriel, p.tel].filter(Boolean).join(' · ')}</span></td>
               <td className="droite">{p.prospects}</td><td className="droite">{p.appels}</td><td className="droite fort">{p.signes}</td>
               <td className={'droite' + (p.relances ? ' fort' : '')} style={p.relances ? { color: '#9B2E28' } : undefined}>{p.relances}</td>
               <td><span className={'puce ' + (p.actif ? '' : 'neutral')}>{p.actif ? 'Actif' : 'Inactif'}</span></td>

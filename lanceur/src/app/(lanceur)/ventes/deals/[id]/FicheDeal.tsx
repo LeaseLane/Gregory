@@ -26,7 +26,7 @@ const court = (n: string | null) => { if (!n) return ''; const [p, f] = n.split(
 const duree = (j: number | null) => j == null ? '' : j < 1 ? `${Math.max(1, Math.round(j * 24))} h` : `${Math.round(j)} j`;
 
 // Notes et historique d'appels écrits sur le prospect (ancien admin, portail des prospecteurs) : public.prospects.notes et call_history.
-export type Historique = { notes: string | null; interet?: string | null; relance?: string | null; prochaine_action?: string | null;
+export type Historique = { prospect_id?: string | null; peut_appeler?: boolean; notes: string | null; interet?: string | null; relance?: string | null; prochaine_action?: string | null;
   appels: { le: string | null; resume: string | null; prochaine_etape: string | null; objections: string | null; engagement: string | null; interet: string | null; par: string | null }[] };
 const INTERET: Record<string, string> = { chaud: 'Chaud', tiede: 'Tiède', froid: 'Froid' };
 export function FicheDeal({ donnees, erreurLecture, historique = null }: { donnees: DonneesDeal | null; erreurLecture: string | null; historique?: Historique | null }) {
@@ -113,6 +113,7 @@ export function FicheDeal({ donnees, erreurLecture, historique = null }: { donne
                 {activites.length > 5 && <li><button className="lien" onClick={() => setTout(!tout)}>{tout ? 'Afficher moins' : `Voir les ${activites.length - 5} événements plus anciens`}</button></li>}
               </ol>
             )}
+            {onglet === 'notes' && historique?.peut_appeler && historique.prospect_id && <NoterAppel prospect={historique.prospect_id} fait={() => router.refresh()} />}
             {onglet === 'notes' && (nbHist ? <div style={{ padding: '0 24px 24px' }}>
               {historique!.notes && <div className="cleo-lecture" style={{ background: '#F3F6FA', whiteSpace: 'pre-wrap' }}><Icone nom="file" taille={18} couleur="#2E5788" /><span><b>Notes du prospect</b><br />{historique!.notes}</span></div>}
               {(historique!.interet || historique!.relance || historique!.prochaine_action) && <p className="gris texte-13">{[historique!.interet && `Intérêt : ${INTERET[historique!.interet] ?? historique!.interet}`,
@@ -189,5 +190,25 @@ function Convertir({ donnees, fermer, fait }: { donnees: DonneesDeal; fermer: ()
           <button className="bouton bouton-principal" disabled={envoi} onClick={ok} style={{ width: 196 }}><Icone nom="check" taille={20} couleur="#fff" />Convertir en client</button></div>
       </div>
     </div>
+  );
+}
+
+/* Prospecteur à qui le prospect est assigné : « Noter un appel » (même résumé par Cléo que l'ancien portail : résumé, objections, engagement, prochaine étape, rappel). */
+function NoterAppel({ prospect, fait }: { prospect: string; fait: () => void }) {
+  const [texte, setTexte] = useState(''), [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
+  async function envoyer() {
+    setEnvoi(true); setErreur(null);
+    const r = await fetch('/api/appel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prospect_id: prospect, transcript: texte }) })
+      .then(async (x) => ({ ok: x.ok, j: await x.json().catch(() => ({})) })).catch(() => ({ ok: false, j: {} as { error?: string } }));
+    setEnvoi(false); if (!r.ok) return setErreur(r.j.error ?? 'L’appel n’a pas pu être enregistré.');
+    setTexte(''); fait();
+  }
+  return (
+    <form style={{ padding: '0 24px 16px' }} onSubmit={(e) => { e.preventDefault(); envoyer(); }}>
+      <label className="fenetre-lib" htmlFor="appel-texte">Noter un appel</label>
+      <textarea id="appel-texte" className="e70-raison" rows={3} value={texte} onChange={(e) => setTexte(e.target.value)} placeholder="Ce qui s’est dit : intérêt, objections, ce qu’il a promis, quand le rappeler…" />
+      {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
+      <div className="a-faire-actions" style={{ marginTop: 8 }}><button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 18px' }} disabled={envoi || texte.trim().length < 3}>{envoi ? 'Cléo résume l’appel…' : 'Enregistrer l’appel'}</button></div>
+    </form>
   );
 }
