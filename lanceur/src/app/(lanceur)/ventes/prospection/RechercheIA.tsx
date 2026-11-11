@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 
@@ -52,8 +52,12 @@ export function RechercheIA() {
   useEffect(() => { setEnregistrees(lireLocal()); }, []);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 7000); return () => clearTimeout(t); }, [toast]);
 
+  // Seule la dernière recherche s'affiche : la liste par défaut, plus lente, ne remplace jamais une recherche lancée entre-temps.
+  const derniere = useRef(0);
   const charger = useCallback(async (f: Filtres, garder?: string | null) => {
+    const n = ++derniere.current;
     const { data, error } = await supabaseNavigateur().rpc('lanceur_recherche_role', { p: f });
+    if (n !== derniere.current) return;
     if (error) { setBandeau(error.message); return; }
     const r = data as Resultat;
     setRes(r); setCoches(new Set());

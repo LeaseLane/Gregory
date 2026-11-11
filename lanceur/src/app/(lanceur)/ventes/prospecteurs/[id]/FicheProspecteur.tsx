@@ -57,7 +57,7 @@ export function FicheProspecteur({ donnees: D, erreurLecture }: { donnees: Donne
         <h2 className="titre-carte" style={{ marginBottom: 2 }}>Ce que {prenom} voit · {D.prospects.length}</h2>
         <p className="gris texte-13" style={{ margin: '0 0 12px' }}>Sa liste, telle qu’elle paraît dans son portail : les prospects qu’on lui a assignés et ceux qu’il a ajoutés lui-même.</p>
         <table className="tableau">
-          <thead><tr><th>Prospect</th><th className="droite">Portes</th><th>Étape</th><th>Prochain rappel</th><th>Dernier appel</th><th /></tr></thead>
+          <thead><tr><th style={{ width: "36%" }}>Prospect</th><th className="droite">Portes</th><th>Étape</th><th>Prochain rappel</th><th>Dernier appel</th><th /></tr></thead>
           <tbody>{D.prospects.map((m) => <tr key={m.id}>
             <td>{m.deal_id ? <Link className="fort" href={`/ventes/deals/${m.deal_id}`}>{m.entreprise || m.nom}</Link> : <strong>{m.entreprise || m.nom}</strong>}
               <span className="gris" style={{ display: 'block', fontSize: 13 }}>{[m.entreprise ? m.nom : null, m.tel, m.cree_par_lui ? 'ajouté par lui' : null].filter(Boolean).join(' · ')}</span></td>
