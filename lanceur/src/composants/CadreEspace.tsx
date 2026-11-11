@@ -4,6 +4,7 @@ import { Icone } from '@/composants/Icones';
 import { BoutonExporter } from '@/composants/BoutonExporter';
 import { DefileActif } from '@/composants/DefileActif';
 import { supabaseServeur } from '@/lib/supabase/serveur';
+import { lireMoi } from '@/lib/moi';
 
 /* En-tête d'un espace (B.space de la maquette) : pastille marine 56, titre 28, sous-titre, filet, onglets
    (actif : fond b025 + trait b500 de 3 px; pastille de compte). Un onglet sans page n'est pas un lien.
@@ -35,10 +36,15 @@ const ACTIONS: Record<string, (onglet: string) => React.ReactNode> = {
   'Rapports et réglages': () => <BoutonExporter nom="rapports" />,
 };
 
+const ONGLETS_PROSPECTEUR = ['/ventes/prospection', '/ventes/immeubles', '/ventes/mes-prospects'];
+
 export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, children }: { icone: string; nom: string; sous: string; onglets: Onglet[]; actif: number; actions?: React.ReactNode; children: React.ReactNode }) {
   const p = (await lirePastilles())[nom] ?? {};
-  const tabs = onglets.map((o) => (o.compte === undefined && p[o.libelle]?.n ? { ...o, compte: p[o.libelle].n, rouge: o.rouge ?? p[o.libelle].r } : o));
-  const boutons = actions === undefined ? ACTIONS[nom]?.(onglets[actif]?.libelle ?? '') : actions;
+  // Prospecteur (rôle « prospection ») : seulement ses onglets; la base refuse aussi le reste (20261113170000).
+  const prospecteur = nom === 'Ventes' && (await lireMoi())?.role === 'prospection';
+  const tabs = onglets.map((o) => (o.compte === undefined && p[o.libelle]?.n ? { ...o, compte: p[o.libelle].n, rouge: o.rouge ?? p[o.libelle].r } : o))
+    .map((o) => (prospecteur && !ONGLETS_PROSPECTEUR.includes(o.href ?? '') ? { ...o, cache: true } : o));
+  const boutons = actions === undefined ? (prospecteur ? null : ACTIONS[nom]?.(onglets[actif]?.libelle ?? '')) : actions;
   return (
     <main className="espace-page">
       <section className="espace-tete">
