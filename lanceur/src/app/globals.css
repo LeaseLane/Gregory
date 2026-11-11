@@ -2192,3 +2192,6 @@ small { font-size: 12px; }
 .haut-lieu::after, .haut-fil a::after { content: ''; position: absolute; inset: -4px 0; }
 .auth-pied a::after { content: ''; position: absolute; inset: -6px 0; }
 .auth-gouv { min-height: 24px; }
+/* Barre du prospecteur (CoquilleProspecteur) : libellés de deux mots centrés, « Déconnexion » tient dans la barre. */
+.lo-rail-pr > a, .lo-rail-pr .lo-sortir { text-align: center; line-height: 1.25; }
+.lo-rail-pr .lo-sortir { width: 72px; display: grid; justify-items: center; gap: 6px; padding: 10px 4px; font-size: 11px; }

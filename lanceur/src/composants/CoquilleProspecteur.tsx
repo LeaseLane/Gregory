@@ -17,7 +17,7 @@ export function CoquilleProspecteur({ initiales, nom, children }: { initiales: s
   const actif = (href: string) => chemin.startsWith(href) || (href === '/ventes/mes-prospects' && chemin.startsWith('/ventes/deals'));
   return (
     <div className="lo lo-gauche">
-      <nav className="lo-rail" aria-label="Espace prospecteur">
+      <nav className="lo-rail lo-rail-pr" aria-label="Espace prospecteur">
         <img className="lo-logo" src="/img/logo-icone-blanc.svg" alt="Lease Lane" />
         {MENU.map(([ic, l, href]) => <Link key={href} href={href} className={actif(href) ? 'actif' : ''} aria-current={actif(href) ? 'page' : undefined}>
           <span className="lo-ic"><Icone nom={ic} taille={22} couleur="currentColor" /></span><span>{l}</span></Link>)}
