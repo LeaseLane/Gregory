@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { lireAccueil, type Tuile } from '@/lib/accueil';
 import { lireMoi } from '@/lib/moi';
 import Link from 'next/link';
@@ -35,6 +36,7 @@ function Tuile_({ t, urgente }: { t: Tuile; urgente?: boolean }) {
 
 export default async function Accueil() {
   const moi = (await lireMoi())!;
+  if (moi.role === 'prospection') redirect('/ventes/mes-prospects');   // le prospecteur arrive dans ses prospects, sans accueil
   const nom = moi.nom && !moi.nom.includes('@') ? moi.nom : '';
   const prenom = nom.split(/\s+/)[0];
   const a = await lireAccueil(moi);

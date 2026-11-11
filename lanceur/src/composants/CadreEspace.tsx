@@ -37,6 +37,11 @@ const ACTIONS: Record<string, (onglet: string) => React.ReactNode> = {
 };
 
 const ONGLETS_PROSPECTEUR = ['/ventes/prospection', '/ventes/immeubles', '/ventes/mes-prospects'];
+const MODULES_PROSPECTEUR: Record<string, [string, string, string]> = {
+  '/ventes/mes-prospects': ['Mes prospects', 'Vos prospects à appeler, vos appels et vos chiffres', 'users'],
+  '/ventes/immeubles': ['Immeubles', 'Les immeubles de 12 logements et plus, et leurs propriétaires', 'building'],
+  '/ventes/prospection': ['Prospection IA', 'Une phrase suffit : l’agent trouve les propriétaires et leurs coordonnées', 'spark'],
+};
 
 export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, children }: { icone: string; nom: string; sous: string; onglets: Onglet[]; actif: number; actions?: React.ReactNode; children: React.ReactNode }) {
   const p = (await lirePastilles())[nom] ?? {};
@@ -45,6 +50,21 @@ export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, c
   const tabs = onglets.map((o) => (o.compte === undefined && p[o.libelle]?.n ? { ...o, compte: p[o.libelle].n, rouge: o.rouge ?? p[o.libelle].r } : o))
     .map((o) => (prospecteur && !ONGLETS_PROSPECTEUR.includes(o.href ?? '') ? { ...o, cache: true } : o));
   const boutons = actions === undefined ? (prospecteur ? null : ACTIONS[nom]?.(onglets[actif]?.libelle ?? '')) : actions;
+  // Prospecteur : la barre de gauche remplace les onglets; l'en-tête porte le module (la fiche d'un prospect relève de « Mes prospects »).
+  if (prospecteur) {
+    const ici = ONGLETS_PROSPECTEUR.includes(onglets[actif]?.href ?? '') ? onglets[actif].href! : '/ventes/mes-prospects';
+    const [titre, sousTitre, ic] = MODULES_PROSPECTEUR[ici];
+    return (
+      <main className="espace-page">
+        <section className="espace-tete"><div className="espace-tete-haut">
+          <span className="espace-pastille"><Icone nom={ic} taille={28} couleur="#fff" /></span>
+          <div><h1>{titre}</h1><p>{sousTitre}</p></div>
+          {boutons && <div className="espace-actions">{boutons}</div>}
+        </div></section>
+        {children}
+      </main>
+    );
+  }
   return (
     <main className="espace-page">
       <section className="espace-tete">

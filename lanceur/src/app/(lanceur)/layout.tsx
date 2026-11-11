@@ -8,6 +8,7 @@ import { BarreBasAdmin } from '@/composants/BarreBasAdmin';
 import { TableauxCartes } from '@/composants/TableauxCartes';
 import { ESPACES_ADMIN } from '@/lib/espaces';
 import { Inactivite } from '@/composants/Inactivite';
+import { CoquilleProspecteur } from '@/composants/CoquilleProspecteur';
 
 /* Coquille Lanceur. Revérifie côté serveur ce que le proxy a déjà filtré (session, 2FA), puis l'appartenance
    à l'équipe (crm.team_members; users.is_admin compte comme admin). Hors équipe : « Accès réservé » (e65). */
@@ -23,6 +24,11 @@ export default async function LanceurLayout({ children }: { children: React.Reac
   const initiales = moi?.initiales ?? (u.email ?? '?').slice(0, 2).toUpperCase();
   const [{ data: notifs }, { data: politique }] = moi ? await Promise.all([supabase.rpc('lanceur_notifications'), supabase.rpc('lanceur_politique')]) : [{ data: null }, { data: null }];
 
+  // Prospecteur : sa barre à gauche (Mes prospects, Immeubles, Prospection IA) au lieu de l'accueil et des espaces de l'équipe.
+  if (moi?.role === 'prospection') return (
+    <><Inactivite minutes={Number((politique as { inactivite_minutes?: number } | null)?.inactivite_minutes ?? 0)} />
+      <CoquilleProspecteur initiales={initiales} nom={moi.nom ?? u.email ?? ''}>{children}</CoquilleProspecteur></>
+  );
   return (
     <div className="coquille">
       {moi && <Inactivite minutes={Number((politique as { inactivite_minutes?: number } | null)?.inactivite_minutes ?? 0)} />}
