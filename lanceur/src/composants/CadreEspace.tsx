@@ -36,9 +36,10 @@ const ACTIONS: Record<string, (onglet: string) => React.ReactNode> = {
   'Rapports et réglages': () => <BoutonExporter nom="rapports" />,
 };
 
-const ONGLETS_PROSPECTEUR = ['/ventes/prospection', '/ventes/immeubles', '/ventes/mes-prospects'];
+const ONGLETS_PROSPECTEUR = ['/ventes/prospection', '/ventes/immeubles', '/ventes/mes-prospects', '/ventes/a-rappeler'];
 const MODULES_PROSPECTEUR: Record<string, [string, string, string]> = {
   '/ventes/mes-prospects': ['Mes prospects', 'Vos prospects à appeler, vos appels et vos chiffres', 'users'],
+  '/ventes/a-rappeler': ['À rappeler', 'Vos rappels en retard, du jour et de la semaine, et les prospects jamais appelés', 'phone'],
   '/ventes/immeubles': ['Immeubles', 'Les immeubles de 12 logements et plus, et leurs propriétaires', 'building'],
   '/ventes/prospection': ['Prospection IA', 'Une phrase suffit : l’agent trouve les propriétaires et leurs coordonnées', 'spark'],
 };

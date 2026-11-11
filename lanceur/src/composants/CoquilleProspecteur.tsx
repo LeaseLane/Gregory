@@ -4,9 +4,10 @@ import { usePathname } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 
 /* Coquille du prospecteur (Octa, 2026-11-11) : au lieu de l'accueil et des espaces de l'équipe, une barre à gauche comme le portail
-   locataire, avec ses trois modules. Les styles sont ceux de la coquille locataire (.lo, .lo-rail; en bas sur téléphone). */
+   locataire, avec ses modules. Les styles sont ceux de la coquille locataire (.lo, .lo-rail; en bas sur téléphone). */
 const MENU: [string, string, string][] = [
   ['users', 'Mes prospects', '/ventes/mes-prospects'],
+  ['phone', 'À rappeler', '/ventes/a-rappeler'],
   ['building', 'Immeubles', '/ventes/immeubles'],
   ['spark', 'Prospection IA', '/ventes/prospection'],
 ];
