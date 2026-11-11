@@ -2193,8 +2193,15 @@ small { font-size: 12px; }
 .auth-pied a::after { content: ''; position: absolute; inset: -6px 0; }
 .auth-gouv { min-height: 24px; }
 /* Barre du prospecteur (CoquilleProspecteur) : libellés de deux mots centrés, « Déconnexion » tient dans la barre. */
-.lo-rail-pr > a, .lo-rail-pr .lo-sortir { text-align: center; line-height: 1.25; }
-.lo-rail-pr .lo-sortir { width: 72px; display: grid; justify-items: center; gap: 6px; padding: 10px 4px; font-size: 11px; }
+/* Barre du prospecteur (Octa, 2026-11-11) : barre large, icône à gauche et libellé à droite. Sur téléphone, la barre du bas de .lo reste. */
+@media (min-width: 761px) {
+  .lo-pr { grid-template-columns: 232px minmax(0, 1fr); }
+  .lo-rail-pr { align-items: stretch; padding: 20px 12px; }
+  .lo-rail-pr .lo-logo { margin: 0 0 20px 12px; }
+  .lo-rail-pr > a, .lo-rail-pr .lo-sortir, .lo-rail-pr .lo-profil { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin: 0; font-size: 14px; text-align: left; }
+  .lo-rail-pr > a.actif::before { left: -12px; }
+  .lo-rail-pr .lo-sep { width: 100%; margin-top: auto; }
+}
 /* Espace du prospecteur : mêmes espacements que la coquille locataire de Steven (.lo : 16 px du haut et de la barre, 24 px entre les blocs).
    La page de l'admin garde ses propres marges (24 px) sous la barre du haut; dans la coquille, c'est .lo qui les donne. */
 .lo-prospecteur .espace-page, .lo-prospecteur .espace-page:where(*) { padding: 0; }

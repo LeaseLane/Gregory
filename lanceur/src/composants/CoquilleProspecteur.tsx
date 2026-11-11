@@ -16,7 +16,7 @@ export function CoquilleProspecteur({ initiales, nom, children }: { initiales: s
   // La fiche d'un prospect (/ventes/deals/…) fait partie de « Mes prospects ».
   const actif = (href: string) => chemin.startsWith(href) || (href === '/ventes/mes-prospects' && chemin.startsWith('/ventes/deals'));
   return (
-    <div className="lo lo-gauche">
+    <div className="lo lo-gauche lo-pr">
       <nav className="lo-rail lo-rail-pr" aria-label="Espace prospecteur">
         <img className="lo-logo" src="/img/logo-icone-blanc.svg" alt="Lease Lane" />
         {MENU.map(([ic, l, href]) => <Link key={href} href={href} className={actif(href) ? 'actif' : ''} aria-current={actif(href) ? 'page' : undefined}>
