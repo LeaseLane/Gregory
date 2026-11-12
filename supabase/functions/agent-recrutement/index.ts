@@ -1,6 +1,6 @@
 import { corsHeadersFor } from "../_shared/auth.ts";
 import { estAppelInterneVerifie } from "../_shared/appel-interne.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, modelePour, avecContexte } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, modelePour, avecContexte, messageErreurIA } from "../_shared/ia.ts";
 // agent-recrutement (T8b) : cherche des entreprises (spécialité, secteurs de la recherche active), vérifie la licence
 // RBQ au registre public de la RBQ, et DÉPOSE des candidats (maint.supplier_candidates). Jamais de fournisseur créé,
 // jamais d'invitation : une personne décide dans Lanceur (Maintenance › Recrutement). Coût IA mesuré par recherche.
@@ -67,7 +67,7 @@ Ne propose pas d'entreprises de gestion immobilière. Maximum ${MAX} entreprises
     if (!aiRes.ok) {
       await rpc("agent_recrutement_fin", { p_run: run, p_search: search, p_items: null, p_trouves: 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null,
         p_recherches: recherches, p_cout: cout, p_erreur: `${aiRes.status} ${ai?.error?.message ?? JSON.stringify(ai)}`.slice(0, 300) });
-      return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
+      return json({ error: messageErreurIA(aiRes.status, ai) }, 502);
     }
     const bloc = (ai.content || []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === "soumettre");
     const trouves = (Array.isArray(bloc?.input?.entreprises) ? bloc.input.entreprises : []).slice(0, MAX);

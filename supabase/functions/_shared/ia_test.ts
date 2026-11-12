@@ -27,3 +27,12 @@ Deno.test("routeur : sans réglage ni accès à la base, le modèle par défaut 
   try { assertEquals(await modelePour("cleo", "claude-haiku-4-5"), "claude-haiku-4-5"); }
   finally { if (avant) Deno.env.set("SUPABASE_URL", avant); }
 });
+
+Deno.test("messageErreurIA : un code sans texte donne quoi faire", async () => {
+  const { messageErreurIA } = await import("./ia.ts");
+  const { assertEquals, assertStringIncludes } = await import("jsr:@std/assert@1");
+  assertStringIncludes(messageErreurIA(402, {}), "Crédit d'IA épuisé");
+  assertStringIncludes(messageErreurIA(429, null), "réessayez dans une minute");
+  assertEquals(messageErreurIA(500, { error: { message: "panne" } }), "panne");
+  assertEquals(messageErreurIA(500, {}), "Échec de la recherche IA");
+});

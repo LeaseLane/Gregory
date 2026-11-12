@@ -176,3 +176,15 @@ export function avecContexte<T extends Record<string, unknown>>(corps: T): T {
   if (Array.isArray(s)) return { ...corps, system: [{ type: "text", text: CONTEXTE_QUEBEC }, ...s] };
   return { ...corps, system: typeof s === "string" && s ? `${CONTEXTE_QUEBEC}\n\n${s}` : CONTEXTE_QUEBEC };
 }
+
+/**
+ * Message affiché à l'équipe quand le service d'IA refuse une recherche. Le fournisseur renvoie souvent un code sans texte
+ * (402 de la passerelle : « Échec de la recherche IA » ne disait rien, constaté le 2026-11-11) : le code suffit à dire quoi faire.
+ */
+export function messageErreurIA(statut: number, ai: { error?: { message?: string } } | null | undefined): string {
+  if (statut === 402) return "Crédit d'IA épuisé : avisez l'administrateur pour recharger le compte. Aucune recherche n'a été facturée.";
+  if (statut === 429) return "Trop de recherches en même temps : réessayez dans une minute.";
+  if (statut === 529 || statut === 503) return "Le service d'IA est surchargé : réessayez dans quelques minutes.";
+  if (statut === 401 || statut === 403) return "Accès au service d'IA refusé : avisez l'administrateur (clé à vérifier).";
+  return ai?.error?.message || "Échec de la recherche IA";
+}

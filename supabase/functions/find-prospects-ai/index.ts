@@ -1,6 +1,6 @@
 import { corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts";
 import { estAppelInterneVerifie } from "../_shared/appel-interne.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, modelePour, avecContexte } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, modelePour, avecContexte, messageErreurIA } from "../_shared/ia.ts";
 // find-prospects-ai : l'agent de prospection (T3b). Recherche web RÉELLE (jamais inventée) de propriétaires qui gèrent
 // eux-mêmes des immeubles à logements au Québec, via Claude + l'outil serveur web_search.
 //
@@ -148,7 +148,7 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
     const { res, ai, u, recherches, cout, bloc, trace } = await rechercher(prompt, OUTIL_COORDONNEES);
     await rpc("agent_prospection_fin", { p_run: idRun, p_items: null, p_trouves: bloc ? 1 : 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null,
       p_recherches: recherches, p_cout: cout, p_erreur: res.ok ? (bloc ? null : `Aucun résultat soumis · ${trace}`.slice(0, 300)) : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
-    if (!res.ok) return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
+    if (!res.ok) return json({ error: messageErreurIA(res.status, ai) }, 502);
     if (!bloc) return json({ error: "La recherche n'a rien donné de vérifiable." }, 422);
     await rpc("service_role_coordonnees", { p_cle: cle, p_run: idRun, p: { ...bloc.input, nom: g.nom } });
     return json({ ok: true, coordonnees: bloc.input, cout_cents: cout });
@@ -179,7 +179,7 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
     const { res, ai, u, recherches, cout, bloc, trace } = await rechercher(prompt, OUTIL_PROPRIETAIRE);
     await rpc("agent_prospection_fin", { p_run: idRun, p_items: null, p_trouves: bloc?.input?.proprietaire ? 1 : 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null,
       p_recherches: recherches, p_cout: cout, p_erreur: res.ok && !ai?.error ? (bloc ? null : `Aucun résultat soumis · ${trace}`.slice(0, 300)) : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
-    if (!res.ok || ai?.error) return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
+    if (!res.ok || ai?.error) return json({ error: messageErreurIA(res.status, ai) }, 502);
     // Rien de vérifiable : l'immeuble est quand même marqué « cherché » (pas de seconde recherche payante).
     await rpc("service_role_immeuble_propose", { p_id: id, p: bloc?.input ?? { proprietaire: null, sources: [], raison: "Aucun résultat soumis" } });
     return json({ ok: true, proprietaire: bloc?.input?.proprietaire ?? null, confiance: bloc?.input?.confiance ?? null, cout_cents: cout });
@@ -300,7 +300,7 @@ Une fois ta recherche terminée, appelle l'outil "soumettre" avec ce que tu as t
     const cout = coutCents(Number(u.input_tokens ?? 0), Number(u.output_tokens ?? 0), recherches);
     if (!aiRes.ok) {
       await rpc("agent_prospection_fin", { p_run: run, p_items: null, p_trouves: 0, p_tokens_in: u.input_tokens ?? null, p_tokens_out: u.output_tokens ?? null, p_recherches: recherches, p_cout: cout, p_erreur: `${aiRes.status} ${ai?.error?.message ?? JSON.stringify(ai)}`.slice(0, 300) });
-      return json({ error: ai?.error?.message || "Échec de la recherche IA" }, 502);
+      return json({ error: messageErreurIA(aiRes.status, ai) }, 502);
     }
     // Résultat structuré seulement par l'outil « soumettre », jamais lu dans le texte libre.
     const bloc = (ai.content || []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === "soumettre");
