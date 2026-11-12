@@ -33,7 +33,7 @@ jobs:
   restauration:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Même version que backup.yml : pg_restore refuse une archive
       # produite par un pg_dump plus récent que lui.

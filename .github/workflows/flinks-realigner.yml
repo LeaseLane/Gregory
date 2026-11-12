@@ -28,7 +28,7 @@ jobs:
 
       # Version épinglée : « latest » a déjà fait échouer un déploiement
       # sur une limite de l'API GitHub (2026-09-25).
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v3
         with:
           version: 2.116.0
 
