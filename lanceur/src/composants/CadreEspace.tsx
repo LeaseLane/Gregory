@@ -10,7 +10,7 @@ import { lireMoi } from '@/lib/moi';
    (actif : fond b025 + trait b500 de 3 px; pastille de compte). Un onglet sans page n'est pas un lien.
    Pastilles : celles que la page fournit, sinon celles de lanceur_pastilles (un appel par requête, même définition que la page).
    Boutons d'en-tête : ceux que la page fournit, sinon ceux de la maquette pour l'espace (blk.js B.SP.actions). */
-export type Onglet = { libelle: string; href?: string; compte?: number; rouge?: boolean; cache?: boolean };   // cache : onglet fermé (drapeau), la numérotation « actif » ne bouge pas
+export type Onglet = { libelle: string; href?: string; compte?: number; rouge?: boolean; cache?: boolean; groupe?: string };   // groupe : plusieurs pages sous un même onglet du haut (Finances)   // cache : onglet fermé (drapeau), la numérotation « actif » ne bouge pas
 type Pastilles = Record<string, Record<string, { n: number; r?: boolean }>>;
 
 const lirePastilles = cache(async (): Promise<Pastilles> => {
@@ -50,6 +50,15 @@ export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, c
   const prospecteur = nom === 'Ventes' && (await lireMoi())?.role === 'prospection';
   const tabs = onglets.map((o) => (o.compte === undefined && p[o.libelle]?.n ? { ...o, compte: p[o.libelle].n, rouge: o.rouge ?? p[o.libelle].r } : o))
     .map((o) => (prospecteur && !ONGLETS_PROSPECTEUR.includes(o.href ?? '') ? { ...o, cache: true } : o));
+  // Onglets du haut : une page sans groupe, ou un groupe (lien vers sa première page, pastille = somme de ses pages). Sous-onglets : les pages du groupe actif.
+  const visibles = tabs.map((o, i) => ({ ...o, actif: i === actif })).filter((o) => !o.cache), groupeActif = tabs[actif]?.groupe;
+  const haut = visibles.reduce<(Onglet & { actif: boolean })[]>((h, o) => {
+    const g = o.groupe ? h.find((x) => x.groupe === o.groupe) : undefined;
+    if (g) { g.compte = (g.compte ?? 0) + (o.compte ?? 0) || undefined; g.rouge = g.rouge || o.rouge; g.actif = g.actif || o.actif; g.href = g.href ?? o.href; }
+    else h.push(o.groupe ? { ...o, libelle: o.groupe } : o);
+    return h;
+  }, []);
+  const pagesGroupe = groupeActif ? visibles.filter((o) => o.groupe === groupeActif && o.href) : [];
   const boutons = actions === undefined ? (prospecteur ? null : ACTIONS[nom]?.(onglets[actif]?.libelle ?? '')) : actions;
   // Prospecteur : la barre de gauche remplace les onglets; l'en-tête porte le module (la fiche d'un prospect relève de « Mes prospects »).
   if (prospecteur) {
@@ -79,14 +88,16 @@ export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, c
         </div>
         <nav className="onglets" aria-label={`Pages de ${nom}`}>
           <DefileActif />
-          {tabs.map((o, i) => {
-            if (o.cache) return null;
+          {haut.map((o) => {
             const contenu = <>{o.libelle}{o.compte ? <span className={'compte' + (o.rouge ? ' rouge' : '')}>{o.compte}</span> : null}</>;
             return o.href
-              ? <Link key={o.libelle} href={o.href} className={'onglet' + (i === actif ? ' actif' : '')} aria-current={i === actif ? 'page' : undefined}>{contenu}</Link>
+              ? <Link key={o.libelle} href={o.href} className={'onglet' + (o.actif ? ' actif' : '')} aria-current={o.actif && !pagesGroupe.length ? 'page' : undefined}>{contenu}</Link>
               : <span key={o.libelle} className="onglet inactif" aria-disabled="true" title="Arrive avec sa tranche">{contenu}</span>;
           })}
         </nav>
+        {pagesGroupe.length > 1 && <nav className="sous-onglets sous-espace" aria-label={`Pages de ${tabs[actif]?.groupe}`}>
+          {pagesGroupe.map((o) => <Link key={o.libelle} href={o.href!} className={o.actif ? 'actif' : ''} aria-current={o.actif ? 'page' : undefined}>{o.libelle}{o.compte ? <span className={'compte' + (o.rouge ? ' rouge' : '')}>{o.compte}</span> : null}</Link>)}
+        </nav>}
       </section>
       {children}
     </main>

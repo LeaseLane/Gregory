@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(21);
+select plan(24);
 
 create function pg_temp.equipe(p_courriel text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = p_courriel), 'aal', 'aal2', 'role', 'authenticated')::text, true);
@@ -43,6 +43,9 @@ select is(public.lanceur_import_parc('{"importer": true, "lignes": [{"proprietai
 select is((select count(*) from public.units u join public.buildings b on b.id = u.building_id where b.address = '3 rue Portée-B'), 1::bigint, 'segmentation : l’adresse d’un autre client n’a reçu aucun logement');
 select is((public.lanceur_import_parc('{"importer": true, "lignes": [{"proprietaire": "Client Portée C", "courriel_proprietaire": "portee-c@leaselane.test", "immeuble": "9 rue Portée-C", "logement": "1", "loyer": "950", "locataire": "Locataire C", "debut": "2026-07-01"}]}') ->> 'existantes')::int, 1, 'même fichier importé deux fois : rien en double');
 
+-- Alerte vue : elle quitte le compteur de l'immeuble et garde qui l'a vue
+select lives_ok($$ select public.lanceur_alerte_vue(jsonb_build_object('immeuble', 'bbbbbbbb-0000-4000-8000-000000000001', 'type', 'tresorerie', 'mois', date_trunc('month', current_date)::date, 'note', 'acompte prévu')) $$, 'alerte de trésorerie marquée comme vue');
+
 -- Une écriture voit tout, même avec une portée demandée
 select pg_temp.portee('aaaaaaaa-0000-4000-8000-000000000001');
 select is(crm.portee_proprio(), null, 'transaction en écriture : la portée ne s’applique pas');
@@ -58,6 +61,8 @@ select is((public.lanceur_finance_vue('{}') -> 'total' ->> 'paye')::numeric, 180
 select is((public.lanceur_finance_vue('{}') -> 'total' ->> 'autres')::numeric, 120::numeric, 'son revenu de stationnement compte');
 select is((select array_agg(distinct a ->> 'type' order by a ->> 'type') from jsonb_array_elements(public.lanceur_finance_vue('{}') -> 'alertes') a where a ->> 'immeuble' = '1 rue Portée-A'), array['depense', 'tresorerie'],
   'alertes du 1 rue Portée-A : dépense inhabituelle (4 000 $ contre une médiane de 302 $) et flux de trésorerie négatif');
+select is((select a -> 'vue' ->> 'note' from jsonb_array_elements(public.lanceur_finance_vue('{}') -> 'alertes') a where a ->> 'immeuble' = '1 rue Portée-A' and a ->> 'type' = 'tresorerie'), 'acompte prévu', 'l’alerte vue garde sa note');
+select is((select (i ->> 'alertes')::int from jsonb_array_elements(public.lanceur_finance_vue('{}') -> 'clients' -> 0 -> 'immeubles') i where i ->> 'adresse' = '1 rue Portée-A'), 1, 'compteur de l’immeuble : il ne reste que l’alerte non vue');
 select pg_temp.portee('aaaaaaaa-0000-4000-8000-000000000001:bbbbbbbb-0000-4000-8000-000000000002');
 select is((select array_agg(address) from portee.buildings), array['2 rue Portée-A'], 'immeuble choisi : lui seul');
 select is((public.lanceur_finance_vue('{}') -> 'total' ->> 'paye')::numeric, 800::numeric, 'loyers perçus de cet immeuble : 800 $');

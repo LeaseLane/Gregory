@@ -27,7 +27,10 @@ create or replace view portee.tenants as select t.* from public.tenants t where 
   or t.id in (select l.tenant_id from portee.leases l) or t.id in (select lt.tenant_id from public.lease_tenants lt where lt.lease_id in (select id from portee.leases));
 
 create or replace view portee.comms_calls as select t.* from comms.calls t where (select crm.portee_proprio()) is null or case when t.tenant_id is not null then t.tenant_id in (select id from portee.tenants) else true end;
+create or replace view portee.crm_assignments as select t.* from crm.assignments t where (select crm.portee_proprio()) is null or case when t.lease_id is not null then t.lease_id in (select id from portee.leases) when t.owner_id is not null then t.owner_id = (select crm.portee_proprio()) when t.tenant_id is not null then t.tenant_id in (select id from portee.tenants) else true end;
+create or replace view portee.crm_contacts as select t.* from crm.contacts t where (select crm.portee_proprio()) is null or case when t.owner_id is not null then t.owner_id = (select crm.portee_proprio()) when t.tenant_id is not null then t.tenant_id in (select id from portee.tenants) else true end;
 create or replace view portee.crm_conversations as select t.* from crm.conversations t where (select crm.portee_proprio()) is null or case when t.owner_id is not null then t.owner_id = (select crm.portee_proprio()) when t.tenant_id is not null then t.tenant_id in (select id from portee.tenants) else true end;
+create or replace view portee.crm_deals as select t.* from crm.deals t where (select crm.portee_proprio()) is null or case when t.building_id is not null then t.building_id in (select id from portee.buildings) when t.unit_id is not null then t.unit_id in (select id from portee.units) else true end;
 create or replace view portee.crm_listing_channels as select t.* from crm.listing_channels t where (select crm.portee_proprio()) is null or case when t.unit_id is not null then t.unit_id in (select id from portee.units) else true end;
 create or replace view portee.crm_mandate_invoices as select t.* from crm.mandate_invoices t where (select crm.portee_proprio()) is null or case when t.owner_id is not null then t.owner_id = (select crm.portee_proprio()) else true end;
 create or replace view portee.crm_processes as select t.* from crm.processes t where (select crm.portee_proprio()) is null or case when t.lease_id is not null then t.lease_id in (select id from portee.leases) when t.owner_id is not null then t.owner_id = (select crm.portee_proprio()) else true end;
@@ -272,6 +275,17 @@ AS $function$
               when u.status = 'soon_available' or exists (select 1 from portee.leases l where l.unit_id = u.id and l.status = 'active' and l.renewal_response = 'refused') then 'preavis'
               else 'loue' end from portee.units u where u.id = p_unit;
 $function$;
+CREATE OR REPLACE FUNCTION crm.exiger_mon_deal(p_deal uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  if crm.est_prospecteur() and not exists (select 1 from portee.crm_deals where id = p_deal and owner_user_id = auth.uid()) then
+    raise exception 'Ce prospect n’est pas à votre nom.' using errcode = 'PT403';
+  end if;
+end $function$;
 CREATE OR REPLACE FUNCTION crm.export_sujet(p_genre text, p_id uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -314,7 +328,7 @@ begin
   end if;
   -- commun : contacts, consentements, avis envoyés, documents (métadonnées), demandes Loi 25, décisions automatisées, activités et appels
   return r || jsonb_build_object(
-    'contacts', (select jsonb_agg(to_jsonb(c)) from crm.contacts c where (v_mail is not null and lower(to_jsonb(c) ->> 'email') = lower(v_mail)) or (v_tel is not null and to_jsonb(c) ->> 'phone' = v_tel)),
+    'contacts', (select jsonb_agg(to_jsonb(c)) from portee.crm_contacts c where (v_mail is not null and lower(to_jsonb(c) ->> 'email') = lower(v_mail)) or (v_tel is not null and to_jsonb(c) ->> 'phone' = v_tel)),
     'consentements', (select jsonb_agg(jsonb_build_object('canal', c.channel, 'but', c.purpose, 'base', c.basis, 'le', c.obtained_at, 'retire_le', c.withdrawn_at)) from comms.consents c where lower(c.address) in (lower(coalesce(v_mail, '~')), coalesce(v_tel, '~'))),
     'avis_envoyes', (select jsonb_agg(jsonb_build_object('gabarit', o.template_code, 'canal', o.channel, 'envoye_le', o.sent_at, 'statut', o.status) order by o.created_at) from comms.outbox o where lower(o.recipient) in (lower(coalesce(v_mail, '~')), coalesce(v_tel, '~'))),
     'documents', (select jsonb_agg(jsonb_build_object('titre', d.title, 'type', d.doc_type, 'le', d.created_at)) from portee.documents d where (p_genre = 'owner' and d.owner_id = p_id) or (p_genre = 'tenant' and (to_jsonb(d) ->> 'tenant_id')::uuid = p_id) or (p_genre = 'worker' and d.worker_id = p_id)),
@@ -327,7 +341,7 @@ begin
     'desabonnements', (select jsonb_agg(to_jsonb(x)) from comms.suppressions x where (v_mail is not null and to_jsonb(x)::text ilike '%' || v_mail || '%') or (v_tel is not null and to_jsonb(x)::text like '%' || v_tel || '%')),
     'conversations', (select jsonb_agg(to_jsonb(cv) || jsonb_build_object('messages', (select jsonb_agg(to_jsonb(m)) from crm.conversation_messages m where m.conversation_id = cv.id)))
                       from portee.crm_conversations cv where (v_mail is not null and to_jsonb(cv)::text ilike '%' || v_mail || '%') or (v_tel is not null and to_jsonb(cv)::text like '%' || v_tel || '%')
-                         or exists (select 1 from crm.contacts c where c.id = (to_jsonb(cv) ->> 'contact_id')::uuid and ((v_mail is not null and lower(to_jsonb(c) ->> 'email') = lower(v_mail)) or (v_tel is not null and to_jsonb(c) ->> 'phone' = v_tel)))),
+                         or exists (select 1 from portee.crm_contacts c where c.id = (to_jsonb(cv) ->> 'contact_id')::uuid and ((v_mail is not null and lower(to_jsonb(c) ->> 'email') = lower(v_mail)) or (v_tel is not null and to_jsonb(c) ->> 'phone' = v_tel)))),
     'suggestions', case when p_genre = 'prospect' then (select jsonb_agg(to_jsonb(x)) from crm.prospect_suggestions x where v_mail is not null and to_jsonb(x)::text ilike '%' || v_mail || '%') end,
     'candidatures_fournisseur', case when p_genre = 'worker' then (select jsonb_agg(to_jsonb(x)) from maint.supplier_candidates x where (v_mail is not null and to_jsonb(x)::text ilike '%' || v_mail || '%') or (v_tel is not null and to_jsonb(x)::text like '%' || v_tel || '%')) end,
     'genere_le', now(), 'responsable', (select tm.display_name from config.parametres c join crm.team_members tm on tm.user_id = (c.valeur ->> 'user_id')::uuid where c.cle = 'responsable_prp'));
@@ -341,16 +355,16 @@ AS $function$
   select jsonb_build_object('id', c.id, 'nom', c.full_name, 'emails', c.emails, 'phones', c.phones_e164,
     'detail', case when c.owner_id is not null then 'Client depuis ' || (select extract(year from o.created_at)::int from portee.owners o where o.id = c.owner_id)
                    when c.tenant_id is not null then 'Locataire' else 'Nouveau lead' end,
-    'sous', coalesce((select so.name || ' · ' || crm.heure_courte(d.created_at) from crm.deal_contacts dc join crm.deals d on d.id = dc.deal_id left join crm.sources so on so.id = d.source_id
+    'sous', coalesce((select so.name || ' · ' || crm.heure_courte(d.created_at) from crm.deal_contacts dc join portee.crm_deals d on d.id = dc.deal_id left join crm.sources so on so.id = d.source_id
                        where dc.contact_id = c.id and d.merged_into is null order by d.created_at desc limit 1), to_char(c.created_at, 'DD/MM/YYYY')),
     'adresse', coalesce((select o.mailing_address from portee.owners o where o.id = c.owner_id),
-                        (select d.subtitle from crm.deal_contacts dc join crm.deals d on d.id = dc.deal_id where dc.contact_id = c.id and d.merged_into is null order by d.created_at desc limit 1)),
+                        (select d.subtitle from crm.deal_contacts dc join portee.crm_deals d on d.id = dc.deal_id where dc.contact_id = c.id and d.merged_into is null order by d.created_at desc limit 1)),
     'deals', coalesce((select jsonb_agg(jsonb_build_object('id', d.id, 'texte', concat_ws(' · ', s.name, pl.name, d.doors || ' portes'), 'pipeline', pl.code, 'actif', s.category = 'active') order by d.created_at desc)
-                       from crm.deal_contacts dc join crm.deals d on d.id = dc.deal_id join crm.stages s on s.id = d.stage_id join crm.pipelines pl on pl.id = d.pipeline_id
+                       from crm.deal_contacts dc join portee.crm_deals d on d.id = dc.deal_id join crm.stages s on s.id = d.stage_id join crm.pipelines pl on pl.id = d.pipeline_id
                        where dc.contact_id = c.id and d.merged_into is null), '[]'::jsonb),
     'consentement', (select concat_ws(' · ', case when i.channel = 'sms' then 'Courriel et SMS' else 'Courriel' end, to_char(i.consented_at at time zone 'America/Toronto', 'DD/MM/YYYY'))
                      from portee.inquiries i where i.consented_at is not null and lower(i.email) = any (c.emails) order by i.consented_at desc limit 1))
-  from crm.contacts c where c.id = p;
+  from portee.crm_contacts c where c.id = p;
 $function$;
 CREATE OR REPLACE FUNCTION crm.fichier_cite(p_chemin text)
  RETURNS boolean
@@ -411,7 +425,7 @@ AS $function$
     select jsonb_build_object('id', 'tac:' || tk.id, 'icone', 'flag', 'urgent', false, 'titre', tk.title || ' · ' || d.title,
       'sous', coalesce(d.subtitle || ' · ', '') || 'prévu le ' || crm.jour_court(tk.due_at),
       'puce', s.name, 'ton', '', 'action', 'Ouvrir', 'href', '/ventes/deals/' || d.id, 'le', tk.due_at, 'moi', coalesce(tk.assignee_user_id = auth.uid(), false), 'cleo', tk.source = 'cleo')
-    from crm.tasks tk join crm.deals d on d.id = tk.deal_id and d.merged_into is null join crm.stages s on s.id = d.stage_id and s.category = 'active'
+    from crm.tasks tk join portee.crm_deals d on d.id = tk.deal_id and d.merged_into is null join crm.stages s on s.id = d.stage_id and s.category = 'active'
     where tk.status = 'open' and tk.due_at < now()
     union all
     -- 6. Décisions de Cléo dont la personne a demandé la révision (Loi 25, art. 12.1)
@@ -486,6 +500,21 @@ AS $function$
   select exists (select 1 from portee.tenant_pad_authorizations a join portee.leases l on l.tenant_id = a.tenant_id where l.id = p_lease and a.status = 'active' and a.revoked_at is null
                  and (a.lease_id is null or a.lease_id = p_lease));
 $function$;
+CREATE OR REPLACE FUNCTION crm.paires_doublons()
+ RETURNS TABLE(a uuid, b uuid, courriel boolean, telephone boolean, nom boolean, confiance integer)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select x.id, y.id, x.emails && y.emails and cardinality(x.emails) > 0, x.phones_e164 && y.phones_e164 and cardinality(x.phones_e164) > 0,
+         lower(x.full_name) = lower(y.full_name),
+         least(99, (case when x.emails && y.emails and cardinality(x.emails) > 0 then 60 else 0 end) + (case when x.phones_e164 && y.phones_e164 and cardinality(x.phones_e164) > 0 then 32 else 0 end)
+                   + (case when lower(x.full_name) = lower(y.full_name) then 20 else 0 end))
+  from portee.crm_contacts x join portee.crm_contacts y on x.id < y.id
+  where x.merged_into is null and y.merged_into is null and x.anonymized_at is null and y.anonymized_at is null
+    and ((x.emails && y.emails and cardinality(x.emails) > 0) or (x.phones_e164 && y.phones_e164 and cardinality(x.phones_e164) > 0) or lower(x.full_name) = lower(y.full_name))
+    and not exists (select 1 from crm.activities a where a.type = 'fusion' and a.contact_id in (x.id, y.id) and a.body = 'garder:' || least(x.id, y.id) || ':' || greatest(x.id, y.id))
+$function$;
 CREATE OR REPLACE FUNCTION crm.prelevement_candidats(p_echeance date)
  RETURNS TABLE(payment_id uuid, autorisation_id uuid, montant numeric, locataire text, logement text, raison text)
  LANGUAGE sql
@@ -512,6 +541,25 @@ AS $function$
   select coalesce((select min(due_date) from portee.payments where lease_id = p_lease and status <> 'paid' and due_date >= current_date + 10),
     case when extract(day from current_date + 10) = 1 then current_date + 10 else (date_trunc('month', current_date + 10) + interval '1 month')::date end);
 $function$;
+CREATE OR REPLACE FUNCTION crm.prochain_responsable(p_pipeline uuid, p_source uuid DEFAULT NULL::uuid)
+ RETURNS uuid
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare v uuid; v_perm text;
+begin
+  select r.user_id into v from crm.routing_rules r join crm.team_members tm on tm.user_id = r.user_id and tm.active
+   where r.pipeline_id = p_pipeline and r.active and r.kind = 'source' and r.source_id = p_source limit 1;
+  if v is not null then return v; end if;
+  if not exists (select 1 from crm.routing_rules where pipeline_id = p_pipeline and kind = 'tour' and active) then return null; end if;
+  select replace(permission, '.lire', '.ecrire') into v_perm from crm.pipelines where id = p_pipeline;
+  select tm.user_id into v from crm.team_members tm
+   where tm.active and tm.role not in ('admin', 'prospection') and exists (select 1 from crm.role_permissions rp where rp.role = tm.role and rp.permission = v_perm)
+   order by (select max(d.created_at) from portee.crm_deals d where d.pipeline_id = p_pipeline and d.owner_user_id = tm.user_id) nulls first, tm.created_at
+   limit 1;
+  return v;
+end $function$;
 CREATE OR REPLACE FUNCTION crm.ref_decision(p_type text, p_id uuid)
  RETURNS text
  LANGUAGE sql
@@ -638,6 +686,33 @@ AS $function$
   from portee.work_orders wo left join portee.units u on u.id = wo.unit_id left join portee.buildings b on b.id = u.building_id
   left join portee.owners ow on ow.id = b.owner_id left join portee.service_requests sr on sr.id = wo.service_request_id where wo.id = p_wo
 $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_a_rappeler(p_caller uuid DEFAULT NULL::uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare v_c uuid := coalesce(p_caller, public.auth_cold_caller_id()); v_auj date := (now() at time zone 'America/Toronto')::date;
+begin
+  if v_c is null then return null; end if;
+  if p_caller is not null then
+    perform crm.require_aal2();
+    if not crm.can('reglages.equipe') then raise exception 'Réservé aux administrateurs.' using errcode = 'PT403'; end if;
+  end if;
+  return jsonb_build_object('aujourdhui', v_auj, 'prospects', coalesce((select jsonb_agg(x order by x ->> 'groupe', x ->> 'relance' nulls last, x ->> 'nom') from (
+    select jsonb_build_object('id', p.id, 'nom', p.full_name, 'entreprise', p.company_name, 'tel', p.phone, 'portes', p.num_doors, 'etape', p.stage,
+      'relance', p.next_followup_date, 'prochaine_action', p.next_action, 'interet', p.interest_level,
+      'groupe', case when p.next_followup_date < v_auj then '1_retard' when p.next_followup_date = v_auj then '2_aujourdhui'
+                     when p.next_followup_date is not null then '3_semaine' else '4_jamais' end,
+      'dernier_appel', (select jsonb_build_object('le', c ->> 'date', 'resume', coalesce(c ->> 'summary', c ->> 'transcript'))
+        from jsonb_array_elements(h.a) c where c ->> 'date' is not null order by c ->> 'date' desc limit 1),
+      'deal_id', (select d.id from portee.crm_deals d where d.prospect_id = p.id limit 1)) x
+    from public.prospects p
+    cross join lateral (select case when jsonb_typeof(p.call_history) = 'array' then p.call_history else '[]'::jsonb end a) h
+    where v_c in (p.assigned_caller_id, p.created_by_caller_id) and p.archived_at is null and p.anonymized_at is null
+      and coalesce(p.stage, 'new') not in ('signed', 'lost')
+      and (p.next_followup_date <= v_auj + 7 or (p.next_followup_date is null and jsonb_array_length(h.a) = 0))) z), '[]'::jsonb));
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_a_traiter()
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -812,6 +887,49 @@ begin
             order by score desc, nom limit 4) z), '[]'::jsonb),
     'peut_ecrire', crm.can('maintenance.ecrire'));
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_automatisations()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare v_auj date := (now() at time zone 'America/Toronto')::date;
+begin
+  perform crm.require_aal2();
+  if not crm.can('ia.lire') then raise exception 'Votre rôle ne donne pas accès à Cléo et IA.' using errcode = 'PT403'; end if;
+  return jsonb_build_object(
+    'regles', coalesce((select jsonb_agg(x order by (x ->> 'ordre')::int) from (
+      select jsonb_build_object('code', a.code, 'nom', a.nom, 'declencheur', a.declencheur, 'ordre', a.ordre, 'lien', a.lien,
+        'pilotable', cardinality(a.cron_jobs) > 0 and (a.code <> 'rappels_loyer' or coalesce((select valeur from config.parametres where cle = 'rappels_loyer'), 'false'::jsonb) = 'true'::jsonb),
+        'active', case when a.code = 'routage_leads' then exists (select 1 from crm.routing_rules where active)
+                       -- la nouvelle relance ne part que si le paramètre rappels_loyer est vrai (l'ancienne séquence tourne sinon)
+                       when a.code = 'rappels_loyer' then coalesce((select valeur from config.parametres where cle = 'rappels_loyer'), 'false'::jsonb) = 'true'::jsonb
+                         and exists (select 1 from cron.job j where j.jobname = any (a.cron_jobs) and j.active)
+                       when cardinality(a.cron_jobs) > 0 then exists (select 1 from cron.job j where j.jobname = any (a.cron_jobs) and j.active)
+                       else true end,
+        'existe', a.code = 'routage_leads' or a.ai_fonction is not null or exists (select 1 from cron.job j where j.jobname = any (a.cron_jobs)),
+        'pause', case when a.pause_le is not null then jsonb_build_object('par', crm.nom_membre(a.pause_par), 'le', a.pause_le, 'raison', a.pause_raison) end,
+        'jours', (select jsonb_agg(n order by d) from (
+            select g.d, case
+              when a.code = 'routage_leads' then (select count(*) from portee.crm_deals dl where dl.owner_user_id is not null and (dl.created_at at time zone 'America/Toronto')::date = g.d)
+              when a.ai_fonction is not null then (select count(*) from public.ai_run_log l where l.function_name = a.ai_fonction and (l.created_at at time zone 'America/Toronto')::date = g.d)
+              else (select count(*) from cron.job_run_details r join cron.job j on j.jobid = r.jobid where j.jobname = any (a.cron_jobs) and (r.start_time at time zone 'America/Toronto')::date = g.d) end n
+            from generate_series(v_auj - 6, v_auj, interval '1 day') g0(d0), lateral (select g0.d0::date d) g) z),
+        'reussite', case
+          when a.ai_fonction is not null then (select round(100.0 * count(*) filter (where l.error is null) / nullif(count(*), 0)) from public.ai_run_log l where l.function_name = a.ai_fonction and l.created_at > now() - interval '30 days')
+          when cardinality(a.cron_jobs) > 0 then (select round(100.0 * count(*) filter (where r.status = 'succeeded') / nullif(count(*), 0)) from cron.job_run_details r join cron.job j on j.jobid = r.jobid
+                                                   where j.jobname = any (a.cron_jobs) and r.start_time > now() - interval '30 days') end,
+        'executions_30j', case
+          when a.ai_fonction is not null then (select count(*) from public.ai_run_log l where l.function_name = a.ai_fonction and l.created_at > now() - interval '30 days')
+          when cardinality(a.cron_jobs) > 0 then (select count(*) from cron.job_run_details r join cron.job j on j.jobid = r.jobid where j.jobname = any (a.cron_jobs) and r.start_time > now() - interval '30 days')
+          else (select count(*) from portee.crm_deals dl where dl.owner_user_id is not null and dl.created_at > now() - interval '30 days') end) x
+      from crm.automatisations a) z), '[]'::jsonb),
+    -- dernier échec d'une automatisation d'IA (e.g. classement d'une pièce illisible)
+    'echec', (select jsonb_build_object('fonction', l.function_name, 'le', l.created_at, 'erreur', l.error, 'entite', l.entity_type, 'resume', l.input_summary)
+              from public.ai_run_log l where l.error is not null and l.function_name in (select ai_fonction from crm.automatisations where ai_fonction is not null)
+                and l.created_at > now() - interval '7 days' order by l.created_at desc limit 1),
+    'peut_piloter', crm.can('envois.suspendre'));
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_bail_colocataires(p_lease uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -938,6 +1056,37 @@ begin
       'immeubles', coalesce((select jsonb_agg(jsonb_build_object('id', id, 'adresse', address) order by address) from portee.buildings), '[]'::jsonb),
       'peut_ecrire', crm.can('maintenance.ecrire')));
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_campagnes()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare m0 date := date_trunc('month', now() at time zone 'America/Toronto')::date; s0 date := date_trunc('week', now() at time zone 'America/Toronto')::date - 77;
+begin
+  perform crm.require_aal2();
+  if not crm.can('studio.lire') then raise exception 'Votre rôle ne donne pas accès au Studio.' using errcode = 'PT403'; end if;
+  return jsonb_build_object(
+    'mois', m0,
+    'leads_mois', (select jsonb_agg(n order by m) from (select g::date m, (select count(*) from portee.crm_deals d where d.merged_into is null and d.created_at >= g and d.created_at < g + interval '1 month') n
+                   from generate_series(m0 - interval '11 months', m0, interval '1 month') g) z),
+    'depense_mois', (select jsonb_agg(c order by m) from (select g::date m, (select coalesce(sum(cents), 0) from crm.depenses_marketing x where x.jour >= g and x.jour < g + interval '1 month') c
+                   from generate_series(m0 - interval '11 months', m0, interval '1 month') g) z),
+    'budget_mois', (select coalesce(sum(budget_cents), 0) from crm.campagnes where statut = 'active' and debut <= (m0 + interval '1 month')::date and (fin is null or fin >= m0)),
+    'campagnes', coalesce((select jsonb_agg(jsonb_build_object('id', c.id, 'nom', c.nom, 'canaux', c.canaux, 'statut', c.statut, 'utm', c.utm_campaign, 'page', c.page,
+        'budget_cents', c.budget_cents, 'cout_vise_cents', c.cout_vise_cents, 'arret_cents', c.arret_cents, 'ciblage', c.ciblage, 'updated_at', c.updated_at,
+        'source', (select name from crm.sources where id = c.source_id),
+        'semaines', (select jsonb_agg(n order by k) from (select k, (select count(*) from portee.crm_deals d where d.campagne_id = c.id and d.merged_into is null
+                     and (d.created_at at time zone 'America/Toronto')::date >= s0 + 7 * k and (d.created_at at time zone 'America/Toronto')::date < s0 + 7 * k + 7) n from generate_series(0, 11) k) z),
+        'leads', (select count(*) from portee.crm_deals d where d.campagne_id = c.id and d.merged_into is null),
+        'depense_cents', (select coalesce(sum(cents), 0) from crm.depenses_marketing x where x.campagne_id = c.id))
+      order by (c.statut = 'terminee'), (select count(*) from portee.crm_deals d where d.campagne_id = c.id) desc, c.created_at) from crm.campagnes c where c.statut <> 'terminee' or c.fin >= m0 - 90), '[]'),
+    'pages', coalesce((select jsonb_agg(jsonb_build_object('page', page_arrivee, 'n', n) order by n desc, page_arrivee) from (select page_arrivee, count(*) n from portee.crm_deals
+       where merged_into is null and page_arrivee is not null and created_at >= m0 group by 1 order by 2 desc limit 6) z), '[]'),
+    'sources', coalesce((select jsonb_agg(jsonb_build_object('id', id, 'code', code, 'nom', name) order by ordre nulls last, name) from crm.sources where active and code not like 'csv:%'), '[]'),
+    'proposition', crm.proposition_studio('adjust-campaign'),
+    'peut_ecrire', crm.can('studio.ecrire'));
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_catalogue()
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -982,7 +1131,7 @@ begin
         'enquete', (select jsonb_build_object('statut', s.status, 'resultat', s.result, 'cote', (s.report ->> 'cote')::int, 'le', coalesce(s.result_at, s.consent_requested_at), 'consentement', s.consent_at)
                     from portee.crm_screenings s where s.id = a.screening_id))
       order by case when a.status in ('recue', 'solvabilite', 'accord_proprietaire') then 0 else 1 end, a.deadline_at)
-      from crm.assignments a join portee.leases le on le.id = a.lease_id join portee.units un on un.id = le.unit_id join portee.buildings b on b.id = un.building_id
+      from portee.crm_assignments a join portee.leases le on le.id = a.lease_id join portee.units un on un.id = le.unit_id join portee.buildings b on b.id = un.building_id
       left join portee.tenants t on t.id = a.tenant_id left join portee.owners ow on ow.id = a.owner_id
       where a.status in ('recue', 'solvabilite', 'accord_proprietaire') or a.created_at > now() - interval '60 days'), '[]'::jsonb),
     'baux', coalesce((select jsonb_agg(jsonb_build_object('id', le.id, 'libelle', b.address || coalesce(' — ' || un.unit_number, '') || ' · ' || t.full_name) order by b.address, un.unit_number)
@@ -1082,7 +1231,7 @@ begin
       left join portee.leases l on l.id = p.lease_id left join portee.units u on u.id = l.unit_id left join portee.buildings b on b.id = u.building_id), '[]'::jsonb)
       || coalesce((select jsonb_agg(jsonb_build_object('fait', 'Demande de cession ou sous-location', 'personne', a.person_name, 'statut', a.status, 'reponse_due', to_char(a.deadline_at, 'YYYY-MM-DD'),
         'source', jsonb_build_object('libelle', 'Cessions et sous-locations', 'lien', '/clients/cessions')))
-      from crm.assignments a where a.status in ('recue', 'solvabilite', 'accord_proprietaire')), '[]'::jsonb);
+      from portee.crm_assignments a where a.status in ('recue', 'solvabilite', 'accord_proprietaire')), '[]'::jsonb);
   end if;
   if char_length(btrim(coalesce(q, ''))) >= 2 then
     v := v || coalesce((select jsonb_agg(jsonb_build_object('fait', 'Fiche trouvée', 'type', f ->> 'type', 'titre', f ->> 'titre', 'detail', f ->> 'droite',
@@ -1142,6 +1291,45 @@ begin
               from unnest(array['admin', 'gestionnaire', 'location', 'prospection', 'comptabilite', 'lecture']) r),
     'moi', auth.uid());
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_contacts(p_role text DEFAULT NULL::text, p_q text DEFAULT NULL::text, p_limite integer DEFAULT 50)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  if crm.est_prospecteur() then raise exception 'Réservé à l’équipe : votre espace montre vos prospects (Mes prospects).' using errcode = 'PT403'; end if;
+  if not (crm.can('ventes.lire') or crm.can('clients.lire')) then raise exception 'Votre rôle ne donne pas accès aux contacts.' using errcode = 'PT403'; end if;
+  return (with base as (
+    select c.*,
+      array_remove(array[case when c.owner_id is not null or exists (select 1 from crm.deal_contacts dc where dc.contact_id = c.id and dc.role ilike 'propri%') then 'Propriétaire' end,
+                         case when c.tenant_id is not null then 'Locataire' end, case when c.worker_id is not null then 'Fournisseur' end,
+                         case when exists (select 1 from crm.deal_contacts dc where dc.contact_id = c.id and dc.role ilike 'référ%') then 'Référent' end,
+                         case when exists (select 1 from crm.deal_contacts dc where dc.contact_id = c.id and dc.role = 'Candidat') then 'Candidat' end], null) as roles,
+      exists (select 1 from comms.consents s where s.channel = 'email' and lower(s.address) = any(c.emails) and s.withdrawn_at is null and (s.expires_at is null or s.expires_at > now())) as c_email,
+      exists (select 1 from comms.consents s where s.channel = 'sms' and s.address = any(c.phones_e164) and s.withdrawn_at is null and (s.expires_at is null or s.expires_at > now())) as c_sms,
+      greatest(c.updated_at, (select max(a.occurred_at) from crm.activities a where a.contact_id = c.id or a.deal_id in (select dc.deal_id from crm.deal_contacts dc where dc.contact_id = c.id))) as derniere
+    from portee.crm_contacts c where c.merged_into is null and c.anonymized_at is null),
+  filtre as (select * from base where (p_role is null or p_role = any(roles))
+      and (coalesce(btrim(p_q), '') = '' or full_name ilike '%' || p_q || '%' or array_to_string(emails, ' ') ilike '%' || p_q || '%'
+           or array_to_string(phones_e164, ' ') like '%' || regexp_replace(p_q, '\D', '', 'g') || '%' and regexp_replace(p_q, '\D', '', 'g') <> ''))
+  select jsonb_build_object(
+    'total', (select count(*) from base), 'filtres', (select count(*) from filtre),
+    'contacts', coalesce((select jsonb_agg(jsonb_build_object('id', f.id, 'nom', f.full_name, 'sous', coalesce(f.company, f.emails[1], f.phones_e164[1]), 'roles', f.roles,
+        'deals', (select count(*) from crm.deal_contacts dc join portee.crm_deals d on d.id = dc.deal_id where dc.contact_id = f.id and d.merged_into is null),
+        'pipeline', (select pl.name from crm.deal_contacts dc join portee.crm_deals d on d.id = dc.deal_id join crm.pipelines pl on pl.id = d.pipeline_id where dc.contact_id = f.id order by d.created_at desc limit 1),
+        'deal_id', (select dc.deal_id from crm.deal_contacts dc join portee.crm_deals d on d.id = dc.deal_id where dc.contact_id = f.id and d.merged_into is null order by d.created_at desc limit 1),
+        'c_email', f.c_email, 'c_sms', f.c_sms, 'derniere', f.derniere,
+        'quoi', (select a.title from crm.activities a where a.contact_id = f.id or a.deal_id in (select dc.deal_id from crm.deal_contacts dc where dc.contact_id = f.id) order by a.occurred_at desc limit 1))
+        order by f.derniere desc nulls last) from (select * from filtre order by derniere desc nulls last limit greatest(1, least(p_limite, 500))) f), '[]'::jsonb),
+    'consentements', jsonb_build_object('email', (select count(*) from base where c_email), 'sms', (select count(*) from base where c_sms), 'aucun', (select count(*) from base where not c_email and not c_sms)),
+    'doublons', coalesce((select jsonb_agg(jsonb_build_object('a', pd.a, 'b', pd.b, 'nom', x.full_name, 'nom_b', y.full_name, 'confiance', pd.confiance,
+        'pourquoi', concat_ws(' · ', case when pd.courriel then 'même courriel' end, case when pd.telephone then 'même téléphone' end, case when pd.nom then 'même nom' end),
+        'detail_a', case when x.owner_id is not null then 'propriétaire' when x.tenant_id is not null then 'locataire' when x.worker_id is not null then 'fournisseur' else 'contact' end,
+        'detail_b', case when y.owner_id is not null then 'propriétaire' when y.tenant_id is not null then 'locataire' when y.worker_id is not null then 'fournisseur' else 'contact' end)
+        order by pd.confiance desc)
+      from crm.paires_doublons() pd join portee.crm_contacts x on x.id = pd.a join portee.crm_contacts y on y.id = pd.b), '[]'::jsonb)));
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_conversations()
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -1164,7 +1352,7 @@ AS $function$
 declare d crm.deals; pl crm.pipelines;
 begin
   perform crm.exiger_mon_deal(p_id);
-  select * into d from crm.deals where id = p_id;
+  select * into d from portee.crm_deals where id = p_id;
   if not found then raise exception 'Deal introuvable.' using errcode = 'PT404'; end if;
   select * into pl from crm.pipelines where id = d.pipeline_id;
   if not crm.can(pl.permission) then raise exception 'Votre rôle ne donne pas accès à ce pipeline.' using errcode = 'PT403'; end if;
@@ -1177,7 +1365,7 @@ begin
         'depuis', (select h.entered_at from crm.deal_stage_history h where h.deal_id = d.id and h.stage_id = s.id and h.left_at is null)) order by s.sort)
       from crm.stages s where s.pipeline_id = pl.id and s.active),
     'contacts', coalesce((select jsonb_agg(jsonb_build_object('id', c.id, 'nom', c.full_name, 'role', dc.role, 'emails', c.emails, 'phones', c.phones_e164))
-      from crm.deal_contacts dc join crm.contacts c on c.id = dc.contact_id where dc.deal_id = d.id), '[]'::jsonb),
+      from crm.deal_contacts dc join portee.crm_contacts c on c.id = dc.contact_id where dc.deal_id = d.id), '[]'::jsonb),
     'activites', coalesce((select jsonb_agg(jsonb_build_object('id', a.id, 'type', a.type, 'title', a.title, 'body', a.body, 'occurred_at', a.occurred_at,
         'auteur', case when a.author_user_id is not null then crm.nom_membre(a.author_user_id) end, 'actor_kind', a.actor_kind) order by a.occurred_at desc)
       from crm.activities a where a.deal_id = d.id), '[]'::jsonb)
@@ -1188,7 +1376,31 @@ begin
     'taches', coalesce((select jsonb_agg(jsonb_build_object('id', t.id, 'title', t.title, 'due_at', t.due_at, 'assignee', case when t.assignee_user_id is not null then crm.nom_membre(t.assignee_user_id) end) order by t.due_at nulls last)
       from crm.tasks t where t.deal_id = d.id and t.status = 'open'), '[]'::jsonb),
     'raisons', (select jsonb_agg(jsonb_build_object('code', code, 'label', label) order by sort) from crm.loss_reasons where active),
-    'survivant', case when d.merged_into is not null then (select jsonb_build_object('id', x.id, 'title', x.title) from crm.deals x where x.id = d.merged_into) end);
+    'survivant', case when d.merged_into is not null then (select jsonb_build_object('id', x.id, 'title', x.title) from portee.crm_deals x where x.id = d.merged_into) end);
+end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_deal_historique(p_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare d crm.deals; pl crm.pipelines; pr public.prospects;
+begin
+  perform crm.exiger_mon_deal(p_id);
+  select * into d from portee.crm_deals where id = p_id;
+  if not found then raise exception 'Deal introuvable.' using errcode = 'PT404'; end if;
+  select * into pl from crm.pipelines where id = d.pipeline_id;
+  if not crm.can(pl.permission) then raise exception 'Votre rôle ne donne pas accès à ce pipeline.' using errcode = 'PT403'; end if;
+  select * into pr from public.prospects where id = d.prospect_id;
+  if not found then return jsonb_build_object('notes', null, 'appels', '[]'::jsonb); end if;
+  return jsonb_build_object(
+    'prospect_id', pr.id, 'peut_appeler', coalesce(public.auth_cold_caller_id() in (pr.assigned_caller_id, pr.created_by_caller_id), false),
+    'notes', nullif(btrim(pr.notes), ''),
+    'interet', pr.interest_level, 'relance', pr.next_followup_date, 'prochaine_action', pr.next_action,
+    'appels', coalesce((select jsonb_agg(jsonb_build_object('le', c ->> 'date', 'resume', coalesce(c ->> 'summary', c ->> 'transcript'), 'prochaine_etape', c ->> 'next_step',
+        'objections', c ->> 'objections', 'engagement', c ->> 'commitment', 'interet', c ->> 'interest_level',
+        'par', (select cc.full_name from public.cold_callers cc where cc.id::text = c ->> 'caller_id')) order by c ->> 'date' desc)
+      from jsonb_array_elements(case when jsonb_typeof(pr.call_history) = 'array' then pr.call_history else '[]'::jsonb end) c), '[]'::jsonb));
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_debours()
  RETURNS jsonb
@@ -1281,8 +1493,8 @@ begin
   return coalesce((select jsonb_agg(jsonb_build_object('id', c.id, 'nom', c.full_name, 'raison', case when lower(btrim(p_email)) = any(c.emails) then 'courriel' else 'téléphone' end,
       'client_depuis', (select extract(year from o.created_at)::int from portee.owners o where o.id = c.owner_id),
       'locataire', c.tenant_id is not null,
-      'deal_id', (select dc.deal_id from crm.deal_contacts dc join crm.deals d on d.id = dc.deal_id where dc.contact_id = c.id and d.merged_into is null order by d.created_at desc limit 1)))
-    from crm.contacts c
+      'deal_id', (select dc.deal_id from crm.deal_contacts dc join portee.crm_deals d on d.id = dc.deal_id where dc.contact_id = c.id and d.merged_into is null order by d.created_at desc limit 1)))
+    from portee.crm_contacts c
     where c.merged_into is null and c.anonymized_at is null
       and ((coalesce(btrim(p_email), '') <> '' and lower(btrim(p_email)) = any(c.emails)) or (crm.normaliser_tel(p_tel) is not null and crm.normaliser_tel(p_tel) = any(c.phones_e164)))
     limit 3), '[]'::jsonb);
@@ -1522,6 +1734,22 @@ begin
         'par', crm.nom_membre(s.decided_by), 'motif', s.decision_note, 'building_id', s.building_id) x
       from portee.building_submissions s join portee.owners o on o.id = s.owner_id where s.status <> 'pending' order by s.decided_at desc limit 20) z), '[]'::jsonb));
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_import_verifier(p_lignes jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  if crm.est_prospecteur() then raise exception 'Réservé à l’équipe : votre espace montre vos prospects (Mes prospects).' using errcode = 'PT403'; end if;
+  if not crm.can('ventes.mandats.ecrire') then raise exception 'Votre rôle ne permet pas d’importer.' using errcode = 'PT403'; end if;
+  if jsonb_array_length(p_lignes) > 2000 then raise exception 'Fichier trop gros (2 000 lignes au plus).' using errcode = 'PT422'; end if;
+  return coalesce((select jsonb_agg(jsonb_build_object('ligne', (l.i - 1)::int, 'contact_id', c.id, 'nom', c.full_name))
+    from jsonb_array_elements(p_lignes) with ordinality l(v, i)
+    join lateral (select x.id, x.full_name from portee.crm_contacts x where x.merged_into is null and x.anonymized_at is null
+      and ((coalesce(l.v ->> 'courriel', '') <> '' and lower(btrim(l.v ->> 'courriel')) = any(x.emails)) or (crm.normaliser_tel(l.v ->> 'telephone') is not null and crm.normaliser_tel(l.v ->> 'telephone') = any(x.phones_e164)))
+      limit 1) c on true), '[]'::jsonb);
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_juridique()
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -1606,7 +1834,7 @@ begin
         'source', so.name, 'pipeline', pl.name, 'pipeline_code', pl.code, 'owner', case when d.owner_user_id is not null then crm.nom_membre(d.owner_user_id) end, 'created_at', d.created_at,
         'doublon', exists (select 1 from crm.deal_contacts dc, crm.paires_doublons() pd where dc.deal_id = d.id and dc.contact_id in (pd.a, pd.b)))
         order by d.created_at desc)
-      from crm.deals d join crm.pipelines pl on pl.id = d.pipeline_id left join crm.sources so on so.id = d.source_id
+      from portee.crm_deals d join crm.pipelines pl on pl.id = d.pipeline_id left join crm.sources so on so.id = d.source_id
       join crm.stages s on s.id = d.stage_id
       where d.merged_into is null and s.sort = 1 and d.created_at > now() - interval '14 days' and crm.can(pl.permission)), '[]'::jsonb),
     'regles', coalesce((select jsonb_agg(jsonb_build_object('id', r.id, 'kind', r.kind, 'pipeline', pl.name, 'source', so.name, 'user', case when r.user_id is not null then crm.nom_membre(r.user_id) end,
@@ -1618,9 +1846,9 @@ begin
         'b', jsonb_build_object('id', y.id, 'nom', y.full_name, 'emails', y.emails, 'phones', y.phones_e164,
           'detail', case when y.owner_id is not null then 'client depuis ' || (select extract(year from o.created_at)::int from portee.owners o where o.id = y.owner_id) when y.tenant_id is not null then 'locataire' else 'nouveau lead' end),
         'courriel', pd.courriel, 'telephone', pd.telephone, 'nom', pd.nom, 'confiance', pd.confiance)
-      from crm.paires_doublons() pd join crm.contacts x on x.id = pd.a join crm.contacts y on y.id = pd.b order by pd.confiance desc limit 1),
+      from crm.paires_doublons() pd join portee.crm_contacts x on x.id = pd.a join portee.crm_contacts y on y.id = pd.b order by pd.confiance desc limit 1),
     'sources', coalesce((select jsonb_agg(jsonb_build_object('nom', z.nom, 'n', z.n) order by z.n desc) from (
-        select coalesce(so.name, 'Autre') as nom, count(*) as n from crm.deals d left join crm.sources so on so.id = d.source_id
+        select coalesce(so.name, 'Autre') as nom, count(*) as n from portee.crm_deals d left join crm.sources so on so.id = d.source_id
         where d.created_at >= date_trunc('month', now()) and d.merged_into is null group by 1) z), '[]'::jsonb),
     'pipelines', (select jsonb_agg(jsonb_build_object('code', code, 'name', name) order by sort) from crm.pipelines where active and crm.can(replace(permission, '.lire', '.ecrire'))),
     'liste_sources', (select jsonb_agg(jsonb_build_object('id', id, 'name', name) order by name) from crm.sources where active),
@@ -1777,7 +2005,7 @@ begin
       'entonnoir', jsonb_build_object(
         'demandes', (select count(*) from portee.inquiries i where i.unit_id = u.id and (v_pub is null or i.created_at >= v_pub)),
         'visites', (select count(*) from portee.visits v where v.unit_id = u.id and (v_pub is null or v.created_at >= v_pub) and v.status not in ('declined', 'cancelled')),
-        'candidatures', (select count(*) from crm.deals d where d.unit_id = u.id and (v_pub is null or d.created_at >= v_pub))),
+        'candidatures', (select count(*) from portee.crm_deals d where d.unit_id = u.id and (v_pub is null or d.created_at >= v_pub))),
       'location', (select tm.display_name from crm.team_members tm where tm.role = 'location' and tm.active order by tm.created_at limit 1)) end);
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_paiements(p jsonb DEFAULT '{}'::jsonb)
@@ -1850,11 +2078,11 @@ begin
   -- Ventes
   if crm.can('ventes.lire') then
     p := jsonb_build_object(
-      'Mandats propriétaires', jsonb_build_object('n', (select count(*) from crm.deals d join crm.pipelines pl on pl.id = d.pipeline_id join crm.stages s on s.id = d.stage_id
+      'Mandats propriétaires', jsonb_build_object('n', (select count(*) from portee.crm_deals d join crm.pipelines pl on pl.id = d.pipeline_id join crm.stages s on s.id = d.stage_id
                                                         where pl.code = 'mandats' and d.merged_into is null and s.category = 'active')),
-      'Location', jsonb_build_object('n', (select count(*) from crm.deals d join crm.pipelines pl on pl.id = d.pipeline_id join crm.stages s on s.id = d.stage_id
+      'Location', jsonb_build_object('n', (select count(*) from portee.crm_deals d join crm.pipelines pl on pl.id = d.pipeline_id join crm.stages s on s.id = d.stage_id
                                            where pl.code = 'location' and d.merged_into is null and s.category = 'active')),
-      'Leads entrants', jsonb_build_object('n', (select count(*) from crm.deals d join crm.stages s on s.id = d.stage_id
+      'Leads entrants', jsonb_build_object('n', (select count(*) from portee.crm_deals d join crm.stages s on s.id = d.stage_id
                                                  where d.merged_into is null and s.sort = 1 and d.created_at > now() - interval '14 days')),
       'Prospection IA', jsonb_build_object('n', (select count(*) from crm.prospect_suggestions where status = 'pending')));
     r := r || jsonb_build_object('Ventes', p);
@@ -1864,7 +2092,7 @@ begin
     p := jsonb_build_object(
       'Propriétaires', jsonb_build_object('n', (select count(*) from portee.owners)),
       'Processus', jsonb_build_object('n', (select count(*) from portee.crm_processes where status = 'active')),
-      'Cessions et sous-locations', jsonb_build_object('n', (select count(*) from crm.assignments where status in ('recue', 'solvabilite', 'accord_proprietaire'))),
+      'Cessions et sous-locations', jsonb_build_object('n', (select count(*) from portee.crm_assignments where status in ('recue', 'solvabilite', 'accord_proprietaire'))),
       'Solvabilité', jsonb_build_object('n', (select count(*) from portee.crm_screenings where status in ('consent_pending', 'to_approve', 'running'))),
       'Documents et signatures', jsonb_build_object('n', (select count(*) from portee.crm_signature_requests where status = 'sent')));
     r := r || jsonb_build_object('Clients', p);
@@ -1935,6 +2163,33 @@ begin
   return jsonb_build_object(
     'immeuble', coalesce((select photo_urls from portee.buildings where id = p_id), '[]'::jsonb),
     'logements', coalesce((select jsonb_object_agg(id, coalesce(photo_urls, '[]'::jsonb)) from portee.units where building_id = p_id), '{}'::jsonb));
+end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_pipeline(p_code text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare pl crm.pipelines;
+begin
+  select * into pl from crm.pipelines where code = p_code and active;
+  if not found then raise exception 'Pipeline inconnu.' using errcode = 'PT404'; end if;
+  if not crm.can(pl.permission) then raise exception 'Votre rôle ne donne pas accès à ce pipeline.' using errcode = 'PT403'; end if;
+  return jsonb_build_object(
+    'pipeline', to_jsonb(pl), 'peut_ecrire', crm.can(replace(pl.permission, '.lire', '.ecrire')),
+    'etapes', (select jsonb_agg(to_jsonb(s) order by s.sort) from crm.stages s where s.pipeline_id = pl.id and s.active),
+    'deals', coalesce((select jsonb_agg(jsonb_build_object('id', d.id, 'number', d.number, 'title', d.title, 'subtitle', d.subtitle, 'stage_id', d.stage_id,
+        'source', so.name, 'owner_user_id', d.owner_user_id, 'owner', case when d.owner_user_id is not null then crm.nom_membre(d.owner_user_id) end,
+        'monthly_value_cents', d.monthly_value_cents, 'doors', d.doors, 'loss_reason', lr.label, 'loss_note', d.loss_note, 'converted_at', d.converted_at, 'close_date', d.close_date,
+        'entered_at', h.entered_at,
+        'prochaine', (select t.title || ' · ' || to_char(t.due_at at time zone 'America/Toronto', 'DD/MM') from crm.tasks t where t.deal_id = d.id and t.status = 'open' order by t.due_at nulls last limit 1))
+        order by h.entered_at desc)
+      from portee.crm_deals d left join crm.sources so on so.id = d.source_id left join crm.loss_reasons lr on lr.code = d.loss_reason_code
+      left join crm.deal_stage_history h on h.deal_id = d.id and h.left_at is null
+      where d.pipeline_id = pl.id and d.merged_into is null and (not crm.est_prospecteur() or d.owner_user_id = auth.uid())
+        and (d.close_date is null or d.close_date > current_date - 60)), '[]'::jsonb),
+    'equipe', crm.equipe_active(),
+    'sources', (select jsonb_agg(jsonb_build_object('id', id, 'name', name) order by name) from crm.sources where active));
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_prelevements(p_echeance date)
  RETURNS jsonb
@@ -2111,7 +2366,7 @@ begin
           'loyers', (select count(*) from portee.payments pa join portee.leases l on l.id = pa.lease_id join portee.units u on u.id = l.unit_id join portee.buildings b on b.id = u.building_id
                       where b.owner_id = o.id and date_trunc('month', pa.due_date) = v_m),
           'portail', case when o.user_id is not null then 'actif' when exists (select 1 from portee.portal_invitations i where i.owner_id = o.id and i.kind = 'proprietaire' and i.used_at is null and i.revoked_at is null and i.expires_at > now()) then 'invite' else 'aucun' end,
-          'approbations', (select count(*) from portee.approvals a where a.owner_id = o.id and a.status = 'pending') + (select count(*) from crm.assignments s where s.owner_id = o.id and s.status = 'accord_proprietaire')) x
+          'approbations', (select count(*) from portee.approvals a where a.owner_id = o.id and a.status = 'pending') + (select count(*) from portee.crm_assignments s where s.owner_id = o.id and s.status = 'accord_proprietaire')) x
         from portee.owners o
         where (p ->> 'q' is null or o.full_name ilike '%' || (p ->> 'q') || '%' or o.company_name ilike '%' || (p ->> 'q') || '%')
           and (p ->> 'quartier' is null or exists (select 1 from portee.buildings b where b.owner_id = o.id and b.zone = p ->> 'quartier'))
@@ -2124,12 +2379,42 @@ begin
         union all
         select jsonb_build_object('type', 'cession', 'id', s.id, 'owner_id', o.id, 'proprietaire', o.full_name, 'quoi', case s.kind when 'cession' then 'Cession à ' else 'Sous-location à ' end || s.person_name,
           'demande_le', s.owner_requested_at, 'echeance', s.deadline_at, 'recue', s.received_at)
-          from crm.assignments s join portee.owners o on o.id = s.owner_id where s.status = 'accord_proprietaire') z), '[]'::jsonb),
+          from portee.crm_assignments s join portee.owners o on o.id = s.owner_id where s.status = 'accord_proprietaire') z), '[]'::jsonb),
     'seuil', (select coalesce(min(spending_cap), 500) from portee.owners),
     'releves', jsonb_build_object('mois', v_prec, 'emis', (select count(*) from portee.fin_owner_statements where mois = v_prec),
       'attendus', (select count(*) from portee.owners o where exists (select 1 from crm.ecritures_proprio(o.id, v_prec))),
       'a_verifier', coalesce((select jsonb_agg(jsonb_build_object('owner_id', o.id, 'proprietaire', o.full_name, 'raison', 'Relevé non émis')) from portee.owners o
         where exists (select 1 from crm.ecritures_proprio(o.id, v_prec)) and not exists (select 1 from portee.fin_owner_statements s where s.owner_id = o.id and s.mois = v_prec)), '[]'::jsonb)));
+end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_prospecteur(p_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare c public.cold_callers;
+begin
+  perform crm.require_aal2();
+  if not crm.can('ventes.lire') then raise exception 'Votre rôle ne donne pas accès aux prospecteurs.' using errcode = 'PT403'; end if;
+  select * into c from public.cold_callers where id = p_id and (not crm.est_prospecteur() or user_id = auth.uid());
+  if not found then raise exception 'Prospecteur introuvable.' using errcode = 'PT404'; end if;
+  return jsonb_build_object(
+    'prospecteur', jsonb_build_object('id', c.id, 'nom', c.full_name, 'courriel', c.email, 'tel', c.phone, 'actif', coalesce(c.active, true), 'compte', c.user_id is not null,
+      'equipe', exists (select 1 from crm.team_members tm where tm.user_id = c.user_id and tm.active and tm.removed_at is null),
+      'role', (select tm.role from crm.team_members tm where tm.user_id = c.user_id and tm.active and tm.removed_at is null)),
+    -- Ce qu'il voit : même règle que son portail et que la RLS (assigné ou créé par lui, non archivé)
+    'prospects', coalesce((select jsonb_agg(jsonb_build_object('id', p.id, 'nom', p.full_name, 'entreprise', p.company_name, 'tel', p.phone, 'courriel', p.email,
+        'portes', p.num_doors, 'etape', p.stage, 'relance', p.next_followup_date, 'cree_par_lui', p.created_by_caller_id = c.id and p.assigned_caller_id is distinct from c.id,
+        'dernier_appel', (select max(h ->> 'date') from jsonb_array_elements(case when jsonb_typeof(p.call_history) = 'array' then p.call_history else '[]'::jsonb end) h),
+        'deal_id', (select d.id from portee.crm_deals d where d.prospect_id = p.id limit 1)) order by p.next_followup_date nulls last, p.created_at desc)
+      from public.prospects p where c.id in (p.assigned_caller_id, p.created_by_caller_id) and p.archived_at is null and p.anonymized_at is null), '[]'::jsonb),
+    -- À assigner : prospects actifs sans prospecteur
+    'libres', coalesce((select jsonb_agg(x order by x ->> 'cree' desc) from (select jsonb_build_object('id', p.id, 'nom', p.full_name, 'entreprise', p.company_name,
+        'portes', p.num_doors, 'etape', p.stage, 'source', p.lead_source, 'tel', p.phone is not null, 'cree', p.created_at) x
+      from public.prospects p where p.assigned_caller_id is null and p.archived_at is null and p.anonymized_at is null
+        and coalesce(p.stage, 'new') not in ('signed', 'lost') order by p.created_at desc limit 500) z), '[]'::jsonb),
+    'peut_assigner', crm.can('ventes.mandats.ecrire') and not crm.est_prospecteur(),
+    'peut_acces', crm.can('reglages.equipe'));
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_prospecteurs()
  RETURNS jsonb
@@ -2201,6 +2486,35 @@ begin
       'ententes', (select count(distinct p.lease_id) from portee.payments p where p.status <> 'paid' and p.reminder_paused and p.due_date < current_date)),
     'auto', coalesce((select valeur from config.parametres where cle = 'juridique_auto'), 'false'::jsonb) = 'true'::jsonb);
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_rapport_pipeline(p jsonb DEFAULT '{}'::jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare pl crm.pipelines; v_j int := least(coalesce(nullif(p ->> 'jours', '')::int, 365), 1100);
+begin
+  perform crm.require_aal2();
+  if not crm.can('rapports.lire') then raise exception 'Votre rôle ne donne pas accès aux rapports.' using errcode = 'PT403'; end if;
+  select * into pl from crm.pipelines where code = coalesce(p ->> 'pipeline', 'mandats');
+  if not found then raise exception 'Pipeline inconnu.' using errcode = 'PT404'; end if;
+  return (with h as (select dh.*, s.sort, s.category from crm.deal_stage_history dh join crm.stages s on s.id = dh.stage_id join portee.crm_deals d on d.id = dh.deal_id
+                     where d.pipeline_id = pl.id and d.merged_into is null and dh.entered_at > now() - make_interval(days => v_j)),
+    e as (select s.id, s.code, s.name, s.sort, s.category, s.target_days,
+            (select count(distinct deal_id) from h where h.stage_id = s.id) entres,
+            (select count(distinct h1.deal_id) from h h1 where h1.stage_id = s.id and exists (select 1 from h h2 where h2.deal_id = h1.deal_id and h2.sort > s.sort and h2.category in ('active', 'won') and h2.entered_at >= h1.entered_at)) passes,
+            (select round(avg(extract(epoch from coalesce(h.left_at, now()) - h.entered_at) / 86400)::numeric, 1) from h where h.stage_id = s.id) jours,
+            (select count(*) from portee.crm_deals d where d.stage_id = s.id and d.merged_into is null) actuels
+          from crm.stages s where s.pipeline_id = pl.id and s.active)
+    select jsonb_build_object('pipeline', jsonb_build_object('code', pl.code, 'nom', pl.name), 'jours', v_j,
+      'etapes', coalesce((select jsonb_agg(jsonb_build_object('code', code, 'nom', name, 'categorie', category, 'cible_jours', target_days, 'entres', entres, 'passes', passes,
+          'conversion', case when category = 'active' and entres > 0 then round(100.0 * passes / entres) end, 'jours_moyens', jours, 'actuels', actuels) order by sort) from e), '[]'::jsonb),
+      'gagnes', (select count(distinct deal_id) from h where category = 'won'), 'perdus', (select count(distinct deal_id) from h where category = 'lost'),
+      'cycle_jours', (select round(avg(extract(epoch from h.entered_at - d.created_at) / 86400)::numeric, 1) from h join portee.crm_deals d on d.id = h.deal_id where h.category = 'won'),
+      'raisons_perte', coalesce((select jsonb_agg(jsonb_build_object('raison', coalesce(lr.label, d.loss_reason_code), 'n', n) order by n desc) from (select loss_reason_code, count(*) n from portee.crm_deals
+          where pipeline_id = pl.id and loss_reason_code is not null and updated_at > now() - make_interval(days => v_j) group by 1) d left join crm.loss_reasons lr on lr.code = d.loss_reason_code), '[]'::jsonb),
+      'pipelines', coalesce((select jsonb_agg(jsonb_build_object('code', code, 'nom', name) order by sort) from crm.pipelines where active), '[]'::jsonb)));
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_rapprochement()
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -2260,14 +2574,14 @@ begin
            from portee.jur_cases c left join portee.tenants t on t.id = c.tenant_id where crm.can('juridique.lire') and (lower(c.numero) like m or lower(coalesce(t.full_name, '')) like m) order by c.opened_at desc limit 3)
         union all
         (select jsonb_build_object('type', 'deal', 'titre', d.title, 'droite', 'Ventes · ' || d.number, 'icone', 'trend', 'lien', '/ventes/deals/' || d.id)
-           from crm.deals d where crm.can('ventes.lire') and (not crm.est_prospecteur() or d.owner_user_id = auth.uid()) and (lower(d.title) like m or lower(coalesce(d.subtitle, '')) like m or lower(d.number) like m) order by d.created_at desc limit 3)
+           from portee.crm_deals d where crm.can('ventes.lire') and (not crm.est_prospecteur() or d.owner_user_id = auth.uid()) and (lower(d.title) like m or lower(coalesce(d.subtitle, '')) like m or lower(d.number) like m) order by d.created_at desc limit 3)
         union all
         (select jsonb_build_object('type', 'bon', 'titre', wo.description, 'droite', 'Maintenance · ' || b.address || coalesce(' — ' || u.unit_number, ''), 'icone', 'wrench', 'lien', '/maintenance/soumissions?bt=' || wo.id)
            from portee.work_orders wo left join portee.units u on u.id = wo.unit_id left join portee.buildings b on b.id = u.building_id
            where crm.can('maintenance.lire') and (lower(wo.description) like m or lower(coalesce(b.address, '')) like m) order by wo.created_at desc limit 3)
         union all
         (select jsonb_build_object('type', 'cession', 'titre', case a.kind when 'cession' then 'Cession · ' else 'Sous-location · ' end || a.person_name, 'droite', 'Demande ' || a.numero, 'icone', 'users', 'lien', '/clients/cessions')
-           from crm.assignments a where crm.can('clients.lire') and lower(a.person_name) like m order by a.created_at desc limit 2)
+           from portee.crm_assignments a where crm.can('clients.lire') and lower(a.person_name) like m order by a.created_at desc limit 2)
       ) z), '[]'::jsonb));
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_releve(p_owner uuid, p_mois date)
@@ -2494,6 +2808,30 @@ begin
     'recherche', (select r.specialite || ' · ' || r.secteurs from maint.recruitment_searches r where r.active order by r.created_at desc limit 1),
     'peut_ecrire', crm.can('maintenance.ecrire'));
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_sources()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare d0 timestamptz := now() - interval '90 days'; v_pl uuid := (select id from crm.pipelines where code = 'mandats');
+begin
+  perform crm.require_aal2();
+  if not crm.can('studio.lire') then raise exception 'Votre rôle ne donne pas accès au Studio.' using errcode = 'PT403'; end if;
+  return jsonb_build_object(
+    'sources', coalesce((select jsonb_agg(x order by (x ->> 'leads')::int desc, x ->> 'nom') from (
+       select jsonb_build_object('id', s.id, 'code', s.code, 'nom', s.name, 'detail', s.detail, 'icone', s.icone, 'budget_mensuel_cents', s.budget_mensuel_cents,
+         'leads', count(d.id), 'mandats', count(d.id) filter (where d.converted_at is not null),
+         'cout_cents', (select coalesce(sum(cents), 0) from crm.depenses_marketing x where x.source_id = s.id and x.jour >= d0::date)) x
+       from crm.sources s left join portee.crm_deals d on coalesce((select c.source_id from crm.campagnes c where c.id = d.campagne_id), d.source_id) = s.id and d.pipeline_id = v_pl and d.merged_into is null and d.created_at >= d0
+       where s.active and s.code not like 'csv:%' group by s.id
+       having count(d.id) > 0 or exists (select 1 from crm.depenses_marketing x where x.source_id = s.id and x.jour >= d0::date)) z), '[]'),
+    'campagnes', coalesce((select jsonb_agg(jsonb_build_object('utm', utm_campaign, 'page', page, 'source', (select code from crm.sources where id = c.source_id)) order by created_at desc)
+       from crm.campagnes c where statut <> 'terminee'), '[]'),
+    'proposition', (select crm.proposition_studio('adjust-source-budget') || jsonb_build_object('source', s.name, 'vers', (select name from crm.sources where code = pr.after ->> 'transfert_vers'))
+       from crm.proposals pr join crm.sources s on s.id = pr.target_id where pr.operation = 'adjust-source-budget' and pr.status = 'pending' and pr.expires_at > now() order by pr.created_at desc limit 1),
+    'peut_ecrire', crm.can('studio.ecrire'));
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_tableau_de_bord()
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -2512,6 +2850,6 @@ begin
     'propositions', (select count(*) from crm.proposals where status = 'pending'), 'taches_en_retard', (select count(*) from crm.tasks where status = 'open' and due_at < now()),
     'loi25', (select count(*) from public.personal_data_requests where status in ('received', 'in_progress')),
     'mandats', (select jsonb_build_object('gagnes', count(*) filter (where s.category = 'won' and d.updated_at > now() - interval '90 days'), 'actifs', count(*) filter (where s.category = 'active'))
-                from crm.deals d join crm.stages s on s.id = d.stage_id join crm.pipelines pl on pl.id = d.pipeline_id where pl.code = 'mandats' and d.merged_into is null));
+                from portee.crm_deals d join crm.stages s on s.id = d.stage_id join crm.pipelines pl on pl.id = d.pipeline_id where pl.code = 'mandats' and d.merged_into is null));
 end $function$;
--- 105 fonctions de lecture réécrites.
+-- 118 fonctions de lecture réécrites.

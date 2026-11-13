@@ -8,7 +8,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ m
   const sp = await searchParams;
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_comptabilite', { p: { mois: /^\d{4}-\d{2}$/.test(sp.mois ?? '') ? `${sp.mois}-01` : null, type: sp.type ?? 'toutes' } });
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={3} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={6} onglets={ONGLETS_FIN}>
       <Comptabilite donnees={(data as DonneesCompta | null) ?? null} filtres={sp} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'La comptabilité n’a pas pu être lue.') : null} />
     </CadreEspace>
   );

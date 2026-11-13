@@ -8,13 +8,18 @@ import { argent } from '../onglets';
 
 type Immeuble = { id: string; adresse: string; logements: number; occupes: number; attendu: number; paye: number; stationnement: number; buanderie: number; autre: number; depenses: number; net: number; alertes: number };
 type Client = { id: string; nom: string; attendu: number; paye: number; autres: number; depenses: number; net: number; alertes: number; immeubles: Immeuble[] };
-type Alerte = { immeuble_id: string; immeuble: string; client: string; client_id: string; type: 'tresorerie' | 'perception' | 'depense'; texte: string; montant: number };
+type Alerte = { immeuble_id: string; immeuble: string; client: string; client_id: string; type: 'tresorerie' | 'perception' | 'depense'; texte: string; montant: number; sorte: 'travaux' | 'debours' | 'facture' | null;
+  vue: { par: string | null; le: string; note: string | null } | null };
 export type DonneesVue = { mois: string; courant: boolean; seuils: Record<string, number>;
   total: { attendu: number; paye: number; autres: number; depenses: number; net: number; immeubles: number; logements: number; occupes: number };
   clients: Client[]; alertes: Alerte[]; serie: { mois: string; revenus: number; depenses: number }[];
   autres_revenus: { id: string; immeuble: string; type: string; montant: number; le: string; note: string | null }[]; immeubles: { id: string; adresse: string }[]; peut_ecrire: boolean };
 
 const TYPE: Record<Alerte['type'], string> = { tresorerie: 'Flux de trésorerie', perception: 'Loyers perçus', depense: 'Dépense inhabituelle' };
+// Où regarder le détail d'une alerte : l'écran qui liste ce qui l'a déclenchée, pour l'immeuble en cause.
+const DETAIL = (a: Alerte): [string, string] | null => a.type === 'perception' ? ['Voir les loyers en retard', '/finances/paiements']
+  : a.type === 'depense' ? (a.sorte === 'travaux' ? ['Voir les bons de travail', '/maintenance/bons'] : a.sorte === 'debours' ? ['Voir les débours', '/finances/debours'] : ['Voir les factures fournisseurs', '/finances/factures-fournisseurs?statut=toutes'])
+  : null;
 const REVENU: Record<string, string> = { stationnement: 'Stationnement', buanderie: 'Buanderie', autre: 'Autre revenu' };
 const moisNom = (iso: string, court = false) => new Date(`${iso.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', court ? { month: 'short' } : { month: 'long', year: 'numeric' });
 const decaler = (iso: string, n: number) => { const d = new Date(`${iso.slice(0, 7)}-15T12:00:00`); d.setMonth(d.getMonth() + n); return d.toISOString().slice(0, 7); };
@@ -37,12 +42,14 @@ export function Vue({ donnees: D, erreurLecture }: { donnees: DonneesVue | null;
   const [saisie, setSaisie] = useState<null | { immeuble: string; type: string; montant: string; le: string; note: string }>(null);
   if (!D) return <div className="bandeau erreur" role="alert">{bandeau}</div>;
   const T = D.total, m = D.mois.slice(0, 7), percu = T.paye + T.autres, pct = T.attendu ? Math.round((100 * T.paye) / T.attendu) : 0;
-  async function rpc(p: object, msg: string) {
+  async function rpc(p: object, msg: string, nom = 'lanceur_autre_revenu') {
     setEnvoi(true); setBandeau(null); setOk(null);
-    const { error } = await supabaseNavigateur().rpc('lanceur_autre_revenu', { p });
+    const { error } = await supabaseNavigateur().rpc(nom, { p });
     setEnvoi(false); if (error) { setBandeau(error.message); return; } setOk(msg); setSaisie(null); router.refresh();
   }
-  const voir = (client: string, immeuble?: string) => { choisirPortee(client, immeuble); router.refresh(); };
+  const voir = (client: string, immeuble?: string, vers?: string) => { choisirPortee(client, immeuble); if (vers) router.push(vers); else router.refresh(); };
+  const ouvertes = D.alertes.filter((a) => !a.vue), vues = D.alertes.filter((a) => a.vue), nbImm = new Set(ouvertes.map((a) => a.immeuble_id)).size;
+  const marquer = (a: Alerte, rouvrir = false) => rpc({ immeuble: a.immeuble_id, type: a.type, mois: D!.mois, rouvrir }, rouvrir ? 'Alerte rouverte.' : 'Alerte marquée comme vue.', 'lanceur_alerte_vue');
   return (
     <>
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
@@ -60,19 +67,27 @@ export function Vue({ donnees: D, erreurLecture }: { donnees: DonneesVue | null;
         <div className="kpi"><span>Revenus perçus</span><b>{argent(percu)}</b><span>{argent(T.paye)} de loyers ({pct} % des {argent(T.attendu)} attendus){T.autres ? ` · ${argent(T.autres)} d’autres revenus` : ''}</span></div>
         <div className="kpi"><span>Dépenses</span><b>{argent(T.depenses)}</b><span>Travaux terminés, débours et factures approuvées</span></div>
         <div className="kpi"><span>Net du mois</span><b style={T.net < 0 ? { color: '#B3261E' } : undefined}>{argent(T.net)}</b><span>Revenus perçus moins dépenses</span></div>
-        <div className="kpi"><span>Alertes</span><b>{D.alertes.length}</b><span>{D.alertes.length ? `${new Set(D.alertes.map((a) => a.immeuble_id)).size} immeuble${new Set(D.alertes.map((a) => a.immeuble_id)).size > 1 ? 's' : ''} à regarder` : 'Rien à signaler ce mois-ci'}</span></div>
+        <div className="kpi"><span>Alertes à regarder</span><b>{ouvertes.length}</b><span>{ouvertes.length ? `${nbImm} immeuble${nbImm > 1 ? 's' : ''}` : 'Rien à regarder'}{vues.length ? ` · ${vues.length} déjà vue${vues.length > 1 ? 's' : ''}` : ''}</span></div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: 24, alignItems: 'start' }} className="vue-fin-haut">
         <section className="carte-l18" aria-label="Alertes">
           <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>Alertes</h2>
             <p className="gris texte-13" style={{ margin: '4px 0 0' }}>Flux de trésorerie négatif · loyers perçus sous {D.seuils.perception_min_pct} % après le {D.seuils.perception_jour} du mois · dépense d’au moins {D.seuils.depense_facteur} fois la médiane de l’immeuble ({argent(D.seuils.depense_min)} et plus)</p></div></header>
-          {D.alertes.length ? <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>{D.alertes.slice(0, 12).map((a, k) => <li key={k} style={{ padding: '12px 0', borderTop: k ? '1px solid #E6EBF2' : 0, display: 'grid', gap: 4 }}>
-              <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><span className={`puce ${'todo'}`}>{TYPE[a.type]}</span>
+          {ouvertes.length ? <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>{ouvertes.slice(0, 12).map((a, k) => { const d = DETAIL(a); return <li key={a.immeuble_id + a.type + k} style={{ padding: '12px 0', borderTop: k ? '1px solid #E6EBF2' : 0, display: 'grid', gap: 4 }}>
+              <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><span className="puce todo">{TYPE[a.type]}</span>
                 <button className="lien" onClick={() => voir(a.client_id, a.immeuble_id)} title="N’afficher que cet immeuble"><strong>{a.immeuble}</strong></button><span className="gris texte-13">{a.client}</span></span>
-              <span className="texte-13">{a.texte}</span></li>)}</ul>
-            : <p className="gris texte-13" style={{ margin: 0 }}>Aucune alerte pour {moisNom(D.mois)}.</p>}
-          {D.alertes.length > 12 && <p className="gris texte-13" style={{ margin: '8px 0 0' }}>Les 12 plus importantes sur {D.alertes.length} : choisissez un client pour voir les siennes.</p>}
+              <span className="texte-13">{a.texte}</span>
+              <span className="texte-13" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                {d && <button className="lien" onClick={() => voir(a.client_id, a.immeuble_id, d[1])}>{d[0]}</button>}
+                {D.peut_ecrire && <button className="lien" disabled={envoi} onClick={() => marquer(a)}>Marquer comme vue</button>}</span></li>; })}</ul>
+            : <p className="gris texte-13" style={{ margin: 0 }}>{vues.length ? `Toutes les alertes de ${moisNom(D.mois)} ont été vues.` : `Aucune alerte pour ${moisNom(D.mois)}.`}</p>}
+          {ouvertes.length > 12 && <p className="gris texte-13" style={{ margin: '8px 0 0' }}>Les 12 plus importantes sur {ouvertes.length} : choisissez un client pour voir les siennes.</p>}
+          {vues.length > 0 && <details style={{ marginTop: 12, borderTop: '1px solid #E6EBF2', paddingTop: 12 }}><summary className="texte-13" style={{ cursor: 'pointer' }}>Déjà vues ({vues.length})</summary>
+            <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}>{vues.map((a, k) => <li key={a.immeuble_id + a.type + k} className="texte-13" style={{ padding: '8px 0', display: 'grid', gap: 2 }}>
+              <span><span className="puce neutral">{TYPE[a.type]}</span> <strong>{a.immeuble}</strong> <span className="gris">{a.client}</span></span><span className="gris">{a.texte}</span>
+              <span className="gris">Vue{a.vue!.par ? ` par ${a.vue!.par}` : ''} le {new Date(a.vue!.le).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long' })}
+                {D.peut_ecrire && <> · <button className="lien" disabled={envoi} onClick={() => marquer(a, true)}>Rouvrir</button></>}</span></li>)}</ul></details>}
         </section>
         <section className="carte-l18" aria-label="Flux de trésorerie">
           <h2 className="titre-carte" style={{ margin: 0 }}>Flux de trésorerie</h2>

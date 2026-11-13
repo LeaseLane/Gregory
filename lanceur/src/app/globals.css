@@ -2217,3 +2217,10 @@ small { font-size: 12px; }
 .portee[aria-busy="true"] { opacity: .6; }
 @media (max-width: 720px) { .portee { margin: 16px 16px 0; padding: 12px 16px; } .portee select.e70-raison { width: 100%; max-width: none; margin: 0; } }
 @media (max-width: 1100px) { .vue-fin-haut { grid-template-columns: minmax(0, 1fr) !important; } }
+
+/* Sous-onglets d'un espace (Finances : les pages d'un groupe) : sous la rangée d'onglets, dans l'en-tête. */
+.sous-espace { padding: 0 0 12px; flex-wrap: wrap; } .sous-espace a { display: inline-flex; align-items: center; gap: 8px; }
+.sous-espace .compte { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #D9E5F4; color: #0C2147; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.sous-espace .compte.rouge { background: #9B2E28; color: #fff; }
+/* Détail des locataires d'un immeuble (finance du propriétaire) : un petit tableau dans la ligne ouverte, sans les hauteurs du tableau parent. */
+.tableau td table td, .tableau td table th { height: auto; padding: 8px 12px 8px 0; white-space: normal; overflow: visible; border-top: 0; }

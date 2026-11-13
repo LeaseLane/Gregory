@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
@@ -73,18 +73,24 @@ export function Finance({ rl31, donnees, erreur }: { rl31: DonneesRL31 | null; d
    Des revenus seulement : ni « net » ni « versé » (décisions du 13 oct.). */
 function Ventilation({ V, mois }: { V: Ventile[]; mois: string }) {
   const total = (v: Ventile) => v.loyers + v.stationnement + v.buanderie + v.autre, ou = (n: number) => (n ? argent(n) : '—');
+  const [ouvert, setOuvert] = useState<string | null>(null);
   const ETAT = { paye: ['Payé', ''], retard: ['En retard', 'todo'], a_venir: ['À venir', 'neutral'] } as const;
   return (
     <section className="studio-liste" aria-label="Revenus par immeuble">
       <header className="carte-tete"><div><h2>Revenus par immeuble</h2><p>{mois} · par type de service, puis par locataire</p></div></header>
       <table className="tableau"><colgroup><col style={{ width: '44%' }} /><col /><col /><col /><col /><col /></colgroup>
         <thead><tr><th>Immeuble</th><th className="droite">Loyers</th><th className="droite">Stationnement</th><th className="droite">Buanderie</th><th className="droite">Autres</th><th className="droite">Total</th></tr></thead>
-        <tbody>{V.map((v) => <tr key={v.immeuble}><td style={{ whiteSpace: 'normal' }}>
-            <details><summary style={{ cursor: 'pointer' }}><strong>{v.immeuble}</strong> <span className="gris texte-13">{v.locataires.length} loyer{v.locataires.length > 1 ? 's' : ''}</span></summary>
-              <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}>{v.locataires.map((l, k) => <li key={k} className="texte-13" style={{ display: 'flex', gap: 8, justifyContent: 'space-between', padding: '6px 0', borderTop: '1px solid #E6EBF2' }}>
-                <span>Logement {l.logement} · {l.locataire}</span><span>{argent(l.paye)} sur {argent(l.attendu)} <span className={`puce ${ETAT[l.statut][1]}`}>{ETAT[l.statut][0]}</span></span></li>)}
-                {!v.locataires.length && <li className="gris texte-13">Aucun loyer prévu ce mois-ci.</li>}</ul></details></td>
-          <td className="droite">{ou(v.loyers)}</td><td className="droite">{ou(v.stationnement)}</td><td className="droite">{ou(v.buanderie)}</td><td className="droite">{ou(v.autre)}</td><td className="droite fort">{argent(total(v))}</td></tr>)}
+        <tbody>{V.map((v) => <Fragment key={v.immeuble}>
+          <tr><td style={{ whiteSpace: 'normal' }}><button type="button" className="lien" aria-expanded={ouvert === v.immeuble} onClick={() => setOuvert(ouvert === v.immeuble ? null : v.immeuble)} style={{ textAlign: 'left' }}>
+              <span aria-hidden="true">{ouvert === v.immeuble ? '▾' : '▸'}</span> <strong>{v.immeuble}</strong></button> <span className="gris texte-13">{v.locataires.length} loyer{v.locataires.length > 1 ? 's' : ''}</span></td>
+            <td className="droite">{ou(v.loyers)}</td><td className="droite">{ou(v.stationnement)}</td><td className="droite">{ou(v.buanderie)}</td><td className="droite">{ou(v.autre)}</td><td className="droite fort">{argent(total(v))}</td></tr>
+          {ouvert === v.immeuble && <tr><td colSpan={6} style={{ whiteSpace: 'normal', height: 'auto', padding: '4px 16px 16px 40px', background: '#F7F9FC' }}>
+            {v.locataires.length ? <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}><thead><tr style={{ color: '#58697F', textAlign: 'left' }}><th style={{ padding: '8px 0', fontWeight: 600 }}>Logement</th><th style={{ fontWeight: 600 }}>Locataire</th>
+                <th style={{ textAlign: 'right', fontWeight: 600 }}>Loyer attendu</th><th style={{ textAlign: 'right', fontWeight: 600 }}>Payé</th><th style={{ textAlign: 'right', fontWeight: 600 }}>État</th></tr></thead>
+              <tbody>{v.locataires.map((l, k) => <tr key={k} style={{ borderTop: '1px solid #E6EBF2' }}><td style={{ padding: '8px 0' }}>{l.logement}</td><td>{l.locataire}</td><td style={{ textAlign: 'right' }}>{argent(l.attendu)}</td>
+                <td style={{ textAlign: 'right' }}>{argent(l.paye)}</td><td style={{ textAlign: 'right' }}><span className={`puce ${ETAT[l.statut][1]}`}>{ETAT[l.statut][0]}</span></td></tr>)}</tbody></table>
+              : <span className="gris texte-13">Aucun loyer prévu ce mois-ci.</span>}</td></tr>}
+        </Fragment>)}
           {V.length > 1 && <tr><td className="fort">Tous vos immeubles</td><td className="droite fort">{argent(V.reduce((a, v) => a + v.loyers, 0))}</td><td className="droite fort">{ou(V.reduce((a, v) => a + v.stationnement, 0))}</td>
             <td className="droite fort">{ou(V.reduce((a, v) => a + v.buanderie, 0))}</td><td className="droite fort">{ou(V.reduce((a, v) => a + v.autre, 0))}</td><td className="droite fort">{argent(V.reduce((a, v) => a + total(v), 0))}</td></tr>}</tbody></table>
     </section>

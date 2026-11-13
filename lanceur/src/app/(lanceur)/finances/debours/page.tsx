@@ -7,7 +7,7 @@ import { Debours, type DonneesDebours } from './Debours';
 export default async function Page() {
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_debours');
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={9} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={5} onglets={ONGLETS_FIN}>
       <Debours donnees={(data as DonneesDebours | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les débours n’ont pas pu être lus.') : null} />
     </CadreEspace>
   );

@@ -10,7 +10,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
   const echeance = /^\d{4}-\d{2}-\d{2}$/.test(sp.e ?? '') ? sp.e! : premier.toLocaleDateString('en-CA');
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_prelevements', { p_echeance: echeance });
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={10} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={3} onglets={ONGLETS_FIN}>
       <Prelevements echeance={echeance} donnees={(data as DonneesPrelevements | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les prélèvements n’ont pas pu être lus.') : null} />
     </CadreEspace>
   );

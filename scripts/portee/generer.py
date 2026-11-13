@@ -12,8 +12,9 @@ Le test supabase/tests/portee_test.sql échoue si une fonction de lecture lit en
 """
 import json, re, sys
 
-# Tables hors portée : le pipeline de vente n'appartient à aucun client tant que le mandat n'est pas signé.
-HORS = {'crm.contacts', 'crm.deals', 'crm.assignments'}
+# Aucune table hors portée : une ligne rattachée à un client (un contact devenu propriétaire, une location sur un logement) suit le sélecteur;
+# une ligne sans attache (un prospect, un mandat à signer) reste visible quel que soit le client choisi (« else true » des vues).
+HORS = set()
 LIGNES = [('crm.probleme_document', 'd', 'public.documents', 'text'), ('crm.titre_demande', 'sr', 'public.service_requests', 'text')]
 ORDRE = ['building_id', 'unit_id', 'lease_id', 'owner_id', 'tenant_id']   # du plus précis au plus large
 P = '(select crm.portee_proprio())'

@@ -24,6 +24,18 @@ revoke all on fin.autres_revenus from anon, authenticated; grant all on fin.autr
 create or replace function crm.argent_fr(n numeric) returns text language sql immutable set search_path = '' as $$
   select replace(trim(to_char(round(n), 'FM999,999,990')), ',', ' ');
 $$;
+-- Alerte vue : une personne l'a regardée (avec une note au besoin). Elle quitte la liste et le compteur, et reste consultable sous « Vues ».
+-- Une alerte se reconnaît à son immeuble, son type et son mois : si le fait revient le mois suivant, l'alerte revient.
+create table if not exists fin.alertes_vues (
+  building_id uuid not null references public.buildings(id) on delete cascade,
+  type text not null check (type in ('tresorerie', 'perception', 'depense')),
+  mois date not null check (extract(day from mois) = 1),
+  note text, vu_par uuid references auth.users(id), vu_le timestamptz not null default now(),
+  primary key (building_id, type, mois)
+);
+alter table fin.alertes_vues enable row level security;
+revoke all on fin.alertes_vues from anon, authenticated; grant all on fin.alertes_vues to service_role;
+
 create or replace function crm.seuils_finance() returns jsonb language sql stable security definer set search_path = '' as $$
   select '{"perception_min_pct": 80, "perception_jour": 10, "depense_facteur": 2, "depense_min": 500, "depense_sans_historique": 2000}'::jsonb
     || coalesce((select valeur from config.parametres where cle = 'finance_alertes'), '{}'::jsonb);
@@ -62,7 +74,7 @@ begin
             from fin.autres_revenus a where a.le >= v_m and a.le < v_f and a.building_id in (select id from portee.buildings) group by 1),
     dep as (select * from crm.depenses_immeubles(v_m, v_f)),
     hist as (select h.building_id, count(*) n, (percentile_cont(0.5) within group (order by h.montant))::numeric mediane from crm.depenses_immeubles((v_m - interval '12 months')::date, v_m) h group by 1),
-    inhab as (select d.building_id, d.le, d.montant, d.libelle, h.mediane
+    inhab as (select d.building_id, d.le, d.montant, d.libelle, d.sorte, h.mediane
               from dep d left join hist h on h.building_id = d.building_id
               where d.montant >= v_min and case when coalesce(h.n, 0) >= 3 then d.montant >= v_fact * h.mediane else d.montant >= v_abs end),
     imm as (select b.id, b.owner_id, b.address, (select count(*) from portee.units u where u.building_id = b.id) logements,
@@ -74,13 +86,13 @@ begin
     net as (select i.*, i.paye + i.stationnement + i.buanderie + i.autre - i.depenses net,
               (i.attendu > 0 and (not v_courant or extract(day from current_date) >= v_jour) and 100.0 * i.paye / i.attendu < v_pct) perception_faible from imm i),
     alertes as (
-      select n.id building_id, n.owner_id, n.address, 'tresorerie' type, 0 ordre, n.net montant,
+      select n.id building_id, n.owner_id, n.address, 'tresorerie' type, 0 ordre, n.net montant, null::text sorte,
              'Flux de trésorerie négatif : ' || crm.argent_fr(n.depenses) || ' $ de dépenses pour ' || crm.argent_fr(n.paye + n.stationnement + n.buanderie + n.autre) || ' $ de revenus perçus.' texte
         from net n where n.net < 0 and n.depenses > 0
-      union all select n.id, n.owner_id, n.address, 'perception', 1, n.attendu - n.paye,
+      union all select n.id, n.owner_id, n.address, 'perception', 1, n.attendu - n.paye, null,
              'Loyers perçus à ' || floor(100.0 * n.paye / n.attendu) || ' % (' || crm.argent_fr(n.attendu - n.paye) || ' $ à percevoir, ' || n.retards || ' en retard) : sous le seuil de ' || v_pct || ' %.'
         from net n where n.perception_faible
-      union all select i.building_id, b.owner_id, b.address, 'depense', 2, i.montant,
+      union all select i.building_id, b.owner_id, b.address, 'depense', 2, i.montant, i.sorte,
              'Dépense inhabituelle : ' || i.libelle || ', ' || crm.argent_fr(i.montant) || ' $' ||
              case when i.mediane is not null then ' (médiane des 12 derniers mois : ' || crm.argent_fr(i.mediane) || ' $).' else ' (aucun historique pour comparer).' end
         from inhab i join portee.buildings b on b.id = i.building_id)
@@ -89,12 +101,13 @@ begin
                   'depenses', coalesce(sum(depenses), 0), 'net', coalesce(sum(net), 0), 'immeubles', count(*), 'logements', coalesce(sum(logements), 0), 'occupes', coalesce(sum(occupes), 0)) from net),
       'clients', coalesce((select jsonb_agg(c order by c ->> 'nom') from (
           select jsonb_build_object('id', o.id, 'nom', o.full_name, 'attendu', sum(n.attendu), 'paye', sum(n.paye), 'autres', sum(n.stationnement + n.buanderie + n.autre), 'depenses', sum(n.depenses), 'net', sum(n.net),
-            'alertes', (select count(*) from alertes a where a.owner_id = o.id),
+            'alertes', (select count(*) from alertes a where a.owner_id = o.id and not exists (select 1 from fin.alertes_vues v where v.building_id = a.building_id and v.type = a.type and v.mois = v_m)),
             'immeubles', jsonb_agg(jsonb_build_object('id', n.id, 'adresse', n.address, 'logements', n.logements, 'occupes', n.occupes, 'attendu', n.attendu, 'paye', n.paye,
               'stationnement', n.stationnement, 'buanderie', n.buanderie, 'autre', n.autre, 'depenses', n.depenses, 'net', n.net,
-              'alertes', (select count(*) from alertes a where a.building_id = n.id)) order by n.address)) c
+              'alertes', (select count(*) from alertes a where a.building_id = n.id and not exists (select 1 from fin.alertes_vues v where v.building_id = a.building_id and v.type = a.type and v.mois = v_m))) order by n.address)) c
           from net n join portee.owners o on o.id = n.owner_id group by o.id, o.full_name) z), '[]'::jsonb),
-      'alertes', coalesce((select jsonb_agg(jsonb_build_object('immeuble_id', a.building_id, 'immeuble', a.address, 'client', o.full_name, 'client_id', a.owner_id, 'type', a.type, 'texte', a.texte, 'montant', a.montant)
+      'alertes', coalesce((select jsonb_agg(jsonb_build_object('immeuble_id', a.building_id, 'immeuble', a.address, 'client', o.full_name, 'client_id', a.owner_id, 'type', a.type, 'texte', a.texte, 'montant', a.montant, 'sorte', a.sorte,
+                      'vue', (select jsonb_build_object('par', crm.nom_membre(v.vu_par), 'le', v.vu_le, 'note', v.note) from fin.alertes_vues v where v.building_id = a.building_id and v.type = a.type and v.mois = v_m))
                     order by a.ordre, abs(a.montant) desc) from alertes a join portee.owners o on o.id = a.owner_id), '[]'::jsonb),
       -- flux de trésorerie des 6 derniers mois, sur la portée choisie
       'serie', (select jsonb_agg(jsonb_build_object('mois', m::date,
@@ -128,8 +141,21 @@ begin
   perform crm.journal('other_income.recorded', 'fin.autres_revenus', v, null, p, 'record-other-income');
   return jsonb_build_object('id', v);
 end $$;
-revoke all on function public.lanceur_finance_vue(jsonb), public.lanceur_autre_revenu(jsonb) from public, anon;
-grant execute on function public.lanceur_finance_vue(jsonb), public.lanceur_autre_revenu(jsonb) to authenticated;
+-- Marquer une alerte comme vue (ou la rouvrir : p.rouvrir = true). Au journal.
+create or replace function public.lanceur_alerte_vue(p jsonb) returns void language plpgsql security definer set search_path = '' as $$
+declare v_b uuid := nullif(p ->> 'immeuble', '')::uuid; v_m date := date_trunc('month', nullif(p ->> 'mois', '')::date)::date;
+begin
+  perform crm.require_aal2();
+  if not crm.can('finances.paiements.ecrire') then raise exception 'Votre rôle ne permet pas de traiter une alerte.' using errcode = 'PT403'; end if;
+  if v_m is null or coalesce(p ->> 'type', '') not in ('tresorerie', 'perception', 'depense') or not exists (select 1 from public.buildings where id = v_b) then raise exception 'Alerte inconnue.' using errcode = 'PT422'; end if;
+  if coalesce((p ->> 'rouvrir')::boolean, false) then delete from fin.alertes_vues where building_id = v_b and type = p ->> 'type' and mois = v_m;
+  else insert into fin.alertes_vues (building_id, type, mois, note, vu_par) values (v_b, p ->> 'type', v_m, nullif(btrim(p ->> 'note'), ''), auth.uid())
+       on conflict (building_id, type, mois) do update set note = excluded.note, vu_par = excluded.vu_par, vu_le = now();
+  end if;
+  perform crm.journal(case when coalesce((p ->> 'rouvrir')::boolean, false) then 'finance_alert.reopened' else 'finance_alert.seen' end, 'public.buildings', v_b, null, p, 'review-finance-alert');
+end $$;
+revoke all on function public.lanceur_finance_vue(jsonb), public.lanceur_autre_revenu(jsonb), public.lanceur_alerte_vue(jsonb) from public, anon;
+grant execute on function public.lanceur_finance_vue(jsonb), public.lanceur_autre_revenu(jsonb), public.lanceur_alerte_vue(jsonb) to authenticated;
 
 -- Portail propriétaire : ses revenus du mois par immeuble, par locataire et par type de service.
 create or replace function crm.ventilation_proprio(p_owner uuid, p_mois date) returns jsonb language sql stable security definer set search_path = '' as $$

@@ -9,7 +9,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const mois = /^\d{4}-\d{2}$/.test(m ?? '') ? `${m}-01` : new Date(new Date().getFullYear(), new Date().getMonth() - 1, 15).toISOString().slice(0, 7) + '-01';
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_releve', { p_owner: id, p_mois: mois });
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={7} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={10} onglets={ONGLETS_FIN}>
       <Releve donnees={(data as DonneesReleve | null) ?? null} erreurLecture={error ? (['PT403', 'PT404'].includes(error.code ?? '') ? error.message : 'Le relevé n’a pas pu être lu.') : null} />
     </CadreEspace>
   );

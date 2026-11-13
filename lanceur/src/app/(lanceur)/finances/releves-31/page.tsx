@@ -9,7 +9,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const annee = /^\d{4}$/.test(a ?? '') ? Number(a) : auj.getMonth() <= 1 ? auj.getFullYear() - 1 : auj.getFullYear();
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_rl31', { p_annee: annee });
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={8} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={11} onglets={ONGLETS_FIN}>
       <Releves31 maintenant={new Date().toISOString()} donnees={(data as DonneesRL31 | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les Relevés 31 n’ont pas pu être lus.') : null} />
     </CadreEspace>
   );

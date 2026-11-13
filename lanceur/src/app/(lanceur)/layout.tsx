@@ -10,6 +10,8 @@ import { ESPACES_ADMIN } from '@/lib/espaces';
 import { Inactivite } from '@/composants/Inactivite';
 import { CoquilleProspecteur } from '@/composants/CoquilleProspecteur';
 import { Portee, type OptionsPortee } from '@/composants/Portee';
+import { cookies } from 'next/headers';
+import { TEMOIN_PORTEE, porteeValide } from '@/lib/portee';
 
 /* Coquille Lanceur. Revérifie côté serveur ce que le proxy a déjà filtré (session, 2FA), puis l'appartenance
    à l'équipe (crm.team_members; users.is_admin compte comme admin). Hors équipe : « Accès réservé » (e65). */
@@ -37,7 +39,7 @@ export default async function LanceurLayout({ children }: { children: React.Reac
       {moi && <Inactivite minutes={Number((politique as { inactivite_minutes?: number } | null)?.inactivite_minutes ?? 0)} />}
       <BarreHaut initiales={initiales} courriel={u.email ?? ''} nom={moi?.nom && !moi.nom.includes('@') ? moi.nom : (u.email ?? '')} role={moi ? (ROLES[moi.role] ?? moi.role) : ''} nonLues={Number((notifs as { non_lues?: number } | null)?.non_lues ?? 0)} moi={u.id} />
       {moi ? (
-        <>{portee && <Portee options={portee as OptionsPortee} />}{children}<BarreBasAdmin espaces={ESPACES_ADMIN.filter((e) => peut(moi, e.droit))} /><TableauxCartes /></>
+        <>{portee && <Portee options={portee as OptionsPortee} choix={porteeValide((await cookies()).get(TEMOIN_PORTEE)?.value)} />}{children}<BarreBasAdmin espaces={ESPACES_ADMIN.filter((e) => peut(moi, e.droit))} /><TableauxCartes /></>
       ) : (
         <AccesReserve
           titre="L’espace admin est réservé à l’équipe Lease Lane"
