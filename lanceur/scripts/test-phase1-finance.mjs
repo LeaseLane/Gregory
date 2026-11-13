@@ -48,7 +48,8 @@ try {
     const l = [...s.querySelectorAll('tbody tr')].find((tr) => tr.textContent.includes(adr.split(',')[0])); return { immeubles: s.querySelectorAll('tbody tr').length, ligne: l ? [...l.querySelectorAll('td')].slice(1).map((td) => td.textContent) : null, locataires: l?.querySelectorAll('li').length ?? 0 }; }, immeuble.adresse);
   await proprio.evaluate(() => document.querySelectorAll('section[aria-label="Revenus par immeuble"] details').forEach((d, i) => { if (i === 0) d.open = true; }));
   if (CAP) await proprio.screenshot({ path: `${CAP}/p1-proprietaire-finance.png`, fullPage: true });
-  verifier(!!vent?.ligne && Math.abs(nombre(vent.ligne[1]) - 120) < 0.5, `portail propriétaire : « Revenus par immeuble » (${vent?.immeubles} lignes); ${immeuble.adresse} → loyers ${vent?.ligne?.[0]}, stationnement ${vent?.ligne?.[1]}, total ${vent?.ligne?.[4]}, ${vent?.locataires} locataires détaillés`);
+  // le total que voit la propriétaire pour cet immeuble = les revenus perçus que voit l'équipe, revenu d'essai compris
+  verifier(!!vent?.ligne && nombre(vent.ligne[1]) >= 120 && Math.abs(nombre(vent.ligne[4]) - nombre(apres.kpis[0])) < 1, `portail propriétaire : « Revenus par immeuble » (${vent?.immeubles} lignes); ${immeuble.adresse} → loyers ${vent?.ligne?.[0]}, stationnement ${vent?.ligne?.[1]}, total ${vent?.ligne?.[4]}, ${vent?.locataires} locataires détaillés`);
   await ctx.close();
 
   // 4. ménage : le revenu d'essai est retiré

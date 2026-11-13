@@ -13,7 +13,8 @@ const routes = [];
     else if (f === 'page.tsx') routes.push(chemin || '/');
   }
 })(decodeURIComponent(RACINE), '');
-routes.sort();
+const FERMEES = ['/maintenance/catalogue'];   // page fermée par un drapeau (lib/drapeaux.ts) : 404 voulu
+routes.sort(); for (const f of FERMEES) { const i = routes.indexOf(f); if (i >= 0) routes.splice(i, 1); }
 const nav = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, defaultViewport: { width: 1440, height: 1000 } });
 let echecs = 0;
 try {

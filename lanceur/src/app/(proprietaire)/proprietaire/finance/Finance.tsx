@@ -77,7 +77,8 @@ function Ventilation({ V, mois }: { V: Ventile[]; mois: string }) {
   return (
     <section className="studio-liste" aria-label="Revenus par immeuble">
       <header className="carte-tete"><div><h2>Revenus par immeuble</h2><p>{mois} · par type de service, puis par locataire</p></div></header>
-      <table className="tableau"><thead><tr><th>Immeuble</th><th className="droite">Loyers</th><th className="droite">Stationnement</th><th className="droite">Buanderie</th><th className="droite">Autres</th><th className="droite">Total</th></tr></thead>
+      <table className="tableau"><colgroup><col style={{ width: '44%' }} /><col /><col /><col /><col /><col /></colgroup>
+        <thead><tr><th>Immeuble</th><th className="droite">Loyers</th><th className="droite">Stationnement</th><th className="droite">Buanderie</th><th className="droite">Autres</th><th className="droite">Total</th></tr></thead>
         <tbody>{V.map((v) => <tr key={v.immeuble}><td style={{ whiteSpace: 'normal' }}>
             <details><summary style={{ cursor: 'pointer' }}><strong>{v.immeuble}</strong> <span className="gris texte-13">{v.locataires.length} loyer{v.locataires.length > 1 ? 's' : ''}</span></summary>
               <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}>{v.locataires.map((l, k) => <li key={k} className="texte-13" style={{ display: 'flex', gap: 8, justifyContent: 'space-between', padding: '6px 0', borderTop: '1px solid #E6EBF2' }}>
