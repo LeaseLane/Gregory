@@ -78,7 +78,7 @@ begin
              'Flux de trésorerie négatif : ' || crm.argent_fr(n.depenses) || ' $ de dépenses pour ' || crm.argent_fr(n.paye + n.stationnement + n.buanderie + n.autre) || ' $ de revenus perçus.' texte
         from net n where n.net < 0 and n.depenses > 0
       union all select n.id, n.owner_id, n.address, 'perception', 1, n.attendu - n.paye,
-             'Loyers perçus à ' || round(100.0 * n.paye / n.attendu) || ' % (' || crm.argent_fr(n.attendu - n.paye) || ' $ à percevoir, ' || n.retards || ' en retard) : sous le seuil de ' || v_pct || ' %.'
+             'Loyers perçus à ' || floor(100.0 * n.paye / n.attendu) || ' % (' || crm.argent_fr(n.attendu - n.paye) || ' $ à percevoir, ' || n.retards || ' en retard) : sous le seuil de ' || v_pct || ' %.'
         from net n where n.perception_faible
       union all select i.building_id, b.owner_id, b.address, 'depense', 2, i.montant,
              'Dépense inhabituelle : ' || i.libelle || ', ' || crm.argent_fr(i.montant) || ' $' ||
