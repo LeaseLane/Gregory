@@ -170,7 +170,8 @@ Avec l'outil de recherche web, trouve le propriétaire ACTUEL : nouvelles de ven
 
 RÈGLES STRICTES :
 - N'invente JAMAIS un nom. Si aucune page ne relie clairement cette adresse à un propriétaire, mets proprietaire à null.
-- Une entreprise de gestion ou une agence de location n'est PAS le propriétaire (note-la dans raison si tu la vois).
+- Une entreprise de gestion ou une agence de location qui gère l'immeuble POUR UN TIERS n'est PAS le propriétaire (note-la dans raison si tu la vois).
+- Une société de gestion immobilière qui POSSÈDE elle-même l'immeuble (elle l'a acheté, ou l'immeuble fait partie de son propre parc) EST le propriétaire : garde-la.
 - Une vente plus ancienne que ${im.inscrit_le ?? "la date d'inscription"} peut viser un ancien propriétaire : vérifie la date.
 - Chaque source : url réelle + passage exact qui nomme l'adresse et le propriétaire.
 - confiance : « élevée » (page récente et explicite), « moyenne » (indirect), « faible ».
@@ -181,8 +182,9 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
       p_recherches: recherches, p_cout: cout, p_erreur: res.ok && !ai?.error ? (bloc ? null : `Aucun résultat soumis · ${trace}`.slice(0, 300)) : `${res.status} ${ai?.error?.message ?? ""}`.slice(0, 300) });
     if (!res.ok || ai?.error) return json({ error: messageErreurIA(res.status, ai) }, 502);
     // Rien de vérifiable : l'immeuble est quand même marqué « cherché » (pas de seconde recherche payante).
-    await rpc("service_role_immeuble_propose", { p_id: id, p: bloc?.input ?? { proprietaire: null, sources: [], raison: "Aucun résultat soumis" } });
-    return json({ ok: true, proprietaire: bloc?.input?.proprietaire ?? null, confiance: bloc?.input?.confiance ?? null, cout_cents: cout });
+    // Recherche menée à terme sans propriétaire : l'immeuble est écarté (demande d'Eliot, 2026-11-12); une personne peut le reprendre dans Écartés.
+    await rpc("service_role_immeuble_propose", { p_id: id, p: bloc?.input ? { ...bloc.input, ecarter: true } : { proprietaire: null, sources: [], raison: "Aucun résultat soumis" } });
+    return json({ ok: true, proprietaire: bloc?.input?.proprietaire ?? null, confiance: bloc?.input?.confiance ?? null, ecarte: !!bloc?.input && !bloc.input.proprietaire, cout_cents: cout });
   }
   // La phrase → filtres (modèle rapide, outil forcé), puis l'adresse « près de » géocodée.
   async function comprendre(texte: string, par: string | null) {

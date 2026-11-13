@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(16);
+select plan(20);
 
 create function pg_temp.equipe(p_courriel text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = p_courriel), 'aal', 'aal2', 'role', 'authenticated')::text, true);
@@ -49,6 +49,17 @@ select public.service_role_coordonnees(crm.cle_proprietaire(null, 'Beaudet et Sa
 select is((public.lanceur_recherche_role('{"villes": ["Éssai-Doublon"]}') ->> 'total')::int, 1, 'même téléphone : une seule ligne');
 select is((public.lanceur_recherche_role('{"villes": ["Éssai-Doublon"]}') -> 'resultats' -> 0 ->> 'logements')::int, 110, 'ses immeubles réunis (110 logements)');
 select is((public.lanceur_recherche_role('{"villes": ["Éssai-Doublon"]}') -> 'resultats' -> 0 -> 'coordonnees' ->> 'decideur'), 'Claude Essai', 'coordonnées complétées par le doublon');
+
+-- Lancement en lot et tri automatique (Eliot, 2026-11-12) : immeubles jamais cherchés listés; sans propriétaire trouvé, écarté.
+insert into crm.immeubles_role (millesime, municipalite, matricule, adresse, logements, statut) values
+  (2026, 'Éssai-Tri', 'T-1', '1 rue Tri', 40, 'morale'), (2026, 'Éssai-Tri', 'T-2', '2 rue Tri', 30, 'morale'), (2026, 'Éssai-Tri', 'T-3', '3 rue Tri', 20, 'morale');
+select is(jsonb_array_length(public.lanceur_recherche_role('{"villes": ["Éssai-Tri"]}') -> 'a_chercher'), 3, 'à chercher : les trois immeubles jamais cherchés');
+select public.service_role_immeuble_propose((select id from crm.immeubles_role where matricule = 'T-1'), '{"proprietaire": null, "sources": [], "confiance": "faible", "raison": "rien", "ecarter": true}');
+select public.service_role_immeuble_propose((select id from crm.immeubles_role where matricule = 'T-2'), '{"proprietaire": "Gestion Tri inc.", "sources": [], "confiance": "élevée", "raison": "possède l''immeuble", "categorie": "prive", "ecarter": true}');
+select public.service_role_immeuble_propose((select id from crm.immeubles_role where matricule = 'T-3'), '{"proprietaire": null, "sources": [], "raison": "Aucun résultat soumis"}');
+select is((select ecarte from crm.immeubles_role where matricule = 'T-1'), true, 'recherche sans propriétaire : immeuble écarté');
+select is((select array_agg(ecarte order by matricule) from crm.immeubles_role where matricule in ('T-2', 'T-3')), array[false, false], 'gestion qui possède l''immeuble gardée; recherche avortée non écartée');
+select is(jsonb_array_length(public.lanceur_recherche_role('{"villes": ["Éssai-Tri"]}') -> 'a_chercher'), 0, 'à chercher : plus rien après les recherches');
 
 select set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'aal', 'aal2', 'role', 'authenticated')::text, true);
 select throws_ok($$ select public.lanceur_recherche_role('{}') $$, null, null, 'hors de l''équipe : refusé');

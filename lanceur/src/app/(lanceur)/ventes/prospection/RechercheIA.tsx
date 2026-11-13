@@ -13,7 +13,7 @@ type Coord = { nom: string | null; site: string | null; telephone: string | null
 type Groupe = { cle: string; nom: string | null; immeubles: number; logements: number; logements_total: number | null; villes: string; km: number | null;
   liste: Imm[]; coordonnees: Coord | null; suggestion: string | null };
 type Resultat = { total: number; immeubles: number; logements: number; avec_coordonnees: number; identifies: number; resultats: Groupe[]; non_geocodes: number | null;
-  cout_mois_cents: number; recherches_mois: number; peut_ecrire: boolean };
+  cout_mois_cents: number; recherches_mois: number; peut_ecrire: boolean; a_chercher?: { id: string; adresse: string }[] };
 export type Filtres = { villes?: string[]; min?: number | null; max?: number | null; annee_min?: number | null; annee_max?: number | null; statut?: 'morale' | 'physique' | null;
   pres_de?: { adresse: string; km: number; lat: number; lon: number; libelle?: string } | null; q?: string | null; coordonnees?: 'avec' | 'sans' | null };
 
@@ -22,6 +22,7 @@ const CLE_LOCALE = 'll-recherches-prospection';
 const nb = (n: number) => n.toLocaleString('fr-CA');
 const hote = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
 const simple = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\b(inc|ltee|limitee)\b|[^a-z0-9]/g, '');   // même nom = gestion interne
+const COUT_RECHERCHE_CENTS = 8;   // moyenne mesurée en production (322 recherches, nov. 2026)
 const argent = (c: number) => `${(c / 100).toFixed(2).replace('.', ',')} $ US`;
 
 // Chaque filtre devient une étiquette retirable.
@@ -93,6 +94,30 @@ export function RechercheIA() {
     await charger(filtres, choisi);
     setOccupe(null); if (erreurs.length) setBandeau(erreurs.join(' · '));
   }
+  // « Trouver tous les propriétaires » (Eliot, 2026-11-12) : tous les immeubles du filtre jamais cherchés, pas seulement les 200 affichés.
+  // Sans propriétaire trouvé, l'immeuble est écarté par la base; les autres attendent leur confirmation.
+  // ponytail: boucle dans le navigateur, 4 à la fois, page ouverte (environ 5 immeubles à la minute); file côté serveur si les lots dépassent quelques centaines.
+  const arret = useRef(false);
+  async function trouverTous() {
+    const liste = res?.a_chercher ?? [];
+    if (!liste.length || !window.confirm(`L’agent cherchera le propriétaire de ${nb(liste.length)} immeuble${liste.length > 1 ? 's' : ''}, 4 à la fois.\n\nCoût estimé : ${argent(liste.length * COUT_RECHERCHE_CENTS)} (environ ${COUT_RECHERCHE_CENTS} ¢ par immeuble).\nDurée estimée : ${Math.max(1, Math.round(liste.length / 5))} min, page ouverte.\n\nLes immeubles sans propriétaire trouvé seront écartés. Continuer?`)) return;
+    arret.current = false; setBandeau(null);
+    let faits = 0, trouves = 0, ecartes = 0, k = 0; const erreurs: string[] = [];
+    const suivant = async (): Promise<void> => {
+      // Plusieurs erreurs de suite (crédit épuisé, service en panne) : on arrête plutôt que de les répéter sur toute la liste.
+      while (k < liste.length && !arret.current && erreurs.length < 5) {
+        const i = liste[k++];
+        const { d, erreur } = await agent({ action: 'proprietaire', id: i.id });
+        faits++; if (erreur) erreurs.push(`${i.adresse} : ${erreur}`); else if (d.proprietaire) trouves++; else if (d.ecarte) ecartes++;
+        setOccupe(`Recherche des propriétaires : ${faits} / ${liste.length} · ${trouves} trouvé${trouves > 1 ? 's' : ''} · ${ecartes} écarté${ecartes > 1 ? 's' : ''}…`);
+      }
+    };
+    setOccupe(`Recherche des propriétaires : 0 / ${liste.length}…`);
+    await Promise.all([suivant(), suivant(), suivant(), suivant()]);
+    await charger(filtres, choisi); setOccupe(null);
+    setToast(`${faits} immeuble${faits > 1 ? 's' : ''} cherché${faits > 1 ? 's' : ''} : ${trouves} propriétaire${trouves > 1 ? 's' : ''} à confirmer, ${ecartes} écarté${ecartes > 1 ? 's' : ''}.`);
+    if (erreurs.length) setBandeau(`${erreurs.length >= 5 ? 'Recherche arrêtée après 5 erreurs. ' : ''}${erreurs.slice(0, 5).join(' · ')}`);
+  }
   async function decider(g: Groupe, decision: 'ajouter' | 'ecarter') {
     setOccupe(decision === 'ajouter' ? 'Ajout au pipeline…' : 'Écart…'); setBandeau(null);
     const { error } = await supabaseNavigateur().rpc('lanceur_recherche_decider', { p: { cle: g.cle, decision } });
@@ -140,7 +165,7 @@ export function RechercheIA() {
       </section>
 
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
-      {occupe && <div className="bandeau info" role="status">{occupe} Gardez cette page ouverte.</div>}
+      {occupe && <div className="bandeau info" role="status">{occupe} Gardez cette page ouverte.{occupe.startsWith('Recherche des propriétaires') && <> <button type="button" className="lien" onClick={() => { arret.current = true; }}>Arrêter</button></>}</div>}
       {res?.non_geocodes ? <div className="bandeau info">{nb(res.non_geocodes)} immeuble{res.non_geocodes > 1 ? 's' : ''} n’{res.non_geocodes > 1 ? 'ont' : 'a'} pas pu être placé{res.non_geocodes > 1 ? 's' : ''} sur la carte : hors du rayon pour l’instant. Le rayon couvre Québec et Lévis.</div> : null}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 400px', gap: 24, alignItems: 'start' }}>
@@ -166,7 +191,9 @@ export function RechercheIA() {
               {res && !res.resultats.length && <tr><td colSpan={4} className="gris">Aucun immeuble pour ces filtres. {filtres.max != null && filtres.max < 12 ? 'La liste ne contient que les immeubles de 12 logements et plus (rôle d’évaluation).' : 'Retirez un filtre ou élargissez le rayon.'}</td></tr>}</tbody></table>
           {res?.peut_ecrire && <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, gap: 12, flexWrap: 'wrap' }}>
             <span className="gris texte-13">{coches.size} coché{coches.size > 1 ? 's' : ''} · {cochesATrouver.length} à chercher</span>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {!!res.a_chercher?.length && <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 16px' }} disabled={!!occupe} onClick={trouverTous}
+                title="L’agent cherche le propriétaire de tous les immeubles de cette recherche jamais cherchés, et écarte ceux dont le propriétaire est introuvable."><Icone nom="spark" taille={18} couleur="#2E5788" />Trouver tous les propriétaires ({nb(res.a_chercher.length)})</button>}
               <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 16px' }} disabled={!!occupe || !cochesAjout.length}
                 onClick={async () => { for (const x of cochesAjout) await decider(x, 'ajouter'); }}>Ajouter au pipeline ({cochesAjout.length})</button>
               <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 16px' }} disabled={!!occupe || !cochesATrouver.length} onClick={() => trouver(cochesATrouver)}
