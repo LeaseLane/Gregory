@@ -7,7 +7,7 @@ import { Anomalies, type DonneesAnomalies } from './Anomalies';
 export default async function Page() {
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_anomalies');
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={4} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={5} onglets={ONGLETS_FIN}>
       <Anomalies donnees={(data as DonneesAnomalies | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les anomalies n’ont pas pu être lues.') : null} />
     </CadreEspace>
   );

@@ -9,6 +9,7 @@ import { TableauxCartes } from '@/composants/TableauxCartes';
 import { ESPACES_ADMIN } from '@/lib/espaces';
 import { Inactivite } from '@/composants/Inactivite';
 import { CoquilleProspecteur } from '@/composants/CoquilleProspecteur';
+import { Portee, type OptionsPortee } from '@/composants/Portee';
 
 /* Coquille Lanceur. Revérifie côté serveur ce que le proxy a déjà filtré (session, 2FA), puis l'appartenance
    à l'équipe (crm.team_members; users.is_admin compte comme admin). Hors équipe : « Accès réservé » (e65). */
@@ -29,12 +30,14 @@ export default async function LanceurLayout({ children }: { children: React.Reac
     <><Inactivite minutes={Number((politique as { inactivite_minutes?: number } | null)?.inactivite_minutes ?? 0)} />
       <CoquilleProspecteur initiales={initiales} nom={moi.nom ?? u.email ?? ''}>{children}</CoquilleProspecteur></>
   );
+  // Sélecteur client → immeuble (phase 1, D01) : en tête de chaque espace de l'administration.
+  const { data: portee } = moi ? await supabase.rpc('lanceur_portee_options') : { data: null };
   return (
     <div className="coquille">
       {moi && <Inactivite minutes={Number((politique as { inactivite_minutes?: number } | null)?.inactivite_minutes ?? 0)} />}
       <BarreHaut initiales={initiales} courriel={u.email ?? ''} nom={moi?.nom && !moi.nom.includes('@') ? moi.nom : (u.email ?? '')} role={moi ? (ROLES[moi.role] ?? moi.role) : ''} nonLues={Number((notifs as { non_lues?: number } | null)?.non_lues ?? 0)} moi={u.id} />
       {moi ? (
-        <>{children}<BarreBasAdmin espaces={ESPACES_ADMIN.filter((e) => peut(moi, e.droit))} /><TableauxCartes /></>
+        <>{portee && <Portee options={portee as OptionsPortee} />}{children}<BarreBasAdmin espaces={ESPACES_ADMIN.filter((e) => peut(moi, e.droit))} /><TableauxCartes /></>
       ) : (
         <AccesReserve
           titre="L’espace admin est réservé à l’équipe Lease Lane"

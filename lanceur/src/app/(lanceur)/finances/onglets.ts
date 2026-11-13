@@ -1,6 +1,6 @@
 import type { Onglet } from '@/composants/CadreEspace';
 /* Finances (maquette B.SP.fin) + Relevés (TH, e45) + Relevés 31 (TF, x15) + Débours (x14) + Fidéicommis (registre, dépôts, versements, rapprochement; 2026-11-09). */
-export const ONGLETS_FIN: Onglet[] = [{ libelle: 'Paiements', href: '/finances/paiements' }, { libelle: 'Facturation et PAD', href: '/finances/facturation' }, { libelle: 'Comptabilité', href: '/finances/comptabilite' },
+export const ONGLETS_FIN: Onglet[] = [{ libelle: 'Vue d’ensemble', href: '/finances/vue' }, { libelle: 'Paiements', href: '/finances/paiements' }, { libelle: 'Facturation et PAD', href: '/finances/facturation' }, { libelle: 'Comptabilité', href: '/finances/comptabilite' },
   { libelle: 'Rapprochement', href: '/finances/rapprochement' }, { libelle: 'Anomalies', href: '/finances/anomalies' }, { libelle: 'Factures fournisseurs', href: '/finances/factures-fournisseurs' },
   { libelle: 'Relevés', href: '/finances/releves' }, { libelle: 'Relevés 31', href: '/finances/releves-31' }, { libelle: 'Débours', href: '/finances/debours' }, { libelle: 'Prélèvements', href: '/finances/prelevements' },
   { libelle: 'Fidéicommis', href: '/finances/fideicommis' }];

@@ -8,7 +8,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ l
   const { lot } = await searchParams;
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_facturation', { p: lot ? { lot } : {} });
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={1} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={2} onglets={ONGLETS_FIN}>
       <Facturation donnees={(data as DonneesFacturation | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'La facturation n’a pas pu être lue.') : null} />
     </CadreEspace>
   );

@@ -8,7 +8,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ m
   const { m } = await searchParams;
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_releves', { p_mois: /^\d{4}-\d{2}$/.test(m ?? '') ? `${m}-01` : null });
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={6} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={7} onglets={ONGLETS_FIN}>
       <Releves maintenant={new Date().toISOString()} donnees={(data as DonneesReleves | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les relevés n’ont pas pu être lus.') : null} />
     </CadreEspace>
   );

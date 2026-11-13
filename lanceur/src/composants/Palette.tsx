@@ -8,7 +8,7 @@ import { initiales } from '@/lib/ventes';
 /* Palette ⌘K (maquette e02) : une saisie, et l'admin répond : actions, fiches, pages, ou une question à Cléo.
    Le terme trouvé est en gras; ↑ ↓ naviguent, Entrée ouvre, Échap ferme. Seules les pages qui existent sont listées. */
 const ESPACES: [string, string, string][] = [['Accueil', '/', 'home'], ['Opérations', '/operations', 'inbox'], ['Ventes', '/ventes/mandats', 'trend'], ['Clients', '/clients/proprietaires', 'users'], ['Immeubles', '/immeubles', 'building'], ['Maintenance', '/maintenance/bons', 'wrench'],
-  ['Finances', '/finances/paiements', 'dollar'], ['Juridique', '/juridique', 'scale'], ['Studio', '/studio/site', 'globe'], ['Cléo et IA', '/cleo-ia', 'spark'], ['Rapports et réglages', '/reglages', 'chart']];
+  ['Finances', '/finances/vue', 'dollar'], ['Juridique', '/juridique', 'scale'], ['Studio', '/studio/site', 'globe'], ['Cléo et IA', '/cleo-ia', 'spark'], ['Rapports et réglages', '/reglages', 'chart']];
 const PAGES: [string, string, string][] = [
   ['Opérations', 'À approuver', '/operations/a-approuver'], ['Opérations', 'Inbox', '/operations/inbox'], ['Opérations', 'Mes tâches', '/operations/taches'],
   ['Opérations', 'Agenda', '/operations/agenda'], ['Opérations', 'Appels', '/operations/appels'],

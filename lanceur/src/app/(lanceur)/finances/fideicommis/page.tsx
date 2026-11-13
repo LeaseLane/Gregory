@@ -7,7 +7,7 @@ import { Fideicommis } from './Fideicommis';
 export default async function Page({ searchParams }: { searchParams: Promise<{ vue?: string }> }) {
   const { vue } = await searchParams;
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={10} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={11} onglets={ONGLETS_FIN}>
       <Fideicommis vue={['soldes', 'depots', 'versements', 'rapprochement'].includes(vue ?? '') ? vue! : 'soldes'} />
     </CadreEspace>
   );

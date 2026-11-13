@@ -8,7 +8,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
   const sp = await searchParams;
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_paiements', { p: Object.fromEntries(Object.entries(sp).filter(([, v]) => v)) });
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={0} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={1} onglets={ONGLETS_FIN}>
       <Paiements donnees={(data as DonneesPaiements | null) ?? null} filtres={sp} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les paiements n’ont pas pu être lus.') : null} />
     </CadreEspace>
   );

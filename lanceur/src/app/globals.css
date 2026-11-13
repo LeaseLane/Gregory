@@ -2207,3 +2207,13 @@ small { font-size: 12px; }
    La page de l'admin garde ses propres marges (24 px) sous la barre du haut; dans la coquille, c'est .lo qui les donne. */
 .lo-prospecteur .espace-page, .lo-prospecteur .espace-page:where(*) { padding: 0; }
 @media (max-width: 640px) { .lo-prospecteur .espace-page { padding: 0; } }
+
+/* Sélecteur client → immeuble (phase 1, D01) : bandeau sous la barre du haut, au-dessus de chaque espace. Actif : liseré bleu. */
+.portee { margin: 24px 24px 0; padding: 12px 24px; background: #fff; border: 1px solid #C8DAF0; border-radius: 16px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; font-size: 14px; }
+.portee.active { border-color: #2E5788; box-shadow: inset 4px 0 0 #2E5788; }
+.portee label { font-weight: 600; color: #0C2147; }
+.portee select.e70-raison { width: auto; min-width: 220px; max-width: 360px; margin: 0 8px 0 0; }
+.portee-etat { color: #0C2147; }
+.portee[aria-busy="true"] { opacity: .6; }
+@media (max-width: 720px) { .portee { margin: 16px 16px 0; padding: 12px 16px; } .portee select.e70-raison { width: 100%; max-width: none; margin: 0; } }
+@media (max-width: 1100px) { .vue-fin-haut { grid-template-columns: minmax(0, 1fr) !important; } }

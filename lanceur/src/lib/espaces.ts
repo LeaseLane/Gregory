@@ -5,7 +5,7 @@ export type EspaceAdmin = { nom: string; icone: string; href: string; racine: st
 export const ESPACES_ADMIN: EspaceAdmin[] = [
   { nom: 'Opérations', icone: 'inbox', href: '/operations', racine: '/operations', droit: 'operations.lire' },
   { nom: 'Ventes', icone: 'trend', href: '/ventes/mandats', racine: '/ventes', droit: 'ventes.lire' },
-  { nom: 'Finances', icone: 'dollar', href: '/finances/paiements', racine: '/finances', droit: 'finances.lire' },
+  { nom: 'Finances', icone: 'dollar', href: '/finances/vue', racine: '/finances', droit: 'finances.lire' },
   { nom: 'Clients', icone: 'users', href: '/clients/proprietaires', racine: '/clients', droit: 'clients.lire' },
   { nom: 'Immeubles', icone: 'building', href: '/immeubles', racine: '/immeubles', droit: 'immeubles.lire' },
   { nom: 'Maintenance', icone: 'wrench', href: '/maintenance/bons', racine: '/maintenance', droit: 'maintenance.lire' },

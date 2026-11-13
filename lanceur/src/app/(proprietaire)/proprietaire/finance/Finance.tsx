@@ -10,7 +10,8 @@ import { Icone } from '@/composants/Icones';
    Relevés 31 (TF) : produire ses relevés, puis les valider et les remettre aux locataires (aucune remise sans vous). */
 type Ecriture = { le: string; libelle: string; categorie: string; montant: number };
 export type DonneesRL31 = { annee: number; echeance: string; production_possible: boolean; logements: { immeuble: string; logement: string; locataire: string; numero: boolean; releve: { id: string; statut: string; code: string } | null }[] };
-export type DonneesFinance = { mois: string; taux: number; ecritures: Ecriture[]; precedent: { loyers: number; travaux: number }; releves: string[]; releves_31: { immeuble: string; logement: string; locataire: string }[] };
+type Ventile = { immeuble: string; loyers: number; stationnement: number; buanderie: number; autre: number; locataires: { locataire: string; logement: string; attendu: number; paye: number; statut: 'paye' | 'retard' | 'a_venir' }[] };
+export type DonneesFinance = { ventilation?: Ventile[]; mois: string; taux: number; ecritures: Ecriture[]; precedent: { loyers: number; travaux: number }; releves: string[]; releves_31: { immeuble: string; logement: string; locataire: string }[] };
 const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, ' ')}\u00a0$`;
 const moisNom = (ym: string) => new Date(`${ym.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' }).replace(/^./, (c) => c.toUpperCase());
 const jour = (iso: string) => { const x = new Date(`${iso}T12:00:00`); return `${x.getDate() === 1 ? '1er' : x.getDate()} ${x.toLocaleDateString('fr-CA', { month: 'short' })}`; };
@@ -62,8 +63,30 @@ export function Finance({ rl31, donnees, erreur }: { rl31: DonneesRL31 | null; d
           </section>
         </div>
       </div>
+      {!!D.ventilation?.length && <Ventilation V={D.ventilation} mois={moisNom(mois)} />}
       {rl31 && <Releves31 R={rl31} />}
     </>
+  );
+}
+
+/* Revenus du mois par immeuble, par type de service (loyer, stationnement, buanderie, autre), puis par locataire (phase 1 du plan du 12 nov. 2026).
+   Des revenus seulement : ni « net » ni « versé » (décisions du 13 oct.). */
+function Ventilation({ V, mois }: { V: Ventile[]; mois: string }) {
+  const total = (v: Ventile) => v.loyers + v.stationnement + v.buanderie + v.autre, ou = (n: number) => (n ? argent(n) : '—');
+  const ETAT = { paye: ['Payé', ''], retard: ['En retard', 'todo'], a_venir: ['À venir', 'neutral'] } as const;
+  return (
+    <section className="studio-liste" aria-label="Revenus par immeuble">
+      <header className="carte-tete"><div><h2>Revenus par immeuble</h2><p>{mois} · par type de service, puis par locataire</p></div></header>
+      <table className="tableau"><thead><tr><th>Immeuble</th><th className="droite">Loyers</th><th className="droite">Stationnement</th><th className="droite">Buanderie</th><th className="droite">Autres</th><th className="droite">Total</th></tr></thead>
+        <tbody>{V.map((v) => <tr key={v.immeuble}><td style={{ whiteSpace: 'normal' }}>
+            <details><summary style={{ cursor: 'pointer' }}><strong>{v.immeuble}</strong> <span className="gris texte-13">{v.locataires.length} loyer{v.locataires.length > 1 ? 's' : ''}</span></summary>
+              <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}>{v.locataires.map((l, k) => <li key={k} className="texte-13" style={{ display: 'flex', gap: 8, justifyContent: 'space-between', padding: '6px 0', borderTop: '1px solid #E6EBF2' }}>
+                <span>Logement {l.logement} · {l.locataire}</span><span>{argent(l.paye)} sur {argent(l.attendu)} <span className={`puce ${ETAT[l.statut][1]}`}>{ETAT[l.statut][0]}</span></span></li>)}
+                {!v.locataires.length && <li className="gris texte-13">Aucun loyer prévu ce mois-ci.</li>}</ul></details></td>
+          <td className="droite">{ou(v.loyers)}</td><td className="droite">{ou(v.stationnement)}</td><td className="droite">{ou(v.buanderie)}</td><td className="droite">{ou(v.autre)}</td><td className="droite fort">{argent(total(v))}</td></tr>)}
+          {V.length > 1 && <tr><td className="fort">Tous vos immeubles</td><td className="droite fort">{argent(V.reduce((a, v) => a + v.loyers, 0))}</td><td className="droite fort">{ou(V.reduce((a, v) => a + v.stationnement, 0))}</td>
+            <td className="droite fort">{ou(V.reduce((a, v) => a + v.buanderie, 0))}</td><td className="droite fort">{ou(V.reduce((a, v) => a + v.autre, 0))}</td><td className="droite fort">{argent(V.reduce((a, v) => a + total(v), 0))}</td></tr>}</tbody></table>
+    </section>
   );
 }
 

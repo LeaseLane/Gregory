@@ -7,7 +7,7 @@ import { Rapprochement, type DonneesRapprochement } from './Rapprochement';
 export default async function Page() {
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_rapprochement');
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={3} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={4} onglets={ONGLETS_FIN}>
       <Rapprochement donnees={(data as DonneesRapprochement | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Le rapprochement n’a pas pu être lu.') : null} />
     </CadreEspace>
   );
