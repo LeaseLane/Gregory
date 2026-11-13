@@ -28,9 +28,9 @@ const lien = (href: string, libelle: string, icone: string, principal = false) =
 const ACTIONS: Record<string, (onglet: string) => React.ReactNode> = {
   'Opérations': () => <><BoutonExporter nom="operations" />{lien('/operations?nouveau=1', 'Nouvelle demande', 'plus', true)}</>,
   'Ventes': () => <>{lien('/ventes/leads/import', 'Importer un CSV', 'upload')}{lien('/ventes/leads?nouveau=1', 'Nouveau lead', 'plus', true)}</>,
-  'Clients': () => lien('/clients/proprietaires?nouveau=1', 'Nouveau client', 'plus', true),
-  'Immeubles': () => lien('/immeubles?nouveau=1', 'Ajouter un immeuble', 'plus', true),
-  'Maintenance': () => lien('/maintenance/bons?nouveau=1', 'Nouveau bon de travail', 'plus', true),
+  'Clients': () => <><BoutonExporter nom="clients" />{lien('/clients/proprietaires?nouveau=1', 'Nouveau client', 'plus', true)}</>,
+  'Immeubles': () => <><BoutonExporter nom="immeubles" />{lien('/immeubles?nouveau=1', 'Ajouter un immeuble', 'plus', true)}</>,
+  'Maintenance': () => <><BoutonExporter nom="maintenance" />{lien('/maintenance/bons?nouveau=1', 'Nouveau bon de travail', 'plus', true)}</>,
   'Finances': () => <BoutonExporter nom="finances" />,
   'Studio': (onglet) => onglet === 'Campagnes' ? lien('/studio/campagnes?nouvelle=1', 'Nouvelle campagne', 'plus', true) : null, // le bouton d'une autre page (Nouvel article…) vient de la page
   'Rapports et réglages': () => <BoutonExporter nom="rapports" />,
