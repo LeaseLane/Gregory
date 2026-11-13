@@ -67,7 +67,7 @@ async function geocoder(adresse: string, ville?: string): Promise<{ lat: number;
 
 const OUTIL_PROPRIETAIRE = { name: "soumettre", description: "Soumet le propriétaire trouvé, avec ses sources.", input_schema: { type: "object",
   required: ["proprietaire", "sources", "confiance", "raison"], properties: {
-    proprietaire: { type: ["string", "null"], description: "Nom de l'entreprise ou de la personne propriétaire, tel qu'écrit sur la page; null si non trouvé" },
+    proprietaire: { type: ["string", "null"], description: "Nom SEUL de l'entreprise ou de la personne propriétaire, tel qu'écrit sur la page, sans parenthèses, sans contact ni précision (celles-ci vont dans raison); null si non trouvé" },
     neq: { type: ["string", "null"], description: "NEQ (10 chiffres) s'il est publié" },
     confiance: { type: "string", enum: ["élevée", "moyenne", "faible"] },
     categorie: { type: "string", enum: ["prive", "logement_social", "fpi", "rpa"], description: "prive = entreprise ou personne privée; logement_social = office municipal d'habitation, SOMHAC, coopérative, OBNL; fpi = REIT/FPI, grand fonds, assureur, investisseur institutionnel; rpa = résidence pour aînés" },
@@ -184,7 +184,10 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
     // Rien de vérifiable : l'immeuble est quand même marqué « cherché » (pas de seconde recherche payante).
     // Recherche menée à terme sans propriétaire : l'immeuble est écarté (demande d'Eliot, 2026-11-12); une personne peut le reprendre dans Écartés.
     await rpc("service_role_immeuble_propose", { p_id: id, p: bloc?.input ? { ...bloc.input, ecarter: true } : { proprietaire: null, sources: [], raison: "Aucun résultat soumis" } });
-    return json({ ok: true, proprietaire: bloc?.input?.proprietaire ?? null, confiance: bloc?.input?.confiance ?? null, ecarte: !!bloc?.input && !bloc.input.proprietaire, cout_cents: cout });
+    // Confiance élevée ou moyenne : l'agent inscrit lui-même le propriétaire (null sinon : la proposition attend une personne).
+    const inscrit = bloc?.input?.proprietaire ? await rpc("service_role_immeuble_confirmer", { p_id: id }) : null;
+    return json({ ok: true, proprietaire: bloc?.input?.proprietaire ?? null, confiance: bloc?.input?.confiance ?? null, ecarte: !!bloc?.input && !bloc.input.proprietaire,
+      inscrit: !!inscrit, cle: inscrit?.cle ?? null, chercher_coordonnees: !!inscrit?.chercher_coordonnees, cout_cents: cout });
   }
   // La phrase → filtres (modèle rapide, outil forcé), puis l'adresse « près de » géocodée.
   async function comprendre(texte: string, par: string | null) {

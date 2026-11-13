@@ -95,27 +95,36 @@ export function RechercheIA() {
     setOccupe(null); if (erreurs.length) setBandeau(erreurs.join(' · '));
   }
   // « Trouver tous les propriétaires » (Eliot, 2026-11-12) : tous les immeubles du filtre jamais cherchés, pas seulement les 200 affichés.
-  // Sans propriétaire trouvé, l'immeuble est écarté par la base; les autres attendent leur confirmation.
-  // ponytail: boucle dans le navigateur, 4 à la fois, page ouverte (environ 5 immeubles à la minute); file côté serveur si les lots dépassent quelques centaines.
+  // 1. le propriétaire de chaque immeuble : inscrit par l'agent s'il est assez sûr, proposé « à confirmer » si la confiance est faible,
+  //    immeuble écarté si rien n'est trouvé; 2. les coordonnées et la présentation de chaque propriétaire inscrit (une fois par propriétaire).
+  // ponytail: boucle dans le navigateur, 4 à la fois, page ouverte; file côté serveur si les lots dépassent quelques centaines.
   const arret = useRef(false);
   async function trouverTous() {
     const liste = res?.a_chercher ?? [];
-    if (!liste.length || !window.confirm(`L’agent cherchera le propriétaire de ${nb(liste.length)} immeuble${liste.length > 1 ? 's' : ''}, 4 à la fois.\n\nCoût estimé : ${argent(liste.length * COUT_RECHERCHE_CENTS)} (environ ${COUT_RECHERCHE_CENTS} ¢ par immeuble).\nDurée estimée : ${Math.max(1, Math.round(liste.length / 5))} min, page ouverte.\n\nLes immeubles sans propriétaire trouvé seront écartés. Continuer?`)) return;
+    if (!liste.length || !window.confirm(`L’agent cherchera le propriétaire de ${nb(liste.length)} immeuble${liste.length > 1 ? 's' : ''}, puis les coordonnées de chaque propriétaire trouvé.\n\nCoût estimé : de ${argent(liste.length * COUT_RECHERCHE_CENTS)} à ${argent(liste.length * COUT_RECHERCHE_CENTS * 2)} (environ ${COUT_RECHERCHE_CENTS} ¢ par recherche).\nDurée estimée : ${Math.max(1, Math.round(liste.length / 8))} à ${Math.max(2, Math.round(liste.length / 4))} min, page ouverte.\n\nLes immeubles sans propriétaire trouvé seront écartés. Continuer?`)) return;
     arret.current = false; setBandeau(null);
-    let faits = 0, trouves = 0, ecartes = 0, k = 0; const erreurs: string[] = [];
-    const suivant = async (): Promise<void> => {
-      // Plusieurs erreurs de suite (crédit épuisé, service en panne) : on arrête plutôt que de les répéter sur toute la liste.
-      while (k < liste.length && !arret.current && erreurs.length < 5) {
-        const i = liste[k++];
-        const { d, erreur } = await agent({ action: 'proprietaire', id: i.id });
-        faits++; if (erreur) erreurs.push(`${i.adresse} : ${erreur}`); else if (d.proprietaire) trouves++; else if (d.ecarte) ecartes++;
-        setOccupe(`Recherche des propriétaires : ${faits} / ${liste.length} · ${trouves} trouvé${trouves > 1 ? 's' : ''} · ${ecartes} écarté${ecartes > 1 ? 's' : ''}…`);
-      }
+    let faits = 0, inscrits = 0, aConfirmer = 0, ecartes = 0, coord = 0; const erreurs: string[] = [], cles = new Set<string>();
+    // 4 à la fois; plusieurs erreurs (crédit épuisé, service en panne) : on arrête plutôt que de les répéter sur toute la liste.
+    const enLot = async <T,>(elements: T[], un: (x: T) => Promise<void>) => {
+      let k = 0;
+      const suivant = async () => { while (k < elements.length && !arret.current && erreurs.length < 5) await un(elements[k++]); };
+      await Promise.all([suivant(), suivant(), suivant(), suivant()]);
     };
     setOccupe(`Recherche des propriétaires : 0 / ${liste.length}…`);
-    await Promise.all([suivant(), suivant(), suivant(), suivant()]);
-    await charger(filtres, choisi); setOccupe(null);
-    setToast(`${faits} immeuble${faits > 1 ? 's' : ''} cherché${faits > 1 ? 's' : ''} : ${trouves} propriétaire${trouves > 1 ? 's' : ''} à confirmer, ${ecartes} écarté${ecartes > 1 ? 's' : ''}.`);
+    await enLot(liste, async (i) => {
+      const { d, erreur } = await agent({ action: 'proprietaire', id: i.id });
+      faits++; if (erreur) erreurs.push(`${i.adresse} : ${erreur}`); else if (d.inscrit) { inscrits++; if (d.chercher_coordonnees && d.cle) cles.add(d.cle); } else if (d.proprietaire) aConfirmer++; else if (d.ecarte) ecartes++;
+      setOccupe(`Recherche des propriétaires : ${faits} / ${liste.length} · ${inscrits} trouvé${inscrits > 1 ? 's' : ''} · ${ecartes} écarté${ecartes > 1 ? 's' : ''}…`);
+    });
+    const aJoindre = [...cles];
+    if (aJoindre.length && !arret.current) setOccupe(`Recherche des coordonnées : 0 / ${aJoindre.length}…`);
+    await enLot(aJoindre, async (cle) => {
+      const { erreur } = await agent({ action: 'coordonnees', cle });
+      coord++; if (erreur) erreurs.push(`Coordonnées : ${erreur}`);
+      setOccupe(`Recherche des coordonnées : ${coord} / ${aJoindre.length}…`);
+    });
+    await charger(filtres, null); setOccupe(null);
+    setToast(`${faits} immeuble${faits > 1 ? 's' : ''} cherché${faits > 1 ? 's' : ''} : ${inscrits} avec propriétaire, ${aConfirmer} à confirmer, ${ecartes} écarté${ecartes > 1 ? 's' : ''}.`);
     if (erreurs.length) setBandeau(`${erreurs.length >= 5 ? 'Recherche arrêtée après 5 erreurs. ' : ''}${erreurs.slice(0, 5).join(' · ')}`);
   }
   async function decider(g: Groupe, decision: 'ajouter' | 'ecarter') {
@@ -165,7 +174,7 @@ export function RechercheIA() {
       </section>
 
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
-      {occupe && <div className="bandeau info" role="status">{occupe} Gardez cette page ouverte.{occupe.startsWith('Recherche des propriétaires') && <> <button type="button" className="lien" onClick={() => { arret.current = true; }}>Arrêter</button></>}</div>}
+      {occupe && <div className="bandeau info" role="status">{occupe} Gardez cette page ouverte.{occupe.startsWith('Recherche des ') && <> <button type="button" className="lien" onClick={() => { arret.current = true; }}>Arrêter</button></>}</div>}
       {res?.non_geocodes ? <div className="bandeau info">{nb(res.non_geocodes)} immeuble{res.non_geocodes > 1 ? 's' : ''} n’{res.non_geocodes > 1 ? 'ont' : 'a'} pas pu être placé{res.non_geocodes > 1 ? 's' : ''} sur la carte : hors du rayon pour l’instant. Le rayon couvre Québec et Lévis.</div> : null}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 400px', gap: 24, alignItems: 'start' }}>

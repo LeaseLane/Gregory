@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(20);
+select plan(24);
 
 create function pg_temp.equipe(p_courriel text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', (select id from auth.users where email = p_courriel), 'aal', 'aal2', 'role', 'authenticated')::text, true);
@@ -60,6 +60,15 @@ select public.service_role_immeuble_propose((select id from crm.immeubles_role w
 select is((select ecarte from crm.immeubles_role where matricule = 'T-1'), true, 'recherche sans propriétaire : immeuble écarté');
 select is((select array_agg(ecarte order by matricule) from crm.immeubles_role where matricule in ('T-2', 'T-3')), array[false, false], 'gestion qui possède l''immeuble gardée; recherche avortée non écartée');
 select is(jsonb_array_length(public.lanceur_recherche_role('{"villes": ["Éssai-Tri"]}') -> 'a_chercher'), 0, 'à chercher : plus rien après les recherches');
+
+-- L'agent inscrit lui-même le propriétaire quand il est assez sûr (2026-11-13); confiance faible : une personne confirme.
+insert into crm.immeubles_role (millesime, municipalite, matricule, adresse, logements, statut) values (2026, 'Éssai-Tri', 'T-4', '4 rue Tri', 25, 'morale');
+select public.service_role_immeuble_propose((select id from crm.immeubles_role where matricule = 'T-4'), '{"proprietaire": "Immeubles Faible inc.", "sources": [], "confiance": "faible", "raison": "annuaire seulement", "categorie": "prive", "ecarter": true}');
+select is(public.service_role_immeuble_confirmer((select id from crm.immeubles_role where matricule = 'T-4')), null, 'confiance faible : pas inscrit par l''agent');
+update crm.immeubles_role set propose_nom = 'Gestion Tri inc. (groupe Tri, Lévis) — contact : Jean Essai' where matricule = 'T-2';
+select is(public.service_role_immeuble_confirmer((select id from crm.immeubles_role where matricule = 'T-2')) - 'cle', '{"nom": "Gestion Tri inc.", "chercher_coordonnees": true}'::jsonb, 'confiance élevée : inscrit, nom nettoyé, coordonnées à chercher');
+select is((select proprietaire from crm.immeubles_role where matricule = 'T-2'), 'Gestion Tri inc.', 'propriétaire inscrit sur l''immeuble');
+select is(public.service_role_immeuble_confirmer((select id from crm.immeubles_role where matricule = 'T-2')), null, 'déjà inscrit : rien à refaire');
 
 select set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'aal', 'aal2', 'role', 'authenticated')::text, true);
 select throws_ok($$ select public.lanceur_recherche_role('{}') $$, null, null, 'hors de l''équipe : refusé');
