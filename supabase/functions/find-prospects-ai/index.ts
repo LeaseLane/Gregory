@@ -22,7 +22,7 @@ const OUTIL_COORDONNEES = { name: "soumettre", description: "Soumet les coordonn
     site: { type: ["string", "null"], description: "Site web de l'entreprise propriétaire" },
     telephone: { type: ["string", "null"], description: "Téléphone d'affaires publié par l'entreprise" },
     courriel: { type: ["string", "null"], description: "Courriel publié tel quel sur une page de l'entreprise ou un annuaire d'affaires; jamais déduit" },
-    decideur: { type: ["string", "null"], description: "Nom du dirigeant ou propriétaire, s'il est publié" },
+    decideur: { type: ["string", "null"], description: "Prénom et nom SEULS de la personne qui décide (propriétaire, président, associé principal), sans titre, parenthèse ni source (ceux-ci vont dans a_propos_personne); une seule personne, la principale; null si aucun nom n'est publié" },
     gestionnaire: { type: ["string", "null"], description: "Entreprise de gestion immobilière qui gère ses immeubles, si une page le montre; sinon null" },
     refus_sollicitation: { type: "boolean", description: "Vrai si une page mentionne un refus des sollicitations" },
     categorie: { type: "string", enum: ["prive", "logement_social", "fpi", "rpa"], description: "prive = entreprise ou personne privée; logement_social = office municipal d'habitation, SOMHAC, coopérative, OBNL; fpi = REIT/FPI, grand fonds, assureur, investisseur institutionnel; rpa = résidence pour aînés" },
@@ -132,8 +132,11 @@ Propriétaire inscrit au rôle d'évaluation : ${JSON.stringify(g.noms)}${g.neq 
 Immeubles : ${(g.adresses ?? []).join("; ")} — ${g.logements} logements au total (${g.villes}).
 
 Avec l'outil de recherche web, trouve :
-1. les coordonnées d'AFFAIRES que cette entreprise publie elle-même (site web, téléphone, courriel) et le nom de son dirigeant s'il est publié;
-2. si une entreprise de gestion immobilière gère ses immeubles (page d'un gestionnaire, annonce de location à ces adresses, témoignage).
+1. la PERSONNE qui décide : le propriétaire, le président ou l'associé principal de cette entreprise. C'est la priorité : la personne qui appellera
+   veut demander quelqu'un par son nom. Cherche-la activement (page « À propos » ou « Équipe » du site, articles de presse, LinkedIn, annuaires
+   d'entreprises, communiqués). Si le propriétaire inscrit est déjà une personne, c'est elle;
+2. les coordonnées d'AFFAIRES que cette entreprise publie elle-même (site web, téléphone, courriel);
+3. si une entreprise de gestion immobilière gère ses immeubles (page d'un gestionnaire, annonce de location à ces adresses, témoignage).
 
 RÈGLES STRICTES :
 - N'invente et ne déduis JAMAIS une coordonnée (pas de courriel construit comme prenom.nom@…). Absente des pages : null.

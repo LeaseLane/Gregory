@@ -22,6 +22,8 @@ const CLE_LOCALE = 'll-recherches-prospection';
 const nb = (n: number) => n.toLocaleString('fr-CA');
 const hote = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
 const simple = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\b(inc|ltee|limitee)\b|[^a-z0-9]/g, '');   // même nom = gestion interne
+// Le décideur est la personne à demander au téléphone : son nom seul (les anciennes recherches y ajoutaient le titre ou la source).
+const personne = (d: string | null | undefined) => (d ?? '').replace(/\s*[(,;].*$/, '').trim() || null;
 const COUT_RECHERCHE_CENTS = 8;   // moyenne mesurée en production (322 recherches, nov. 2026)
 const argent = (c: number) => `${(c / 100).toFixed(2).replace('.', ',')} $ US`;
 
@@ -190,8 +192,8 @@ export function RechercheIA() {
                 <td><div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                   <input type="checkbox" style={{ marginTop: 3 }} checked={coches.has(x.cle)} onClick={(e) => e.stopPropagation()} aria-label={`Cocher ${x.nom ?? x.liste[0].adresse}`}
                     onChange={(e) => { const s = new Set(coches); if (e.target.checked) s.add(x.cle); else s.delete(x.cle); setCoches(s); }} />
-                  <div>{x.nom ? <strong>{x.nom}</strong> : <span><strong>{x.liste[0].adresse}</strong>{x.liste[0].propose_nom && <span className="puce neutral" style={{ marginLeft: 6 }}>À confirmer</span>}</span>}
-                    <span className="sous gris">{x.nom ? x.villes : `${x.liste[0].municipalite} · ${x.liste[0].propose_nom ? `proposé : ${x.liste[0].propose_nom}` : x.liste[0].cherche ? 'propriétaire introuvable sur le web' : 'propriétaire à identifier'}`}
+                  <div>{x.nom ? <strong>{personne(x.coordonnees?.decideur) ?? x.nom}</strong> : <span><strong>{x.liste[0].adresse}</strong>{x.liste[0].propose_nom && <span className="puce neutral" style={{ marginLeft: 6 }}>À confirmer</span>}</span>}
+                    <span className="sous gris">{x.nom ? (personne(x.coordonnees?.decideur) ? `${x.nom} · ${x.villes}` : `${x.villes}${x.coordonnees ? ' · décideur non trouvé' : ''}`) : `${x.liste[0].municipalite} · ${x.liste[0].propose_nom ? `proposé : ${x.liste[0].propose_nom}` : x.liste[0].cherche ? 'propriétaire introuvable sur le web' : 'propriétaire à identifier'}`}
                       {x.km != null ? ` · ${String(x.km).replace('.', ',')} km` : ''}</span>
                     {x.suggestion === 'approved' && <span className="puce ok" style={{ marginTop: 4, display: 'inline-block' }}>Au pipeline</span>}</div></div></td>
                 <td className="droite">{x.immeubles}</td><td className="droite fort">{x.logements}</td>
@@ -224,8 +226,8 @@ function Panneau({ g, peut, occupe, trouver, decider, confirmer }: { g: Groupe; 
   return (
     <aside className="carte-l18" aria-label="Propriétaire choisi" style={{ overflowWrap: 'anywhere', minWidth: 0 }}>
       <p className="surtitre gris" style={{ margin: 0 }}>{g.nom ? 'Propriétaire choisi' : 'Immeuble choisi'}</p>
-      <h2 className="titre-carte" style={{ margin: '4px 0 2px' }}>{g.nom ?? i0.adresse}</h2>
-      <p className="gris texte-13" style={{ margin: 0 }}>{g.immeubles} immeuble{g.immeubles > 1 ? 's' : ''} · {g.logements} logements{g.logements_total && g.logements_total > g.logements ? ` (${g.logements_total} au total au rôle)` : ''} · {g.villes}</p>
+      <h2 className="titre-carte" style={{ margin: '4px 0 2px' }}>{personne(c?.decideur) ?? g.nom ?? i0.adresse}</h2>
+      <p className="gris texte-13" style={{ margin: 0 }}>{personne(c?.decideur) ? `${g.nom} · ` : ''}{g.immeubles} immeuble{g.immeubles > 1 ? 's' : ''} · {g.logements} logements{g.logements_total && g.logements_total > g.logements ? ` (${g.logements_total} au total au rôle)` : ''} · {g.villes}</p>
       <hr className="filet" />
 
       {!g.nom && <>
@@ -247,7 +249,7 @@ function Panneau({ g, peut, occupe, trouver, decider, confirmer }: { g: Groupe; 
         {c ? <>
           <p className="texte-13" style={{ margin: '0 0 4px' }}>{[c.telephone && <b key="t">{c.telephone}</b>, !c.refus && c.courriel].filter(Boolean).reduce<ReactNode[]>((a, x, k) => k ? [...a, ' · ', x] : [x], [])}
             {!c.telephone && (c.refus || !c.courriel) && <span className="gris">Aucun téléphone ni courriel publié</span>}</p>
-          {c.decideur && <p className="texte-13" style={{ margin: '0 0 4px' }}>Décideur : {c.decideur}</p>}
+          {c.decideur ? <p className="texte-13" style={{ margin: '0 0 4px' }}>Décideur : {c.decideur}</p> : <p className="texte-13 gris" style={{ margin: '0 0 4px' }}>Décideur non trouvé : aucun nom publié.</p>}
           {c.site && <p className="texte-13" style={{ margin: '0 0 4px' }}><a className="lien" href={c.site} target="_blank" rel="noreferrer">{hote(c.site)}</a></p>}
           <p className="sous gris">{c.gestionnaire ? (simple(c.gestionnaire).includes(simple(g.nom ?? '')) || simple(g.nom ?? '').includes(simple(c.gestionnaire)) ? 'Gère lui-même ses immeubles' : `Géré par ${c.gestionnaire}`) : 'Aucun gestionnaire externe trouvé'} · {c.refus ? 'la page refuse les sollicitations : ne pas écrire' : 'aucun refus de sollicitation'}</p>
           <p className="sous" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 10px' }}>Sources : {sources.map((s) => <a key={s.url} className="lien" href={s.url} target="_blank" rel="noreferrer" title={s.extrait}>{hote(s.url)}</a>)}</p>
