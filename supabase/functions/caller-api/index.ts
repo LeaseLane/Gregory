@@ -1,7 +1,7 @@
 import { EXPEDITEUR, PORTAILS } from "../_shared/branding.ts";
 import { avecHtml } from "../_shared/courriel.ts";
 import { corsHeadersFor, requireUser } from "../_shared/auth.ts";
-import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte } from "../_shared/ia.ts";
+import { IA_MESSAGES_URL, IA_CLE, MODELE_RAPIDE, avecContexte, decrireMedias } from "../_shared/ia.ts";
 import { nouveauProspect } from "../_shared/prospect.ts";
 
 const CALLER_ALLOWED_STAGES = ["contacted", "interested"];
@@ -102,7 +102,25 @@ Deno.serve(async (req) => {
     }
 
     if (action === "add_call") {
-      const { prospect_id, transcript } = body;
+      const { prospect_id, audio } = body;
+      let transcript: string = typeof body.transcript === "string" ? body.transcript : "";
+      // Note vocale (Octa, 2026-11-16) : le prospecteur raconte son appel à voix haute; Gemini (passerelle Tonia, au Canada) le transcrit,
+      // puis la transcription suit le même chemin qu'une note écrite (résumé, objections, engagement, prochain appel).
+      if (!transcript && audio && typeof audio.base64 === "string" && /^audio\/[a-z0-9.+-]+(;.*)?$/i.test(String(audio.mime ?? ""))) {
+        if (audio.base64.length > 14_000_000) return new Response(JSON.stringify({ error: "Note vocale trop longue (10 minutes au plus)." }), { status: 413, headers: corsHeaders });
+        const t = await decrireMedias([
+          // La note peut être en anglais, en français ou en français québécois (expressions et sacres compris) : transcrite telle quelle, jamais traduite.
+          { type: "text", text: "Transcribe this recording word for word, in the language actually spoken: English, French or Québécois French (keep Québécois expressions, anglicisms and swear words as spoken; never translate, never correct). It is a real-estate prospector summarizing out loud the call they just had with a building owner. Return only the spoken text, no comment. If nothing is audible, answer exactly: INAUDIBLE." },
+          { type: "audio", data: audio.base64, mime_type: String(audio.mime).split(";")[0] },
+        ]);
+        if (!t.ok) {
+          const bloque = /audio_not_in_plan/.test(t.erreur ?? "");
+          console.error("transcription", t.status, t.erreur);
+          return new Response(JSON.stringify({ error: bloque ? "La transcription vocale n'est pas encore activée sur la passerelle IA. Écrivez votre note pour l'instant." : "La note vocale n'a pas pu être transcrite. Réessayez ou écrivez-la." }), { status: 503, headers: corsHeaders });
+        }
+        if (/^INAUDIBLE\.?$/i.test(t.texte.trim())) return new Response(JSON.stringify({ error: "Rien d'audible dans la note vocale. Réessayez plus près du micro." }), { status: 422, headers: corsHeaders });
+        transcript = t.texte.trim().slice(0, 8000);
+      }
       if (!prospect_id || !transcript) {
         return new Response(JSON.stringify({ error: "prospect_id et transcript requis" }), { status: 400, headers: corsHeaders });
       }
@@ -116,12 +134,14 @@ Deno.serve(async (req) => {
       }
 
       const prompt = `Tu es l'assistant CRM de "Lease Lane". Voici la transcription/notes d'un appel avec un prospect propriétaire. Analyse-la en détail.
+La note peut être en anglais, en français ou en français québécois : rédige les champs texte (summary, objections, commitment, next_step) dans la langue de la note
+(anglais → anglais; français ou québécois → français correct); key_quotes reste mot pour mot. Les dates relatives (« jeudi », « next week ») se comptent à partir d'aujourd'hui, ${new Date().toISOString().slice(0, 10)}.
 
 Transcription: "${transcript}"
 
 Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
 {
-  "summary": "résumé de l'appel en 1-2 phrases en français",
+  "summary": "résumé de l'appel en 1-2 phrases",
   "key_quotes": ["jusqu'à 2 citations exactes et importantes tirées de la transcription"],
   "objections": "les objections ou réticences exprimées par le prospect, ou null si aucune",
   "commitment": "un engagement concret pris durant l'appel (ex: 'va envoyer les états financiers d'ici vendredi'), ou null si aucun",
@@ -182,10 +202,11 @@ Réponds UNIQUEMENT avec un objet JSON valide (rien avant, rien après):
           call_history: callHistory,
           interest_level: interestLevel ?? prospect.interest_level,
           next_followup_date: followupDate,
+          next_action: parsed.next_step ?? prospect.next_action,
         }),
       });
-      await logAudit("prospect.call_logged_by_caller", "prospects", prospect_id, { caller_name: caller.full_name });
-      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
+      await logAudit("prospect.call_logged_by_caller", "prospects", prospect_id, { caller_name: caller.full_name, vocal: !!audio && !body.transcript });
+      return new Response(JSON.stringify({ ok: true, transcription: audio && !body.transcript ? transcript : undefined, resume: parsed.summary ?? null, prochain_appel: followupDate ?? null }), { status: 200, headers: corsHeaders });
     }
 
     if (action === "update_my_stage") {
