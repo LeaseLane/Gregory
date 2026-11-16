@@ -11,9 +11,9 @@ type Imm = { id: string; adresse: string; municipalite: string; logements: numbe
 type Coord = { nom: string | null; site: string | null; telephone: string | null; courriel: string | null; decideur: string | null; gestionnaire: string | null; refus: boolean;
   sources: Source[]; a_propos: { entreprise?: string; personne?: string; remarque?: string } | null };
 type Groupe = { cle: string; nom: string | null; immeubles: number; logements: number; logements_total: number | null; villes: string; km: number | null;
-  liste: Imm[]; coordonnees: Coord | null; suggestion: string | null };
+  liste: Imm[]; coordonnees: Coord | null; suggestion: string | null; reserve_nom: string | null; reserve_moi: boolean };
 type Resultat = { total: number; immeubles: number; logements: number; avec_coordonnees: number; identifies: number; resultats: Groupe[]; non_geocodes: number | null;
-  cout_mois_cents: number; recherches_mois: number; peut_ecrire: boolean; a_chercher?: { id: string; adresse: string }[] };
+  cout_mois_cents: number; recherches_mois: number; peut_ecrire: boolean; prospecteur?: boolean; a_chercher?: { id: string; adresse: string }[] };
 export type Filtres = { villes?: string[]; min?: number | null; max?: number | null; annee_min?: number | null; annee_max?: number | null; statut?: 'morale' | 'physique' | null;
   pres_de?: { adresse: string; km: number; lat: number; lon: number; libelle?: string } | null; q?: string | null; coordonnees?: 'avec' | 'sans' | null };
 
@@ -85,8 +85,17 @@ export function RechercheIA() {
   }
 
   // « Trouver » : propriétaire inconnu → l'agent le cherche (une personne confirme ensuite); connu sans coordonnées → coordonnées + à propos.
+  // Réservation (Grégory, 2026-11-16) : ce qu'un prospecteur travaille est à lui, ses collègues ne le voient plus. Lui : posée toute seule quand il
+  // cherche UNE ligne, confirme ou ajoute au pipeline. Un admin réserve par le bouton seulement (ses recherches ne retirent rien aux prospecteurs).
+  async function reserver(g: Groupe, liberer = false) {
+    setBandeau(null);
+    const { error } = await supabaseNavigateur().rpc('lanceur_role_reserver', { p: { cle: g.cle, liberer } });
+    if (error) { setBandeau(error.message); await charger(filtres, null); return false; }
+    return true;
+  }
   async function trouver(groupes: Groupe[]) {
     setBandeau(null);
+    if (res?.prospecteur && groupes.length === 1 && !groupes[0].reserve_moi && !(await reserver(groupes[0]))) return;
     const erreurs: string[] = [];
     for (const [k, g] of groupes.entries()) {
       setOccupe(`Recherche ${k + 1} / ${groupes.length} : ${g.nom ?? g.liste[0].adresse} (environ 30 s)…`);
@@ -115,14 +124,14 @@ export function RechercheIA() {
     setOccupe(`Recherche des propriétaires : 0 / ${liste.length}…`);
     await enLot(liste, async (i) => {
       const { d, erreur } = await agent({ action: 'proprietaire', id: i.id });
-      faits++; if (erreur) erreurs.push(`${i.adresse} : ${erreur}`); else if (d.inscrit) { inscrits++; if (d.chercher_coordonnees && d.cle) cles.add(d.cle); } else if (d.proprietaire) aConfirmer++; else if (d.ecarte) ecartes++;
+      faits++; if (erreur && /réservée? par un collègue/.test(erreur)) return; if (erreur) erreurs.push(`${i.adresse} : ${erreur}`); else if (d.inscrit) { inscrits++; if (d.chercher_coordonnees && d.cle) cles.add(d.cle); } else if (d.proprietaire) aConfirmer++; else if (d.ecarte) ecartes++;
       setOccupe(`Recherche des propriétaires : ${faits} / ${liste.length} · ${inscrits} trouvé${inscrits > 1 ? 's' : ''} · ${ecartes} écarté${ecartes > 1 ? 's' : ''}…`);
     });
     const aJoindre = [...cles];
     if (aJoindre.length && !arret.current) setOccupe(`Recherche des coordonnées : 0 / ${aJoindre.length}…`);
     await enLot(aJoindre, async (cle) => {
       const { erreur } = await agent({ action: 'coordonnees', cle });
-      coord++; if (erreur) erreurs.push(`Coordonnées : ${erreur}`);
+      coord++; if (erreur && !/réservée? par un collègue/.test(erreur)) erreurs.push(`Coordonnées : ${erreur}`);
       setOccupe(`Recherche des coordonnées : ${coord} / ${aJoindre.length}…`);
     });
     await charger(filtres, null); setOccupe(null);
@@ -195,7 +204,8 @@ export function RechercheIA() {
                   <div>{x.nom ? <strong>{personne(x.coordonnees?.decideur) ?? x.nom}</strong> : <span><strong>{x.liste[0].adresse}</strong>{x.liste[0].propose_nom && <span className="puce neutral" style={{ marginLeft: 6 }}>À confirmer</span>}</span>}
                     <span className="sous gris">{x.nom ? (personne(x.coordonnees?.decideur) ? `${x.nom} · ${x.villes}` : `${x.villes}${x.coordonnees ? ' · décideur non trouvé' : ''}`) : `${x.liste[0].municipalite} · ${x.liste[0].propose_nom ? `proposé : ${x.liste[0].propose_nom}` : x.liste[0].cherche ? 'propriétaire introuvable sur le web' : 'propriétaire à identifier'}`}
                       {x.km != null ? ` · ${String(x.km).replace('.', ',')} km` : ''}</span>
-                    {x.suggestion === 'approved' && <span className="puce ok" style={{ marginTop: 4, display: 'inline-block' }}>Au pipeline</span>}</div></div></td>
+                    {x.suggestion === 'approved' && <span className="puce ok" style={{ marginTop: 4, display: 'inline-block' }}>Au pipeline</span>}
+                    {x.reserve_nom && <span className="puce neutral" style={{ marginTop: 4, marginLeft: x.suggestion === 'approved' ? 6 : 0, display: 'inline-block' }}>{x.reserve_moi ? 'Réservé par vous' : `Réservé par ${x.reserve_nom}`}</span>}</div></div></td>
                 <td className="droite">{x.immeubles}</td><td className="droite fort">{x.logements}</td>
                 <td className="texte-13" style={{ overflowWrap: 'anywhere' }}>{x.coordonnees ? [x.coordonnees.telephone, x.coordonnees.refus ? null : x.coordonnees.courriel].filter(Boolean).map((c) => <span key={c!} style={{ display: 'block' }}>{c}</span>)
                   : <span className="gris">{x.nom ? 'À trouver' : '—'}</span>}</td></tr>))}
@@ -212,22 +222,28 @@ export function RechercheIA() {
             </div></div>}
         </section>
 
-        {g ? <Panneau g={g} peut={!!res?.peut_ecrire} occupe={!!occupe} trouver={() => trouver([g])} decider={(d) => decider(g, d)} confirmer={confirmer} />
+        {g ? <Panneau g={g} peut={!!res?.peut_ecrire} occupe={!!occupe} trouver={() => trouver([g])} decider={(d) => decider(g, d)} confirmer={confirmer}
+              reserver={async (liberer) => { if (await reserver(g, liberer)) { setToast(liberer ? 'Réservation libérée : vos collègues le revoient.' : 'Réservé : vos collègues ne le voient plus.'); await charger(filtres, g.cle); } }} />
           : <aside className="carte-l18 gris texte-13">Choisissez un propriétaire dans la liste.</aside>}
       </div>
+      {res?.prospecteur && <p className="gris texte-13" style={{ marginTop: 16 }}>Ce qu’un collègue a réservé n’est pas affiché ici : chaque propriétaire n’est appelé que par une personne.</p>}
       {res && <p className="gris texte-13" style={{ marginTop: 16 }}>Ce mois-ci : {nb(res.recherches_mois)} recherches de l’agent · ≈ {argent(res.cout_mois_cents)} · chaque prospect ajouté va dans « Mes prospects » de la personne responsable.</p>}
       {toast && <div className="toast" role="status"><Icone nom="check" taille={18} couleur="#fff" />{toast}</div>}
     </>
   );
 }
 
-function Panneau({ g, peut, occupe, trouver, decider, confirmer }: { g: Groupe; peut: boolean; occupe: boolean; trouver: () => void; decider: (d: 'ajouter' | 'ecarter') => void; confirmer: (i: Imm, oui: boolean) => void }) {
+function Panneau({ g, peut, occupe, trouver, decider, confirmer, reserver }: { g: Groupe; peut: boolean; occupe: boolean; trouver: () => void; decider: (d: 'ajouter' | 'ecarter') => void; confirmer: (i: Imm, oui: boolean) => void; reserver: (liberer: boolean) => void }) {
   const c = g.coordonnees, i0 = g.liste[0], sources = (c?.sources ?? []).filter((s, k, t) => t.findIndex((x) => hote(x.url) === hote(s.url)) === k).slice(0, 4);
   return (
     <aside className="carte-l18" aria-label="Propriétaire choisi" style={{ overflowWrap: 'anywhere', minWidth: 0 }}>
       <p className="surtitre gris" style={{ margin: 0 }}>{g.nom ? 'Propriétaire choisi' : 'Immeuble choisi'}</p>
       <h2 className="titre-carte" style={{ margin: '4px 0 2px' }}>{personne(c?.decideur) ?? g.nom ?? i0.adresse}</h2>
       <p className="gris texte-13" style={{ margin: 0 }}>{personne(c?.decideur) ? `${g.nom} · ` : ''}{g.immeubles} immeuble{g.immeubles > 1 ? 's' : ''} · {g.logements} logements{g.logements_total && g.logements_total > g.logements ? ` (${g.logements_total} au total au rôle)` : ''} · {g.villes}</p>
+      {peut && <p className="texte-13" style={{ margin: '8px 0 0', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        {g.reserve_nom ? <><span className="puce neutral">{g.reserve_moi ? 'Réservé par vous' : `Réservé par ${g.reserve_nom}`}</span><span className="gris">{g.reserve_moi ? 'Vos collègues ne le voient pas.' : 'Les autres prospecteurs ne le voient pas.'}</span>
+            <button className="lien" disabled={occupe} onClick={() => reserver(true)}>Libérer</button></>
+          : <><span className="gris">Libre : vos collègues le voient aussi.</span><button className="lien" disabled={occupe} onClick={() => reserver(false)}>Réserver</button></>}</p>}
       <hr className="filet" />
 
       {!g.nom && <>

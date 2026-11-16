@@ -12,5 +12,6 @@ export async function connecter(page, role, base = 'http://localhost:3020') {
   await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 90000 }), page.click('button[type=submit]')]);
   await page.waitForSelector('.code6-case', { timeout: 60000 }); await page.click('.code6-case:nth-child(1)');
   await page.keyboard.type(totp(TOTP[role]), { delay: 40 });
-  await page.waitForSelector('.espaces', { timeout: 90000 });
+  // l'accueil de l'équipe (.espaces), ou l'espace du prospecteur, qui n'a pas d'accueil (Mes prospects)
+  await page.waitForFunction(() => !!document.querySelector('.espaces') || /^\/ventes\//.test(location.pathname), { timeout: 90000 });
 }

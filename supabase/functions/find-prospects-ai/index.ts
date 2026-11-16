@@ -125,6 +125,8 @@ Deno.serve(async (req) => {
     if (!par) return json({ error: "Réservé à une personne de l'équipe." }, 403);
     const g = await rpc("service_role_groupe", { p_cle: cle });
     if (!g) return json({ error: "Propriétaire introuvable au rôle." }, 404);
+    // Réservé par un collègue (2026-11-16) : pas de recherche payante en double.
+    if (g.reserve_par && g.reserve_par !== par) return json({ error: "Ce propriétaire est réservé par un collègue." }, 409);
     const idRun = await rpc("agent_prospection_debut", { p_par: par, p_criteres: { mode: "coordonnees", cle } });
     const prompt = `Tu aides "Lease Lane", une entreprise québécoise de gestion immobilière, à joindre un propriétaire d'immeubles locatifs.
 
@@ -163,6 +165,7 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
     const im = await rpc("service_role_immeuble", { p_id: id });
     if (!im) return json({ error: "Immeuble introuvable." }, 404);
     if (im.deja) return json({ error: "Immeuble déjà cherché ou identifié." }, 409);
+    if (im.reserve_par && im.reserve_par !== par) return json({ error: "Cette adresse est réservée par un collègue." }, 409);
     const idRun = await rpc("agent_prospection_debut", { p_par: par, p_criteres: { mode: "proprietaire", immeuble: id } });
     const prompt = `Tu aides "Lease Lane", une entreprise québécoise de gestion immobilière, à savoir QUI possède un immeuble locatif.
 

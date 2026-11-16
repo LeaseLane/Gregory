@@ -10,7 +10,7 @@ import { Icone } from '@/composants/Icones';
    « Groupe » réunit les sociétés d'un même décideur (ex. : deux numéros d'entreprise du même administrateur au REQ). */
 type Imm = { id: string; municipalite: string; matricule: string; adresse: string; lots: string | null; logements: number; statut: string | null; inscrit_le: string | null;
   annee: number | null; valeur: number | null; proprietaire: string | null; neq: string | null; groupe: string | null; ecarte: boolean; note: string | null;
-  propose_nom: string | null; propose_neq: string | null; propose_sources: { url: string; extrait: string }[] | null; propose_note: string | null; propose_le: string | null };
+  propose_nom: string | null; propose_neq: string | null; propose_sources: { url: string; extrait: string }[] | null; propose_note: string | null; propose_le: string | null; reserve_nom?: string | null; reserve_moi?: boolean };
 type Coord = { site: string | null; telephone: string | null; courriel: string | null; decideur: string | null; gestionnaire: string | null; refus: boolean; sources: { url: string; extrait: string }[]; trouve_le: string };
 type Groupe = { cle: string; nom: string; immeubles: number; logements: number; villes: string; cible: boolean; suggestion: string | null; coordonnees: Coord | null };
 export type DonneesImmeubles = { compteurs: { immeubles: number; logements: number; identifies: number; a_identifier: number; ecartes: number; proposes: number; cherches: number }; villes: string[] | null;
@@ -102,7 +102,8 @@ export function Immeubles({ filtres: F, donnees: D, erreurLecture }: { filtres: 
         </div>
         <table className="tableau"><thead><tr><th>Adresse</th><th className="droite">Logements</th><th>Propriétaire au rôle</th><th>Matricule · lots</th><th>Inscrit le</th><th /></tr></thead>
           <tbody>{D.immeubles.map((i) => <tr key={i.id} style={i.ecarte ? { opacity: 0.55 } : undefined}>
-            <td><strong>{i.adresse}</strong><span className="sous gris">{i.municipalite}{i.annee ? ` · ${i.annee}` : ''}</span></td>
+            <td><strong>{i.adresse}</strong><span className="sous gris">{i.municipalite}{i.annee ? ` · ${i.annee}` : ''}</span>
+              {i.reserve_nom && <span className="puce neutral" style={{ marginTop: 4, display: 'inline-block' }}>{i.reserve_moi ? 'Réservé par vous' : `Réservé par ${i.reserve_nom}`}</span>}</td>
             <td className="droite fort">{i.logements}</td>
             <td>{i.proprietaire ? <><strong>{i.proprietaire}</strong>{i.groupe && <span className="sous gris">Groupe : {i.groupe}</span>}</>
               : i.propose_nom ? <><span className="texte-13">Proposé par l’agent : <strong>{i.propose_nom}</strong></span>
