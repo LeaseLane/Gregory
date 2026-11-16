@@ -240,10 +240,21 @@ function Panneau({ g, peut, occupe, trouver, decider, confirmer, reserver }: { g
       <p className="surtitre gris" style={{ margin: 0 }}>{g.nom ? 'Propriétaire choisi' : 'Immeuble choisi'}</p>
       <h2 className="titre-carte" style={{ margin: '4px 0 2px' }}>{personne(c?.decideur) ?? g.nom ?? i0.adresse}</h2>
       <p className="gris texte-13" style={{ margin: 0 }}>{personne(c?.decideur) ? `${g.nom} · ` : ''}{g.immeubles} immeuble{g.immeubles > 1 ? 's' : ''} · {g.logements} logements{g.logements_total && g.logements_total > g.logements ? ` (${g.logements_total} au total au rôle)` : ''} · {g.villes}</p>
-      {peut && <p className="texte-13" style={{ margin: '8px 0 0', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-        {g.reserve_nom ? <><span className="puce neutral">{g.reserve_moi ? 'Réservé par vous' : `Réservé par ${g.reserve_nom}`}</span><span className="gris">{g.reserve_moi ? 'Vos collègues ne le voient pas.' : 'Les autres prospecteurs ne le voient pas.'}</span>
-            <button className="lien" disabled={occupe} onClick={() => reserver(true)}>Libérer</button></>
-          : <><span className="gris">Libre : vos collègues le voient aussi.</span><button className="lien" disabled={occupe} onClick={() => reserver(false)}>Réserver</button></>}</p>}
+      {/* Actions en haut du panneau (Octa, 2026-11-16) : on décide sans faire défiler. */}
+      {peut && <>
+        <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+          {g.nom && (g.suggestion === 'approved' ? <span className="puce ok" style={{ alignSelf: 'center' }}>Au pipeline</span>
+            : <button className="bouton bouton-principal" style={{ flex: '1 1 160px' }} disabled={occupe} onClick={() => decider('ajouter')}>Ajouter au pipeline</button>)}
+          {!g.reserve_nom && <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 16px' }} disabled={occupe} onClick={() => reserver(false)}
+            title="Vos collègues ne le verront plus">Réserver</button>}
+          <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 16px', marginLeft: g.nom ? 0 : 'auto' }} disabled={occupe} onClick={() => decider('ecarter')}
+            title="Office d’habitation, coopérative, résidence pour aînés, déjà géré…">Écarter</button>
+        </div>
+        <p className="texte-13" style={{ margin: '8px 0 0', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {g.reserve_nom ? <><span className="puce neutral">{g.reserve_moi ? 'Réservé par vous' : `Réservé par ${g.reserve_nom}`}</span><span className="gris">{g.reserve_moi ? 'Vos collègues ne le voient pas.' : 'Les autres prospecteurs ne le voient pas.'}</span>
+              <button className="lien" disabled={occupe} onClick={() => reserver(true)}>Libérer</button></>
+            : <span className="gris">Libre : vos collègues le voient aussi.</span>}</p>
+      </>}
       <hr className="filet" />
 
       {!g.nom && <>
@@ -288,12 +299,6 @@ function Panneau({ g, peut, occupe, trouver, decider, confirmer, reserver }: { g
       <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>{g.liste.slice(0, 8).map((i) => <li key={i.id} className="texte-13" style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '8px 0', borderBottom: '1px solid #E6EBF2' }}>
         <span>{i.adresse}{(i.annee || i.km != null) && <span className="gris"> · {[i.annee, i.km != null ? `${String(i.km).replace('.', ',')} km` : null].filter(Boolean).join(' · ')}</span>}</span><b>{i.logements} log.</b></li>)}</ul>
       {g.liste.length > 8 && <p className="sous gris">et {g.liste.length - 8} autres</p>}
-      {peut && <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-        {g.nom && (g.suggestion === 'approved' ? <span className="puce ok" style={{ alignSelf: 'center' }}>Au pipeline</span>
-          : <button className="bouton bouton-principal" style={{ flex: 1 }} disabled={occupe} onClick={() => decider('ajouter')}>Ajouter au pipeline</button>)}
-        <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 16px', marginLeft: g.nom ? 0 : 'auto' }} disabled={occupe} onClick={() => decider('ecarter')}
-          title="Office d’habitation, coopérative, résidence pour aînés, déjà géré…">Écarter</button>
-      </div>}
     </aside>
   );
 }
