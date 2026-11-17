@@ -980,7 +980,7 @@
     <a class="tete-logo" href="/en" aria-label="LeaseLane, home"><img class="logo-h" src="/assets/logo/leaselane-horizontal-marine.svg" alt=""><img class="logo-v" src="/refonte/img/logo/lease-lane_cadre_vertical_sans-slogan_fond-marine.svg" alt="" width="599" height="574"></a>
     <div class="tete-outils">
       <a class="tete-loge" href="/en/apartments-for-rent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l2 2M15 8l2 2"/></svg><span>Units for rent</span></a>
-      <div class="tete-langue" role="group" aria-label="Language"><a href="/" lang="fr">FR</a><a href="/en" lang="en" aria-current="true">EN</a></div>
+      <div class="tete-langue" role="group" aria-label="Language"><a href="/en" lang="fr" aria-current="true">FR</a><a href="/en" lang="en">EN</a></div>
       <button class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menu"><span class="burger-t" aria-hidden="true">Menu</span><span class="burger-i" aria-hidden="true"><i></i><i></i><i></i></span></button>
     </div>
   </div>
@@ -1596,7 +1596,7 @@ document.querySelectorAll('.fq1').forEach(fq=>{const tabs=[...fq.querySelectorAl
   const lire=doc=>[...doc.querySelectorAll('section.fq-bloc')].map(sec=>{const h=sec.querySelector('.fq-cat-t').cloneNode(true);h.querySelector('span')?.remove();
     return{qui:sec.id.startsWith('l-')?'Tenants':'Owners',nom:h.textContent.trim(),q:[...sec.querySelectorAll('details')].map(d=>({q:sansN(d.querySelector('summary')),r:[...d.children].filter(x=>x.tagName!=='SUMMARY').map(x=>x.outerHTML).join('')}))}}).filter(c=>c.q.length);
   const secours=()=>[{qui:'Owners',nom:'Frequently asked questions',q:[...document.querySelectorAll('.fqo[data-fq="0"] details')].map(d=>({q:sansN(d.querySelector('summary')),r:d.querySelector('p').outerHTML}))}];
-  let src;const donnees=()=>src||(src=fetch('/faq').then(r=>r.ok?r.text():Promise.reject()).then(t=>lire(new DOMParser().parseFromString(t,'text/html'))).then(c=>c.length?c:secours()).catch(secours));
+  let src;const donnees=()=>src||(src=fetch('/en/faq').then(r=>r.ok?r.text():Promise.reject()).then(t=>lire(new DOMParser().parseFromString(t,'text/html'))).then(c=>c.length?c:secours()).catch(secours));
   document.querySelectorAll('.fqc').forEach(fq=>{const fil=fq.querySelector('.fq4-fil'),form=fq.querySelector('.fq4-form'),champ=form.querySelector('input'),av=fq.dataset.av,cote=fq.querySelector('.fqc-cote'),calme=matchMedia('(prefers-reduced-motion: reduce)').matches;
     let CATS=null,lance=false,file=Promise.resolve(),gen=0;
     const liste=()=>{const g={};CATS.forEach((c,i)=>(g[c.qui]=g[c.qui]||[]).push(`<button type="button" data-c="${i}" aria-pressed="false">${esc(c.nom)}<span>${c.q.length}</span></button>`));

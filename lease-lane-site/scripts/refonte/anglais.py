@@ -373,17 +373,14 @@ def construire():
 
 
 def liens(t, adr, js=False):
-    """Adresses françaises du site → anglaises : href="/…" (et '/…' dans les scripts du kit)."""
+    """Adresses françaises du site → anglaises : href, action, location.href et chaînes '/…' (seules les adresses connues changent)."""
     def h(m):
         r = adr(m[2])
         return m[1] + r if r else m[0]
-    t = re.sub(r'(href=\\?")(/[a-z0-9\-/]*(?:#[\w-]*)?)(?=\\?")', h, t)
-    t = re.sub(r"(href=\\?')(/[a-z0-9\-/]*(?:#[\w-]*)?)(?=\\?')", h, t)
+    t = re.sub(r'((?:href|action)=\\?["\'])(/[a-z0-9\-/]*(?:#[\w-]*)?)(?=[?#\\"\'])', h, t)
     t = re.sub(r"(location\.href\s*=\s*['\"])(/[a-z0-9\-/]*)", h, t)
-    if js:
-        t = re.sub(r"(['\"])(/(?!refonte|assets|rest|api)[a-z0-9][a-z0-9\-/]*)(?=['\"])", h, t)
+    t = re.sub(r"(['\"])(/(?!refonte|assets|rest|api)[a-z0-9][a-z0-9\-/]*)(?=[?#'\"])", h, t)
     return t
-
 
 if __name__ == '__main__':
     {'extraire': lambda: extraire(sys.argv[2]), 'fusionner': lambda: fusionner(sys.argv[2]), 'construire': construire}[sys.argv[1]]()

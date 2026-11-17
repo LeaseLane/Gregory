@@ -166,7 +166,7 @@
     <a class="tete-logo" href="/en" aria-label="LeaseLane, home"><img class="logo-h" src="/assets/logo/leaselane-horizontal-marine.svg" alt=""><img class="logo-v" src="/refonte/img/logo/lease-lane_cadre_vertical_sans-slogan_fond-marine.svg" alt="" width="599" height="574"></a>
     <div class="tete-outils">
       <a class="tete-loge" href="/en/apartments-for-rent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l2 2M15 8l2 2"/></svg><span>Units for rent</span></a>
-      <div class="tete-langue" role="group" aria-label="Language"><a href="/gestion-immobiliere" lang="fr">FR</a><a href="/en/property-management" lang="en" aria-current="true">EN</a></div>
+      <div class="tete-langue" role="group" aria-label="Language"><a href="/en/property-management" lang="fr" aria-current="true">FR</a><a href="/en/property-management" lang="en">EN</a></div>
       <button class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menu"><span class="burger-t" aria-hidden="true">Menu</span><span class="burger-i" aria-hidden="true"><i></i><i></i><i></i></span></button>
     </div>
   </div>
@@ -244,7 +244,7 @@
           <p class="sur" id="type-n">3 units</p>
           <h3 id="type-t">Triplex</h3>
           <p class="d">The service and the reports are the same, whatever the number of doors.</p>
-          <div class="actions"><a class="btn btn-p" id="type-lien" href="/offre-de-service?type=plex">Get an offer<svg viewBox="0 0 28 12" fill="none" aria-hidden="true"><path d="M1 5H26.4M21.8 .6L26.4 5L21.8 9.4" stroke="currentColor" stroke-width="1.5"/><path d="M1 9.6H18" stroke="#6A9AD5" stroke-width="1.5"/></svg></a></div>
+          <div class="actions"><a class="btn btn-p" id="type-lien" href="/en/get-a-quote?type=plex">Get an offer<svg viewBox="0 0 28 12" fill="none" aria-hidden="true"><path d="M1 5H26.4M21.8 .6L26.4 5L21.8 9.4" stroke="currentColor" stroke-width="1.5"/><path d="M1 9.6H18" stroke="#6A9AD5" stroke-width="1.5"/></svg></a></div>
         </div>
       </div>
     </div>
@@ -486,7 +486,7 @@
         <li><span>03</span><div><b>Written offer</b><small>Services included, responsibilities and transition schedule.</small></div></li>
       </ol>
     </div>
-    <form class="form" action="/offre-de-service" data-libre data-prog>
+    <form class="form" action="/en/get-a-quote" data-libre data-prog>
       <div class="form-tete"><h3 class="t">Your building</h3><span class="prog">0 of 4 completed</span><i class="barre"></i></div>
       <fieldset><legend class="etiq">Building type <span class="req">*</span></legend>
         <div class="tuiles t5">
@@ -561,7 +561,7 @@ zt.innerHTML=TYPES.map(([t,n],i)=>`<button type="button" aria-pressed="false"><s
 zt.querySelectorAll('.pic svg').forEach(pictoRecadrer);
 function typeChoisi(i,anime){const [t,n,q]=TYPES[i];[...zt.children].forEach((b,k)=>b.setAttribute('aria-pressed',k===i));
   zp.innerHTML=pictoImmeuble(i,{sombre:true,h:220});pictoRecadrer(zp.firstElementChild);
-  document.getElementById('type-n').textContent=n;document.getElementById('type-t').textContent=t;document.getElementById('type-lien').href='/offre-de-service?type='+q;
+  document.getElementById('type-n').textContent=n;document.getElementById('type-t').textContent=t;document.getElementById('type-lien').href='/en/get-a-quote?type='+q;
   if(anime&&!calme)zp.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:420,easing:'cubic-bezier(.2,.7,.2,1)'})}
 [...zt.children].forEach((b,i)=>b.onclick=()=>typeChoisi(i,true));typeChoisi(3);
 

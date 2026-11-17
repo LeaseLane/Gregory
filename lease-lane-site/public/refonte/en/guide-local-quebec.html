@@ -117,7 +117,7 @@
     <a class="tete-logo" href="/en" aria-label="LeaseLane, home"><img class="logo-h" src="/assets/logo/leaselane-horizontal-marine.svg" alt=""><img class="logo-v" src="/refonte/img/logo/lease-lane_cadre_vertical_sans-slogan_fond-marine.svg" alt="" width="599" height="574"></a>
     <div class="tete-outils">
       <a class="tete-loge" href="/en/apartments-for-rent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l2 2M15 8l2 2"/></svg><span>Units for rent</span></a>
-      <div class="tete-langue" role="group" aria-label="Language"><a href="/quartiers" lang="fr">FR</a><a href="/en/neighbourhoods" lang="en" aria-current="true">EN</a></div>
+      <div class="tete-langue" role="group" aria-label="Language"><a href="/en/neighbourhoods" lang="fr" aria-current="true">FR</a><a href="/en/neighbourhoods" lang="en">EN</a></div>
       <button class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menu"><span class="burger-t" aria-hidden="true">Menu</span><span class="burger-i" aria-hidden="true"><i></i><i></i><i></i></span></button>
     </div>
   </div>
@@ -271,7 +271,7 @@ carteHeros(document.querySelector('.heros-carte'),null,{zoom:1.25,centre:[444,44
 /* rives : Rive-Nord = Québec, Rive-Nord, Portneuf et île d'Orléans; Rive-Sud = Lévis et Rive-Sud */
 const ZONES=[['tous','See all',()=>true],['nord','Québec City – North Shore',s=>['qc','rn','pn','io'].includes(s.z)],['sud','Québec City – South Shore',s=>['lev','rs'].includes(s.z)]];
 /* chaque secteur a sa page (quartier-<secteur>.html), générée par _src/gen-secteurs.py */
-const GUIDES=Object.fromEntries(SECTEURS.map(s=>[s.s,'/quartiers/'+s.s]));
+const GUIDES=Object.fromEntries(SECTEURS.map(s=>[s.s,'/en/neighbourhoods'+s.s]));
 const sa=t=>t.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const PIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
