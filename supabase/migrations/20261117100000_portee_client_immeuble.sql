@@ -673,19 +673,6 @@ AS $function$
   select sum(p.amount - coalesce(p.amount_received, 0)), min(p.due_date), array_agg(p.due_date order by p.due_date)
   from portee.payments p where p.lease_id = p_lease and p.status <> 'paid' and p.due_date < current_date and p.amount > coalesce(p.amount_received, 0)
 $function$;
-CREATE OR REPLACE FUNCTION maint.contexte_bt(p_wo uuid)
- RETURNS TABLE(owner_id uuid, proprio text, plafond numeric, budget numeric, accord numeric, urgent boolean, portee text)
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-  select ow.id, ow.full_name, coalesce(ow.spending_cap, 500), coalesce(wo.quote_budget, wo.estimated_cost, sr.ai_cost_max),
-         greatest((select max(a.amount_max) from portee.maint_quote_approvals a where a.work_order_id = wo.id),
-                  (select max(ap.requested_amount) from portee.approvals ap where ap.work_order_id = wo.id and ap.status = 'approved')),
-         coalesce(wo.is_urgent, false) or coalesce(sr.ai_urgency, '') in ('urgent', 'urgence', 'critique'), wo.description
-  from portee.work_orders wo left join portee.units u on u.id = wo.unit_id left join portee.buildings b on b.id = u.building_id
-  left join portee.owners ow on ow.id = b.owner_id left join portee.service_requests sr on sr.id = wo.service_request_id where wo.id = p_wo
-$function$;
 CREATE OR REPLACE FUNCTION public.lanceur_a_rappeler(p_caller uuid DEFAULT NULL::uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -943,6 +930,42 @@ begin
     from (select l.tenant_id, true as principal from portee.leases l where l.id = p_lease and l.tenant_id is not null
           union select lt.tenant_id, false from portee.lease_tenants lt where lt.lease_id = p_lease) x join portee.tenants t on t.id = x.tenant_id), '[]'::jsonb);
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_bon_contexte(p_demande uuid DEFAULT NULL::uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  perform crm.require_aal2();
+  if not crm.can('maintenance.lire') then raise exception 'Votre rôle ne donne pas accès à la maintenance.' using errcode = 'PT403'; end if;
+  return jsonb_build_object(
+    'demandes', coalesce((select jsonb_agg(jsonb_build_object('id', sr.id, 'numero', crm.numero_demande(sr.id, sr.created_at), 'titre', crm.titre_demande(sr), 'unit_id', sr.unit_id,
+        'logement', b.address || ' — ' || u.unit_number, 'urgence', coalesce(sr.ai_urgency, 'normale'), 'cout_min', sr.ai_cost_min, 'cout_max', sr.ai_cost_max, 'metier', sr.ai_recommended_trade) order by sr.created_at desc)
+      from portee.service_requests sr join portee.units u on u.id = sr.unit_id join portee.buildings b on b.id = u.building_id
+      where sr.status <> 'closed' and (p_demande is null or sr.id = p_demande or not exists (select 1 from portee.work_orders w where w.service_request_id = sr.id and w.status <> 'cancelled'))), '[]'::jsonb),
+    'logements', coalesce((select jsonb_agg(jsonb_build_object('id', u.id, 'libelle', b.address || ' — ' || u.unit_number, 'locataire', (select t.full_name from portee.leases l join portee.tenants t on t.id = l.tenant_id
+        where l.unit_id = u.id and l.status = 'active' order by l.start_date desc limit 1), 'plafond', coalesce(o.spending_cap, 500)) order by b.address, u.unit_number)
+      from portee.units u join portee.buildings b on b.id = u.building_id left join portee.owners o on o.id = b.owner_id), '[]'::jsonb),
+    'fournisseurs', coalesce((select jsonb_agg(jsonb_build_object('id', w.id, 'nom', coalesce(w.company_name, w.name), 'specialites', coalesce(nullif(w.specialties, '{}'), array[w.specialty]), 'zones', w.zones,
+        'note', (select round(avg(r.stars), 1) from public.worker_ratings r where r.worker_id = w.id), 'conformite', crm.blocage_fournisseur(w.id, current_date)) order by coalesce(w.company_name, w.name))
+      from public.workers w where coalesce(w.active, true)), '[]'::jsonb),
+    'catalogue', coalesce((select jsonb_agg(jsonb_build_object('id', c.id, 'libelle', c.label, 'categorie', c.category, 'reference', c.fixed_owner_price) order by c.category, c.label) from public.service_catalog c where c.active), '[]'::jsonb));
+end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_bon_factures(p_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  if not crm.can('maintenance.lire') then raise exception 'Votre rôle ne donne pas accès à la maintenance.' using errcode = 'PT403'; end if;
+  return jsonb_build_object(
+    'dossier', (select b.owner_id::text from portee.work_orders wo join portee.units u on u.id = wo.unit_id join portee.buildings b on b.id = u.building_id where wo.id = p_id),
+    'depense', exists (select 1 from portee.expenses where work_order_id = p_id),
+    'factures', coalesce((select jsonb_agg(jsonb_build_object('id', d.id, 'titre', d.title, 'le', d.created_at) order by d.created_at)
+      from portee.documents d join portee.expenses e on e.receipt_document_id = d.id where e.work_order_id = p_id), '[]'::jsonb));
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_bon(p_id uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -990,42 +1013,6 @@ begin
     'fournisseurs', coalesce((select jsonb_agg(jsonb_build_object('id', x.id, 'nom', coalesce(x.company_name, x.name), 'specialite', x.specialty, 'conformite', crm.blocage_fournisseur(x.id, coalesce(w.appointment_at::date, current_date)))
         order by coalesce(x.company_name, x.name)) from public.workers x where coalesce(x.active, true)), '[]'::jsonb),
     'peut_ecrire', crm.can('maintenance.ecrire'));
-end $function$;
-CREATE OR REPLACE FUNCTION public.lanceur_bon_contexte(p_demande uuid DEFAULT NULL::uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-begin
-  perform crm.require_aal2();
-  if not crm.can('maintenance.lire') then raise exception 'Votre rôle ne donne pas accès à la maintenance.' using errcode = 'PT403'; end if;
-  return jsonb_build_object(
-    'demandes', coalesce((select jsonb_agg(jsonb_build_object('id', sr.id, 'numero', crm.numero_demande(sr.id, sr.created_at), 'titre', crm.titre_demande(sr), 'unit_id', sr.unit_id,
-        'logement', b.address || ' — ' || u.unit_number, 'urgence', coalesce(sr.ai_urgency, 'normale'), 'cout_min', sr.ai_cost_min, 'cout_max', sr.ai_cost_max, 'metier', sr.ai_recommended_trade) order by sr.created_at desc)
-      from portee.service_requests sr join portee.units u on u.id = sr.unit_id join portee.buildings b on b.id = u.building_id
-      where sr.status <> 'closed' and (p_demande is null or sr.id = p_demande or not exists (select 1 from portee.work_orders w where w.service_request_id = sr.id and w.status <> 'cancelled'))), '[]'::jsonb),
-    'logements', coalesce((select jsonb_agg(jsonb_build_object('id', u.id, 'libelle', b.address || ' — ' || u.unit_number, 'locataire', (select t.full_name from portee.leases l join portee.tenants t on t.id = l.tenant_id
-        where l.unit_id = u.id and l.status = 'active' order by l.start_date desc limit 1), 'plafond', coalesce(o.spending_cap, 500)) order by b.address, u.unit_number)
-      from portee.units u join portee.buildings b on b.id = u.building_id left join portee.owners o on o.id = b.owner_id), '[]'::jsonb),
-    'fournisseurs', coalesce((select jsonb_agg(jsonb_build_object('id', w.id, 'nom', coalesce(w.company_name, w.name), 'specialites', coalesce(nullif(w.specialties, '{}'), array[w.specialty]), 'zones', w.zones,
-        'note', (select round(avg(r.stars), 1) from public.worker_ratings r where r.worker_id = w.id), 'conformite', crm.blocage_fournisseur(w.id, current_date)) order by coalesce(w.company_name, w.name))
-      from public.workers w where coalesce(w.active, true)), '[]'::jsonb),
-    'catalogue', coalesce((select jsonb_agg(jsonb_build_object('id', c.id, 'libelle', c.label, 'categorie', c.category, 'reference', c.fixed_owner_price) order by c.category, c.label) from public.service_catalog c where c.active), '[]'::jsonb));
-end $function$;
-CREATE OR REPLACE FUNCTION public.lanceur_bon_factures(p_id uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-begin
-  if not crm.can('maintenance.lire') then raise exception 'Votre rôle ne donne pas accès à la maintenance.' using errcode = 'PT403'; end if;
-  return jsonb_build_object(
-    'dossier', (select b.owner_id::text from portee.work_orders wo join portee.units u on u.id = wo.unit_id join portee.buildings b on b.id = u.building_id where wo.id = p_id),
-    'depense', exists (select 1 from portee.expenses where work_order_id = p_id),
-    'factures', coalesce((select jsonb_agg(jsonb_build_object('id', d.id, 'titre', d.title, 'le', d.created_at) order by d.created_at)
-      from portee.documents d join portee.expenses e on e.receipt_document_id = d.id where e.work_order_id = p_id), '[]'::jsonb));
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_bons(p jsonb DEFAULT '{}'::jsonb)
  RETURNS jsonb
@@ -1155,38 +1142,6 @@ begin
     from portee.tenants t where t.anonymized_at is null and t.archived_at is null and t.phone is not null and length(btrim(p_q)) >= 2
       and t.full_name ilike '%' || p_q || '%' limit 6) b), '[]'::jsonb);
 end $function$;
-CREATE OR REPLACE FUNCTION public.lanceur_cleo()
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-declare v_debut timestamptz := now() - interval '30 days'; v_prec timestamptz := now() - interval '60 days';
-begin
-  perform crm.require_aal2();
-  if not crm.can('ia.lire') then raise exception 'Votre rôle ne donne pas accès à Cléo et IA.' using errcode = 'PT403'; end if;
-  return (with c as (
-      select cv.*, cv.handoff_at is null and not exists (select 1 from crm.conversation_messages m where m.conversation_id = cv.id and m.author = 'team') seule
-      from portee.crm_conversations cv where cv.last_message_at >= v_prec)
-    select jsonb_build_object(
-      'total', (select count(*) from c where last_message_at >= v_debut),
-      'seule', (select count(*) from c where last_message_at >= v_debut and seule),
-      'precedent', (select jsonb_build_object('total', count(*), 'seule', count(*) filter (where seule)) from c where last_message_at < v_debut),
-      'raisons', coalesce((select jsonb_agg(jsonb_build_object('raison', r, 'n', n) order by n desc) from (
-          select crm.raison_passage(handoff_summary) r, count(*) n from portee.crm_conversations where handoff_at >= v_debut group by 1) z), '[]'::jsonb),
-      'passages', coalesce((select jsonb_agg(jsonb_build_object('nom', display_name, 'resume', handoff_summary, 'le', handoff_at, 'raison', crm.raison_passage(handoff_summary)) order by handoff_at desc)
-          from (select * from portee.crm_conversations where handoff_at is not null order by handoff_at desc limit 4) z), '[]'::jsonb),
-      'canaux', jsonb_build_object(
-          'sms', (select count(distinct m.conversation_id) from crm.conversation_messages m where m.channel = 'sms' and m.created_at >= v_debut),
-          'courriel', (select count(distinct m.conversation_id) from crm.conversation_messages m where m.channel = 'email' and m.created_at >= v_debut),
-          'voix', (select count(distinct m.conversation_id) from crm.conversation_messages m where m.channel = 'voice' and m.created_at >= v_debut),
-          'portail', (select count(distinct m.conversation_id) from crm.conversation_messages m where m.channel = 'portail' and m.created_at >= v_debut),
-          'telephone', (select phone_main from public.company_settings where id)),
-      'sources', jsonb_build_object(
-          'articles', (select count(*) from site.articles where statut = 'publie'), 'articles_le', (select max(publie_le) from site.articles where statut = 'publie'),
-          'modeles', (select count(*) from jur.templates), 'modeles_le', (select max(created_at) from jur.templates)),
-      'peut_ecrire', crm.can('ia.ecrire')));
-end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_cleo_contexte(q text DEFAULT NULL::text)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -1239,6 +1194,38 @@ begin
       from jsonb_array_elements(public.lanceur_recherche(q) -> 'fiches') f), '[]'::jsonb);
   end if;
   return jsonb_build_object('aujourdhui', to_char(now() at time zone 'America/Toronto', 'YYYY-MM-DD HH24:MI'), 'personne', crm.nom_membre(auth.uid()), 'role', crm.role_actuel(), 'faits', v);
+end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_cleo()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare v_debut timestamptz := now() - interval '30 days'; v_prec timestamptz := now() - interval '60 days';
+begin
+  perform crm.require_aal2();
+  if not crm.can('ia.lire') then raise exception 'Votre rôle ne donne pas accès à Cléo et IA.' using errcode = 'PT403'; end if;
+  return (with c as (
+      select cv.*, cv.handoff_at is null and not exists (select 1 from crm.conversation_messages m where m.conversation_id = cv.id and m.author = 'team') seule
+      from portee.crm_conversations cv where cv.last_message_at >= v_prec)
+    select jsonb_build_object(
+      'total', (select count(*) from c where last_message_at >= v_debut),
+      'seule', (select count(*) from c where last_message_at >= v_debut and seule),
+      'precedent', (select jsonb_build_object('total', count(*), 'seule', count(*) filter (where seule)) from c where last_message_at < v_debut),
+      'raisons', coalesce((select jsonb_agg(jsonb_build_object('raison', r, 'n', n) order by n desc) from (
+          select crm.raison_passage(handoff_summary) r, count(*) n from portee.crm_conversations where handoff_at >= v_debut group by 1) z), '[]'::jsonb),
+      'passages', coalesce((select jsonb_agg(jsonb_build_object('nom', display_name, 'resume', handoff_summary, 'le', handoff_at, 'raison', crm.raison_passage(handoff_summary)) order by handoff_at desc)
+          from (select * from portee.crm_conversations where handoff_at is not null order by handoff_at desc limit 4) z), '[]'::jsonb),
+      'canaux', jsonb_build_object(
+          'sms', (select count(distinct m.conversation_id) from crm.conversation_messages m where m.channel = 'sms' and m.created_at >= v_debut),
+          'courriel', (select count(distinct m.conversation_id) from crm.conversation_messages m where m.channel = 'email' and m.created_at >= v_debut),
+          'voix', (select count(distinct m.conversation_id) from crm.conversation_messages m where m.channel = 'voice' and m.created_at >= v_debut),
+          'portail', (select count(distinct m.conversation_id) from crm.conversation_messages m where m.channel = 'portail' and m.created_at >= v_debut),
+          'telephone', (select phone_main from public.company_settings where id)),
+      'sources', jsonb_build_object(
+          'articles', (select count(*) from site.articles where statut = 'publie'), 'articles_le', (select max(publie_le) from site.articles where statut = 'publie'),
+          'modeles', (select count(*) from jur.templates), 'modeles_le', (select max(created_at) from jur.templates)),
+      'peut_ecrire', crm.can('ia.ecrire')));
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_comptabilite(p jsonb DEFAULT '{}'::jsonb)
  RETURNS jsonb
@@ -1343,6 +1330,31 @@ begin
       'assignee', case when c.assignee_user_id is not null then crm.nom_membre(c.assignee_user_id) end) order by c.last_message_at desc)
     from portee.crm_conversations c), '[]'::jsonb);
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_deal_historique(p_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare d crm.deals; pl crm.pipelines; pr public.prospects;
+begin
+  perform crm.exiger_mon_deal(p_id);
+  select * into d from portee.crm_deals where id = p_id;
+  if not found then raise exception 'Deal introuvable.' using errcode = 'PT404'; end if;
+  select * into pl from crm.pipelines where id = d.pipeline_id;
+  if not crm.can(pl.permission) then raise exception 'Votre rôle ne donne pas accès à ce pipeline.' using errcode = 'PT403'; end if;
+  select * into pr from public.prospects where id = d.prospect_id;
+  if not found then return jsonb_build_object('notes', null, 'appels', '[]'::jsonb, 'proprietaire', crm.proprietaire_du_deal(p_id)); end if;
+  return jsonb_build_object(
+    'prospect_id', pr.id, 'peut_appeler', coalesce(public.auth_cold_caller_id() in (pr.assigned_caller_id, pr.created_by_caller_id), false),
+    'peut_suivre', crm.peut_suivre_prospect(p_id), 'proprietaire', crm.proprietaire_du_deal(p_id), 'etape', pr.stage,
+    'notes', nullif(btrim(pr.notes), ''),
+    'interet', pr.interest_level, 'relance', pr.next_followup_date, 'prochaine_action', pr.next_action,
+    'appels', coalesce((select jsonb_agg(jsonb_build_object('le', c ->> 'date', 'resume', coalesce(c ->> 'summary', c ->> 'transcript'), 'prochaine_etape', c ->> 'next_step',
+        'objections', c ->> 'objections', 'engagement', c ->> 'commitment', 'interet', c ->> 'interest_level', 'issue', c ->> 'outcome',
+        'par', (select cc.full_name from public.cold_callers cc where cc.id::text = c ->> 'caller_id')) order by c ->> 'date' desc)
+      from jsonb_array_elements(case when jsonb_typeof(pr.call_history) = 'array' then pr.call_history else '[]'::jsonb end) c), '[]'::jsonb));
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_deal(p_id uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -1377,30 +1389,6 @@ begin
       from crm.tasks t where t.deal_id = d.id and t.status = 'open'), '[]'::jsonb),
     'raisons', (select jsonb_agg(jsonb_build_object('code', code, 'label', label) order by sort) from crm.loss_reasons where active),
     'survivant', case when d.merged_into is not null then (select jsonb_build_object('id', x.id, 'title', x.title) from portee.crm_deals x where x.id = d.merged_into) end);
-end $function$;
-CREATE OR REPLACE FUNCTION public.lanceur_deal_historique(p_id uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-declare d crm.deals; pl crm.pipelines; pr public.prospects;
-begin
-  perform crm.exiger_mon_deal(p_id);
-  select * into d from portee.crm_deals where id = p_id;
-  if not found then raise exception 'Deal introuvable.' using errcode = 'PT404'; end if;
-  select * into pl from crm.pipelines where id = d.pipeline_id;
-  if not crm.can(pl.permission) then raise exception 'Votre rôle ne donne pas accès à ce pipeline.' using errcode = 'PT403'; end if;
-  select * into pr from public.prospects where id = d.prospect_id;
-  if not found then return jsonb_build_object('notes', null, 'appels', '[]'::jsonb); end if;
-  return jsonb_build_object(
-    'prospect_id', pr.id, 'peut_appeler', coalesce(public.auth_cold_caller_id() in (pr.assigned_caller_id, pr.created_by_caller_id), false),
-    'notes', nullif(btrim(pr.notes), ''),
-    'interet', pr.interest_level, 'relance', pr.next_followup_date, 'prochaine_action', pr.next_action,
-    'appels', coalesce((select jsonb_agg(jsonb_build_object('le', c ->> 'date', 'resume', coalesce(c ->> 'summary', c ->> 'transcript'), 'prochaine_etape', c ->> 'next_step',
-        'objections', c ->> 'objections', 'engagement', c ->> 'commitment', 'interet', c ->> 'interest_level',
-        'par', (select cc.full_name from public.cold_callers cc where cc.id::text = c ->> 'caller_id')) order by c ->> 'date' desc)
-      from jsonb_array_elements(case when jsonb_typeof(pr.call_history) = 'array' then pr.call_history else '[]'::jsonb end) c), '[]'::jsonb));
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_debours()
  RETURNS jsonb
@@ -1437,6 +1425,26 @@ begin
     'consentement', t.phone is not null and exists (select 1 from comms.consents c where c.channel = 'sms' and c.address in (t.phone, crm.normaliser_tel(t.phone)) and c.withdrawn_at is null),
     'gabarit_actif', exists (select 1 from comms.email_templates where code = 'LOC-02' and active));
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_documents_validation()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  perform crm.require_aal2();
+  if not crm.can('clients.lire') then raise exception 'Votre rôle ne permet pas de voir les documents.' using errcode = 'PT403'; end if;
+  return jsonb_build_object(
+    'a_valider', coalesce((select jsonb_agg(jsonb_build_object('id', d.id, 'titre', d.title, 'type', d.doc_type, 'type_detecte', d.ai_doc_type_detected, 'confiance', d.ai_confidence, 'probleme', crm.probleme_document(d),
+        'doublon_de', (select title from portee.documents x where x.id = d.is_duplicate_of), 'lie', coalesce((select full_name from portee.owners where id = d.owner_id), (select address from portee.buildings where id = d.building_id)),
+        'le', d.created_at, 'lisible', d.storage_path is not null or d.file_url is not null) order by d.created_at desc)
+      from portee.documents d where crm.probleme_document(d) is not null), '[]'::jsonb),
+    'echeances', coalesce((select jsonb_agg(jsonb_build_object('id', d.id, 'titre', d.title, 'type', d.doc_type, 'expire', d.ai_expiry_date, 'jours', d.ai_expiry_date - current_date,
+        'lie', coalesce((select full_name from portee.owners where id = d.owner_id), (select coalesce(company_name, name) from public.workers where id = d.worker_id))) order by d.ai_expiry_date)
+      from portee.documents d where d.ai_expiry_date is not null and d.ai_expiry_date <= current_date + 90 and coalesce(d.validation_status, '') <> 'rejete'), '[]'::jsonb),
+    'recents', coalesce((select jsonb_agg(jsonb_build_object('id', d.id, 'titre', d.title, 'statut', d.validation_status, 'par', crm.nom_membre(d.validated_by), 'le', d.validated_at, 'motif', d.rejection_reason) order by d.validated_at desc)
+      from (select * from portee.documents where validated_at is not null order by validated_at desc limit 10) d), '[]'::jsonb));
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_documents()
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -1461,26 +1469,6 @@ begin
     'sans_mandat', coalesce((select jsonb_agg(jsonb_build_object('id', ow.id, 'nom', ow.full_name) order by ow.created_at desc) from portee.owners ow
         where not exists (select 1 from portee.crm_signature_requests r where r.owner_id = ow.id and r.kind = 'mandat' and r.status in ('draft', 'sent', 'signed'))), '[]'::jsonb),
     'peut_ecrire', crm.can('clients.ecrire'));
-end $function$;
-CREATE OR REPLACE FUNCTION public.lanceur_documents_validation()
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-begin
-  perform crm.require_aal2();
-  if not crm.can('clients.lire') then raise exception 'Votre rôle ne permet pas de voir les documents.' using errcode = 'PT403'; end if;
-  return jsonb_build_object(
-    'a_valider', coalesce((select jsonb_agg(jsonb_build_object('id', d.id, 'titre', d.title, 'type', d.doc_type, 'type_detecte', d.ai_doc_type_detected, 'confiance', d.ai_confidence, 'probleme', crm.probleme_document(d),
-        'doublon_de', (select title from portee.documents x where x.id = d.is_duplicate_of), 'lie', coalesce((select full_name from portee.owners where id = d.owner_id), (select address from portee.buildings where id = d.building_id)),
-        'le', d.created_at, 'lisible', d.storage_path is not null or d.file_url is not null) order by d.created_at desc)
-      from portee.documents d where crm.probleme_document(d) is not null), '[]'::jsonb),
-    'echeances', coalesce((select jsonb_agg(jsonb_build_object('id', d.id, 'titre', d.title, 'type', d.doc_type, 'expire', d.ai_expiry_date, 'jours', d.ai_expiry_date - current_date,
-        'lie', coalesce((select full_name from portee.owners where id = d.owner_id), (select coalesce(company_name, name) from public.workers where id = d.worker_id))) order by d.ai_expiry_date)
-      from portee.documents d where d.ai_expiry_date is not null and d.ai_expiry_date <= current_date + 90 and coalesce(d.validation_status, '') <> 'rejete'), '[]'::jsonb),
-    'recents', coalesce((select jsonb_agg(jsonb_build_object('id', d.id, 'titre', d.title, 'statut', d.validation_status, 'par', crm.nom_membre(d.validated_by), 'le', d.validated_at, 'motif', d.rejection_reason) order by d.validated_at desc)
-      from (select * from portee.documents where validated_at is not null order by validated_at desc limit 10) d), '[]'::jsonb));
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_doublons_saisie(p_email text, p_tel text)
  RETURNS jsonb
@@ -1682,6 +1670,24 @@ begin
                   where u.building_id = b.id and pa.status <> 'paid' and pa.due_date < current_date and date_trunc('month', pa.due_date) = m)) order by m)
       from generate_series(date_trunc('month', current_date) - interval '11 months', date_trunc('month', current_date), interval '1 month') m));
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_immeubles_soumis()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  perform crm.require_aal2();
+  if not crm.can('immeubles.lire') then raise exception 'Votre rôle ne permet pas de voir les immeubles.' using errcode = 'PT403'; end if;
+  return jsonb_build_object(
+    'a_valider', coalesce((select jsonb_agg(jsonb_build_object('id', s.id, 'adresse', s.address, 'secteur', s.zone, 'proprietaire', o.full_name, 'owner_id', o.id, 'logements', s.units, 'etages', s.floors,
+        'annee', s.year_built, 'loyer_prevu', s.expected_rent, 'chauffage', s.heating, 'stationnement', s.parking, 'notes', s.notes, 'photos', cardinality(s.photos), 'regles', s.rules,
+        'recu', s.created_at, 'echeance', crm.jours_ouvrables_apres(s.created_at, 2)) order by s.created_at)
+      from portee.building_submissions s join portee.owners o on o.id = s.owner_id where s.status = 'pending'), '[]'::jsonb),
+    'decides', coalesce((select jsonb_agg(x) from (select jsonb_build_object('id', s.id, 'adresse', s.address, 'proprietaire', o.full_name, 'statut', s.status, 'decide_le', s.decided_at,
+        'par', crm.nom_membre(s.decided_by), 'motif', s.decision_note, 'building_id', s.building_id) x
+      from portee.building_submissions s join portee.owners o on o.id = s.owner_id where s.status <> 'pending' order by s.decided_at desc limit 20) z), '[]'::jsonb));
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_immeubles(p jsonb DEFAULT '{}'::jsonb)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -1716,24 +1722,6 @@ begin
     'proprietaires', coalesce((select jsonb_agg(jsonb_build_object('id', id, 'nom', full_name, 'depuis', created_at) order by full_name) from portee.owners), '[]'::jsonb),
     'quartiers_connus', coalesce((select jsonb_agg(distinct zone order by zone) from portee.buildings where zone is not null), '[]'::jsonb));
 end $function$;
-CREATE OR REPLACE FUNCTION public.lanceur_immeubles_soumis()
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-begin
-  perform crm.require_aal2();
-  if not crm.can('immeubles.lire') then raise exception 'Votre rôle ne permet pas de voir les immeubles.' using errcode = 'PT403'; end if;
-  return jsonb_build_object(
-    'a_valider', coalesce((select jsonb_agg(jsonb_build_object('id', s.id, 'adresse', s.address, 'secteur', s.zone, 'proprietaire', o.full_name, 'owner_id', o.id, 'logements', s.units, 'etages', s.floors,
-        'annee', s.year_built, 'loyer_prevu', s.expected_rent, 'chauffage', s.heating, 'stationnement', s.parking, 'notes', s.notes, 'photos', cardinality(s.photos), 'regles', s.rules,
-        'recu', s.created_at, 'echeance', crm.jours_ouvrables_apres(s.created_at, 2)) order by s.created_at)
-      from portee.building_submissions s join portee.owners o on o.id = s.owner_id where s.status = 'pending'), '[]'::jsonb),
-    'decides', coalesce((select jsonb_agg(x) from (select jsonb_build_object('id', s.id, 'adresse', s.address, 'proprietaire', o.full_name, 'statut', s.status, 'decide_le', s.decided_at,
-        'par', crm.nom_membre(s.decided_by), 'motif', s.decision_note, 'building_id', s.building_id) x
-      from portee.building_submissions s join portee.owners o on o.id = s.owner_id where s.status <> 'pending' order by s.decided_at desc limit 20) z), '[]'::jsonb));
-end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_import_verifier(p_lignes jsonb)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -1749,6 +1737,33 @@ begin
     join lateral (select x.id, x.full_name from portee.crm_contacts x where x.merged_into is null and x.anonymized_at is null
       and ((coalesce(l.v ->> 'courriel', '') <> '' and lower(btrim(l.v ->> 'courriel')) = any(x.emails)) or (crm.normaliser_tel(l.v ->> 'telephone') is not null and crm.normaliser_tel(l.v ->> 'telephone') = any(x.phones_e164)))
       limit 1) c on true), '[]'::jsonb);
+end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_juridique_tal()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  perform crm.require_aal2();
+  if not crm.can('juridique.lire') then raise exception 'Votre rôle ne donne pas accès au juridique.' using errcode = 'PT403'; end if;
+  return jsonb_build_object(
+    'dossiers', coalesce((select jsonb_object_agg(c.id, jsonb_build_object(
+        'motif', c.motif, 'avis_audience', c.hearing_notice_on, 'mode', c.hearing_mode, 'note_audience', c.hearing_note, 'decision', c.decision_on, 'decision_texte', c.decision_text,
+        'pieces', jsonb_build_array(
+          jsonb_build_object('icone', 'file', 'texte', 'Bail signé', 'ok', true),
+          jsonb_build_object('icone', 'receipt', 'texte', 'Relevé de compte au ' || to_char(current_date, 'DD/MM'), 'ok', exists (select 1 from portee.payments p where p.lease_id = c.lease_id)),
+          jsonb_build_object('icone', 'mail', 'texte', 'Mise en demeure' || coalesce(' du ' || to_char(n.sent_at at time zone 'America/Toronto', 'DD/MM'), ''), 'ok', n.sent_at is not null),
+          jsonb_build_object('icone', 'shieldc', 'texte', 'Preuve de signification' || coalesce(' (' || n.proof_mode || ')', ''), 'ok', n.proof_mode is not null),
+          jsonb_build_object('icone', 'calendar', 'texte', 'Avis d’audience' || coalesce(' du ' || to_char(c.hearing_notice_on, 'DD/MM'), ''), 'ok', c.hearing_notice_on is not null),
+          jsonb_build_object('icone', 'user', 'texte', 'Présence à l’audience confirmée', 'ok', c.hearing_note is not null)),
+        'payes_depuis', (select count(*) from portee.payments p where p.lease_id = c.lease_id and p.status = 'paid' and p.due_date > coalesce(c.tal_filed_at, c.opened_at::date)),
+        'en_retard_depuis', (select count(*) from portee.payments p where p.lease_id = c.lease_id and p.status <> 'paid' and p.due_date < current_date and p.due_date > coalesce(c.tal_filed_at, c.opened_at::date))))
+      from portee.jur_cases c left join lateral (select * from jur.notices x where x.case_id = c.id and x.status = 'sent' order by x.sent_at desc limit 1) n on true
+      where c.stage in ('mise_en_demeure', 'tal') or c.tal_number is not null), '{}'::jsonb),
+    'modeles', coalesce((select jsonb_object_agg(t.id, jsonb_build_object('prochaine_revision', t.next_review_on,
+        'remplace', (select 'v' || p.version || ' · ' || to_char(p.created_at, 'DD/MM/YYYY') from jur.templates p where p.code = t.code and p.version = t.version - 1)))
+      from jur.templates t), '{}'::jsonb));
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_juridique()
  RETURNS jsonb
@@ -1791,33 +1806,6 @@ begin
             where p.status <> 'paid' and p.due_date < current_date and le.status = 'active' group by p.lease_id, b.address, u.unit_number, tn.full_name) x), '[]'::jsonb),
     'auto', coalesce((select valeur from config.parametres where cle = 'juridique_auto'), 'false'::jsonb) = 'true'::jsonb,
     'est_admin', crm.role_actuel() = 'admin', 'peut_ecrire', crm.can('juridique.ecrire'));
-end $function$;
-CREATE OR REPLACE FUNCTION public.lanceur_juridique_tal()
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-begin
-  perform crm.require_aal2();
-  if not crm.can('juridique.lire') then raise exception 'Votre rôle ne donne pas accès au juridique.' using errcode = 'PT403'; end if;
-  return jsonb_build_object(
-    'dossiers', coalesce((select jsonb_object_agg(c.id, jsonb_build_object(
-        'motif', c.motif, 'avis_audience', c.hearing_notice_on, 'mode', c.hearing_mode, 'note_audience', c.hearing_note, 'decision', c.decision_on, 'decision_texte', c.decision_text,
-        'pieces', jsonb_build_array(
-          jsonb_build_object('icone', 'file', 'texte', 'Bail signé', 'ok', true),
-          jsonb_build_object('icone', 'receipt', 'texte', 'Relevé de compte au ' || to_char(current_date, 'DD/MM'), 'ok', exists (select 1 from portee.payments p where p.lease_id = c.lease_id)),
-          jsonb_build_object('icone', 'mail', 'texte', 'Mise en demeure' || coalesce(' du ' || to_char(n.sent_at at time zone 'America/Toronto', 'DD/MM'), ''), 'ok', n.sent_at is not null),
-          jsonb_build_object('icone', 'shieldc', 'texte', 'Preuve de signification' || coalesce(' (' || n.proof_mode || ')', ''), 'ok', n.proof_mode is not null),
-          jsonb_build_object('icone', 'calendar', 'texte', 'Avis d’audience' || coalesce(' du ' || to_char(c.hearing_notice_on, 'DD/MM'), ''), 'ok', c.hearing_notice_on is not null),
-          jsonb_build_object('icone', 'user', 'texte', 'Présence à l’audience confirmée', 'ok', c.hearing_note is not null)),
-        'payes_depuis', (select count(*) from portee.payments p where p.lease_id = c.lease_id and p.status = 'paid' and p.due_date > coalesce(c.tal_filed_at, c.opened_at::date)),
-        'en_retard_depuis', (select count(*) from portee.payments p where p.lease_id = c.lease_id and p.status <> 'paid' and p.due_date < current_date and p.due_date > coalesce(c.tal_filed_at, c.opened_at::date))))
-      from portee.jur_cases c left join lateral (select * from jur.notices x where x.case_id = c.id and x.status = 'sent' order by x.sent_at desc limit 1) n on true
-      where c.stage in ('mise_en_demeure', 'tal') or c.tal_number is not null), '{}'::jsonb),
-    'modeles', coalesce((select jsonb_object_agg(t.id, jsonb_build_object('prochaine_revision', t.next_review_on,
-        'remplace', (select 'v' || p.version || ' · ' || to_char(p.created_at, 'DD/MM/YYYY') from jur.templates p where p.code = t.code and p.version = t.version - 1)))
-      from jur.templates t), '{}'::jsonb));
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_leads()
  RETURNS jsonb
@@ -1918,6 +1906,17 @@ begin
       'disponible_le', coalesce((select l.end_date + 1 from portee.leases l where l.unit_id = u.id and l.status = 'active' order by l.start_date desc limit 1), current_date))
     from portee.units u join portee.buildings b on b.id = u.building_id where u.id = p_id);
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_logements_a_louer()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  if not crm.can('operations.lire') then raise exception 'Votre rôle ne donne pas accès à l’agenda.' using errcode = 'PT403'; end if;
+  return coalesce((select jsonb_agg(jsonb_build_object('id', u.id, 'libelle', b.address || coalesce(' — ' || u.unit_number, '')) order by b.address, u.unit_number)
+    from portee.units u join portee.buildings b on b.id = u.building_id where u.status in ('available', 'soon_available')), '[]'::jsonb);
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_logements(p jsonb DEFAULT '{}'::jsonb)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -1947,17 +1946,6 @@ begin
       'sous_marche_somme', (select coalesce(sum(mediane - loyer), 0) from base where etat <> 'vacant' and mediane is not null and loyer > 0 and loyer < mediane),
       'vacants', coalesce((select jsonb_agg(jsonb_build_object('id', id, 'libelle', libelle, 'type', unit_type, 'loyer', loyer, 'libre', coalesce(fin, status_changed_at::date), 'annonce', listing_published_at is not null)
           order by listing_published_at is not null, libelle collate "C") from base where etat <> 'loue'), '[]'::jsonb)));
-end $function$;
-CREATE OR REPLACE FUNCTION public.lanceur_logements_a_louer()
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-begin
-  if not crm.can('operations.lire') then raise exception 'Votre rôle ne donne pas accès à l’agenda.' using errcode = 'PT403'; end if;
-  return coalesce((select jsonb_agg(jsonb_build_object('id', u.id, 'libelle', b.address || coalesce(' — ' || u.unit_number, '')) order by b.address, u.unit_number)
-    from portee.units u join portee.buildings b on b.id = u.building_id where u.status in ('available', 'soon_available')), '[]'::jsonb);
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_maintenance_document(p_id uuid)
  RETURNS text
@@ -2626,6 +2614,19 @@ begin
     'a_emettre', coalesce((select jsonb_agg(jsonb_build_object('proprietaire', o.full_name, 'owner_id', o.id, 'apercu', crm.facture_honoraires(o.id, v_m)) order by o.full_name)
       from portee.owners o where exists (select 1 from crm.ecritures_proprio(o.id, v_m)) and not exists (select 1 from portee.fin_owner_statements s where s.owner_id = o.id and s.mois = v_m)), '[]'::jsonb));
 end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_rl31_fichier(p_annee integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  perform crm.require_aal2();
+  if not crm.can('finances.lire') then raise exception 'Votre rôle ne permet pas de voir les finances.' using errcode = 'PT403'; end if;
+  return coalesce((select jsonb_agg(jsonb_build_object('code', s.code, 'annee', s.annee, 'numero_logement', s.donnees ->> 'numero_logement', 'adresse', s.donnees -> 'logement' ->> 'adresse',
+      'code_postal', s.donnees -> 'logement' ->> 'code_postal', 'occupant', s.donnees -> 'occupant' ->> 'nom', 'locateur', s.donnees -> 'locateur' ->> 'nom', 'remis_le', s.remis_le) order by s.donnees -> 'logement' ->> 'adresse')
+    from portee.fin_rl31_slips s where s.annee = p_annee and s.statut = 'remis'), '[]'::jsonb);
+end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_rl31(p_annee integer)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -2647,19 +2648,6 @@ begin
       from portee.fin_rl31_slips s join portee.owners o on o.id = s.owner_id where s.annee = p_annee), '[]'::jsonb),
     'sans_numero', coalesce((select jsonb_agg(jsonb_build_object('unit_id', c.unit_id, 'logement', b.address || ' — logement ' || u.unit_number, 'proprietaire', o.full_name) order by b.address, u.unit_number)
       from crm.rl31_occupants(p_annee) c join portee.units u on u.id = c.unit_id join portee.buildings b on b.id = u.building_id join portee.owners o on o.id = b.owner_id where c.numero is null), '[]'::jsonb));
-end $function$;
-CREATE OR REPLACE FUNCTION public.lanceur_rl31_fichier(p_annee integer)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-begin
-  perform crm.require_aal2();
-  if not crm.can('finances.lire') then raise exception 'Votre rôle ne permet pas de voir les finances.' using errcode = 'PT403'; end if;
-  return coalesce((select jsonb_agg(jsonb_build_object('code', s.code, 'annee', s.annee, 'numero_logement', s.donnees ->> 'numero_logement', 'adresse', s.donnees -> 'logement' ->> 'adresse',
-      'code_postal', s.donnees -> 'logement' ->> 'code_postal', 'occupant', s.donnees -> 'occupant' ->> 'nom', 'locateur', s.donnees -> 'locateur' ->> 'nom', 'remis_le', s.remis_le) order by s.donnees -> 'logement' ->> 'adresse')
-    from portee.fin_rl31_slips s where s.annee = p_annee and s.statut = 'remis'), '[]'::jsonb);
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_routeur_ia()
  RETURNS jsonb
@@ -2697,31 +2685,6 @@ begin
       'modeles', (select jsonb_agg(k order by k) from jsonb_object_keys((select valeur from config.parametres where cle = 'ia_prix')) k where k <> 'defaut'),
       'prix', (select valeur from config.parametres where cle = 'ia_prix')));
 end $function$;
-CREATE OR REPLACE FUNCTION public.lanceur_site()
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-begin
-  perform crm.studio(false);
-  return jsonb_build_object(
-    'articles', coalesce((select jsonb_agg(jsonb_build_object('id', a.id, 'groupe', a.groupe, 'langue', a.langue, 'slug', a.slug, 'titre', a.titre, 'categorie', a.categorie, 'statut', a.statut, 'score', site.score(a),
-        'criteres', site.criteres(a), 'mot_cle', a.mot_cle, 'relu_par', crm.nom_membre(a.relu_par), 'relu_le', a.relu_le, 'publie_le', a.publie_le, 'modifie_le', a.updated_at,
-        'jumelle', (select j.id from site.articles j where j.groupe = a.groupe and j.langue <> a.langue)) order by a.updated_at desc) from site.articles a where a.statut <> 'archive' or a.updated_at > now() - interval '1 year'), '[]'::jsonb),
-    'logements', coalesce((select jsonb_agg(x order by x ->> 'site_statut', x ->> 'libelle') from (select jsonb_build_object('id', u.id, 'libelle', crm.libelle_logement(u.id), 'type', u.unit_type, 'loyer', crm.loyer_logement(u.id),
-        'etat', crm.etat_logement(u.id), 'site_statut', u.site_statut, 'photos', jsonb_array_length(coalesce(u.photo_urls, '[]'::jsonb)), 'photos_ok', site.photos_ok(u.id),
-        'texte', u.listing_description is not null, 'relu', u.listing_reviewed_at is not null, 'position', u.latitude is not null, 'en', u.texte_en is not null, 'badges', u.badges,
-        'sur_le_site', exists (select 1 from public.site_logements_publies v where v.id = u.id)) x
-      from portee.units u where crm.etat_logement(u.id) <> 'loue' or u.site_statut in ('publie', 'loue')) z), '[]'::jsonb),
-    'mots_cles', coalesce((select jsonb_agg(to_jsonb(m) - 'cree_par' order by m.created_at desc) from site.mots_cles m), '[]'::jsonb),
-    'activite', jsonb_build_object('demandes_30', (select count(*) from portee.inquiries where created_at > now() - interval '30 days'),
-      'par_type', coalesce((select jsonb_object_agg(type, n) from (select type, count(*) n from portee.inquiries where created_at > now() - interval '30 days' group by type) z), '{}'::jsonb),
-      'ia_appels_30', (select count(*) from public.ai_run_log where created_at > now() - interval '30 days' and function_name like 'studio%'),
-      'ia_jetons_30', (select coalesce(sum(coalesce(input_tokens, 0) + coalesce(output_tokens, 0)), 0) from public.ai_run_log where created_at > now() - interval '30 days' and function_name like 'studio%')),
-    'branchements', jsonb_build_object('ga4', 'à brancher', 'search_console', 'à brancher', 'audit_seo', 'arrive avec la supervision (T9)'),
-    'peut_ecrire', crm.can('studio.ecrire'));
-end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_site_activite(p_jours integer)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -2749,6 +2712,31 @@ begin
           coalesce(sum(input_tokens), 0) ti, coalesce(sum(output_tokens), 0) t_o
         from public.ai_run_log where function_name like 'studio%' and created_at >= debut_c group by 1) i))
     from jours j left join compte c on c.d = j.d);
+end $function$;
+CREATE OR REPLACE FUNCTION public.lanceur_site()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  perform crm.studio(false);
+  return jsonb_build_object(
+    'articles', coalesce((select jsonb_agg(jsonb_build_object('id', a.id, 'groupe', a.groupe, 'langue', a.langue, 'slug', a.slug, 'titre', a.titre, 'categorie', a.categorie, 'statut', a.statut, 'score', site.score(a),
+        'criteres', site.criteres(a), 'mot_cle', a.mot_cle, 'relu_par', crm.nom_membre(a.relu_par), 'relu_le', a.relu_le, 'publie_le', a.publie_le, 'modifie_le', a.updated_at,
+        'jumelle', (select j.id from site.articles j where j.groupe = a.groupe and j.langue <> a.langue)) order by a.updated_at desc) from site.articles a where a.statut <> 'archive' or a.updated_at > now() - interval '1 year'), '[]'::jsonb),
+    'logements', coalesce((select jsonb_agg(x order by x ->> 'site_statut', x ->> 'libelle') from (select jsonb_build_object('id', u.id, 'libelle', crm.libelle_logement(u.id), 'type', u.unit_type, 'loyer', crm.loyer_logement(u.id),
+        'etat', crm.etat_logement(u.id), 'site_statut', u.site_statut, 'photos', jsonb_array_length(coalesce(u.photo_urls, '[]'::jsonb)), 'photos_ok', site.photos_ok(u.id),
+        'texte', u.listing_description is not null, 'relu', u.listing_reviewed_at is not null, 'position', u.latitude is not null, 'en', u.texte_en is not null, 'badges', u.badges,
+        'sur_le_site', exists (select 1 from public.site_logements_publies v where v.id = u.id)) x
+      from portee.units u where crm.etat_logement(u.id) <> 'loue' or u.site_statut in ('publie', 'loue')) z), '[]'::jsonb),
+    'mots_cles', coalesce((select jsonb_agg(to_jsonb(m) - 'cree_par' order by m.created_at desc) from site.mots_cles m), '[]'::jsonb),
+    'activite', jsonb_build_object('demandes_30', (select count(*) from portee.inquiries where created_at > now() - interval '30 days'),
+      'par_type', coalesce((select jsonb_object_agg(type, n) from (select type, count(*) n from portee.inquiries where created_at > now() - interval '30 days' group by type) z), '{}'::jsonb),
+      'ia_appels_30', (select count(*) from public.ai_run_log where created_at > now() - interval '30 days' and function_name like 'studio%'),
+      'ia_jetons_30', (select coalesce(sum(coalesce(input_tokens, 0) + coalesce(output_tokens, 0)), 0) from public.ai_run_log where created_at > now() - interval '30 days' and function_name like 'studio%')),
+    'branchements', jsonb_build_object('ga4', 'à brancher', 'search_console', 'à brancher', 'audit_seo', 'arrive avec la supervision (T9)'),
+    'peut_ecrire', crm.can('studio.ecrire'));
 end $function$;
 CREATE OR REPLACE FUNCTION public.lanceur_solvabilite()
  RETURNS jsonb
@@ -2852,4 +2840,17 @@ begin
     'mandats', (select jsonb_build_object('gagnes', count(*) filter (where s.category = 'won' and d.updated_at > now() - interval '90 days'), 'actifs', count(*) filter (where s.category = 'active'))
                 from portee.crm_deals d join crm.stages s on s.id = d.stage_id join crm.pipelines pl on pl.id = d.pipeline_id where pl.code = 'mandats' and d.merged_into is null));
 end $function$;
+CREATE OR REPLACE FUNCTION maint.contexte_bt(p_wo uuid)
+ RETURNS TABLE(owner_id uuid, proprio text, plafond numeric, budget numeric, accord numeric, urgent boolean, portee text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select ow.id, ow.full_name, coalesce(ow.spending_cap, 500), coalesce(wo.quote_budget, wo.estimated_cost, sr.ai_cost_max),
+         greatest((select max(a.amount_max) from portee.maint_quote_approvals a where a.work_order_id = wo.id),
+                  (select max(ap.requested_amount) from portee.approvals ap where ap.work_order_id = wo.id and ap.status = 'approved')),
+         coalesce(wo.is_urgent, false) or coalesce(sr.ai_urgency, '') in ('urgent', 'urgence', 'critique'), wo.description
+  from portee.work_orders wo left join portee.units u on u.id = wo.unit_id left join portee.buildings b on b.id = u.building_id
+  left join portee.owners ow on ow.id = b.owner_id left join portee.service_requests sr on sr.id = wo.service_request_id where wo.id = p_wo
+$function$;
 -- 118 fonctions de lecture réécrites.

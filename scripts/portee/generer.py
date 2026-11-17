@@ -6,7 +6,7 @@ rendent que les lignes de cette portée, et chaque fonction de LECTURE (stable) 
 écrit la migration : les vues, puis les fonctions de lecture réécrites (« from public.x » → « from portee.x »).
 
 À relancer quand une colonne est ajoutée à une table de la portée ou qu'une fonction de lecture est modifiée :
-  supabase db query --linked "<requêtes ci-dessous>" > tables.json / fonctions.json
+  requêtes de scripts/portee/entrees.sql (base au niveau de main, lecture seule) → tables.json, fonctions.json
   python3 scripts/portee/generer.py tables.json fonctions.json > supabase/migrations/<horodatage>_portee.sql
 Le test supabase/tests/portee_test.sql échoue si une fonction de lecture lit encore une table de la portée directement.
 """
@@ -76,6 +76,9 @@ create or replace view portee.tenants as select t.* from public.tenants t where 
     out.append("-- Fonctions de lecture : mêmes définitions, lues à travers les vues de la portée.\nset check_function_bodies = off;")
     for f in json.load(open(f_fonctions)):
         if f['v'] == 'v': continue
+        # Hors administration : portails (le client ne voit que ses données, sans sélecteur), relais service_role, vérifications de droits
+        # (une permission ne doit jamais dépendre du client choisi à l'écran).
+        if re.search(r'FUNCTION (public\.(portail_|service_|lire_consentement_)|crm\.peut_)', f['def']): continue
         neuf = rx.sub(lambda m: f"{m.group(1)}{m.group(2)}{vue(m.group(3).lower())}" if m.group(3).lower() in noms else m.group(0), f['def'])
         if neuf == f['def']: continue
         n += 1

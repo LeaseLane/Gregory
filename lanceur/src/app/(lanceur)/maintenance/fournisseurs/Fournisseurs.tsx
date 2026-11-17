@@ -23,8 +23,16 @@ export const etatAssurance = (f: Pick<Fourn, 'etat_assurance' | 'assurance' | 'p
 export function Fournisseurs({ donnees: D, q: q0, erreurLecture }: { donnees: DonneesFournisseurs | null; q: string; erreurLecture: string | null }) {
   const router = useRouter();
   const [q, setQ] = useState(q0), [tous, setTous] = useState(false), [bandeau, setBandeau] = useState<string | null>(erreurLecture), [ok, setOk] = useState<string | null>(null);
+  // Filtres de la liste (Grégory, 17 nov.) : vérification, spécialité, assurance; appliqués à l'écran, la recherche reste côté serveur.
+  const [fv, setFv] = useState(''), [fs, setFs] = useState(''), [fa, setFa] = useState('');
   if (!D) return <div className="bandeau erreur" role="alert">{bandeau}</div>;
-  const L = tous ? D.fournisseurs : D.fournisseurs.slice(0, 8), rep = D.fournisseurs.filter((f) => f.reponse != null && f.actif).sort((a, b) => a.reponse! - b.reponse!);
+  const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+  const specs = [...new Set(D.fournisseurs.flatMap((f) => f.specialites.filter(Boolean).map((x) => cap(x as string))))].sort((a, b) => a.localeCompare(b, 'fr'));
+  const F = D.fournisseurs.filter((f) => (!fv || (fv === 'verified' ? f.verification === 'verified' : fv === 'rejected' ? f.verification === 'rejected' : !['verified', 'rejected'].includes(f.verification ?? '')))
+    && (!fs || f.specialites.some((x) => x && cap(x) === fs))
+    && (!fa || (fa === 'valide' ? ['valide', 'bientot'].includes(f.etat_assurance) : fa === 'echue' ? ['echue', 'risque'].includes(f.etat_assurance) : f.etat_assurance === fa)));
+  const filtre = !!(fv || fs || fa);
+  const L = tous || filtre ? F : F.slice(0, 8), rep = D.fournisseurs.filter((f) => f.reponse != null && f.actif).sort((a, b) => a.reponse! - b.reponse!);
   const aDemander = D.assurances.filter((a) => a.etat_assurance !== 'echue' || a.prochain);
   async function demander() {
     const { data, error } = await supabaseNavigateur().rpc('lanceur_demander_attestations', { p: { ids: D!.assurances.map((a) => a.id) } });
@@ -36,10 +44,16 @@ export function Fournisseurs({ donnees: D, q: q0, erreurLecture }: { donnees: Do
       {ok && <div className="bandeau info" role="status">{ok}</div>}
       <div className="grille-2-1">
         <section className="carte-l18" aria-label="Fournisseurs">
-          <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Fournisseurs</h2><p className="gris texte-13" style={{ margin: 0 }}>{D.fournisseurs.length} fournisseurs · triés par travaux des 12 derniers mois</p></div>
+          <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Fournisseurs</h2><p className="gris texte-13" style={{ margin: 0 }}>{filtre ? `${F.length} sur ${D.fournisseurs.length}` : D.fournisseurs.length} fournisseurs · triés par travaux des 12 derniers mois</p></div>
             <form className="lo-recherche" style={{ maxWidth: 264 }} onSubmit={(e) => { e.preventDefault(); router.push(q ? `/maintenance/fournisseurs?q=${encodeURIComponent(q)}` : '/maintenance/fournisseurs'); }}>
               <Icone nom="search" taille={18} couleur="#58697F" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Chercher un fournisseur" aria-label="Chercher un fournisseur" /></form>
             {D.peut_ecrire && <FournisseurTiroir compact />}</div>
+          <div className="filtres-ligne" style={{ marginTop: 12 }}>
+            <select className="e70-raison filtre" value={fv} onChange={(e) => setFv(e.target.value)} aria-label="Vérification"><option value="">Vérification : tous</option><option value="verified">Vérifiés</option><option value="attente">À vérifier</option><option value="rejected">Refusés</option></select>
+            <select className="e70-raison filtre" value={fs} onChange={(e) => setFs(e.target.value)} aria-label="Spécialité"><option value="">Spécialité : toutes</option>{specs.map((x) => <option key={x}>{x}</option>)}</select>
+            <select className="e70-raison filtre" value={fa} onChange={(e) => setFa(e.target.value)} aria-label="Assurance"><option value="">Assurance : toutes</option><option value="valide">Valide</option><option value="inconnue">À confirmer</option><option value="echue">Échue</option></select>
+            {filtre && <button className="lien" onClick={() => { setFv(''); setFs(''); setFa(''); }}>Effacer les filtres</button>}
+          </div>
           <table className="tableau tab-fixe tab-fournisseurs" style={{ marginTop: 16 }}><colgroup><col style={{ width: '26%' }} /><col style={{ width: '17%' }} /><col style={{ width: '7%' }} /><col style={{ width: '9%' }} /><col style={{ width: '19%' }} /><col style={{ width: '13%' }} /><col /></colgroup>
             <thead><tr><th>Fournisseur</th><th>Spécialités</th><th>Note</th><th className="droite">Réponse</th><th>Assurance</th><th>RBQ</th><th className="droite">Travaux</th></tr></thead>
             <tbody>{L.map((f) => { const [ic, lib, cl] = etatAssurance(f), sp = (f.specialites.filter(Boolean) as string[]).map((x) => x.charAt(0).toUpperCase() + x.slice(1));
@@ -51,8 +65,8 @@ export function Fournisseurs({ donnees: D, q: q0, erreurLecture }: { donnees: Do
                 <td className="droite">{f.reponse != null ? h(f.reponse) : <span className="gris">—</span>}</td>
                 <td><span className={`ligne-ic texte-13 ${cl}`}>{ic}{lib}</span></td><td className="texte-13">{f.rbq ?? <span className="gris">{f.rbq_requise ? 'Manquante' : 'Non requise'}</span>}</td>
                 <td className="droite fort">{f.travaux}</td></tr>; })}
-              {!D.fournisseurs.length && <tr><td colSpan={7} className="gris">Aucun fournisseur.</td></tr>}</tbody></table>
-          {D.fournisseurs.length > 8 && !tous && <button className="lien" onClick={() => setTous(true)}>Afficher les {D.fournisseurs.length - 8} autres fournisseurs</button>}
+              {!F.length && <tr><td colSpan={7} className="gris">{filtre ? 'Aucun fournisseur pour ces filtres.' : 'Aucun fournisseur.'}</td></tr>}</tbody></table>
+          {F.length > 8 && !tous && !filtre && <button className="lien" onClick={() => setTous(true)}>Afficher les {F.length - 8} autres fournisseurs</button>}
         </section>
         <div className="po-colonne">
           <section className="carte-l18 e2" aria-label="Assurances à renouveler"><div className="tete-action"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Assurances à renouveler</h2><Link className="lien" href="/maintenance/fournisseurs/echeances">Échéances</Link></div>

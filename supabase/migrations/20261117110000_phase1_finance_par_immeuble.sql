@@ -18,6 +18,9 @@ create table if not exists fin.autres_revenus (
 );
 create index if not exists autres_revenus_immeuble on fin.autres_revenus (building_id, le);
 alter table fin.autres_revenus enable row level security;
+-- Lecture directe réservée aux droits de finance (les écrans passent par les fonctions lanceur_*, security definer).
+drop policy if exists autres_revenus_lecture on fin.autres_revenus;
+create policy autres_revenus_lecture on fin.autres_revenus for select to authenticated using (crm.can('finances.lire'));
 revoke all on fin.autres_revenus from anon, authenticated; grant all on fin.autres_revenus to service_role;
 
 -- 13465 → « 13 465 » (espace insécable, sans décimales) pour les phrases d'alerte.
@@ -34,6 +37,9 @@ create table if not exists fin.alertes_vues (
   primary key (building_id, type, mois)
 );
 alter table fin.alertes_vues enable row level security;
+-- Lecture directe réservée aux droits de finance (les écrans passent par les fonctions lanceur_*, security definer).
+drop policy if exists alertes_vues_lecture on fin.alertes_vues;
+create policy alertes_vues_lecture on fin.alertes_vues for select to authenticated using (crm.can('finances.lire'));
 revoke all on fin.alertes_vues from anon, authenticated; grant all on fin.alertes_vues to service_role;
 
 create or replace function crm.seuils_finance() returns jsonb language sql stable security definer set search_path = '' as $$
