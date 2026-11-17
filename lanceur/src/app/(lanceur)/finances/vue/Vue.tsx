@@ -8,7 +8,7 @@ import { argent } from '../onglets';
 
 type Immeuble = { id: string; adresse: string; logements: number; occupes: number; attendu: number; paye: number; stationnement: number; buanderie: number; autre: number; depenses: number; net: number; alertes: number };
 type Client = { id: string; nom: string; attendu: number; paye: number; autres: number; depenses: number; net: number; alertes: number; immeubles: Immeuble[] };
-type Alerte = { immeuble_id: string; immeuble: string; client: string; client_id: string; type: 'tresorerie' | 'perception' | 'depense'; texte: string; montant: number; sorte: 'travaux' | 'debours' | 'facture' | null;
+type Alerte = { immeuble_id: string; immeuble: string; client: string; client_id: string; type: 'tresorerie' | 'perception' | 'depense'; cle: string; texte: string; montant: number; sorte: 'travaux' | 'debours' | 'facture' | null;
   vue: { par: string | null; le: string; note: string | null } | null };
 export type DonneesVue = { mois: string; courant: boolean; seuils: Record<string, number>;
   total: { attendu: number; paye: number; autres: number; depenses: number; net: number; immeubles: number; logements: number; occupes: number };
@@ -49,7 +49,7 @@ export function Vue({ donnees: D, erreurLecture }: { donnees: DonneesVue | null;
   }
   const voir = (client: string, immeuble?: string, vers?: string) => { choisirPortee(client, immeuble); if (vers) router.push(vers); else router.refresh(); };
   const ouvertes = D.alertes.filter((a) => !a.vue), vues = D.alertes.filter((a) => a.vue), nbImm = new Set(ouvertes.map((a) => a.immeuble_id)).size;
-  const marquer = (a: Alerte, rouvrir = false) => rpc({ immeuble: a.immeuble_id, type: a.type, mois: D!.mois, rouvrir }, rouvrir ? 'Alerte rouverte.' : 'Alerte marquée comme vue.', 'lanceur_alerte_vue');
+  const marquer = (a: Alerte, rouvrir = false) => rpc({ immeuble: a.immeuble_id, type: a.type, cle: a.cle, mois: D!.mois, rouvrir }, rouvrir ? 'Alerte rouverte.' : 'Alerte marquée comme vue.', 'lanceur_alerte_vue');
   return (
     <>
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}

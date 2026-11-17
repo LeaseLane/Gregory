@@ -10,7 +10,7 @@ import { Icone } from '@/composants/Icones';
    Relevés 31 (TF) : produire ses relevés, puis les valider et les remettre aux locataires (aucune remise sans vous). */
 type Ecriture = { le: string; libelle: string; categorie: string; montant: number };
 export type DonneesRL31 = { annee: number; echeance: string; production_possible: boolean; logements: { immeuble: string; logement: string; locataire: string; numero: boolean; releve: { id: string; statut: string; code: string } | null }[] };
-type Ventile = { immeuble: string; loyers: number; stationnement: number; buanderie: number; autre: number; locataires: { locataire: string; logement: string; attendu: number; paye: number; statut: 'paye' | 'retard' | 'a_venir' }[] };
+type Ventile = { immeuble: string; loyers: number; stationnement: number; buanderie: number; autre: number; locataires: { locataire: string; logement: string; attendu: number; paye: number; statut: 'paye' | 'partiel' | 'retard' | 'a_venir' }[] };
 export type DonneesFinance = { ventilation?: Ventile[]; mois: string; taux: number; ecritures: Ecriture[]; precedent: { loyers: number; travaux: number }; releves: string[]; releves_31: { immeuble: string; logement: string; locataire: string }[] };
 const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, ' ')}\u00a0$`;
 const moisNom = (ym: string) => new Date(`${ym.slice(0, 7)}-15T12:00:00`).toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' }).replace(/^./, (c) => c.toUpperCase());
@@ -74,7 +74,7 @@ export function Finance({ rl31, donnees, erreur }: { rl31: DonneesRL31 | null; d
 function Ventilation({ V, mois }: { V: Ventile[]; mois: string }) {
   const total = (v: Ventile) => v.loyers + v.stationnement + v.buanderie + v.autre, ou = (n: number) => (n ? argent(n) : '—');
   const [ouvert, setOuvert] = useState<string | null>(null);
-  const ETAT = { paye: ['Payé', ''], retard: ['En retard', 'todo'], a_venir: ['À venir', 'neutral'] } as const;
+  const ETAT = { paye: ['Payé', ''], partiel: ['Partiel', 'todo'], retard: ['En retard', 'todo'], a_venir: ['À venir', 'neutral'] } as const;
   return (
     <section className="studio-liste" aria-label="Revenus par immeuble">
       <header className="carte-tete"><div><h2>Revenus par immeuble</h2><p>{mois} · par type de service, puis par locataire</p></div></header>
