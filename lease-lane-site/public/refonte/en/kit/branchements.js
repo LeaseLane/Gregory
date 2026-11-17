@@ -76,7 +76,7 @@
     if (!r.ok || d.ok === false) throw new Error(d.error || ECHEC);
     return d;
   }
-  window.llCleo = async q => (await appeler('handle-public-faq', { question: String(q).slice(0, 500) })).answer;
+  window.llCleo = async q => (await appeler('handle-public-faq', { question: String(q).slice(0, 500), langue: document.documentElement.lang.slice(0, 2) })).answer;
 
   /* ---------- Lecture d'un formulaire de la maquette (champs sans name : libellés lus à l'écran) ---------- */
   const net = s => (s || '').replace(/\s+/g, ' ').replace(/\s*\*\s*/g, ' ').replace(/\(facultatif\)/i, '').trim();
