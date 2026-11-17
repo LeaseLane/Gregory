@@ -346,21 +346,17 @@ def construire():
                    f'<link rel="alternate" hreflang="x-default" href="https://leaselane.ca{fr}">\n')
             t = t.replace('<link rel="canonical"', alt + '<link rel="canonical"', 1)
         # sélecteur de langue : EN courant, FR mène à la jumelle française (branchements.js)
-        t = t.replace('<a href="#" lang="fr" aria-current="true">FR</a><a href="#" lang="en">EN</a>',
-                      '<a href="#" lang="fr">FR</a><a href="#" lang="en" aria-current="true">EN</a>')
-        t = t.replace('<button type="button" aria-pressed="true" lang="fr">FR</button><button type="button" aria-pressed="false" lang="en">EN</button>',
-                      '<button type="button" aria-pressed="false" lang="fr">FR</button><button type="button" aria-pressed="true" lang="en">EN</button>')
         for k in kit_en:
             t = t.replace(f'src="/refonte/{k}"', f'src="/refonte/en/{k}"')
         t = re.sub(r'>(\s*\d+),(\d+\s*)<', r'>\1.\2<', t)   # 23,1 → 23.1 (chiffres seuls; le compteur d’anime.js les laisse fixes)
         t = liens(t, adr)
-        t = t.replace('<a href="#" lang="fr">', f'<a href="{fr}" lang="fr">').replace('<a href="#" lang="en" aria-current="true">', f'<a href="{en}" lang="en" aria-current="true">')
+        t = langue(t, fr, en, 'en')
         (sortie / f).write_text(t, encoding='utf-8')
         routes[en] = 'en/' + f
     ROUTES.write_text(json.dumps(routes, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     for fr, f, en in liste:   # pages françaises : vrais liens FR / EN, alternates manquants
         p = REF / f; t = p.read_text(encoding='utf-8')
-        t = t.replace('<a href="#" lang="fr" aria-current="true">', f'<a href="{fr}" lang="fr" aria-current="true">').replace('<a href="#" lang="en">', f'<a href="{en}" lang="en">')
+        t = langue(t, fr, en, 'fr')
         if 'hreflang="en-CA"' in t:
             p.write_text(t, encoding='utf-8')
         else:
@@ -370,6 +366,14 @@ def construire():
     print(f'{len(liste)} pages anglaises, {len(kit_en)} scripts du kit traduits, {len(manque)} textes sans traduction')
     for x in list(manque)[:15]:
         print('  ·', x[:120])
+
+
+def langue(t, fr, en, ici):
+    """Sélecteur FR / EN de l'en-tête et du menu : vrais liens vers les jumelles, langue de la page marquée."""
+    lien = lambda l, h: f'<a href="{h}" lang="{l}"' + (' aria-current="true"' if l == ici else '') + f'>{l.upper()}</a>'
+    t = re.sub(r'(<div class="tete-langue"[^>]*>).*?(</div>)', lambda m: m[1] + lien('fr', fr) + lien('en', en) + m[2], t, flags=re.S)
+    return re.sub(r'<button type="button" aria-pressed="(?:true|false)" lang="(fr|en)">',
+                  lambda m: f'<button type="button" aria-pressed="{str(m[1] == ici).lower()}" lang="{m[1]}">', t)
 
 
 def liens(t, adr, js=False):
