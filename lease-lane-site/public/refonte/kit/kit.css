@@ -1106,3 +1106,12 @@ body.menu-ouvert{overflow:hidden}
 }
 
 .btn[aria-disabled="true"],.btn[aria-disabled="true"]:hover{opacity:.5;cursor:not-allowed;background:none;color:inherit;box-shadow:inset 0 0 0 .7px currentColor}
+
+/* Accessibilité (QA twim-design du 18 nov. 2026) : lien d'évitement visible au focus, anneaux contrastés sur l'en-tête, cibles de 44 px,
+   anneau entier dans le fil de Cléo, et un élément atteint au clavier ne passe plus sous la bulle flottante de Cléo. */
+.sr:focus{position:fixed;left:16px;top:16px;width:auto;height:auto;clip:auto;overflow:visible;white-space:normal;z-index:1000;padding:12px 16px;background:#fff;color:var(--marine-900);font:600 14px Poppins,system-ui,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.tete-outils .tete-loge:focus-visible,.tete-outils .burger:focus-visible{outline-color:#fff;box-shadow:0 0 0 6px var(--marine-900)}
+.ct .ct-b{min-height:44px}button.fq4-reprise{min-width:44px;min-height:44px}.fil a{display:inline-block;min-width:44px}
+.cl-flot{transition:opacity .2s,transform .2s}.cl-flot.cl-retire{opacity:0;transform:translateY(16px);pointer-events:none}
+.fq4-fil :focus-visible{outline-offset:-3px}
+@media (max-width:760px){html{scroll-padding-bottom:120px}}

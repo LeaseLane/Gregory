@@ -2224,3 +2224,6 @@ small { font-size: 12px; }
 .sous-espace .compte.rouge { background: #9B2E28; color: #fff; }
 /* Détail des locataires d'un immeuble (finance du propriétaire) : un petit tableau dans la ligne ouverte, sans les hauteurs du tableau parent. */
 .tableau td table td, .tableau td table th { height: auto; padding: 8px 12px 8px 0; white-space: normal; overflow: visible; border-top: 0; }
+
+/* Tableaux denses (Finances › Vue d'ensemble, Fournisseurs) : l'en-tête passe sur deux lignes et se coupe proprement au lieu d'être tronqué (QA twim-design, 18 nov. 2026). */
+.tableau.entetes-souples thead th { white-space: normal; height: auto; padding-top: 8px; padding-bottom: 8px; line-height: 1.25; padding-right: 8px; letter-spacing: .4px; hyphens: auto; overflow-wrap: normal; text-overflow: clip; vertical-align: bottom; }

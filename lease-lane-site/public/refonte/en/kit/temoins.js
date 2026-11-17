@@ -22,7 +22,7 @@
     if(v==='bulle')ct.innerHTML=tete('Cléo · Your cookies','LeaseLane AI agent')+`<p class="ct-tx">I only use essential cookies. Will you allow the others to help me improve the site? <a href="/en/cookies">Learn more</a></p><div class="ct-act"><button type="button" class="ct-b" data-a="non">Decline</button><button type="button" class="ct-b" data-a="oui">Accept</button><button type="button" class="ct-b" data-a="choisir">Choose</button></div>`;
     if(v==='detail')ct.innerHTML=tete('Your cookies','Choose category by category',true)+`<div class="ct-cats"><div class="ct-cat"><span><b>Essential</b><small>Security, session, language, your cookie choices, Cléo window</small></span><span class="ct-fixe">Always on</span></div>${CATS.map(([k,t,d])=>`<div class="ct-cat"><span id="ct-l-${k}"><b>${t}</b><small>${d}</small></span><button type="button" role="switch" class="ct-sw" data-k="${k}" aria-checked="${prefs[k]}" aria-labelledby="ct-l-${k}"></button></div>`).join('')}</div><p class="ct-tx"><a href="/en/cookies">Cookie policy</a></p><div class="ct-act"><button type="button" class="ct-b" data-a="non">Decline all</button><button type="button" class="ct-b" data-a="garder">Save</button><button type="button" class="ct-b" data-a="oui">Accept all</button></div>`;
     if(v==='ok'){ct.innerHTML=`<div class="ct-ok"><img src="${AV}" alt=""><p id="ct-t">Noted: ${resume(prefs)}. You can change your mind at any time in "Manage my cookies."</p><button type="button" class="ct-x" data-a="fermer" aria-label="Close the message">${X}</button></div>`;minuteur=setTimeout(()=>vue(null),5000)}
-    const f=ct.querySelector(v==='detail'?'.ct-sw':'.ct-b');if(f)f.focus({preventScroll:true});
+    const f=ct.querySelector(v==='detail'?'.ct-sw':'.ct-b');if(f&&v!=='bulle')f.focus({preventScroll:true});
   }
   function enregistrer(p){prefs={...p};try{localStorage.setItem(CLE,JSON.stringify({...p,version:VERSION,date:new Date().toISOString()}))}catch(e){}dispatchEvent(new CustomEvent('ll-temoins-choix',{detail:{...p,version:VERSION}}));vue('ok')}
   ct.addEventListener('click',e=>{
@@ -34,5 +34,7 @@
   addEventListener('keydown',e=>{if(e.key!=='Escape'||ct.hidden)return;if(ct.dataset.vue==='detail')vue(lire()?null:'bulle');else if(ct.dataset.vue==='ok')vue(null)});
   /* « Gérer mes témoins » (pied de page) : le détail, avec le choix actuel */
   document.addEventListener('click',e=>{const g=e.target.closest('[data-gerer-temoins]');if(!g)return;e.preventDefault();retour=g;const v=lire();prefs=v?{preferences:!!v.preferences,audience:!!v.audience,publicite:!!v.publicite}:{...AUCUN};vue('detail')});
+  /* Clavier : un élément atteint sous la bulle flottante la fait glisser hors du chemin; elle revient dès que le focus s'en éloigne ou y entre. */
+  const sous=()=>{const a=document.activeElement;if(!a||a===document.body||racine.contains(a)){racine.classList.remove('cl-retire');return}const q=a.getBoundingClientRect(),r={top:q.top-8,bottom:q.bottom+8,left:q.left-8,right:q.right+8},f=[...racine.children].filter(x=>!x.hidden).map(x=>x.getBoundingClientRect());racine.classList.toggle('cl-retire',f.some(b=>r.bottom>b.top&&r.top<b.bottom&&r.right>b.left&&r.left<b.right))};document.addEventListener('focusin',()=>{requestAnimationFrame(sous);setTimeout(sous,450)});addEventListener('scrollend',sous);
   if(!lire())setTimeout(()=>vue('bulle'),900);
 })();

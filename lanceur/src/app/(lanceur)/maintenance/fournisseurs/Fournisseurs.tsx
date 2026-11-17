@@ -54,7 +54,7 @@ export function Fournisseurs({ donnees: D, q: q0, erreurLecture }: { donnees: Do
             <select className="e70-raison filtre" value={fa} onChange={(e) => setFa(e.target.value)} aria-label="Assurance"><option value="">Assurance : toutes</option><option value="valide">Valide</option><option value="inconnue">À confirmer</option><option value="echue">Échue</option></select>
             {filtre && <button className="lien" onClick={() => { setFv(''); setFs(''); setFa(''); }}>Effacer les filtres</button>}
           </div>
-          <table className="tableau tab-fixe tab-fournisseurs" style={{ marginTop: 16 }}><colgroup><col style={{ width: '26%' }} /><col style={{ width: '17%' }} /><col style={{ width: '7%' }} /><col style={{ width: '9%' }} /><col style={{ width: '19%' }} /><col style={{ width: '13%' }} /><col /></colgroup>
+          <table className="tableau tab-fixe tab-fournisseurs entetes-souples" style={{ marginTop: 16 }}><colgroup><col style={{ width: '26%' }} /><col style={{ width: '17%' }} /><col style={{ width: '7%' }} /><col style={{ width: '9%' }} /><col style={{ width: '19%' }} /><col style={{ width: '13%' }} /><col /></colgroup>
             <thead><tr><th>Fournisseur</th><th>Spécialités</th><th>Note</th><th className="droite">Réponse</th><th>Assurance</th><th>RBQ</th><th className="droite">Travaux</th></tr></thead>
             <tbody>{L.map((f) => { const [ic, lib, cl] = etatAssurance(f), sp = (f.specialites.filter(Boolean) as string[]).map((x) => x.charAt(0).toUpperCase() + x.slice(1));
               return <tr key={f.id} className="ligne-lien" style={f.actif ? undefined : { opacity: 0.55 }} onClick={() => router.push(`/maintenance/fournisseurs/${f.id}`)}>

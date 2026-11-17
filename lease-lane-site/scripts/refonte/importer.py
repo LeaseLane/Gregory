@@ -88,10 +88,21 @@ for f in (SRC / 'kit').iterdir():
 with open(DEST / 'kit' / 'kit.css', 'a', encoding='utf-8') as css:
     css.write('\n.btn[aria-disabled="true"],.btn[aria-disabled="true"]:hover{opacity:.5;cursor:not-allowed;background:none;color:inherit;box-shadow:inset 0 0 0 .7px currentColor}\n')
 
+# Accessibilité (QA twim-design du 18 nov. 2026) : CSS ajoutée à kit.css; la bulle des témoins ne vole plus le focus à l'arrivée
+# (le clavier restait coincé dans la bulle; le focus n'y va que si la personne l'ouvre elle-même : Choisir, Gérer mes témoins).
+with open(DEST / 'kit' / 'kit.css', 'a', encoding='utf-8') as css:
+    css.write("\n/* Accessibilité (QA twim-design du 18 nov. 2026) : lien d'évitement visible au focus, anneaux contrastés sur l'en-tête, cibles de 44 px,\n   anneau entier dans le fil de Cléo, et un élément atteint au clavier ne passe plus sous la bulle flottante de Cléo. */\n.sr:focus{position:fixed;left:16px;top:16px;width:auto;height:auto;clip:auto;overflow:visible;white-space:normal;z-index:1000;padding:12px 16px;background:#fff;color:var(--marine-900);font:600 14px Poppins,system-ui,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.25)}\n.tete-outils .tete-loge:focus-visible,.tete-outils .burger:focus-visible{outline-color:#fff;box-shadow:0 0 0 6px var(--marine-900)}\n.ct .ct-b{min-height:44px}button.fq4-reprise{min-width:44px;min-height:44px}.fil a{display:inline-block;min-width:44px}\n.cl-flot{transition:opacity .2s,transform .2s}.cl-flot.cl-retire{opacity:0;transform:translateY(16px);pointer-events:none}\n.fq4-fil :focus-visible{outline-offset:-3px}\n@media (max-width:760px){html{scroll-padding-bottom:120px}}\n")
+FOCUS_A, FOCUS_B = "const f=ct.querySelector(v==='detail'?'.ct-sw':'.ct-b');if(f)f.focus({preventScroll:true});", "const f=ct.querySelector(v==='detail'?'.ct-sw':'.ct-b');if(f&&v!=='bulle')f.focus({preventScroll:true});"
+
 # Choix des témoins annoncé au reste de la page (même événement que la bannière du site : src/proto/cleo-temoins.jsx).
 t = (DEST / 'kit' / 'temoins.js').read_text(encoding='utf-8')
 ENREG = 'localStorage.setItem(CLE,JSON.stringify({...p,version:VERSION,date:new Date().toISOString()}))}catch(e){}'
 assert t.count(ENREG) == 1, 'kit/temoins.js : enregistrement du choix introuvable'
+assert t.count(FOCUS_A) == 1, 'kit/temoins.js : mise au point de la bulle introuvable'
+t = t.replace(FOCUS_A, FOCUS_B)
+FOCUS_JS_A = "  if(!lire())setTimeout(()=>vue('bulle'),900);"
+assert t.count(FOCUS_JS_A) == 1, 'kit/temoins.js : ouverture de la bulle introuvable'
+t = t.replace(FOCUS_JS_A, "  /* Clavier : un élément atteint sous la bulle flottante la fait glisser hors du chemin; elle revient dès que le focus s'en éloigne ou y entre. */\n  const sous=()=>{const a=document.activeElement;if(!a||a===document.body||racine.contains(a)){racine.classList.remove('cl-retire');return}const q=a.getBoundingClientRect(),r={top:q.top-8,bottom:q.bottom+8,left:q.left-8,right:q.right+8},f=[...racine.children].filter(x=>!x.hidden).map(x=>x.getBoundingClientRect());racine.classList.toggle('cl-retire',f.some(b=>r.bottom>b.top&&r.top<b.bottom&&r.right>b.left&&r.left<b.right))};document.addEventListener('focusin',()=>{requestAnimationFrame(sous);setTimeout(sous,450)});addEventListener('scrollend',sous);\n  if(!lire())setTimeout(()=>vue('bulle'),900);")
 t = t.replace(ENREG, ENREG + "dispatchEvent(new CustomEvent('ll-temoins-choix',{detail:{...p,version:VERSION}}));")
 (DEST / 'kit' / 'temoins.js').write_text(t, encoding='utf-8')
 

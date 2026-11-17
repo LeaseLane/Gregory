@@ -98,7 +98,7 @@ export function Vue({ donnees: D, erreurLecture }: { donnees: DonneesVue | null;
 
       <section className="carte-l18" aria-label="Par client et par immeuble">
         <h2 className="titre-carte" style={{ margin: '0 0 12px' }}>Par client et par immeuble</h2>
-        <table className="tableau"><colgroup><col style={{ width: '24%' }} /><col style={{ width: '8%' }} /><col /><col /><col /><col /><col style={{ width: '7%' }} /><col /><col /><col style={{ width: '7%' }} /></colgroup>
+        <table className="tableau entetes-souples"><colgroup><col style={{ width: '24%' }} /><col style={{ width: '8%' }} /><col /><col /><col /><col /><col style={{ width: '7%' }} /><col /><col /><col style={{ width: '7%' }} /></colgroup>
           <thead><tr><th>Immeuble</th><th className="droite">Occupation</th><th className="droite">Attendus</th><th className="droite">Perçus</th><th className="droite">Stationnement</th>
           <th className="droite">Buanderie</th><th className="droite">Autres</th><th className="droite">Dépenses</th><th className="droite">Net</th><th>Alertes</th></tr></thead>
           <tbody>{D.clients.map((c) => <Fragment key={c.id}>

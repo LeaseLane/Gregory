@@ -17,10 +17,10 @@ export function FormulaireCode({ apres = '/', inscription = '/connexion/inscript
   const [rates, setRates] = useState(0);
   const [attente, setAttente] = useState(0);
 
-  // Démonstration (demo.leaselane.ca) : le code est rempli tout seul. Ailleurs, la route répond 404 et rien ne change.
+  // Démonstration (demo.leaselane.ca) : le code est rempli tout seul. Ailleurs, la route répond 204 (sans contenu) et rien ne change.
   const [demo, setDemo] = useState(false);
   useEffect(() => {
-    fetch('/api/demo/code', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+    fetch('/api/demo/code', { cache: 'no-store' }).then((r) => (r.status === 200 ? r.json() : null)).then((d) => {
       if (d?.code) { setDemo(true); setCode(d.code); verifier(d.code); }
     }).catch(() => null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
