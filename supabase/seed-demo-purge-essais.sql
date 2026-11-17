@@ -37,10 +37,10 @@ begin
   execute format('delete from %s where %s', p_tab, p_where);
 end $$;
 
--- Le grand livre refuse toute suppression (prevent_gl_mutation) : levé dans cette transaction seulement, pour les écritures
+-- Le grand livre et le registre en fidéicommis refusent toute suppression (prevent_gl_mutation, fiducie_interdire_modification) : levés dans cette transaction seulement, pour les écritures
 -- des propriétaires d'essai; rétabli plus bas, avant la fin de la transaction.
 do $$ declare t record; begin
-  for t in select tgrelid::regclass tab, tgname from pg_trigger tr join pg_proc p on p.oid = tr.tgfoid where p.proname = 'prevent_gl_mutation' and not tgisinternal loop
+  for t in select tgrelid::regclass tab, tgname from pg_trigger tr join pg_proc p on p.oid = tr.tgfoid where p.proname in ('prevent_gl_mutation', 'fiducie_interdire_modification') and not tgisinternal loop
     execute format('alter table %s disable trigger %I', t.tab, t.tgname); end loop; end $$;
 
 do $$
@@ -72,7 +72,7 @@ begin
 end $$;
 
 do $$ declare t record; begin
-  for t in select tgrelid::regclass tab, tgname from pg_trigger tr join pg_proc p on p.oid = tr.tgfoid where p.proname = 'prevent_gl_mutation' and not tgisinternal loop
+  for t in select tgrelid::regclass tab, tgname from pg_trigger tr join pg_proc p on p.oid = tr.tgfoid where p.proname in ('prevent_gl_mutation', 'fiducie_interdire_modification') and not tgisinternal loop
     execute format('alter table %s enable trigger %I', t.tab, t.tgname); end loop; end $$;
 
 commit;
