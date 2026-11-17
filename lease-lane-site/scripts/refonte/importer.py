@@ -140,3 +140,7 @@ ROUTES.write_text(json.dumps(routes, ensure_ascii=False, indent=1) + '\n', encod
 print(f'{len(routes)} pages → public/refonte/, adresses dans {ROUTES.relative_to(SITE)}')
 if inconnus:
     print('Liens vers des pages absentes (laissés tels quels) :', ', '.join(sorted(inconnus)))
+
+# Version anglaise (17 nov. 2026) : pages /en traduites depuis scripts/refonte/en/dictionnaire.json; les textes nouveaux sont listés.
+import subprocess
+subprocess.run([sys.executable, str(ICI / 'anglais.py'), 'construire'], check=True)

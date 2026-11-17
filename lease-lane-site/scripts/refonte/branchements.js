@@ -45,17 +45,13 @@
       body: JSON.stringify({ p: { visiteur: v, choix: { mesure: !!c.audience, marketing: !!c.publicite }, version: String(c.version || '?'), langue: document.documentElement.lang || 'fr' } }) }).catch(() => null);
   });
 
-  /* ---------- Bouton EN (la maquette n'a pas d'anglais) : page jumelle de l'application (hreflang en-CA), sinon /en ---------- */
-  document.addEventListener('click', async e => {
-    const b = e.target.closest('a[lang="en"],button[lang="en"]');
-    if (!b) return;
+  /* ---------- FR / EN : page jumelle de l'autre langue (hreflang de la page), sinon l'accueil de cette langue ---------- */
+  document.addEventListener('click', e => {
+    const b = e.target.closest('.tete-langue a[lang],.menu-langue button[lang]');
+    if (!b || b.lang === document.documentElement.lang.slice(0, 2)) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    let cible = '/en';
-    try {
-      const u = new URL(document.querySelector('link[rel=alternate][hreflang="en-CA"]').href).pathname;
-      if ((await fetch(u, { method: 'HEAD' })).ok) cible = u;
-    } catch (x) {}
-    location.href = cible;
+    const alt = document.querySelector(`link[rel=alternate][hreflang="${b.lang}-CA"]`);
+    location.href = alt ? new URL(alt.href).pathname : (b.lang === 'en' ? '/en' : '/');
   }, true);
 
   /* ---------- Envoi (Turnstile invisible, comme src/lib/envoi.js) ---------- */
