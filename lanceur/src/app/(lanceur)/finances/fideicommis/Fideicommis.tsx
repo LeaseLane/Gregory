@@ -18,7 +18,9 @@ type Depot = { id: string; transaction_date: string; description: string; amount
   leases: { tenants: { full_name: string } | null; units: { unit_number: string; reference_paiement: string | null; buildings: { address: string; owners: { full_name: string } | null } | null } | null } | null };
 type BailF = { lease_id: string; reference: string; locataire: string; loyer: number };
 type LigneLot = { owner_id: string; proprietaire: string; honoraires: number; reserve: number; versement: number; solde_apres: number; coordonnees: boolean; note: string | null };
-type Lot = { id: string; date_versement: string; statut: string; envoye_le: string | null; fiducie_lot_lignes: { owner_id: string; montant: number; owners: { full_name: string } | null }[] };
+type Lot = { id: string; date_versement: string; statut: string; envoye_le: string | null; mode_envoi: 'fichier' | 'manuel' | null; fiducie_lot_honoraires: { montant: number }[];
+  fiducie_lot_lignes: { owner_id: string; montant: number; nom_compte: string; institution: string; transit: string; compte: string; owners: { full_name: string } | null }[] };
+type Attendue = { lot_id: string; date: string; quoi: string; montant: number; en_retard: boolean };
 type Calcul = { date_fin: string; solde_releve: number; total_registre: number; depots_non_attribues: number; sorties_en_transit: number; sorties_hors_registre: number; ecart: number; soldes_negatifs: number };
 type Rappr = Calcul & { id: string; verifie_par: string | null; verifie_le: string | null; created_at: string };
 
@@ -104,8 +106,10 @@ function Releve({ proprio, immeubles, faire, occupe, fermer }: { proprio: Solde;
   const charger = useCallback(async () => setR(await faire<{ ouverture: number; mouvements: Mvt[] }>({ action: 'fiducie_releve', owner_id: proprio.owner_id, debut: debut || null, fin: fin || null })), [faire, proprio.owner_id, debut, fin]);
   useEffect(() => { charger(); }, [charger]);
   let courant = Number(R?.ouverture ?? 0);
+  const [verif, setVerif] = useState<string | null>(null);
   async function coordonnees() {
-    const d = await faire<{ coordonnees: { versement_nom_compte: string | null; versement_institution: string | null; versement_transit: string | null; versement_compte: string | null } }>({ action: 'fiducie_coordonnees', owner_id: proprio.owner_id, lire: true });
+    const d = await faire<{ coordonnees: { versement_nom_compte: string | null; versement_institution: string | null; versement_transit: string | null; versement_compte: string | null; versement_modifie_le: string | null; versement_verifie_le: string | null; versement_verification_note: string | null } }>({ action: 'fiducie_coordonnees', owner_id: proprio.owner_id, lire: true });
+    if (d) setVerif(!d.coordonnees.versement_compte ? null : d.coordonnees.versement_verifie_le && (!d.coordonnees.versement_modifie_le || d.coordonnees.versement_verifie_le >= d.coordonnees.versement_modifie_le) ? `Vérifiées le ${jour(d.coordonnees.versement_verifie_le)} : ${d.coordonnees.versement_verification_note ?? ''}` : 'a_verifier');
     if (d) setCo({ nom_compte: d.coordonnees.versement_nom_compte ?? '', institution: d.coordonnees.versement_institution ?? '', transit: d.coordonnees.versement_transit ?? '', compte: d.coordonnees.versement_compte ?? '' });
   }
   return (
@@ -129,6 +133,11 @@ function Releve({ proprio, immeubles, faire, occupe, fermer }: { proprio: Solde;
             <div className="fenetre-actions"><button type="button" className="bouton bouton-contour" onClick={() => setM(null)}>Annuler</button><button className="bouton bouton-principal" disabled={occupe || !m.montant || !m.description.trim()}>Inscrire</button></div></form>}
           {co && <form className="carte-l18" style={{ marginBottom: 12 }} onSubmit={async (e) => { e.preventDefault(); if (await faire({ action: 'fiducie_coordonnees', owner_id: proprio.owner_id, ...co }, 'Coordonnées de versement enregistrées.')) setCo(null); }}>
             <h3 className="titre-carte" style={{ fontSize: 15 }}>Compte où verser le 15</h3>
+            {verif === 'a_verifier' ? <div className="bandeau erreur" role="status" style={{ marginBottom: 8 }}>À vérifier : aucun versement vers ce compte tant qu’un collègue n’a pas rappelé le propriétaire au numéro déjà au dossier (jamais celui du courriel qui demande le changement).
+              <button type="button" className="lien" style={{ marginLeft: 8 }} disabled={occupe} onClick={async () => { const note = prompt('Décrivez la vérification (numéro appelé, date, qui a confirmé) :', ''); if (!note) return;
+                if (await faire({ action: 'fiducie_coordonnees_verifier', owner_id: proprio.owner_id, note }, 'Coordonnées vérifiées : le propriétaire sera payé au prochain lot.')) coordonnees(); }}>J’ai fait le rappel : vérifier</button></div>
+              : verif ? <p className="gris texte-13" style={{ margin: '0 0 8px' }}>{verif}</p> : null}
+            <p className="gris texte-13" style={{ margin: '0 0 8px' }}>Toute modification remet la vérification à zéro.</p>
             <div className="po-deux"><label className="fenetre-lib">Nom du titulaire<input className="e70-raison" value={co.nom_compte} onChange={(e) => setCo({ ...co, nom_compte: e.target.value })} /></label>
               <label className="fenetre-lib">Institution (3 chiffres)<input className="e70-raison" inputMode="numeric" value={co.institution} onChange={(e) => setCo({ ...co, institution: e.target.value })} /></label>
               <label className="fenetre-lib">Transit (5 chiffres)<input className="e70-raison" inputMode="numeric" value={co.transit} onChange={(e) => setCo({ ...co, transit: e.target.value })} /></label>
@@ -188,6 +197,22 @@ function Depots({ faire, occupe }: { faire: Faire; occupe: boolean }) {
 }
 
 // ---------- 3. Versements du 15 ----------
+// Ce qui est parti du registre mais pas encore vu au relevé (rapproché tout seul à chaque import du relevé).
+function SortiesAttendues({ faire, version }: { faire: Faire; version: number }) {
+  const [A, setA] = useState<Attendue[] | null>(null);
+  useEffect(() => { faire<{ attendues: Attendue[] }>({ action: 'fiducie_sorties_attendues' }).then((d) => setA(d?.attendues ?? [])); }, [faire, version]);
+  if (!A || !A.length) return null;
+  return (
+    <section className="carte-l18" aria-label="Sorties attendues au relevé" style={{ marginTop: 16 }}>
+      <h2 className="titre-carte" style={{ marginBottom: 2 }}>Sorties attendues au relevé</h2>
+      <p className="gris texte-13" style={{ margin: '0 0 12px' }}>Envoyées depuis la plateforme, pas encore vues dans un relevé importé. Plus de 5 jours après la date : vérifiez dans le site de BMO.</p>
+      <table className="tableau"><thead><tr><th>Date</th><th>Quoi</th><th className="droite">Montant</th><th>État</th></tr></thead>
+        <tbody>{A.map((x, i) => <tr key={i}><td>{jour(x.date)}</td><td>{x.quoi}</td><td className="droite">{cents(x.montant)}</td>
+          <td><span className={`puce ${x.en_retard ? 'todo' : 'neutral'}`}>{x.en_retard ? 'À vérifier' : 'En attente du relevé'}</span></td></tr>)}</tbody></table>
+    </section>
+  );
+}
+
 function Versements({ faire, occupe }: { faire: Faire; occupe: boolean }) {
   const [date, setDate] = useState(prochain15()), [apercu, setApercu] = useState<{ total: number; nombre: number; lignes: LigneLot[] } | null>(null), [lots, setLots] = useState<Lot[] | null>(null);
   const charger = useCallback(async () => setLots((await faire<{ lots: Lot[] }>({ action: 'fiducie_lots' }))?.lots ?? []), [faire]);
@@ -201,7 +226,7 @@ function Versements({ faire, occupe }: { faire: Faire; occupe: boolean }) {
     <>
       <section className="carte-l18" aria-label="Préparer les versements">
         <h2 className="titre-carte" style={{ marginBottom: 2 }}>Préparer les versements</h2>
-        <p className="gris texte-13">Pour chaque propriétaire : solde − honoraires des factures émises − réserve = versement. Aucune avance; un propriétaire sans coordonnées est sauté. L’aperçu ne change rien.</p>
+        <p className="gris texte-13">Pour chaque propriétaire : solde − honoraires des factures émises − réserve = versement. Aucune avance; un propriétaire sans coordonnées, ou dont les coordonnées ne sont pas encore vérifiées par un collègue, est sauté. Les honoraires retenus partent avec le lot vers le compte d’exploitation. L’aperçu ne change rien.</p>
         <div className="ligne-ic" style={{ gap: 8 }}><input type="date" className="e70-raison" style={{ width: 170 }} value={date} onChange={(e) => { setDate(e.target.value); setApercu(null); }} />
           <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 16px' }} disabled={occupe || !date} onClick={async () => setApercu(await faire({ action: 'fiducie_lot_apercu', date }))}>Aperçu</button>
           {apercu && apercu.nombre > 0 && <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 16px' }} disabled={occupe} onClick={async () => {
@@ -212,14 +237,20 @@ function Versements({ faire, occupe }: { faire: Faire; occupe: boolean }) {
             <td className="droite">{cents(l.honoraires)}</td><td className="droite">{cents(l.reserve)}</td><td className="droite fort">{cents(l.versement)}</td><td className="droite">{cents(l.solde_apres)}</td><td className="gris texte-13">{l.note ?? ''}</td></tr>)}
             <tr><td className="fort">Total · {apercu.nombre} versement(s)</td><td colSpan={2} /><td className="droite fort">{cents(apercu.total)}</td><td colSpan={2} /></tr></tbody></table>}
       </section>
+      <SortiesAttendues faire={faire} version={lots?.length ?? 0} />
       <section className="carte-l18" aria-label="Lots" style={{ marginTop: 16 }}>
         <h2 className="titre-carte">Lots</h2>
         {!lots ? <p className="gris">Chargement…</p> : <table className="tableau"><thead><tr><th>Date</th><th>État</th><th className="droite">Total</th><th>Propriétaires</th><th /></tr></thead>
-          <tbody>{lots.map((l) => { const [lib, ton] = LOT[l.statut] ?? [l.statut, 'neutral']; const total = l.fiducie_lot_lignes.reduce((t, x) => t + Number(x.montant), 0);
+          <tbody>{lots.map((l) => { const [lib, ton] = LOT[l.statut] ?? [l.statut, 'neutral']; const hon = (l.fiducie_lot_honoraires ?? []).reduce((t, x) => t + Number(x.montant), 0); const total = l.fiducie_lot_lignes.reduce((t, x) => t + Number(x.montant), 0);
             return <tr key={l.id}><td className="fort">{jour(l.date_versement)}</td><td><span className={`puce ${ton}`}>{lib}</span>{l.envoye_le && <span className="sous gris">le {jour(l.envoye_le)}</span>}</td>
-              <td className="droite fort">{cents(total)}</td><td className="texte-13">{l.fiducie_lot_lignes.map((x) => `${x.owners?.full_name ?? '—'} ${cents(x.montant)}`).join(' · ')}</td>
-              <td className="droite" style={{ whiteSpace: 'nowrap' }}>{l.statut !== 'annule' && <button className="lien" disabled={occupe} onClick={() => fichier(l.id)}>Fichier BMO</button>}
-                {l.statut === 'prepare' && <><button className="lien" style={{ marginLeft: 12 }} disabled={occupe} onClick={async () => { if (await faire({ action: 'fiducie_lot_envoye', lot_id: l.id }, 'Lot marqué envoyé.')) charger(); }}>Marquer envoyé</button>
+              <td className="droite fort">{cents(total + hon)}{hon > 0 && <span className="sous gris">dont {cents(hon)} d’honoraires vers le compte d’exploitation</span>}</td><td className="texte-13">{l.fiducie_lot_lignes.map((x) => `${x.owners?.full_name ?? '—'} ${cents(x.montant)}`).join(' · ')}{l.mode_envoi && <span className="sous gris">{l.mode_envoi === 'fichier' ? 'Envoi par fichier' : 'Envoi à la main'}</span>}</td>
+              <td className="droite" style={{ whiteSpace: 'nowrap' }}>{l.statut !== 'annule' && l.mode_envoi !== 'manuel' && <button className="lien" disabled={occupe} onClick={async () => { await fichier(l.id); charger(); }}>Fichier BMO</button>}
+                {l.statut === 'prepare' && l.mode_envoi === 'fichier' && <button className="lien" style={{ marginLeft: 12 }} disabled={occupe} onClick={async () => { if (!confirm('Le fichier a bien été déposé et accepté par BMO ?')) return; if (await faire({ action: 'fiducie_lot_envoye', lot_id: l.id, mode: 'fichier' }, 'Lot marqué envoyé par fichier.')) charger(); }}>Envoyé par fichier</button>}
+                {l.statut === 'prepare' && l.mode_envoi !== 'fichier' && <button className="lien" style={{ marginLeft: 12 }} disabled={occupe} onClick={async () => {
+                  const liste = l.fiducie_lot_lignes.map((x) => `• ${x.nom_compte} : ${cents(x.montant)} (inst. ${x.institution}, transit ${x.transit}, compte …${String(x.compte).slice(-3)})`).join('\n') + (hon > 0 ? `\n• Honoraires LeaseLane : ${cents(hon)} vers le compte d’exploitation` : '');
+                  if (!confirm(`Virements faits à la main dans le site de BMO, depuis le compte en fidéicommis :\n${liste}\n\nTous faits ? Le lot ne pourra plus être envoyé par fichier.`)) return;
+                  if (await faire({ action: 'fiducie_lot_envoye', lot_id: l.id, mode: 'manuel' }, 'Lot marqué envoyé à la main.')) charger(); }}>Fait à la main…</button>}
+                {l.statut === 'prepare' && <>
                   <button className="lien" style={{ marginLeft: 12, color: '#9B2E28' }} disabled={occupe} onClick={async () => { if (!confirm('Annuler ce lot ? Les versements sont retirés du registre (écritures inverses).')) return;
                     if (await faire({ action: 'fiducie_lot_annuler', lot_id: l.id }, 'Lot annulé.')) charger(); }}>Annuler</button></>}</td></tr>; })}
             {!lots.length && <tr><td colSpan={5} className="gris">Aucun lot.</td></tr>}</tbody></table>}
