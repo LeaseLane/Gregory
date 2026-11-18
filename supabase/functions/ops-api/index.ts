@@ -515,6 +515,52 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── Sommes en attente et dépôts qui ne sont pas un loyer (revue du 18 nov. 2026) ──
+    const uuid = (x: unknown) => typeof x === "string" && /^[0-9a-f-]{36}$/i.test(x);
+    const rpcAttente = async (nom: string, args: Record<string, unknown>) => {
+      const r = await fetch(`${supabaseUrl}/rest/v1/rpc/${nom}`, { method: "POST", headers: adminHeaders, body: JSON.stringify(args) });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data?.message || "Opération refusée");
+      return data;
+    };
+    const repondre = async (fn: () => Promise<unknown>, audit: string, cible: string | null, detail: Record<string, unknown>) => {
+      try {
+        const r = await fn();
+        await logAudit(audit, "bank_transactions", cible, detail);
+        return new Response(JSON.stringify({ ok: true, resultat: r }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (e) { return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders }); }
+    };
+    if (action === "fiducie_repartir") {
+      const { transaction_id, parts } = body;
+      if (!uuid(transaction_id) || !Array.isArray(parts) || !parts.length || parts.length > 20) return new Response(JSON.stringify({ error: "Répartition invalide" }), { status: 400, headers: corsHeaders });
+      return repondre(() => rpcAttente("fiducie_repartir_depot", { p_transaction: transaction_id, p_parts: parts, p_par: userId }), "fiducie.depot_reparti", transaction_id, { parts });
+    }
+    if (action === "fiducie_decider") {
+      const { attente_id, decision, note } = body;
+      if (!uuid(attente_id) || !["loyer", "proprietaire", "a_rembourser"].includes(decision)) return new Response(JSON.stringify({ error: "Décision invalide" }), { status: 400, headers: corsHeaders });
+      return repondre(() => rpcAttente("fiducie_decider_attente", { p_attente: attente_id, p_decision: decision, p_par: userId, p_note: typeof note === "string" ? note.slice(0, 300) : null }), "fiducie.attente_decidee", null, { attente_id, decision });
+    }
+    if (action === "fiducie_lier_remboursement") {
+      const { attente_id, sortie_id } = body;
+      if (!uuid(attente_id) || !uuid(sortie_id)) return new Response(JSON.stringify({ error: "Remboursement invalide" }), { status: 400, headers: corsHeaders });
+      return repondre(() => rpcAttente("fiducie_lier_remboursement", { p_attente: attente_id, p_sortie: sortie_id, p_par: userId }), "fiducie.remboursement_relie", sortie_id, { attente_id });
+    }
+    if (action === "fiducie_retour_versement") {
+      const { transaction_id, ligne_id } = body;
+      if (!uuid(transaction_id) || !uuid(ligne_id)) return new Response(JSON.stringify({ error: "Retour invalide" }), { status: 400, headers: corsHeaders });
+      return repondre(() => rpcAttente("fiducie_retour_versement", { p_transaction: transaction_id, p_ligne: ligne_id, p_par: userId }), "fiducie.versement_retourne", transaction_id, { ligne_id });
+    }
+    if (action === "fiducie_attentes") {
+      const lire = (q: string) => fetch(`${supabaseUrl}/rest/v1/${q}`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+      const [attentes, sorties, lignes, proprios] = await Promise.all([
+        lire("fiducie_attentes?statut=in.(en_attente,a_rembourser)&select=id,montant,motif,statut,note,created_at,bank_transactions!fiducie_attentes_transaction_id_fkey(transaction_date,description),leases(tenants!leases_tenant_id_fkey(full_name),units(unit_number,reference_paiement)),owners(full_name)&order=created_at"),
+        lire("bank_transactions?compte=eq.fiducie&amount=lt.0&match_status=in.(unmatched,ignored)&select=id,transaction_date,description,amount&order=transaction_date.desc&limit=200"),
+        lire("fiducie_lot_lignes?select=id,montant,owner_id,owners(full_name),fiducie_lots!inner(date_versement,statut)&fiducie_lots.statut=eq.envoye&order=id.desc&limit=200"),
+        lire("owners?select=id,full_name&order=full_name&limit=1000"),
+      ]);
+      return new Response(JSON.stringify({ attentes, sorties, lignes, proprietaires: proprios }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "fiducie_ignorer") {
       const { transaction_id, ignorer, note } = body;
       if (typeof transaction_id !== "string" || !/^[0-9a-f-]{36}$/i.test(transaction_id)) return new Response(JSON.stringify({ error: "Dépôt invalide" }), { status: 400, headers: corsHeaders });

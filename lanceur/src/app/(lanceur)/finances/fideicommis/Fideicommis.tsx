@@ -1,9 +1,10 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
 import { argent, jour } from '../onglets';
 import { ImportReleve } from './ImportReleve';
+import { Attentes, Repartir } from './Attentes';
 
 /* Compte en fidéicommis (BMO) : un seul compte, un registre par propriétaire.
    1. Soldes : solde, réserve (1 000 $ par immeuble par défaut), disponible; relevé, mouvement manuel, coordonnées de versement, réserves.
@@ -153,6 +154,7 @@ function Releve({ proprio, immeubles, faire, occupe, fermer }: { proprio: Solde;
 
 // ---------- 2. Dépôts du compte (relevé BMO importé) ----------
 function Depots({ faire, occupe }: { faire: Faire; occupe: boolean }) {
+  const [deplie, setDeplie] = useState<string | null>(null), [version, setVersion] = useState(0);
   const [D, setD] = useState<{ depots: Depot[]; baux: BailF[] } | null>(null), [choix, setChoix] = useState<Record<string, string>>({}), [tous, setTous] = useState(false);
   const charger = useCallback(async () => setD(await faire<{ depots: Depot[]; baux: BailF[] }>({ action: 'fiducie_depots' })), [faire]);
   useEffect(() => { charger(); }, [charger]);
@@ -166,18 +168,21 @@ function Depots({ faire, occupe }: { faire: Faire; occupe: boolean }) {
           <ImportReleve faire={faire} occupe={occupe} fini={charger} /></span></div>
       <table className="tableau" style={{ marginTop: 12 }}><thead><tr><th>Date</th><th>Description</th><th className="droite">Montant</th><th>État</th><th>Bail</th><th /></tr></thead>
         <tbody>{liste.map((d) => { const [lib, ton] = DEPOT[d.match_status] ?? [d.match_status, 'neutral']; const l = d.leases; const ouvert = ['unmatched', 'suggested'].includes(d.match_status);
-          return <tr key={d.id}><td>{jour(d.transaction_date)}</td><td>{d.description}{d.ai_suggestion_note && <span className="sous gris">{d.ai_suggestion_note}</span>}</td>
+          return <Fragment key={d.id}><tr><td>{jour(d.transaction_date)}</td><td>{d.description}{d.ai_suggestion_note && <span className="sous gris">{d.ai_suggestion_note}</span>}</td>
             <td className="droite fort" style={{ color: d.amount < 0 ? '#9B2E28' : undefined }}>{cents(d.amount)}</td><td><span className={`puce ${ton}`}>{lib}</span></td>
             <td>{l ? <>{l.tenants?.full_name ?? '—'}<span className="sous gris">{[l.units?.buildings?.address, l.units?.unit_number, l.units?.buildings?.owners?.full_name].filter(Boolean).join(' · ')}</span></>
               : ouvert ? <select className="e70-raison" style={{ minWidth: 220 }} value={choix[d.id] ?? ''} onChange={(e) => setChoix({ ...choix, [d.id]: e.target.value })}><option value="">Choisir le bail…</option>
                 {D.baux.map((b) => <option key={b.lease_id} value={b.lease_id}>{b.reference} · {b.locataire} · {cents(b.loyer)}</option>)}</select> : '—'}</td>
             <td className="droite" style={{ whiteSpace: 'nowrap' }}>{ouvert && d.amount > 0 && <button className="lien" disabled={occupe || !(choix[d.id] || d.lease_id)} onClick={async () => {
-                const r = await faire<{ excedent?: number }>({ action: 'fiducie_assigner', transaction_id: d.id, lease_id: choix[d.id] || d.lease_id }, (x) => (x.excedent ?? 0) > 0 ? `Rapproché. Excédent de ${cents(x.excedent)} gardé au registre du propriétaire.` : 'Rapproché : loyer payé et registre crédité.');
-                if (r) charger(); }}>{d.match_status === 'suggested' && !choix[d.id] ? 'Confirmer' : 'Rapprocher'}</button>}
+                const r = await faire<{ excedent?: number }>({ action: 'fiducie_assigner', transaction_id: d.id, lease_id: choix[d.id] || d.lease_id }, (x) => (x.excedent ?? 0) > 0 ? `Rapproché. Excédent de ${cents(x.excedent)} en attente de décision (plus bas).` : 'Rapproché : loyer payé et registre crédité.');
+                if (r) { setVersion((v) => v + 1); charger(); } }}>{d.match_status === 'suggested' && !choix[d.id] ? 'Confirmer' : 'Rapprocher'}</button>}
+              {ouvert && d.amount > 0 && <button className="lien" style={{ marginLeft: 12 }} aria-expanded={deplie === d.id} onClick={() => setDeplie(deplie === d.id ? null : d.id)}>Répartir…</button>}
               {ouvert && <button className="lien" style={{ marginLeft: 12, color: '#9B2E28' }} disabled={occupe} onClick={async () => { const note = prompt('Ignorer ce dépôt ? Il ne sera crédité à aucun propriétaire. Raison :', 'Pas un loyer'); if (note === null) return;
                 if (await faire({ action: 'fiducie_ignorer', transaction_id: d.id, ignorer: true, note }, 'Dépôt ignoré.')) charger(); }}>Ignorer</button>}
-              {d.match_status === 'ignored' && d.amount > 0 && <button className="lien" disabled={occupe} onClick={async () => { if (await faire({ action: 'fiducie_ignorer', transaction_id: d.id, ignorer: false }, 'Dépôt rétabli.')) charger(); }}>Rétablir</button>}</td></tr>; })}
+              {d.match_status === 'ignored' && d.amount > 0 && <button className="lien" disabled={occupe} onClick={async () => { if (await faire({ action: 'fiducie_ignorer', transaction_id: d.id, ignorer: false }, 'Dépôt rétabli.')) charger(); }}>Rétablir</button>}</td></tr>
+            {deplie === d.id && <tr><td colSpan={6}><Repartir depot={d} baux={D.baux} faire={faire} occupe={occupe} fini={() => { setDeplie(null); setVersion((v) => v + 1); charger(); }} /></td></tr>}</Fragment>; })}
           {!liste.length && <tr><td colSpan={6} className="gris">{tous ? 'Aucun dépôt importé.' : 'Rien à rapprocher.'}</td></tr>}</tbody></table>
+      <Attentes faire={faire} occupe={occupe} version={version} />
     </section>
   );
 }
