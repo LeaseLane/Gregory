@@ -6,6 +6,7 @@ import { aLeDroit, corsHeadersFor, requireUserWithMfa } from "../_shared/auth.ts
 import { montantSigne } from "../_shared/fiducie.ts";
 import { fichierCpa005 } from "../_shared/cpa005.ts";
 import { classer, type Bail } from "../_shared/rapprochement-fiducie.ts";
+import { numeroter, verifierContinuite, type LigneReleve } from "../_shared/releve-fiducie.ts";
 import { enTetesAppelInterne } from "../_shared/appel-interne.ts";
 import { notifierEquipe } from "../_shared/inscription.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
@@ -433,40 +434,58 @@ Deno.serve(async (req) => {
     };
 
     if (action === "fiducie_importer") {
-      const rows = Array.isArray(body.rows) ? body.rows.slice(0, 2000) : [];
-      if (!rows.length) return new Response(JSON.stringify({ error: "Aucune ligne à importer" }), { status: 400, headers: corsHeaders });
-      const existants = new Set(((await fetch(`${supabaseUrl}/rest/v1/bank_transactions?compte=eq.fiducie&select=external_id`, { headers: adminHeaders }).then((r) => r.json()).catch(() => [])) as { external_id: string }[]).map((x) => x.external_id));
-      const baux = await bauxFiducie();
-      const bilan = { importes: 0, doublons: 0, auto: 0, suggestions: 0, a_traiter: 0, sorties: 0, erreurs: [] as string[] };
-      for (const row of rows) {
-        const montant = Math.round(Number(row.amount) * 100) / 100;
+      // Relevé BMO (revue du 18 nov. 2026) : identifiant stable par ligne (lignes identiques d'une même journée comptées), soldes
+      // qui s'enchaînent avec le précédent import, et essai à blanc (p.essai) qui rend exactement ce que l'import fera.
+      const brutes = Array.isArray(body.rows) ? body.rows.slice(0, 2000) : [];
+      if (!brutes.length) return new Response(JSON.stringify({ error: "Aucune ligne à importer" }), { status: 400, headers: corsHeaders });
+      const essai = body.essai === true;
+      const erreurs: string[] = [];
+      const lisibles: LigneReleve[] = [];
+      for (const row of brutes) {
+        const amount = Math.round(Number(row.amount) * 100) / 100;
         const date = String(row.date || "").slice(0, 10);
         const description = String(row.description || "").slice(0, 300);
-        if (!Number.isFinite(montant) || !montant || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { bilan.erreurs.push(`Ligne illisible : ${date} ${description}`); continue; }
-        const externe = String(row.reference || `csv:${date}|${montant}|${description}`).slice(0, 300);
-        if (existants.has(externe)) { bilan.doublons++; continue; }
-        existants.add(externe);
-        const c = montant > 0 ? classer({ description, amount: montant }, baux) : null;
+        const solde = row.solde === undefined || row.solde === null || row.solde === "" ? null : Math.round(Number(row.solde) * 100) / 100;
+        if (!Number.isFinite(amount) || !amount || !/^\d{4}-\d{2}-\d{2}$/.test(date) || (solde !== null && !Number.isFinite(solde))) { erreurs.push(`Ligne illisible : ${date} ${description}`); continue; }
+        lisibles.push({ date, description, amount, solde, reference: row.reference ? String(row.reference).slice(0, 200) : undefined });
+      }
+      if (erreurs.length) return new Response(JSON.stringify({ error: `${erreurs.length} ligne(s) illisible(s) : vérifiez les colonnes choisies (première : ${erreurs[0]}).` }), { status: 400, headers: corsHeaders });
+      const lignes = numeroter(lisibles);
+      const existants = new Set(((await fetch(`${supabaseUrl}/rest/v1/bank_transactions?compte=eq.fiducie&select=external_id`, { headers: adminHeaders }).then((r) => r.json()).catch(() => [])) as { external_id: string }[]).map((x) => x.external_id));
+      const nouvelles = new Set(lignes.filter((x) => !existants.has(x.externe)).map((x) => x.externe));
+      const dernier = ((await fetch(`${supabaseUrl}/rest/v1/bank_transactions?compte=eq.fiducie&solde=not.is.null&select=solde,transaction_date&order=transaction_date.desc,ordre.desc,created_at.desc&limit=1`, { headers: adminHeaders }).then((r) => r.json()).catch(() => [])) as { solde: number }[])[0];
+      const refus = verifierContinuite(lignes, nouvelles, dernier ? Number(dernier.solde) : null);
+      if (refus) return new Response(JSON.stringify({ error: refus }), { status: 409, headers: corsHeaders });
+      const baux = await bauxFiducie();
+      const bilan = { essai, importes: 0, doublons: 0, auto: 0, suggestions: 0, a_traiter: 0, sorties: 0, erreurs: [] as string[], apercu: [] as Record<string, unknown>[] };
+      for (const x of lignes) {
+        if (!nouvelles.has(x.externe)) { bilan.doublons++; continue; }
+        const c = x.amount > 0 ? classer({ description: x.description, amount: x.amount }, baux) : null;
+        const sort = x.amount < 0 ? "sortie" : c?.type === "auto" ? "automatique" : c?.type === "suggestion" ? "à confirmer" : "à attribuer";
+        if (bilan.apercu.length < 200) bilan.apercu.push({ date: x.date, description: x.description, montant: x.amount, sort, raison: c && "raison" in c ? c.raison : null });
+        if (essai) { bilan.importes++; if (x.amount < 0) bilan.sorties++; else if (c?.type === "auto") bilan.auto++; else if (c?.type === "suggestion") bilan.suggestions++; else bilan.a_traiter++; continue; }
         const ins = await fetch(`${supabaseUrl}/rest/v1/bank_transactions`, {
           method: "POST", headers: { ...adminHeaders, Prefer: "return=representation" },
           body: JSON.stringify({
-            compte: "fiducie", transaction_date: date, description, amount: montant, external_id: externe,
-            match_status: montant < 0 ? "ignored" : c?.type === "suggestion" ? "suggested" : "unmatched",
+            compte: "fiducie", transaction_date: x.date, description: x.description, amount: x.amount, external_id: x.externe, solde: x.solde ?? null, ordre: x.ordre,
+            match_status: x.amount < 0 ? "ignored" : c?.type === "suggestion" ? "suggested" : "unmatched",
             lease_id: c?.type === "suggestion" ? c.lease_id : null,
             reference_detectee: c && "reference" in c ? c.reference ?? null : null,
-            ai_suggestion_note: montant < 0 ? "Sortie du compte (versement, fournisseur ou frais) : vérifiée au rapprochement mensuel" : c && "raison" in c ? c.raison : null,
+            ai_suggestion_note: x.amount < 0 ? "Sortie du compte (versement, fournisseur ou frais) : vérifiée au rapprochement mensuel" : c && "raison" in c ? c.raison : null,
           }),
         });
-        if (!ins.ok) { bilan.erreurs.push(`Non importée : ${date} ${description}`); continue; }
+        // l'index unique sur l'identifiant garde un import concurrent du même relevé : la ligne déjà là compte comme doublon
+        if (ins.status === 409) { bilan.doublons++; continue; }
+        if (!ins.ok) { bilan.erreurs.push(`Non importée : ${x.date} ${x.description}`); continue; }
         const [tx] = await ins.json();
         bilan.importes++;
-        if (montant < 0) { bilan.sorties++; continue; }
+        if (x.amount < 0) { bilan.sorties++; continue; }
         if (c?.type === "auto") {
-          try { await appliquerDepot(tx.id, c.lease_id); bilan.auto++; } catch (e) { bilan.a_traiter++; bilan.erreurs.push(`${description} : ${(e as Error).message}`); }
+          try { await appliquerDepot(tx.id, c.lease_id); bilan.auto++; } catch (e) { bilan.a_traiter++; bilan.erreurs.push(`${x.description} : ${(e as Error).message}`); }
         } else if (c?.type === "suggestion") bilan.suggestions++;
         else bilan.a_traiter++;
       }
-      await logAudit("fiducie.import", "bank_transactions", null, { ...bilan, erreurs: bilan.erreurs.length });
+      if (!essai) await logAudit("fiducie.import", "bank_transactions", null, { ...bilan, apercu: undefined, erreurs: bilan.erreurs.length });
       return new Response(JSON.stringify({ ok: true, ...bilan }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

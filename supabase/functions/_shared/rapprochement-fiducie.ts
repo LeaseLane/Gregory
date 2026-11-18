@@ -1,5 +1,7 @@
 // Rapprochement d'un dépôt du compte en fidéicommis avec un bail.
-//   auto       : la référence LL-xxxxx du message désigne un logement avec bail actif.
+//   auto       : la référence LL-xxxxx du message désigne un logement avec bail actif, ET le nom du locataire ou le montant
+//                (loyer, ou un solde dû) concorde. Une référence seule ne suffit plus (revue du 18 nov. 2026 : une coquille
+//                LL-10021 au lieu de LL-10012, ou l'ancien locataire du logement, créditerait le mauvais propriétaire).
 //   suggestion : pas de référence, mais un seul bail correspond au montant ET au nom
 //                du locataire dans le libellé. L'admin confirme; jamais appliqué seul.
 //   aucun      : l'admin choisit le bail à la main (ou ignore le dépôt).
@@ -22,7 +24,11 @@ export function classer(depot: { description: string; amount: number }, baux: Ba
   const ref = extraireReference(depot.description);
   if (ref) {
     const b = baux.find((x) => x.reference === ref);
-    return b ? { type: "auto", lease_id: b.lease_id, reference: ref } : { type: "aucun", reference: ref, raison: `Référence ${ref} : aucun bail actif pour ce logement` };
+    if (!b) return { type: "aucun", reference: ref, raison: `Référence ${ref} : aucun bail actif pour ce logement` };
+    const cents = Math.round(depot.amount * 100);
+    const montantOk = Math.round(b.loyer * 100) === cents || b.du_ouvert.some((d) => Math.round(d * 100) === cents);
+    if (nomPresent(b.locataire, depot.description) || montantOk) return { type: "auto", lease_id: b.lease_id, reference: ref };
+    return { type: "suggestion", lease_id: b.lease_id, raison: `Référence ${ref}, mais ni le nom (${b.locataire}) ni le montant ne correspondent : à confirmer` };
   }
   const montant = Math.round(depot.amount * 100);
   const candidats = baux.filter((b) =>

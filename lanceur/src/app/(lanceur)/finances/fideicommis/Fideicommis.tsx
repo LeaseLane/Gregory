@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
 import { argent, jour } from '../onglets';
+import { ImportReleve } from './ImportReleve';
 
 /* Compte en fidéicommis (BMO) : un seul compte, un registre par propriétaire.
    1. Soldes : solde, réserve (1 000 $ par immeuble par défaut), disponible; relevé, mouvement manuel, coordonnées de versement, réserves.
@@ -37,21 +38,6 @@ async function ops<T>(corps: Record<string, unknown>): Promise<T> {
   if (!r.ok || d?.error) throw new Error(d?.error ?? `Erreur ${r.status}`);
   return d as T;
 }
-// Relevé CSV de la banque : date (AAAA-MM-JJ), description, montant (+ dépôt, − sortie), référence facultative. Même lecture que l'ancien admin.
-function lireCsv(texte: string) {
-  const lignes: string[][] = []; let ligne: string[] = [], champ = '', guillemets = false;
-  for (let i = 0; i < texte.length; i++) {
-    const c = texte[i], n = texte[i + 1];
-    if (guillemets) { if (c === '"' && n === '"') { champ += '"'; i++; } else if (c === '"') guillemets = false; else champ += c; continue; }
-    if (c === '"') guillemets = true; else if (c === ',') { ligne.push(champ); champ = ''; }
-    else if (c === '\n' || c === '\r') { if (c === '\r' && n === '\n') i++; ligne.push(champ); champ = ''; if (ligne.some((f) => f.trim())) lignes.push(ligne); ligne = []; }
-    else champ += c;
-  }
-  if (champ || ligne.length) { ligne.push(champ); if (ligne.some((f) => f.trim())) lignes.push(ligne); }
-  return lignes.map((c) => ({ date: (c[0] ?? '').trim(), description: (c[1] ?? '').trim(), amount: String(c[2] ?? '').trim().replace(/\s/g, '').replace(',', '.'), reference: (c[3] ?? '').trim() || undefined }))
-    .filter((r) => /^\d{4}-\d{2}-\d{2}/.test(r.date) && r.amount && !isNaN(Number(r.amount)));
-}
-
 export function Fideicommis({ vue }: { vue: string }) {
   const [bandeau, setBandeau] = useState<string | null>(null), [ok, setOk] = useState<string | null>(null), [occupe, setOccupe] = useState(false);
   // Stable d'un rendu à l'autre : les chargements des sections en dépendent (sinon ils se relanceraient en boucle).
@@ -170,22 +156,14 @@ function Depots({ faire, occupe }: { faire: Faire; occupe: boolean }) {
   const [D, setD] = useState<{ depots: Depot[]; baux: BailF[] } | null>(null), [choix, setChoix] = useState<Record<string, string>>({}), [tous, setTous] = useState(false);
   const charger = useCallback(async () => setD(await faire<{ depots: Depot[]; baux: BailF[] }>({ action: 'fiducie_depots' })), [faire]);
   useEffect(() => { charger(); }, [charger]);
-  async function importer(f: File) {
-    const rows = lireCsv(await f.text());
-    if (!rows.length) return faire({ action: 'fiducie_importer', rows: [] });
-    const r = await faire<{ importes: number; auto: number; suggestions: number; a_traiter: number; sorties: number; doublons: number; erreurs: string[] }>({ action: 'fiducie_importer', rows },
-      (b) => `${b.importes} ligne(s) importée(s) : ${b.auto} rapprochée(s) automatiquement, ${b.suggestions} à confirmer, ${b.a_traiter} à rapprocher, ${b.sorties} sortie(s)${b.doublons ? `, ${b.doublons} déjà importée(s)` : ''}${b.erreurs.length ? `. ${b.erreurs.length} erreur(s) : ${b.erreurs.slice(0, 3).join(' · ')}` : '.'}`);
-    if (r) charger();
-  }
   if (!D) return <p className="gris">Chargement…</p>;
   const ouverts = D.depots.filter((d) => ['unmatched', 'suggested'].includes(d.match_status)), liste = tous ? D.depots : ouverts;
   return (
     <section className="carte-l18" aria-label="Dépôts du compte">
       <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Dépôts du compte en fidéicommis</h2>
-        <p className="gris texte-13" style={{ margin: 0 }}>{ouverts.length} à rapprocher · relevé BMO en CSV : date (AAAA-MM-JJ), description, montant, référence facultative. Un dépôt avec la référence du logement se rapproche seul.</p></div>
+        <p className="gris texte-13" style={{ margin: 0 }}>{ouverts.length} à rapprocher · relevé BMO (CSV ou Excel) : chaque import doit suivre le précédent. Un dépôt avec la référence du logement et le nom du locataire ou le bon montant se rapproche seul.</p></div>
         <span className="ligne-ic"><label className="case texte-13"><input type="checkbox" checked={tous} onChange={(e) => setTous(e.target.checked)} />Tout l’historique</label>
-          <label className="bouton bouton-principal" style={{ width: 'auto', height: 36, padding: '0 14px', fontSize: 13, cursor: 'pointer' }}><Icone nom="upload" taille={16} couleur="#fff" />Importer le relevé
-            <input type="file" hidden accept=".csv,text/csv" disabled={occupe} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) importer(f); }} /></label></span></div>
+          <ImportReleve faire={faire} occupe={occupe} fini={charger} /></span></div>
       <table className="tableau" style={{ marginTop: 12 }}><thead><tr><th>Date</th><th>Description</th><th className="droite">Montant</th><th>État</th><th>Bail</th><th /></tr></thead>
         <tbody>{liste.map((d) => { const [lib, ton] = DEPOT[d.match_status] ?? [d.match_status, 'neutral']; const l = d.leases; const ouvert = ['unmatched', 'suggested'].includes(d.match_status);
           return <tr key={d.id}><td>{jour(d.transaction_date)}</td><td>{d.description}{d.ai_suggestion_note && <span className="sous gris">{d.ai_suggestion_note}</span>}</td>
