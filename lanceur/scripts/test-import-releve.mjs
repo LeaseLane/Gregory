@@ -8,7 +8,7 @@ import { connecter } from './connexion-role.mjs';
 const BASE = 'http://localhost:3020', D = process.argv[2] ?? `${process.env.HOME}/leaselane-qa/paiements`;
 const nav = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, defaultViewport: { width: 1440, height: 1100 } });
 let echecs = 0; const verifier = (ok, quoi) => { console.log(`${ok ? 'ok  ' : 'ÉCHEC'} ${quoi}`); if (!ok) echecs++; };
-const clic = (p, t) => p.evaluate((t) => [...document.querySelectorAll('button')].find((b) => b.textContent.trim().startsWith(t) && !b.disabled)?.click(), t);
+const clic = async (p, t) => { await p.waitForFunction((t) => [...document.querySelectorAll('button')].some((b) => b.textContent.trim().startsWith(t) && !b.disabled), { timeout: 30000 }, t); return p.evaluate((t) => [...document.querySelectorAll('button')].find((b) => b.textContent.trim().startsWith(t) && !b.disabled)?.click(), t); };
 const texte = (p) => p.evaluate(() => document.body.innerText);
 const att = (ms) => new Promise((r) => setTimeout(r, ms));
 async function charger(p, fichier) {

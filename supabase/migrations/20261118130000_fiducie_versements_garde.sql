@@ -7,7 +7,7 @@
 -- 4. Coordonnées bancaires : toute saisie ou modification doit être vérifiée par une AUTRE personne (rappel au numéro au dossier)
 --    avant qu'un versement parte vers ce compte.
 
-alter table public.fiducie_lots add column if not exists mode_envoi text check (mode_envoi in ('fichier', 'manuel'));
+alter table public.fiducie_lots add column if not exists mode_envoi text check (mode_envoi in ('fichier', 'manuel')), add column if not exists envoye_par uuid references auth.users(id);
 alter table public.company_settings add column if not exists exploitation_institution text, add column if not exists exploitation_transit text,
   add column if not exists exploitation_compte text, add column if not exists exploitation_nom text;
 comment on column public.company_settings.exploitation_compte is 'Compte d''exploitation de LeaseLane (honoraires), à ne jamais confondre avec le compte en fidéicommis.';
@@ -37,10 +37,12 @@ declare lot record;
 begin
   select * into lot from fiducie_lots where id = p_lot for update;
   if lot is null or lot.statut = 'annule' then raise exception 'Lot introuvable ou annulé'; end if;
-  if lot.statut = 'prepare' then
+  -- une seule fois, avant tout envoi (revue de code : un fichier retéléchargé aurait rattaché des honoraires jamais transférés);
+  -- honoraires des factures seulement (une écriture manuelle d'honoraires peut déjà avoir été transférée à la main)
+  if lot.statut = 'prepare' and lot.mode_envoi is null then
     insert into fiducie_lot_honoraires (lot_id, mouvement_id, montant)
     select p_lot, m.id, -m.montant from fiducie_mouvements m
-     where m.type in ('honoraires', 'coordination') and m.montant < 0 and m.date_valeur <= lot.date_versement
+     where m.type in ('honoraires', 'coordination') and m.montant < 0 and m.source_type = 'invoice' and m.date_valeur <= lot.date_versement
        and not exists (select 1 from fiducie_lot_honoraires h join fiducie_lots l on l.id = h.lot_id where h.mouvement_id = m.id and l.statut <> 'annule')
     on conflict (mouvement_id) do nothing;
   end if;
@@ -66,35 +68,48 @@ begin
   perform fiducie_lot_mode(p_lot, p_mode);
   select * into lot from fiducie_lots where id = p_lot for update;
   if lot.statut <> 'prepare' then raise exception 'Seul un lot préparé peut être marqué envoyé'; end if;
-  update fiducie_lots set statut = 'envoye', envoye_le = now() where id = p_lot;
+  update fiducie_lots set statut = 'envoye', envoye_le = now(), envoye_par = p_par where id = p_lot;
 end $$;
 
 -- Sorties du relevé ↔ versements envoyés. Sans ambiguïté seulement (un seul candidat); le reste attend une personne.
 create or replace function public.fiducie_rapprocher_sorties() returns jsonb language plpgsql security definer set search_path to 'public' as $$
-declare s record; n int := 0; c int; v_lot uuid; v_ligne uuid;
+-- Une sortie se rapproche seulement si UN SEUL versement attendu, toutes catégories confondues, a ce montant dans la fenêtre de dates
+-- (revue de code : un chèque de fournisseur du même montant qu'un versement le masquait). Une sortie déjà décidée par une personne
+-- (reconciled_by) n'est pas touchée. Sinon elle reste à regarder.
+declare s record; n int := 0; c record;
 begin
-  for s in select * from bank_transactions where compte = 'fiducie' and amount < 0 and match_status in ('unmatched', 'ignored')
+  for s in select * from bank_transactions where compte = 'fiducie' and amount < 0 and match_status in ('unmatched', 'ignored') and reconciled_by is null
              and fiducie_lot_id is null and not exists (select 1 from fiducie_attentes a where a.sortie_id = bank_transactions.id) order by transaction_date for update loop
-    -- a. débit global d'un fichier : versements + honoraires du lot
-    select count(*), min(l.id::text)::uuid into c, v_lot from fiducie_lots l
-     where l.statut = 'envoye' and l.mode_envoi = 'fichier' and s.transaction_date between l.date_versement - 5 and l.date_versement + 10
-       and not exists (select 1 from bank_transactions b where b.fiducie_lot_id = l.id and b.fiducie_lot_ligne_id is null)
-       and round(-s.amount, 2) = round(l.total + coalesce((select sum(montant) from fiducie_lot_honoraires h where h.lot_id = l.id), 0), 2);
-    if c = 1 then update bank_transactions set match_status = 'matched', fiducie_lot_id = v_lot, ai_suggestion_note = 'Fichier de versements envoyé (lot du ' || (select date_versement from fiducie_lots where id = v_lot) || ')' where id = s.id; n := n + 1; continue; end if;
-    -- b. virement fait à la main pour un propriétaire
-    select count(*), min(li.id::text)::uuid into c, v_ligne from fiducie_lot_lignes li join fiducie_lots l on l.id = li.lot_id
-     where l.statut = 'envoye' and l.mode_envoi = 'manuel' and s.transaction_date between l.date_versement - 5 and l.date_versement + 10
-       and round(-s.amount, 2) = li.montant and not exists (select 1 from bank_transactions b where b.fiducie_lot_ligne_id = li.id);
-    if c = 1 then update bank_transactions set match_status = 'matched', fiducie_lot_ligne_id = v_ligne, fiducie_lot_id = (select lot_id from fiducie_lot_lignes where id = v_ligne),
-                    ai_suggestion_note = 'Versement au propriétaire' where id = s.id; n := n + 1; continue; end if;
-    -- c. transfert des honoraires (lot envoyé à la main)
-    select count(*), min(l.id::text)::uuid into c, v_lot from fiducie_lots l
-     where l.statut = 'envoye' and l.mode_envoi = 'manuel' and s.transaction_date between l.date_versement - 5 and l.date_versement + 10
-       and round(-s.amount, 2) = (select sum(montant) from fiducie_lot_honoraires h where h.lot_id = l.id)
-       and not exists (select 1 from bank_transactions b where b.fiducie_lot_id = l.id and b.fiducie_lot_ligne_id is null);
-    if c = 1 then update bank_transactions set match_status = 'matched', fiducie_lot_id = v_lot, ai_suggestion_note = 'Honoraires transférés au compte d''exploitation' where id = s.id; n := n + 1; end if;
+    with cand as (
+      select l.id lot_id, null::uuid ligne_id, 'Fichier de versements envoyé (lot du ' || l.date_versement || ')' note from fiducie_lots l
+       where l.statut = 'envoye' and l.mode_envoi = 'fichier' and s.transaction_date between l.date_versement - 5 and l.date_versement + 10
+         and not exists (select 1 from bank_transactions b where b.fiducie_lot_id = l.id and b.fiducie_lot_ligne_id is null)
+         and round(-s.amount, 2) = round(l.total + coalesce((select sum(montant) from fiducie_lot_honoraires h where h.lot_id = l.id), 0), 2)
+      union all
+      select l.id, li.id, 'Versement au propriétaire (' || li.nom_compte || ')' from fiducie_lot_lignes li join fiducie_lots l on l.id = li.lot_id
+       where l.statut = 'envoye' and l.mode_envoi = 'manuel' and s.transaction_date between l.date_versement - 5 and l.date_versement + 10
+         and round(-s.amount, 2) = li.montant and not exists (select 1 from bank_transactions b where b.fiducie_lot_ligne_id = li.id)
+      union all
+      select l.id, null, 'Honoraires transférés au compte d''exploitation' from fiducie_lots l
+       where l.statut = 'envoye' and l.mode_envoi = 'manuel' and s.transaction_date between l.date_versement - 5 and l.date_versement + 10
+         and round(-s.amount, 2) = (select sum(montant) from fiducie_lot_honoraires h where h.lot_id = l.id)
+         and not exists (select 1 from bank_transactions b where b.fiducie_lot_id = l.id and b.fiducie_lot_ligne_id is null)
+    )
+    select count(*) nb, min(lot_id::text)::uuid lot_id, min(ligne_id::text)::uuid ligne_id, min(note) note into c from cand;
+    if c.nb = 1 then
+      update bank_transactions set match_status = 'matched', fiducie_lot_id = c.lot_id, fiducie_lot_ligne_id = c.ligne_id, ai_suggestion_note = c.note where id = s.id;
+      n := n + 1;
+    end if;
   end loop;
   return jsonb_build_object('rapprochees', n);
+end $$;
+
+-- Défaire un rapprochement automatique (mauvaise sortie) : la sortie redevient à regarder, le versement redevient attendu.
+create or replace function public.fiducie_delier_sortie(p_sortie uuid, p_par uuid) returns void language plpgsql security definer set search_path to 'public' as $$
+begin
+  update bank_transactions set match_status = 'ignored', fiducie_lot_id = null, fiducie_lot_ligne_id = null, reconciled_by = p_par, reconciled_at = now(),
+         ai_suggestion_note = 'Rapprochement défait : à vérifier' where id = p_sortie and compte = 'fiducie' and amount < 0 and fiducie_lot_id is not null;
+  if not found then raise exception 'Sortie introuvable ou non rapprochée d''un versement'; end if;
 end $$;
 
 -- Ce qui est parti du registre mais pas encore vu au relevé (plus de 5 jours après la date du versement = à regarder).
@@ -124,21 +139,23 @@ begin
   if not found then raise exception 'Propriétaire introuvable'; end if;
 end $$;
 
-create or replace function public.fiducie_coordonnees_verifier(p_owner uuid, p_par uuid, p_note text) returns void
+create or replace function public.fiducie_coordonnees_verifier(p_owner uuid, p_par uuid, p_note text, p_vu timestamptz) returns void
 language plpgsql security definer set search_path to 'public' as $$
 declare o record;
 begin
   select * into o from owners where id = p_owner for update;
   if o is null or o.versement_compte is null then raise exception 'Aucune coordonnée à vérifier'; end if;
   if p_par is null then raise exception 'Vérificateur requis'; end if;
+  if o.versement_modifie_par is null then raise exception 'Auteur de la saisie inconnu (saisie antérieure) : réenregistrez les coordonnées, puis faites-les vérifier par un collègue'; end if;
   if o.versement_modifie_par = p_par then raise exception 'La personne qui a saisi les coordonnées ne peut pas les vérifier : demandez à un collègue'; end if;
+  if p_vu is null or o.versement_modifie_le is distinct from p_vu then raise exception 'Les coordonnées ont changé depuis que vous les avez ouvertes : rouvrez-les et refaites le rappel'; end if;
   if char_length(btrim(coalesce(p_note, ''))) < 10 then raise exception 'Décrivez la vérification (ex. rappel au 418-… le 18 nov., confirmé par le propriétaire)'; end if;
   update owners set versement_verifie_le = now(), versement_verifie_par = p_par, versement_verification_note = btrim(p_note) where id = p_owner;
 end $$;
 
 revoke all on function public.fiducie_lot_joindre_honoraires(uuid), public.fiducie_lot_mode(uuid, text), public.fiducie_lot_marquer_envoye(uuid, text, uuid),
   public.fiducie_rapprocher_sorties(), public.fiducie_sorties_attendues(), public.fiducie_coordonnees_maj(uuid, text, text, text, text, uuid),
-  public.fiducie_coordonnees_verifier(uuid, uuid, text) from public, anon, authenticated;
+  public.fiducie_coordonnees_verifier(uuid, uuid, text, timestamptz), public.fiducie_delier_sortie(uuid, uuid) from public, anon, authenticated;
 
 -- Lot : coordonnées vérifiées exigées.
 create or replace function public.fiducie_lot(p_date date, p_par uuid DEFAULT NULL::uuid, p_executer boolean DEFAULT false)
@@ -226,13 +243,15 @@ begin
   if p_executer then
     if v_nb = 0 then raise exception 'Aucun versement à faire pour le %', p_date; end if;
     update fiducie_lots set total = v_total, nombre = v_nb where id = v_lot;
+    perform fiducie_lot_joindre_honoraires(v_lot);   -- même transaction : un lot préparé a toujours ses honoraires à transférer
   end if;
   return jsonb_build_object('lot_id', v_lot, 'date', p_date, 'total', v_total, 'nombre', v_nb, 'lignes', lignes);
 end;
 $function$;
 
 -- Annulation d'un lot : ses honoraires redeviennent à transférer.
-create or replace function public.fiducie_annuler_lot(p_lot uuid, p_par uuid DEFAULT NULL::uuid)
+drop function if exists public.fiducie_annuler_lot(uuid, uuid);
+create or replace function public.fiducie_annuler_lot(p_lot uuid, p_par uuid DEFAULT NULL::uuid, p_refuse_par_bmo boolean DEFAULT false)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -245,6 +264,10 @@ begin
   select * into lot from fiducie_lots where id = p_lot for update;
   if lot is null then raise exception 'Lot introuvable'; end if;
   if lot.statut <> 'prepare' then raise exception 'Seul un lot pas encore envoyé à la banque peut être annulé'; end if;
+  -- revue de code : un fichier téléchargé a peut-être été déposé chez BMO; annuler puis refaire paierait deux fois
+  if lot.mode_envoi is not null and not p_refuse_par_bmo then
+    raise exception 'L''envoi de ce lot a commencé (%) : annulez seulement si BMO a refusé le fichier ou si aucun virement n''est parti', case lot.mode_envoi when 'fichier' then 'fichier téléchargé' else 'virements à la main' end;
+  end if;
   for l in select * from fiducie_lot_lignes where lot_id = p_lot loop
     insert into fiducie_mouvements (owner_id, type, montant, date_valeur, description, source_type, source_id, cree_par)
     values (l.owner_id, 'ajustement', l.montant, current_date, 'Annulation du versement du ' || to_char(lot.date_versement, 'YYYY-MM-DD'), 'fiducie_lot_annule', l.id, p_par);
