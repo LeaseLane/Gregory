@@ -25,8 +25,12 @@ create table if not exists public.fiducie_attentes (
   statut text not null default 'en_attente' check (statut in ('en_attente', 'a_rembourser', 'rembourse', 'proprietaire', 'loyer')),
   sortie_id uuid unique references public.bank_transactions(id),
   decide_par uuid references auth.users(id), decide_le timestamptz, note text,
+  date_effet date,        -- depuis quand la somme est en attente (date du dépôt, ou de la décision qui a laissé ce reste)
+  date_decision date,     -- jour (heure du Québec) où elle a quitté l'attente : loyer, propriétaire
   created_at timestamptz not null default now()
 );
+-- (préproduction : la table existait déjà avant ces colonnes)
+alter table public.fiducie_attentes add column if not exists date_effet date, add column if not exists date_decision date;
 create index if not exists fiducie_attentes_ouvertes on public.fiducie_attentes (statut) where statut in ('en_attente', 'a_rembourser');
 alter table public.fiducie_attentes enable row level security;
 drop policy if exists fiducie_attentes_lecture on public.fiducie_attentes;
@@ -35,7 +39,10 @@ revoke all on public.fiducie_attentes from anon, authenticated; grant all on pub
 
 -- Une part de dépôt appliquée à un bail : loyers ouverts du plus ancien au plus récent; ce qui est imputé devient « loyer »
 -- au registre; le reste attend une décision (jamais crédité d'office).
-create or replace function public.fiducie_appliquer_part(p_transaction uuid, p_lease uuid, p_montant numeric, p_par uuid)
+-- Revue de code : chaque part a sa propre source au registre (l'index unique (source_type, source_id, type) refusait une 2e part).
+drop function if exists public.fiducie_appliquer_part(uuid, uuid, numeric, uuid);
+create or replace function public.fiducie_appliquer_part(p_transaction uuid, p_lease uuid, p_montant numeric, p_par uuid,
+  p_source_type text default 'bank_transaction', p_source_id uuid default null, p_date date default null)
 returns jsonb language plpgsql security definer set search_path to 'public' as $$
 declare tx record; bail record; reste numeric := round(p_montant, 2); pr record; du numeric; pris numeric; premier uuid; soldes int := 0; alloue numeric;
 begin
@@ -59,12 +66,12 @@ begin
   alloue := round(p_montant, 2) - reste;
   if alloue > 0 then
     insert into fiducie_mouvements (owner_id, building_id, lease_id, type, montant, date_valeur, description, source_type, source_id, cree_par)
-    values (bail.owner_id, bail.building_id, bail.id, 'loyer', alloue, tx.transaction_date,
+    values (bail.owner_id, bail.building_id, bail.id, 'loyer', alloue, coalesce(p_date, tx.transaction_date),
             'Loyer — ' || coalesce(bail.full_name, 'locataire') || ', logement ' || bail.unit_number || ' (' || coalesce(bail.reference_paiement, '?') || ')',
-            'bank_transaction', tx.id, p_par);
+            p_source_type, coalesce(p_source_id, tx.id), p_par);
   end if;
   if reste > 0 then
-    insert into fiducie_attentes (transaction_id, lease_id, owner_id, montant, motif) values (tx.id, bail.id, bail.owner_id, reste, 'excedent');
+    insert into fiducie_attentes (transaction_id, lease_id, owner_id, montant, motif, date_effet) values (tx.id, bail.id, bail.owner_id, reste, 'excedent', coalesce(p_date, tx.transaction_date));
   end if;
   return jsonb_build_object('owner_id', bail.owner_id, 'premier', premier, 'alloue', alloue, 'loyers_soldes', soldes, 'excedent', reste);
 end $$;
@@ -107,13 +114,13 @@ begin
   for p in select * from jsonb_array_elements(p_parts) loop
     m := round((p ->> 'montant')::numeric, 2); n := n + 1;
     if p ->> 'type' = 'bail' then
-      r := fiducie_appliquer_part(tx.id, (p ->> 'lease_id')::uuid, m, p_par); excedent := excedent + (r ->> 'excedent')::numeric;
+      r := fiducie_appliquer_part(tx.id, (p ->> 'lease_id')::uuid, m, p_par, 'repartition', md5(tx.id::text || ':' || n)::uuid); excedent := excedent + (r ->> 'excedent')::numeric;
     elsif p ->> 'type' = 'apport' then
       if not exists (select 1 from owners where id = (p ->> 'owner_id')::uuid) then raise exception 'Propriétaire introuvable'; end if;
       insert into fiducie_mouvements (owner_id, type, montant, date_valeur, description, source_type, source_id, cree_par)
-      values ((p ->> 'owner_id')::uuid, 'apport', m, tx.transaction_date, 'Apport du propriétaire — ' || left(coalesce(p ->> 'note', tx.description), 120), 'bank_transaction', tx.id, p_par);
+      values ((p ->> 'owner_id')::uuid, 'apport', m, tx.transaction_date, 'Apport du propriétaire — ' || left(coalesce(p ->> 'note', tx.description), 120), 'repartition', md5(tx.id::text || ':' || n)::uuid, p_par);
     elsif p ->> 'type' = 'erreur' then
-      insert into fiducie_attentes (transaction_id, montant, motif, note) values (tx.id, m, 'erreur', nullif(p ->> 'note', ''));
+      insert into fiducie_attentes (transaction_id, montant, motif, note, date_effet) values (tx.id, m, 'erreur', nullif(p ->> 'note', ''), tx.transaction_date);
     else raise exception 'Type de part inconnu : %', p ->> 'type';
     end if;
   end loop;
@@ -128,7 +135,7 @@ end $$;
 --   a_rembourser : rendre à l'expéditeur; la somme reste à la banque jusqu'à ce qu'on relie la sortie du relevé
 create or replace function public.fiducie_decider_attente(p_attente uuid, p_decision text, p_par uuid default null, p_note text default null)
 returns jsonb language plpgsql security definer set search_path to 'public' as $$
-declare a record; r jsonb; tx record;
+declare a record; r jsonb; tx record; v_jour date := (now() at time zone 'America/Toronto')::date;
 begin
   select * into a from fiducie_attentes where id = p_attente for update;
   if a is null then raise exception 'Somme introuvable'; end if;
@@ -138,14 +145,14 @@ begin
     if a.lease_id is null then raise exception 'Une somme reçue par erreur ne s''applique pas à un loyer'; end if;
     if not exists (select 1 from payments where lease_id = a.lease_id and status in ('pending', 'late') and amount > coalesce(amount_received, 0)) then
       raise exception 'Aucun loyer ouvert pour ce bail : réessayez quand le loyer du mois sera créé'; end if;
-    update fiducie_attentes set statut = 'loyer', decide_par = p_par, decide_le = now(), note = p_note where id = a.id;
-    r := fiducie_appliquer_part(a.transaction_id, a.lease_id, a.montant, p_par);   -- un reste éventuel redevient une attente
+    update fiducie_attentes set statut = 'loyer', decide_par = p_par, decide_le = now(), date_decision = v_jour, note = p_note where id = a.id;
+    r := fiducie_appliquer_part(a.transaction_id, a.lease_id, a.montant, p_par, 'attente', a.id, v_jour);   -- un reste redevient une attente, en attente depuis ce jour
     return r;
   elsif p_decision = 'proprietaire' then
     if a.owner_id is null then raise exception 'Une somme reçue par erreur ne se verse pas à un propriétaire'; end if;
     insert into fiducie_mouvements (owner_id, lease_id, type, montant, date_valeur, description, source_type, source_id, cree_par)
-    values (a.owner_id, a.lease_id, 'ajustement', a.montant, tx.transaction_date, 'Excédent versé au propriétaire — ' || left(coalesce(p_note, tx.description), 120), 'attente', a.id, p_par);
-    update fiducie_attentes set statut = 'proprietaire', decide_par = p_par, decide_le = now(), note = p_note where id = a.id;
+    values (a.owner_id, a.lease_id, 'ajustement', a.montant, v_jour, 'Excédent versé au propriétaire — ' || left(coalesce(p_note, tx.description), 120), 'attente', a.id, p_par);
+    update fiducie_attentes set statut = 'proprietaire', decide_par = p_par, decide_le = now(), date_decision = v_jour, note = p_note where id = a.id;
     return jsonb_build_object('owner_id', a.owner_id, 'montant', a.montant);
   elsif p_decision = 'a_rembourser' then
     update fiducie_attentes set statut = 'a_rembourser', decide_par = p_par, decide_le = now(), note = p_note where id = a.id;
@@ -165,6 +172,8 @@ begin
   if s is null or s.compte <> 'fiducie' or s.amount >= 0 then raise exception 'Choisissez une sortie du compte en fidéicommis'; end if;
   if round(-s.amount, 2) <> a.montant then raise exception 'La sortie (% $) doit égaler la somme à rembourser (% $)', round(-s.amount, 2), a.montant; end if;
   if exists (select 1 from fiducie_attentes where sortie_id = s.id) then raise exception 'Cette sortie est déjà reliée'; end if;
+  if s.match_status not in ('unmatched', 'ignored') then raise exception 'Cette sortie est déjà rapprochée à autre chose'; end if;
+  if s.transaction_date < (select transaction_date from bank_transactions where id = a.transaction_id) then raise exception 'Cette sortie est antérieure au dépôt à rembourser'; end if;
   update fiducie_attentes set statut = 'rembourse', sortie_id = s.id, decide_par = coalesce(decide_par, p_par) where id = a.id;
   update bank_transactions set match_status = 'matched', reconciled_by = p_par, reconciled_at = now(), ai_suggestion_note = 'Remboursement de la somme reçue le ' || a.created_at::date where id = s.id;
 end $$;
@@ -179,6 +188,8 @@ begin
   select ll.*, l.statut lot_statut, l.date_versement into li from fiducie_lot_lignes ll join fiducie_lots l on l.id = ll.lot_id where ll.id = p_ligne;
   if tx is null or tx.compte <> 'fiducie' or tx.amount <= 0 or tx.match_status not in ('unmatched', 'suggested') then raise exception 'Choisissez un dépôt non traité du compte en fidéicommis'; end if;
   if li is null then raise exception 'Ligne de versement introuvable'; end if;
+  if li.lot_statut <> 'envoye' then raise exception 'Ce versement n''a pas été envoyé à la banque : rien à recréditer'; end if;
+  if tx.transaction_date < li.date_versement then raise exception 'Ce dépôt est antérieur au versement'; end if;
   if tx.amount > li.montant then raise exception 'Le retour (% $) dépasse le versement (% $)', tx.amount, li.montant; end if;
   if exists (select 1 from fiducie_mouvements where source_type = 'retour_versement' and source_id = li.id) then raise exception 'Ce versement est déjà retourné'; end if;
   insert into fiducie_mouvements (owner_id, type, montant, date_valeur, description, source_type, source_id, cree_par)
@@ -190,7 +201,7 @@ begin
   return jsonb_build_object('owner_id', li.owner_id, 'recredite', tx.amount);
 end $$;
 
-revoke all on function public.fiducie_appliquer_part(uuid, uuid, numeric, uuid), public.fiducie_repartir_depot(uuid, jsonb, uuid),
+revoke all on function public.fiducie_appliquer_part(uuid, uuid, numeric, uuid, text, uuid, date), public.fiducie_repartir_depot(uuid, jsonb, uuid),
   public.fiducie_decider_attente(uuid, text, uuid, text), public.fiducie_lier_remboursement(uuid, uuid, uuid), public.fiducie_retour_versement(uuid, uuid, uuid)
   from public, anon, authenticated;
 
@@ -203,10 +214,12 @@ returns jsonb language sql stable security definer set search_path to 'public' a
       from fiducie_mouvements where date_valeur <= p_date
   ),
   attentes as (
-    select coalesce(sum(a.montant), 0) as total from fiducie_attentes a join bank_transactions t on t.id = a.transaction_id
-     where t.transaction_date <= p_date
-       and (a.statut in ('en_attente', 'a_rembourser') or (a.statut = 'rembourse' and (select s.transaction_date from bank_transactions s where s.id = a.sortie_id) > p_date)
-            or (a.statut in ('proprietaire', 'loyer') and a.decide_le::date > p_date))
+    -- en attente à cette date : entrée en attente au plus tard ce jour-là, et pas encore résolue ce jour-là
+    -- (décision datée de son jour au Québec, comme son écriture au registre; remboursement à la date de sa sortie au relevé)
+    select coalesce(sum(a.montant), 0) as total from fiducie_attentes a
+     where coalesce(a.date_effet, (select t.transaction_date from bank_transactions t where t.id = a.transaction_id)) <= p_date
+       and not (a.statut in ('proprietaire', 'loyer') and a.date_decision <= p_date)
+       and not (a.statut = 'rembourse' and (select s.transaction_date from bank_transactions s where s.id = a.sortie_id) <= p_date)
   ),
   banque as (
     select coalesce(sum(amount), 0) as solde_calcule,
