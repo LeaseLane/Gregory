@@ -17,8 +17,9 @@ const deviner = (h: string): Champ => {
   if (/depot|credit|deposit/.test(s)) return 'depot';
   if (/montant|amount/.test(s)) return 'montant';
   if (/date/.test(s)) return 'date';
-  if (/desc|libell|detail|memo|transaction|operation/.test(s)) return 'description';
-  if (/ref|numero|number|no\b/.test(s)) return 'reference';
+  if (/desc|libell|detail|memo/.test(s)) return 'description';
+  if (/^(ref|reference|no de transaction|transaction id|id de transaction)/.test(s)) return 'reference';   // pas « Numéro de compte »
+  if (/transaction|operation/.test(s)) return 'description';
   return 'ignorer';
 };
 /** « 1 234,56 », « $1,234.56 », « (50.00) », « -50 », « 50- » → nombre; vide → null; illisible → NaN. */
@@ -53,7 +54,11 @@ export function ImportReleve({ faire, occupe, fini }: { faire: Faire; occupe: bo
       // la ligne d'en-tête : la première qui contient « date »
       const iEntete = Math.max(0, t.findIndex((l) => l.some((c) => /date/i.test(c))));
       const entete = t[iEntete] ?? [], corps = t.slice(iEntete + 1);
-      setNom(f.name); setTableau([entete, ...corps]); setMap(entete.map(deviner));
+      // un champ deviné deux fois : la première colonne qui correspond le mieux le garde, les autres sont ignorées (« Description » avant « Transaction Type »)
+      const devines = entete.map(deviner), rang = (h: string) => /desc|libell/i.test(h) ? 0 : 1;
+      const garde = new Map<Champ, number>();
+      devines.forEach((c, i) => { if (c === 'ignorer') return; const j = garde.get(c); if (j === undefined || rang(entete[i]) < rang(entete[j])) garde.set(c, i); });
+      setNom(f.name); setTableau([entete, ...corps]); setMap(devines.map((c, i) => c !== 'ignorer' && garde.get(c) === i ? c : 'ignorer'));
       // format des dates : un premier nombre > 12 → jour/mois; un second > 12 → mois/jour; sinon jour/mois (Québec)
       const iDate = entete.map(deviner).indexOf('date'), dates = corps.map((l) => l[iDate] ?? '');
       setFormat(dates.some((d) => Number(d.split(/[/.-]/)[1]) > 12) && !/^\d{4}/.test(dates[0] ?? '') ? 'MJA' : 'JMA');   // AAAA-MM-JJ et AAAAMMJJ se lisent seuls
@@ -94,6 +99,7 @@ export function ImportReleve({ faire, occupe, fini }: { faire: Faire; occupe: bo
         <option value="JMA">jour/mois/année</option><option value="MJA">mois/jour/année</option></select></label>
         {lignes[0] && <span className="gris"> · première ligne lue : {lignes[0].date || '?'} · {lignes[0].description} · {lignes[0].amount !== null && !Number.isNaN(lignes[0].amount) ? cents(lignes[0].amount) : '?'}</span>}</p>
       {manque && <div className="bandeau erreur" role="alert">Associez une colonne à {manque}.</div>}
+      {!manque && !map.includes('solde') && <div className="bandeau info" role="status">Attention : sans colonne de solde, l’import ne peut pas vérifier qu’il ne manque aucune ligne ni qu’aucune n’est comptée deux fois. Associez la colonne du solde si le relevé en a une.</div>}
       {!manque && illisibles.length > 0 && <div className="bandeau erreur" role="alert">{illisibles.length} ligne(s) illisible(s) (date ou montant) : vérifiez les colonnes et le format des dates.</div>}
       {bilan && <div className="bandeau info" role="status">Essai à blanc : {bilan.importes} nouvelle(s) ligne(s) — {bilan.auto} rapprochée(s) automatiquement, {bilan.suggestions} à confirmer, {bilan.a_traiter} à attribuer, {bilan.sorties} sortie(s){bilan.doublons ? ` · ${bilan.doublons} déjà importée(s), ignorée(s)` : ''}.</div>}
       {bilan && bilan.apercu.length > 0 && <table className="tableau" style={{ marginTop: 8 }}><thead><tr><th>Date</th><th>Description</th><th className="droite">Montant</th><th>Ce qui se passera</th></tr></thead>

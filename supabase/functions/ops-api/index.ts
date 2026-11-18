@@ -451,7 +451,15 @@ Deno.serve(async (req) => {
       }
       if (erreurs.length) return new Response(JSON.stringify({ error: `${erreurs.length} ligne(s) illisible(s) : vérifiez les colonnes choisies (première : ${erreurs[0]}).` }), { status: 400, headers: corsHeaders });
       const lignes = numeroter(lisibles);
-      const existants = new Set(((await fetch(`${supabaseUrl}/rest/v1/bank_transactions?compte=eq.fiducie&select=external_id`, { headers: adminHeaders }).then((r) => r.json()).catch(() => [])) as { external_id: string }[]).map((x) => x.external_id));
+      // lignes déjà importées sur la période du fichier (pas tout l'historique : l'API rend 1 000 lignes au plus)
+      const du = lignes[0].date, au = lignes[lignes.length - 1].date;
+      const deja = await fetch(`${supabaseUrl}/rest/v1/bank_transactions?compte=eq.fiducie&transaction_date=gte.${du}&transaction_date=lte.${au}&select=external_id&limit=1000`, { headers: adminHeaders }).then((r) => r.json()).catch(() => null) as { external_id: string }[] | null;
+      if (!Array.isArray(deja)) return new Response(JSON.stringify({ error: "Lecture des lignes déjà importées impossible : réessayez." }), { status: 503, headers: corsHeaders });
+      if (deja.length >= 1000) return new Response(JSON.stringify({ error: "Plus de 1 000 lignes déjà importées sur cette période : importez le relevé mois par mois." }), { status: 400, headers: corsHeaders });
+      // lignes importées avant le 18 nov. 2026 (ancien identifiant) : on ne peut pas savoir si ce relevé les recompte
+      if (deja.some((x) => !/^csv:.*\|#\d+$/.test(x.external_id) && !x.external_id.startsWith("bmo:")))
+        return new Response(JSON.stringify({ error: "Cette période contient des lignes importées par l'ancienne version de l'import : importez à partir du jour suivant leur dernière date." }), { status: 409, headers: corsHeaders });
+      const existants = new Set(deja.map((x) => x.external_id));
       const nouvelles = new Set(lignes.filter((x) => !existants.has(x.externe)).map((x) => x.externe));
       const dernier = ((await fetch(`${supabaseUrl}/rest/v1/bank_transactions?compte=eq.fiducie&solde=not.is.null&select=solde,transaction_date&order=transaction_date.desc,ordre.desc,created_at.desc&limit=1`, { headers: adminHeaders }).then((r) => r.json()).catch(() => [])) as { solde: number }[])[0];
       const refus = verifierContinuite(lignes, nouvelles, dernier ? Number(dernier.solde) : null);

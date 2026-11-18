@@ -35,3 +35,25 @@ Deno.test("sans colonne de solde : rien à vérifier", () => {
   const a = numeroter([l("2026-12-01", "A", 100), l("2026-12-02", "B", 50)]);
   assertEquals(verifierContinuite(a, new Set(a.map((x) => x.externe)), 999), null);
 });
+
+Deno.test("revue : une ligne connue dont le libellé a changé, au milieu de lignes connues, fait refuser le relevé", () => {
+  const a = numeroter([l("2026-12-01", "A", 100, 100), l("2026-12-02", "B MODIFIE", 50, 150), l("2026-12-03", "C", 25, 175), l("2026-12-04", "D", 10, 185)]);
+  const nouvelles = new Set([a[1].externe, a[3].externe]);   // A et C connues, « B MODIFIE » passe pour nouvelle
+  assertMatch(verifierContinuite(a, nouvelles, 175)!, /mélangées/);
+});
+
+Deno.test("revue : une référence de banque répétée est refusée (elle fusionnerait des dépôts)", () => {
+  const a = numeroter([{ ...l("2026-12-01", "A", 100, 100), reference: "1234-5" }, { ...l("2026-12-02", "B", 50, 150), reference: "1234-5" }]);
+  assertMatch(verifierContinuite(a, new Set(a.map((x) => x.externe)), null)!, /valeurs répétées/);
+});
+
+Deno.test("revue : un relevé d'une seule journée, du plus récent au plus ancien, est remis dans l'ordre par ses soldes", () => {
+  const a = numeroter([l("2026-12-01", "B", 50, 150), l("2026-12-01", "A", 100, 100)]);
+  assertEquals(a.map((x) => x.description), ["A", "B"]);
+  assertEquals(verifierContinuite(a, new Set(a.map((x) => x.externe)), 0), null);
+});
+
+Deno.test("revue : dates dans le désordre (jour/mois inversé) refusées", () => {
+  const a = numeroter([l("2026-01-12", "A", 10, 10), l("2026-12-01", "B", 10, 20), l("2026-02-12", "C", 10, 30)]);
+  assertMatch(verifierContinuite(a, new Set(a.map((x) => x.externe)), null)!, /pas dans l'ordre/);
+});
