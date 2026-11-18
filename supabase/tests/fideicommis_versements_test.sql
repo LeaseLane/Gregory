@@ -11,13 +11,14 @@ begin
     (a, 'Avec coordonnées', '001', '12345', '1234567'), (b, 'Solde court', '001', '12345', '7654321'), (c, 'Sans coordonnées', null, null, null), (n, 'Hors modèle', null, null, null);
   insert into buildings (id, owner_id, address) values (ba, a, 'A'), (bb, b, 'B'), (bc, c, 'C');
   insert into fiducie_mouvements (owner_id, type, montant, description) values (a, 'loyer', 5000, 'Loyers A'), (b, 'loyer', 1100, 'Loyers B'), (c, 'loyer', 3000, 'Loyers C');
-  insert into invoices (id, owner_id, invoice_number, total_amount, management_fee_amount, coordination_fees_amount, status, period_end) values
-    (fa, a, 'PORT-1', 300, 250, 50, 'issued', '2026-09-30'), (fb, b, 'PORT-2', 200, 200, 0, 'issued', '2026-09-30');
+  insert into invoices (id, owner_id, invoice_number, total_amount, management_fee_amount, coordination_fees_amount, status, period_start, period_end) values
+    (fa, a, 'PORT-1', 300, 250, 50, 'issued', '2026-09-01', '2026-09-30'), (fb, b, 'PORT-2', 200, 200, 0, 'issued', '2026-09-01', '2026-09-30');
 
   -- Simulation : rien n'est écrit.
-  avant := (select count(*) from fiducie_mouvements);
+  -- (mouvements et lots comptés avant : la base peut déjà en contenir, ex. préproduction dans une transaction annulée)
+  avant := (select count(*) from fiducie_mouvements) * 1000000 + (select count(*) from fiducie_lots);
   r := fiducie_lot('2026-10-15', null, false);
-  assert (select count(*) from fiducie_lots) = 0 and (select count(*) from fiducie_mouvements) = avant, 'simulation sans écriture';
+  assert (select count(*) from fiducie_mouvements) * 1000000 + (select count(*) from fiducie_lots) = avant, 'simulation sans écriture';
   assert (select (x->>'versement')::numeric from jsonb_array_elements(r->'lignes') x where x->>'owner_id' = a::text) = 3700, 'simulation : A 5000-300-1000 = 3700';
   assert (select (x->>'versement')::numeric from jsonb_array_elements(r->'lignes') x where x->>'owner_id' = c::text) = 0, 'C sans coordonnées : 0';
   assert (select x->>'note' from jsonb_array_elements(r->'lignes') x where x->>'owner_id' = c::text) like 'Coordonnées bancaires manquantes%', 'C signalé';
