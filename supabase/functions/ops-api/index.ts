@@ -812,6 +812,7 @@ Deno.serve(async (req) => {
       const p: Record<string, unknown> = {};
       for (const k of ["fiducie", "exploitation", "bmo"]) if (body[k] && typeof body[k] === "object") p[k] = body[k];
       if (typeof body.interac === "string") p.interac = body.interac.trim().toLowerCase() || null;
+      if (typeof body.carte === "boolean") p.carte = body.carte;   // paiement par carte (Moneris) offert ou non
       if (!Object.keys(p).length) return new Response(JSON.stringify({ error: "Aucun compte à enregistrer." }), { status: 400, headers: corsHeaders });
       try {
         const d = await rpcFiducie("fiducie_comptes_maj", { p, p_par: userId });

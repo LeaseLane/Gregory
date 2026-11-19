@@ -7,7 +7,7 @@ import Link from 'next/link';
 type Etat = 'ok' | 'bloquant' | 'attention' | 'info';
 type Ligne = { code: string; titre: string; etat: Etat; detail: string };
 type Comptes = { fiducie: { institution: string | null; transit: string | null; fin: string | null }; exploitation: { nom: string | null; institution: string | null; transit: string | null; fin: string | null }; bmo: { originateur: string | null; centre: string | null } };
-type Prep = { liste: Ligne[]; pret: boolean; comptes: Comptes };
+type Prep = { liste: Ligne[]; pret: boolean; comptes: Comptes; carte?: boolean };
 type Faire = <T>(corps: Record<string, unknown>, message?: string | ((d: T) => string)) => Promise<T | null>;
 
 const PUCE: Record<Etat, [string, string]> = { ok: ['ok', 'Prêt'], bloquant: ['todo', 'Bloquant'], attention: ['attention', 'À voir'], info: ['neutral', 'Info'] };
@@ -21,7 +21,7 @@ export function Preparation({ faire, occupe }: { faire: Faire; occupe: boolean }
   useEffect(() => { charger(); }, [charger]);
   if (!P) return <p className="gris">Chargement…</p>;
   const nb = (e: Etat) => P.liste.filter((l) => l.etat === e).length;
-  const C = P.comptes;
+  const C = P.comptes, carte = P.liste.some((l) => l.code === 'carte' && l.etat === 'ok');
   const champ = (k: string, lib: string, max: number, num = true) => <div key={k}><label className="fenetre-lib" htmlFor={`cpt-${k}`}>{lib}</label>
     <input id={`cpt-${k}`} className="e70-raison" inputMode={num ? 'numeric' : 'text'} autoComplete="off" maxLength={max} value={f[k] ?? ''}
       onChange={(e) => setF({ ...f, [k]: num ? e.target.value.replace(/\D/g, '') : e.target.value })} /></div>;
@@ -63,6 +63,12 @@ export function Preparation({ faire, occupe }: { faire: Faire; occupe: boolean }
           <li className="tete-action" style={{ padding: '12px 0', borderTop: '1px solid var(--trait, #E4E8EF)' }}>
             <div><strong>Émetteur BMO (fichier SVA)</strong><div className="gris texte-13">{C.bmo.originateur ? `${C.bmo.originateur} · centre ${C.bmo.centre}` : 'Pas inscrit : versements à la main'}</div></div>
             <button className="lien" onClick={() => ouvrir('bmo')}>{C.bmo.originateur ? 'Modifier' : 'Inscrire'}</button></li>
+          <li className="tete-action" style={{ padding: '12px 0', borderTop: '1px solid var(--trait, #E4E8EF)' }}>
+            <div><strong>Paiement par carte (Moneris)</strong><div className="gris texte-13">{carte ? 'Offert aux locataires : lien sécurisé sur demande, sans frais pour eux' : 'Éteint'}</div></div>
+            <button className="lien" disabled={occupe} onClick={async () => {
+              if (!carte && !confirm('Moneris a-t-il confirmé par écrit les liens de paiement, la mise en service, le dépôt au fidéicommis et la facturation des frais à part ?')) return;
+              const d = await faire<Prep & { change?: boolean }>({ action: 'fiducie_comptes', carte: !carte }, carte ? 'Paiement par carte retiré du portail locataire.' : 'Paiement par carte offert. Les administrateurs ont reçu un courriel de sécurité.');
+              if (d) setP(d); }}>{carte ? 'Éteindre' : 'Allumer'}</button></li>
         </ul>
         {ouvert && <form style={{ marginTop: 12 }} onSubmit={(e) => { e.preventDefault(); enregistrer(); }}>
           <p className="fort" style={{ margin: '0 0 8px' }}>{ouvert === 'fiducie' ? 'Compte en fidéicommis' : ouvert === 'exploitation' ? 'Compte d’exploitation' : 'Émetteur BMO'}</p>

@@ -13,7 +13,7 @@ import { argent, dateCourte, dateLongue, moisAnnee } from '@/composants/portail/
    refusé » sans blâme, avec la marche à suivre (CONCORDANCE 2.10, 2.14). */
 export type PaiementsLoc = { prochain: { echeance: string; montant: number; en_retard: boolean; jours: number; echec: boolean } | null; annee: { paye: number; loyers: number; prevus: number };
   retards: number; en_retard: number; historique: { id: string; periode: string; recu_le: string | null; mode: string | null; montant: number; recu?: number | null; statut: string }[];
-  mode: { type: string; depuis?: string; compte?: string | null; montant?: number | null; premier?: string | null; accord?: boolean }; interac: string | null; reference: string | null; prelevement_offert?: boolean; releve31: { id: string; annee: number } | null };
+  mode: { type: string; depuis?: string; compte?: string | null; montant?: number | null; premier?: string | null; accord?: boolean }; interac: string | null; reference: string | null; prelevement_offert?: boolean; carte_offerte?: boolean; releve31: { id: string; annee: number } | null };
 type Dpa = { actif: false; montant: number; premier: string; modele: string } | { actif: true; montant: number; premier: string; texte: string; signe_le: string; compte: string };
 export type RL31 = { id: string; annee: number; code: string; remis_le: string; donnees: { numero_logement: string; logement: { adresse: string; ville: string | null; code_postal: string | null };
   locateur: { nom: string; adresse: string | null }; mandataire: { nom: string; neq: string | null } | null; occupant: { nom: string }; motif_correction?: string } };
@@ -91,6 +91,7 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
             <div className="lo-mode"><span className="a-faire-ic"><Icone nom={pad ? 'card' : 'send'} taille={18} couleur="#0C2147" /></span>
               <div><strong>{pad ? 'Prélèvement automatique' : 'Virement Interac'}</strong><span className="gris texte-13">{pad ? `${D.mode.compte ? `${D.mode.compte} · ` : ''}le 1er du mois` : D.interac ? `À chaque terme, à ${D.interac}` : 'À chaque terme, au propriétaire'}</span></div></div>
             {!pad && D.reference && <p className="texte-13">Référence à écrire dans le message du virement : <b>{D.reference}</b></p>}
+            {D.carte_offerte && <Link className="lien ligne-ic texte-13" href="/locataire/messages?nouveau=1&sujet=Paiement%20par%20carte">Payer par carte : demander un lien sécurisé (sans frais)<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link>}
             {suspendu && <p className="bandeau info texte-13">Votre prélèvement automatique est suspendu : la banque ne l’offre pas encore. Aucun montant ne sera prélevé; payez par virement Interac.</p>}
             {D.mode.type === 'prelevement' && D.mode.accord && <button className="lien ligne-ic" onClick={ouvrirDpa}>Mon accord de prélèvement<Icone nom="arrow" taille={16} couleur="#2E5788" /></button>}
             <p className="gris texte-12">{pad ? 'Prélevé par Lease Lane, mandataire de votre propriétaire, dans son compte en fidéicommis. Lease Lane n’a pas accès à vos identifiants bancaires.'
