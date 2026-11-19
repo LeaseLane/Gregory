@@ -571,7 +571,7 @@ Deno.serve(async (req) => {
       if (typeof transaction_id !== "string" || !/^[0-9a-f-]{36}$/i.test(transaction_id)) return new Response(JSON.stringify({ error: "Dépôt invalide" }), { status: 400, headers: corsHeaders });
       const r = await fetch(`${supabaseUrl}/rest/v1/bank_transactions?id=eq.${transaction_id}&compte=eq.fiducie&match_status=in.(unmatched,suggested,ignored)`, {
         method: "PATCH", headers: { ...adminHeaders, Prefer: "return=representation" },
-        body: JSON.stringify(ignorer ? { match_status: "ignored", ai_suggestion_note: String(note || "Ignoré par l'admin").slice(0, 300), reconciled_by: userId, reconciled_at: new Date().toISOString() } : { match_status: "unmatched", reconciled_by: null, reconciled_at: null }),
+        body: JSON.stringify(ignorer ? { match_status: "ignored", ai_suggestion_note: String(note || "Ignoré par l'admin").slice(0, 300), reconciled_by: userId, reconciled_at: new Date().toISOString() } : { match_status: "unmatched" }),
       });
       const maj = await r.json().catch(() => []);
       if (!r.ok || !maj.length) return new Response(JSON.stringify({ error: "Un dépôt déjà rapproché ne s'ignore pas (son loyer est inscrit au registre)" }), { status: 409, headers: corsHeaders });
@@ -612,11 +612,15 @@ Deno.serve(async (req) => {
     // Fichier du lot pour la banque : CPA 005 (dépôt de fichier TFE dans les Services bancaires en ligne pour entreprises
     // de BMO) dès que l'ID d'émetteur BMO est inscrit dans company_settings; CSV générique d'ici là.
     const compteExploitation = async (honoraires: number) => {
-      const [c] = await fetch(`${supabaseUrl}/rest/v1/company_settings?id=eq.true&select=exploitation_institution,exploitation_transit,exploitation_compte,exploitation_nom,fiducie_institution,fiducie_transit,fiducie_compte`, { headers: adminHeaders }).then((r) => r.json()).catch(() => [null]);
+      const rep = await fetch(`${supabaseUrl}/rest/v1/company_settings?id=eq.true&select=exploitation_institution,exploitation_transit,exploitation_compte,exploitation_nom,fiducie_institution,fiducie_transit,fiducie_compte`, { headers: adminHeaders }).then((r) => r.json()).catch(() => null);
+      const c = Array.isArray(rep) ? rep[0] : null;
       if (honoraires <= 0) return { expl: c };
+      if (!(c?.fiducie_institution && c?.fiducie_transit && c?.fiducie_compte))
+        return { erreur: "Inscrivez d'abord le compte en fidéicommis dans les réglages : sans lui, impossible de vérifier que les honoraires sortent vers un autre compte." };
       if (!(c?.exploitation_institution && c?.exploitation_transit && c?.exploitation_compte))
         return { erreur: `Ce lot transfère ${honoraires.toFixed(2)} $ d'honoraires : inscrivez d'abord le compte d'exploitation de LeaseLane dans les réglages (jamais le compte en fidéicommis).` };
-      if (`${c.exploitation_institution}|${c.exploitation_transit}|${c.exploitation_compte}` === `${c.fiducie_institution}|${c.fiducie_transit}|${c.fiducie_compte}`)
+      const cle = (i: unknown, tr: unknown, co: unknown) => `${String(i).replace(/\D/g, "")}|${String(tr).replace(/\D/g, "")}|${String(co).replace(/\D/g, "").replace(/^0+/, "")}`;
+      if (cle(c.exploitation_institution, c.exploitation_transit, c.exploitation_compte) === cle(c.fiducie_institution, c.fiducie_transit, c.fiducie_compte))
         return { erreur: "Le compte d'exploitation inscrit dans les réglages est le compte en fidéicommis : les honoraires ne sortiraient jamais. Corrigez les réglages." };
       return { expl: c };
     };
@@ -625,14 +629,13 @@ Deno.serve(async (req) => {
       if (!idValide(body.lot_id)) return new Response(JSON.stringify({ error: "Lot invalide" }), { status: 400, headers: corsHeaders });
       const [lot] = await fetch(`${supabaseUrl}/rest/v1/fiducie_lots?id=eq.${body.lot_id}&select=date_versement,statut,fiducie_lot_lignes(nom_compte,institution,transit,compte,montant)`, { headers: adminHeaders }).then((r) => r.json());
       if (!lot) return new Response(JSON.stringify({ error: "Lot introuvable" }), { status: 404, headers: corsHeaders });
-      if (lot.statut === "annule") return new Response(JSON.stringify({ error: "Lot annulé : aucun fichier" }), { status: 409, headers: corsHeaders });
+      if (lot.statut !== "prepare") return new Response(JSON.stringify({ error: lot.statut === "annule" ? "Lot annulé : aucun fichier" : "Lot déjà envoyé : le fichier ne se télécharge plus (le redéposer chez BMO paierait deux fois)" }), { status: 409, headers: corsHeaders });
       let honoraires = 0;
       try { honoraires = Number(await rpcFiducie("fiducie_lot_joindre_honoraires", { p_lot: body.lot_id })); } catch (e) { return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders }); }
       const { expl, erreur } = await compteExploitation(honoraires);
       if (erreur) return new Response(JSON.stringify({ error: erreur }), { status: 409, headers: corsHeaders });
       const totalFichier = (lot.fiducie_lot_lignes || []).reduce((s: number, l: any) => s + Number(l.montant), 0) + honoraires;
       if (totalFichier > 250000) return new Response(JSON.stringify({ error: `Total du fichier ${totalFichier.toFixed(2)} $ : au-delà de la limite quotidienne de 250 000 $ de BMO. Répartissez les versements sur deux dates.` }), { status: 409, headers: corsHeaders });
-      try { await rpcFiducie("fiducie_lot_mode", { p_lot: body.lot_id, p_mode: "fichier" }); } catch (e) { return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders }); }
       const ligneHonoraires = honoraires > 0 ? [{ montant: honoraires, institution: expl.exploitation_institution, transit: expl.exploitation_transit, compte: expl.exploitation_compte, nom_compte: expl.exploitation_nom || "Solutions Locatives LeaseLane" }] : [];
       const lignesFichier = [...(lot.fiducie_lot_lignes || []), ...ligneHonoraires];
       const [bmo] = await fetch(`${supabaseUrl}/rest/v1/company_settings?id=eq.true&select=bmo_originateur,bmo_centre,fiducie_institution,fiducie_transit,fiducie_compte`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
@@ -653,6 +656,7 @@ Deno.serve(async (req) => {
             operations: lignesFichier.map((l: any) => ({ sens: "C" as const, code: "450", cents: Math.round(Number(l.montant) * 100), date: lot.date_versement,
               institution: l.institution, transit: l.transit, compte: l.compte, nom: l.nom_compte, reference: `LL ${String(lot.date_versement).replace(/-/g, "")}` })),
           });
+          await rpcFiducie("fiducie_lot_mode", { p_lot: body.lot_id, p_mode: "fichier" });   // fichier prêt : seulement maintenant le lot est engagé
           await logAudit("fiducie.lot_fichier", "fiducie_lots", body.lot_id, { format: "cpa005", numero });
           return new Response(JSON.stringify({ nom: `versements-${lot.date_versement}-cpa005-${String(numero).padStart(4, "0")}.txt`, contenu, type: "text/plain" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         } catch (e) {
@@ -663,6 +667,7 @@ Deno.serve(async (req) => {
       const ref = `LEASELANE ${String(lot.date_versement).replace(/-/g, "")}`;
       const lignes = [["Nom du bénéficiaire", "Institution", "Transit", "Compte", "Montant", "Référence"].map(champ).join(",")]
         .concat(lignesFichier.map((l: any) => [l.nom_compte, l.institution, l.transit, l.compte, Number(l.montant).toFixed(2), ref].map(champ).join(",")));
+      try { await rpcFiducie("fiducie_lot_mode", { p_lot: body.lot_id, p_mode: "fichier" }); } catch (e) { return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders }); }
       await logAudit("fiducie.lot_fichier", "fiducie_lots", body.lot_id, {});
       return new Response(JSON.stringify({ nom: `versements-${lot.date_versement}.csv`, contenu: lignes.join("\r\n") + "\r\n" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -674,14 +679,30 @@ Deno.serve(async (req) => {
         const { expl, erreur } = await compteExploitation(honoraires);
         if (erreur) throw new Error(erreur);
         await rpcFiducie("fiducie_lot_mode", { p_lot: body.lot_id, p_mode: "manuel" });
-        const [lot] = await fetch(`${supabaseUrl}/rest/v1/fiducie_lots?id=eq.${body.lot_id}&select=date_versement,fiducie_lot_lignes(id,nom_compte,institution,transit,compte,montant)`, { headers: adminHeaders }).then((r) => r.json());
+        const [lot] = await fetch(`${supabaseUrl}/rest/v1/fiducie_lots?id=eq.${body.lot_id}&select=date_versement,honoraires_vire_le,fiducie_lot_lignes(id,nom_compte,institution,transit,compte,montant,vire_le)`, { headers: adminHeaders }).then((r) => r.json());
         await logAudit("fiducie.lot_manuel", "fiducie_lots", body.lot_id, { honoraires });
         return new Response(JSON.stringify({ ok: true, date: lot?.date_versement, virements: lot?.fiducie_lot_lignes ?? [],
-          honoraires: honoraires > 0 ? { montant: honoraires, institution: expl.exploitation_institution, transit: expl.exploitation_transit, compte: expl.exploitation_compte, nom_compte: expl.exploitation_nom || "Solutions Locatives LeaseLane" } : null }),
+          honoraires: honoraires > 0 ? { vire_le: lot?.honoraires_vire_le ?? null, montant: honoraires, institution: expl.exploitation_institution, transit: expl.exploitation_transit, compte: expl.exploitation_compte, nom_compte: expl.exploitation_nom || "Solutions Locatives LeaseLane" } : null }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (e) {
         return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders });
       }
+    }
+
+    if (action === "fiducie_lot_virement_fait") {
+      if (!idValide(body.lot_id) || (body.ligne_id !== null && !idValide(body.ligne_id))) return new Response(JSON.stringify({ error: "Virement invalide" }), { status: 400, headers: corsHeaders });
+      try { await rpcFiducie("fiducie_lot_virement_fait", { p_lot: body.lot_id, p_ligne: body.ligne_id, p_par: userId }); }
+      catch (e) { return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders }); }
+      await logAudit("fiducie.virement_fait", "fiducie_lots", body.lot_id, { ligne: body.ligne_id ?? "honoraires" });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "fiducie_lier_sortie") {
+      if (!idValide(body.sortie_id) || !idValide(body.lot_id) || (body.ligne_id != null && !idValide(body.ligne_id))) return new Response(JSON.stringify({ error: "Sortie ou versement invalide" }), { status: 400, headers: corsHeaders });
+      try { await rpcFiducie("fiducie_lier_sortie", { p_sortie: body.sortie_id, p_lot: body.lot_id, p_ligne: body.ligne_id ?? null, p_par: userId }); }
+      catch (e) { return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders }); }
+      await logAudit("fiducie.sortie_reliee", "bank_transactions", body.sortie_id, { lot: body.lot_id, ligne: body.ligne_id ?? null });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "fiducie_delier_sortie") {
@@ -780,7 +801,8 @@ Deno.serve(async (req) => {
     if (action === "fiducie_sorties_attendues") {
       try { await rpcFiducie("fiducie_rapprocher_sorties", {}); } catch { /* le rapprochement reprendra au prochain import */ }
       const attendues = await rpcFiducie("fiducie_sorties_attendues", {}).catch(() => []);
-      return new Response(JSON.stringify({ attendues }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const libres = (attendues as unknown[]).length ? await fetch(`${supabaseUrl}/rest/v1/bank_transactions?compte=eq.fiducie&amount=lt.0&fiducie_lot_id=is.null&match_status=in.(unmatched,ignored)&select=id,transaction_date,description,amount&order=transaction_date.desc&limit=200`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []) : [];
+      return new Response(JSON.stringify({ attendues, libres }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "fiducie_reserve") {

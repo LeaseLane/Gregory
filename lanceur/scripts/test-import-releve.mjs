@@ -1,7 +1,7 @@
 // Import du relevé du fidéicommis (revue du 18 nov. 2026), préproduction, en navigateur :
 // 1. relevé BMO (préambule, retraits/dépôts séparés, solde, montant « 1 380,00 ») : colonnes associées seules, essai à blanc → bons sorts;
 // 2. import réel d'un relevé sans rapprochement automatique (aucun mouvement au registre), puis réimport → rien de nouveau;
-// 3. relevé avec un trou de solde → refusé. Les lignes d'essai se retirent ensuite (DEPOT/FRAIS … ESSAI QA).
+// 3. relevé avec un trou de solde → refusé. Retirer ensuite les lignes d'essai (… ESSAI QA et PAUL GAGNON LL-10006, sans mouvement au registre) avant tout autre test.
 // Usage : node scripts/test-import-releve.mjs [dossier des relevés, défaut ~/leaselane-qa/paiements]
 import puppeteer from 'puppeteer-core';
 import { connecter } from './connexion-role.mjs';

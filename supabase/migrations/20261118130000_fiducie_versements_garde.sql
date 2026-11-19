@@ -133,12 +133,15 @@ create or replace function public.fiducie_coordonnees_maj(p_owner uuid, p_nom te
 language plpgsql security definer set search_path to 'public' as $$
 begin
   if p_institution !~ '^\d{3}$' or p_transit !~ '^\d{5}$' or p_compte !~ '^\d{5,12}$' then raise exception 'Coordonnées invalides : institution 3 chiffres, transit 5 chiffres, compte 5 à 12 chiffres'; end if;
+  perform set_config('fiducie.coordonnees_maj', '1', true);   -- la garde owners_versement_garde laisse passer cette saisie (auteur connu)
   update owners set versement_nom_compte = nullif(btrim(p_nom), ''), versement_institution = p_institution, versement_transit = p_transit, versement_compte = p_compte,
          versement_modifie_le = now(), versement_modifie_par = p_par, versement_verifie_le = null, versement_verifie_par = null, versement_verification_note = null
    where id = p_owner;
+  perform set_config('fiducie.coordonnees_maj', '', true);
   if not found then raise exception 'Propriétaire introuvable'; end if;
 end $$;
 
+drop function if exists public.fiducie_coordonnees_verifier(uuid, uuid, text);   -- l'ancienne version sans contrôle d'auteur ni de version
 create or replace function public.fiducie_coordonnees_verifier(p_owner uuid, p_par uuid, p_note text, p_vu timestamptz) returns void
 language plpgsql security definer set search_path to 'public' as $$
 declare o record;
@@ -277,3 +280,174 @@ begin
   return jsonb_build_object('ok', true);
 end;
 $function$;
+
+-- revue de code : une fonction recréée hérite des droits par défaut (authenticated); seul ops-api (service_role) l'appelle
+revoke all on function public.fiducie_annuler_lot(uuid, uuid, boolean) from public, anon, authenticated;
+
+-- ===================== Revue de code n° 2 (19 nov. 2026) =====================
+-- Virements à la main : chaque virement fait est coché (au registre), pour ne jamais le refaire ni annuler un lot entamé.
+alter table public.fiducie_lot_lignes add column if not exists vire_le timestamptz, add column if not exists vire_par uuid references auth.users(id);
+alter table public.fiducie_lots add column if not exists honoraires_vire_le timestamptz, add column if not exists honoraires_vire_par uuid references auth.users(id);
+-- Une sortie du relevé par lot (fichier ou honoraires à la main) : deux rapprochements simultanés ne peuvent pas prendre deux sorties.
+create unique index if not exists bank_transactions_lot_global on public.bank_transactions (fiducie_lot_id) where fiducie_lot_id is not null and fiducie_lot_ligne_id is null;
+-- Compte d'exploitation : chiffres seulement, jamais le compte en fidéicommis (contrôlé par la base, pas seulement par ops-api).
+alter table public.company_settings drop constraint if exists company_settings_exploitation_ok;
+alter table public.company_settings add constraint company_settings_exploitation_ok check (
+  (exploitation_institution is null or exploitation_institution ~ '^\d{3}$') and (exploitation_transit is null or exploitation_transit ~ '^\d{5}$')
+  and (exploitation_compte is null or exploitation_compte ~ '^\d{5,12}$')
+  and (exploitation_compte is null or fiducie_compte is null
+       or (exploitation_institution, exploitation_transit, ltrim(exploitation_compte, '0')) is distinct from (fiducie_institution, fiducie_transit, ltrim(fiducie_compte, '0'))));
+
+-- Toute modification des coordonnées hors de fiducie_coordonnees_maj (import, SQL, futur écran) remet la vérification à zéro, auteur inconnu.
+create or replace function public.owners_versement_garde() returns trigger language plpgsql set search_path to 'public' as $$
+begin
+  if (new.versement_institution, new.versement_transit, new.versement_compte, new.versement_nom_compte) is distinct from (old.versement_institution, old.versement_transit, old.versement_compte, old.versement_nom_compte)
+     and coalesce(current_setting('fiducie.coordonnees_maj', true), '') <> '1' then
+    new.versement_modifie_le := now(); new.versement_modifie_par := null;
+    new.versement_verifie_le := null; new.versement_verifie_par := null; new.versement_verification_note := null;
+  end if;
+  return new;
+end $$;
+drop trigger if exists owners_versement_garde on public.owners;
+create trigger owners_versement_garde before update on public.owners for each row execute function public.owners_versement_garde();
+
+-- Mode d'envoi : fixé seulement si chaque ligne paie encore le compte actuel et vérifié du propriétaire.
+create or replace function public.fiducie_lot_mode(p_lot uuid, p_mode text) returns void language plpgsql security definer set search_path to 'public' as $$
+declare lot record; n int;
+begin
+  select * into lot from fiducie_lots where id = p_lot for update;
+  if lot is null or lot.statut = 'annule' then raise exception 'Lot introuvable ou annulé'; end if;
+  if p_mode not in ('fichier', 'manuel') then raise exception 'Mode d''envoi inconnu'; end if;
+  if lot.mode_envoi is not null and lot.mode_envoi <> p_mode then
+    raise exception 'Ce lot est déjà prévu %; l''envoyer aussi % paierait les propriétaires deux fois', case lot.mode_envoi when 'fichier' then 'par fichier' else 'à la main' end, case p_mode when 'fichier' then 'par fichier' else 'à la main' end;
+  end if;
+  if lot.mode_envoi is null then
+    select count(*) into n from fiducie_lot_lignes li join owners o on o.id = li.owner_id where li.lot_id = p_lot
+       and ((li.institution, li.transit, li.compte) is distinct from (o.versement_institution, o.versement_transit, o.versement_compte)
+            or o.versement_verifie_le is null or o.versement_verifie_le < o.versement_modifie_le);
+    if n > 0 then raise exception '% propriétaire(s) du lot ont changé de coordonnées ou ne sont plus vérifiés depuis la préparation : annulez le lot et préparez-le de nouveau', n; end if;
+  end if;
+  update fiducie_lots set mode_envoi = p_mode where id = p_lot;
+end $$;
+
+-- Coche d'un virement fait à la main (p_ligne null = le virement des honoraires).
+create or replace function public.fiducie_lot_virement_fait(p_lot uuid, p_ligne uuid, p_par uuid) returns void language plpgsql security definer set search_path to 'public' as $$
+declare lot record;
+begin
+  select * into lot from fiducie_lots where id = p_lot for update;
+  if lot is null or lot.statut <> 'prepare' or lot.mode_envoi is distinct from 'manuel' then raise exception 'Lot introuvable, déjà envoyé, ou pas prévu à la main'; end if;
+  if p_ligne is null then
+    if not exists (select 1 from fiducie_lot_honoraires where lot_id = p_lot) then raise exception 'Ce lot n''a pas d''honoraires à transférer'; end if;
+    update fiducie_lots set honoraires_vire_le = coalesce(honoraires_vire_le, now()), honoraires_vire_par = coalesce(honoraires_vire_par, p_par) where id = p_lot;
+  else
+    update fiducie_lot_lignes set vire_le = coalesce(vire_le, now()), vire_par = coalesce(vire_par, p_par) where id = p_ligne and lot_id = p_lot;
+    if not found then raise exception 'Virement introuvable dans ce lot'; end if;
+  end if;
+end $$;
+
+create or replace function public.fiducie_lot_marquer_envoye(p_lot uuid, p_mode text, p_par uuid default null) returns void language plpgsql security definer set search_path to 'public' as $$
+declare lot record; n int;
+begin
+  perform fiducie_lot_mode(p_lot, p_mode);
+  select * into lot from fiducie_lots where id = p_lot for update;
+  if lot.statut <> 'prepare' then raise exception 'Seul un lot préparé peut être marqué envoyé'; end if;
+  if p_mode = 'manuel' then
+    select count(*) + case when exists (select 1 from fiducie_lot_honoraires where lot_id = p_lot) and lot.honoraires_vire_le is null then 1 else 0 end into n
+      from fiducie_lot_lignes where lot_id = p_lot and vire_le is null;
+    if n > 0 then raise exception '% virement(s) pas encore cochés comme faits', n; end if;
+  end if;
+  update fiducie_lots set statut = 'envoye', envoye_le = now(), envoye_par = p_par where id = p_lot;
+end $$;
+
+-- Annulation : jamais après un virement coché, même « refusé par BMO ».
+do $$ declare d text; begin
+  select pg_get_functiondef('public.fiducie_annuler_lot(uuid,uuid,boolean)'::regprocedure) into d;
+  if position('virement(s) déjà faits' in d) = 0 then
+    d := replace(d, '  if lot.mode_envoi is not null and not p_refuse_par_bmo then',
+      '  if exists (select 1 from fiducie_lot_lignes where lot_id = p_lot and vire_le is not null) or lot.honoraires_vire_le is not null then
+    raise exception ''Des virement(s) déjà faits à la main : faites les autres, cochez-les, puis marquez le lot envoyé'';
+  end if;
+  if lot.mode_envoi is not null and not p_refuse_par_bmo then');
+    if position('virement(s) déjà faits' in d) = 0 then raise exception 'fiducie_annuler_lot : garde non insérée'; end if;
+    execute d;
+  end if;
+end $$;
+
+-- Relier à la main une sortie du relevé à un versement envoyé (après « Défaire », ou quand le rapprochement est ambigu).
+create or replace function public.fiducie_lier_sortie(p_sortie uuid, p_lot uuid, p_ligne uuid, p_par uuid) returns void language plpgsql security definer set search_path to 'public' as $$
+declare s record; lot record; attendu numeric;
+begin
+  select * into s from bank_transactions where id = p_sortie and compte = 'fiducie' and amount < 0 for update;
+  if s is null or s.fiducie_lot_id is not null or s.match_status not in ('unmatched', 'ignored') or exists (select 1 from fiducie_attentes a where a.sortie_id = p_sortie) then
+    raise exception 'Sortie introuvable ou déjà reliée'; end if;
+  select * into lot from fiducie_lots where id = p_lot and statut = 'envoye';
+  if lot is null then raise exception 'Seul un lot envoyé se relie à une sortie du relevé'; end if;
+  if s.transaction_date < lot.date_versement - 5 then raise exception 'Cette sortie précède le versement'; end if;
+  if p_ligne is not null then
+    if lot.mode_envoi <> 'manuel' then raise exception 'Un lot envoyé par fichier sort en un seul débit : reliez le lot entier'; end if;
+    select montant into attendu from fiducie_lot_lignes where id = p_ligne and lot_id = p_lot;
+    if exists (select 1 from bank_transactions where fiducie_lot_ligne_id = p_ligne) then raise exception 'Ce virement est déjà relié'; end if;
+  else
+    attendu := coalesce((select sum(montant) from fiducie_lot_honoraires where lot_id = p_lot), 0) + case when lot.mode_envoi = 'fichier' then lot.total else 0 end;
+    if exists (select 1 from bank_transactions where fiducie_lot_id = p_lot and fiducie_lot_ligne_id is null) then raise exception 'Ce versement est déjà relié'; end if;
+  end if;
+  if attendu is null or round(-s.amount, 2) <> round(attendu, 2) then raise exception 'Montants différents : sortie %, versement attendu %', -s.amount, attendu; end if;
+  update bank_transactions set match_status = 'matched', fiducie_lot_id = p_lot, fiducie_lot_ligne_id = p_ligne, reconciled_by = p_par, reconciled_at = now(),
+         ai_suggestion_note = 'Relié à la main au versement du ' || lot.date_versement where id = p_sortie;
+end $$;
+
+-- Rapprochement : un seul candidat ET une seule sortie de ce montant dans la fenêtre du candidat; un rapprochement à la fois.
+create or replace function public.fiducie_rapprocher_sorties() returns jsonb language plpgsql security definer set search_path to 'public' as $$
+declare s record; n int := 0; c record; rivales int;
+begin
+  perform pg_advisory_xact_lock(hashtext('fiducie_rapprocher_sorties'));
+  for s in select * from bank_transactions where compte = 'fiducie' and amount < 0 and match_status in ('unmatched', 'ignored') and reconciled_by is null
+             and fiducie_lot_id is null and not exists (select 1 from fiducie_attentes a where a.sortie_id = bank_transactions.id) order by transaction_date for update loop
+    with cand as (
+      select l.id lot_id, null::uuid ligne_id, l.date_versement d, 'Fichier de versements envoyé (lot du ' || l.date_versement || ')' note from fiducie_lots l
+       where l.statut = 'envoye' and l.mode_envoi = 'fichier' and s.transaction_date between l.date_versement - 5 and l.date_versement + 10
+         and not exists (select 1 from bank_transactions b where b.fiducie_lot_id = l.id and b.fiducie_lot_ligne_id is null)
+         and round(-s.amount, 2) = round(l.total + coalesce((select sum(montant) from fiducie_lot_honoraires h where h.lot_id = l.id), 0), 2)
+      union all
+      select l.id, li.id, l.date_versement, 'Versement au propriétaire (' || li.nom_compte || ')' from fiducie_lot_lignes li join fiducie_lots l on l.id = li.lot_id
+       where l.statut = 'envoye' and l.mode_envoi = 'manuel' and s.transaction_date between l.date_versement - 5 and l.date_versement + 10
+         and round(-s.amount, 2) = li.montant and not exists (select 1 from bank_transactions b where b.fiducie_lot_ligne_id = li.id)
+      union all
+      select l.id, null, l.date_versement, 'Honoraires transférés au compte d''exploitation' from fiducie_lots l
+       where l.statut = 'envoye' and l.mode_envoi = 'manuel' and s.transaction_date between l.date_versement - 5 and l.date_versement + 10
+         and round(-s.amount, 2) = (select sum(montant) from fiducie_lot_honoraires h where h.lot_id = l.id)
+         and not exists (select 1 from bank_transactions b where b.fiducie_lot_id = l.id and b.fiducie_lot_ligne_id is null)
+    )
+    select count(*) nb, min(lot_id::text)::uuid lot_id, min(ligne_id::text)::uuid ligne_id, min(d) d, min(note) note into c from cand;
+    if c.nb = 1 then
+      -- revue n° 2 : un chèque de fournisseur du même montant dans la fenêtre rend la sortie ambiguë (il ne doit pas prendre la place du vrai virement)
+      select count(*) into rivales from bank_transactions b where b.compte = 'fiducie' and b.amount = s.amount and b.fiducie_lot_id is null
+         and b.match_status in ('unmatched', 'ignored') and b.transaction_date between c.d - 5 and c.d + 10
+         and not exists (select 1 from fiducie_attentes a where a.sortie_id = b.id);
+      if rivales = 1 then
+        update bank_transactions set match_status = 'matched', fiducie_lot_id = c.lot_id, fiducie_lot_ligne_id = c.ligne_id, ai_suggestion_note = c.note where id = s.id;
+        n := n + 1;
+      end if;
+    end if;
+  end loop;
+  return jsonb_build_object('rapprochees', n);
+end $$;
+
+-- Sorties attendues : de quoi relier à la main (lot, ligne).
+create or replace function public.fiducie_sorties_attendues() returns jsonb language sql stable security definer set search_path to 'public' as $$
+  select coalesce(jsonb_agg(x order by x ->> 'date'), '[]'::jsonb) from (
+    select jsonb_build_object('lot_id', l.id, 'ligne_id', null, 'date', l.date_versement, 'mode', l.mode_envoi, 'quoi', 'Fichier de versements', 'montant', l.total + coalesce((select sum(montant) from fiducie_lot_honoraires h where h.lot_id = l.id), 0),
+           'en_retard', current_date > l.date_versement + 5) x
+      from fiducie_lots l where l.statut = 'envoye' and l.mode_envoi = 'fichier' and not exists (select 1 from bank_transactions b where b.fiducie_lot_id = l.id and b.fiducie_lot_ligne_id is null)
+    union all
+    select jsonb_build_object('lot_id', l.id, 'ligne_id', li.id, 'date', l.date_versement, 'mode', l.mode_envoi, 'quoi', 'Versement à ' || li.nom_compte, 'montant', li.montant, 'en_retard', current_date > l.date_versement + 5)
+      from fiducie_lot_lignes li join fiducie_lots l on l.id = li.lot_id where l.statut = 'envoye' and l.mode_envoi = 'manuel' and not exists (select 1 from bank_transactions b where b.fiducie_lot_ligne_id = li.id)
+    union all
+    select jsonb_build_object('lot_id', l.id, 'ligne_id', null, 'date', l.date_versement, 'mode', l.mode_envoi, 'quoi', 'Honoraires vers le compte d''exploitation', 'montant', (select sum(montant) from fiducie_lot_honoraires h where h.lot_id = l.id), 'en_retard', current_date > l.date_versement + 5)
+      from fiducie_lots l where l.statut = 'envoye' and l.mode_envoi = 'manuel' and exists (select 1 from fiducie_lot_honoraires h where h.lot_id = l.id)
+       and not exists (select 1 from bank_transactions b where b.fiducie_lot_id = l.id and b.fiducie_lot_ligne_id is null)
+  ) t;
+$$;
+
+revoke all on function public.fiducie_lot_mode(uuid, text), public.fiducie_lot_virement_fait(uuid, uuid, uuid), public.fiducie_lot_marquer_envoye(uuid, text, uuid),
+  public.fiducie_lier_sortie(uuid, uuid, uuid, uuid), public.fiducie_rapprocher_sorties(), public.fiducie_sorties_attendues(), public.owners_versement_garde() from public, anon, authenticated;

@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(21);
+select plan(33);
 
 create temp table qui as select (select id from auth.users order by created_at limit 1) as saisie, (select id from auth.users order by created_at offset 1 limit 1) as verif;
 insert into owners (id, full_name) values ('a2a2a2a2-0000-4000-8000-000000000001', 'Proprio Versement Garde');
@@ -43,7 +43,7 @@ select is((select count(*) from fiducie_lot_honoraires where lot_id = (select id
 
 -- 3. Fichier OU à la main
 select lives_ok($$ select public.fiducie_lot_mode((select id from pg_temp.lot), 'fichier') $$, 'fichier généré : lot envoyé par fichier');
-select throws_ok($$ select public.fiducie_annuler_lot((select id from pg_temp.lot), null) $$, null, null, 'annuler un lot dont le fichier est téléchargé : refusé sans « refusé par BMO »');
+select throws_like($$ select public.fiducie_annuler_lot((select id from pg_temp.lot), null) $$, '%envoi de ce lot a commencé%', 'annuler un lot dont le fichier est téléchargé : refusé sans « refusé par BMO »');
 insert into fiducie_mouvements (owner_id, type, montant, description, date_valeur, source_type, source_id) values
   ('a2a2a2a2-0000-4000-8000-000000000001', 'honoraires', -50, 'Honoraires tardifs (essai)', '2031-03-06', 'invoice', 'c2c2c2c2-0000-4000-8000-000000000002');
 select is(public.fiducie_lot_joindre_honoraires((select id from pg_temp.lot)), (select coalesce(sum(montant), 0) from fiducie_lot_honoraires where lot_id = (select id from pg_temp.lot)), 'fichier déjà téléchargé : aucun honoraire ajouté ensuite');
@@ -67,6 +67,41 @@ select is((select fiducie_lot_id from bank_transactions where id = '9b000000-000
 select lives_ok($$ select public.fiducie_delier_sortie('9b000000-0000-4000-8000-000000000001', (select verif from pg_temp.qui)) $$, 'rapprochement défait');
 select public.fiducie_rapprocher_sorties();
 select is((select fiducie_lot_id from bank_transactions where id = '9b000000-0000-4000-8000-000000000001'), null, 'sortie défaite par une personne : pas reprise automatiquement');
+
+-- 6. Droits : aucune fonction du fidéicommis n'est appelable par un compte connecté (seul ops-api, service_role)
+select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname like 'fiducie%'
+  and p.proname <> 'fiducie_interdire_modification' and has_function_privilege('authenticated', p.oid, 'execute')), 0, 'aucune fonction fiducie_* exécutable par authenticated');
+
+-- 7. Virements à la main : coche par virement, rivales, lien à la main, coordonnées changées après préparation
+insert into owners (id, full_name) values ('a2a2a2a2-0000-4000-8000-000000000003', 'Proprio Manuel');
+insert into fiducie_mouvements (owner_id, type, montant, description, date_valeur) values ('a2a2a2a2-0000-4000-8000-000000000003', 'loyer', 2000, 'Loyers (essai)', '2031-04-01');
+select public.fiducie_coordonnees_maj('a2a2a2a2-0000-4000-8000-000000000003', 'Proprio Manuel', '002', '54321', '1111111', (select saisie from pg_temp.qui));
+select public.fiducie_coordonnees_verifier('a2a2a2a2-0000-4000-8000-000000000003', (select verif from pg_temp.qui), 'rappel au 418-555-0111 le 19 nov., confirmé',
+  (select versement_modifie_le from owners where id = 'a2a2a2a2-0000-4000-8000-000000000003'));
+create temp table lot2 as select (public.fiducie_lot('2031-04-15', null, true) ->> 'lot_id')::uuid id;
+create temp table ligne2 as select li.id from fiducie_lot_lignes li where li.lot_id = (select id from pg_temp.lot2) and li.owner_id = 'a2a2a2a2-0000-4000-8000-000000000003';
+update owners set versement_compte = '2222222' where id = 'a2a2a2a2-0000-4000-8000-000000000003';
+select ok((select versement_verifie_le is null and versement_modifie_par is null from owners where id = 'a2a2a2a2-0000-4000-8000-000000000003'), 'compte changé hors de l’écran : vérification remise à zéro, auteur inconnu');
+select throws_like($$ select public.fiducie_lot_mode((select id from pg_temp.lot2), 'manuel') $$, '%ont changé de coordonnées%', 'coordonnées changées depuis la préparation : le lot ne part pas');
+select public.fiducie_coordonnees_maj('a2a2a2a2-0000-4000-8000-000000000003', 'Proprio Manuel', '002', '54321', '1111111', (select saisie from pg_temp.qui));
+select public.fiducie_coordonnees_verifier('a2a2a2a2-0000-4000-8000-000000000003', (select verif from pg_temp.qui), 'rappel au 418-555-0111 le 19 nov., remis',
+  (select versement_modifie_le from owners where id = 'a2a2a2a2-0000-4000-8000-000000000003'));
+select lives_ok($$ select public.fiducie_lot_mode((select id from pg_temp.lot2), 'manuel') $$, 'coordonnées revérifiées et identiques : virements à la main');
+select throws_like($$ select public.fiducie_lot_marquer_envoye((select id from pg_temp.lot2), 'manuel') $$, '%pas encore cochés%', 'marquer envoyé avant de cocher les virements : refusé');
+select lives_ok($$ select public.fiducie_lot_virement_fait((select id from pg_temp.lot2), (select id from pg_temp.ligne2), (select verif from pg_temp.qui)) $$, 'virement au propriétaire coché');
+select throws_like($$ select public.fiducie_annuler_lot((select id from pg_temp.lot2), null, true) $$, '%déjà faits%', 'un virement coché : annulation refusée même « refusé par BMO »');
+select public.fiducie_lot_virement_fait(l.id, li.id, (select verif from pg_temp.qui)) from pg_temp.lot2 l join fiducie_lot_lignes li on li.lot_id = l.id and li.vire_le is null;
+select public.fiducie_lot_virement_fait((select id from pg_temp.lot2), null, (select verif from pg_temp.qui)) where exists (select 1 from fiducie_lot_honoraires where lot_id = (select id from pg_temp.lot2));
+select lives_ok($$ select public.fiducie_lot_marquer_envoye((select id from pg_temp.lot2), 'manuel', (select verif from pg_temp.qui)) $$, 'tout coché : lot envoyé à la main');
+-- un chèque de fournisseur du même montant, deux jours avant : ambigu, rien n'est rapproché
+insert into bank_transactions (id, compte, transaction_date, description, amount, match_status) values
+  ('9b000000-0000-4000-8000-000000000002', 'fiducie', '2031-04-16', 'VIREMENT PROPRIO MANUEL (essai)', -(select montant from fiducie_lot_lignes where id = (select id from pg_temp.ligne2)), 'unmatched'),
+  ('9b000000-0000-4000-8000-000000000003', 'fiducie', '2031-04-14', 'CHEQUE FOURNISSEUR (essai)', -(select montant from fiducie_lot_lignes where id = (select id from pg_temp.ligne2)), 'unmatched');
+select public.fiducie_rapprocher_sorties();
+select ok((select count(*) = 0 from bank_transactions where id in ('9b000000-0000-4000-8000-000000000002', '9b000000-0000-4000-8000-000000000003') and fiducie_lot_id is not null), 'deux sorties du même montant : aucune n’est rapprochée seule');
+select throws_like($$ select public.fiducie_lier_sortie('9b000000-0000-4000-8000-000000000002', (select id from pg_temp.lot2), null, (select verif from pg_temp.qui)) $$, '%Montants différents%', 'relier au mauvais versement : refusé');
+select lives_ok($$ select public.fiducie_lier_sortie('9b000000-0000-4000-8000-000000000002', (select id from pg_temp.lot2), (select id from pg_temp.ligne2), (select verif from pg_temp.qui)) $$, 'relié à la main au bon virement');
+select is((select fiducie_lot_ligne_id from bank_transactions where id = '9b000000-0000-4000-8000-000000000002'), (select id from pg_temp.ligne2), 'la sortie est reliée au virement du propriétaire');
 
 select * from finish();
 rollback;
