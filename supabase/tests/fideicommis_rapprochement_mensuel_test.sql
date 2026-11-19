@@ -7,7 +7,7 @@ declare
   d1 uuid := gen_random_uuid(); r jsonb;
 begin
   alter table fiducie_mouvements disable trigger fiducie_immuable;
-  delete from fiducie_attentes; delete from fiducie_lot_honoraires; update bank_transactions set fiducie_lot_id = null, fiducie_lot_ligne_id = null where fiducie_lot_id is not null; delete from fiducie_lot_lignes; delete from fiducie_mouvements; delete from bank_transactions where compte = 'fiducie';
+  delete from fiducie_retours; delete from fiducie_depot_paiements; delete from fiducie_attentes; delete from fiducie_lot_honoraires; update bank_transactions set fiducie_lot_id = null, fiducie_lot_ligne_id = null where fiducie_lot_id is not null; delete from fiducie_lot_lignes; delete from fiducie_mouvements; delete from bank_transactions where compte = 'fiducie';
   alter table fiducie_mouvements enable trigger fiducie_immuable;
 
   insert into owners (id, full_name) values (o, 'Mensuel');
