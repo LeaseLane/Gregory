@@ -41,9 +41,15 @@ begin
   execute n;
 end $$;
 
+-- Clé de l'écriture de reprise d'un retour pour un propriétaire : l'index fiducie_mouvements_source_unique (source_type, source_id, type)
+-- n'admet qu'une écriture par source; un dépôt réparti sur deux propriétaires donne deux reprises (revue du 19 nov. 2026).
+create or replace function public.fiducie_retour_source(p_retour uuid, p_owner uuid) returns uuid language sql immutable set search_path = '' as $$
+  select md5(p_retour::text || ':' || p_owner::text)::uuid;
+$$;
+
 -- Ce que le registre doit encore reprendre à un propriétaire pour ses retours en attente.
 create or replace function public.fiducie_retour_du(p_owner uuid) returns numeric language sql stable security definer set search_path = '' as $$
-  select coalesce(sum(a.montant), 0) - coalesce((select -sum(m.montant) from public.fiducie_mouvements m join public.fiducie_retours r2 on r2.id = m.source_id
+  select coalesce(sum(a.montant), 0) - coalesce((select -sum(m.montant) from public.fiducie_mouvements m join public.fiducie_retours r2 on m.source_id = public.fiducie_retour_source(r2.id, p_owner)
                                                   where m.source_type = 'retour_depot' and m.owner_id = p_owner and r2.statut = 'en_attente'), 0)
     from public.fiducie_retours r join public.fiducie_depot_paiements a on a.transaction_id = r.depot_id
     join public.payments p on p.id = a.payment_id join public.leases l on l.id = p.lease_id join public.units u on u.id = l.unit_id join public.buildings b on b.id = u.building_id
@@ -56,7 +62,7 @@ declare r public.fiducie_retours; x record; v_solde numeric; n int := 0;
 begin
   for r in select * from public.fiducie_retours where statut = 'en_attente' order by created_at for update loop
     for x in select b.owner_id, round(sum(a.montant), 2) du,
-                    coalesce((select -sum(m.montant) from public.fiducie_mouvements m where m.source_type = 'retour_depot' and m.source_id = r.id and m.owner_id = b.owner_id), 0) repris
+                    coalesce((select -sum(m.montant) from public.fiducie_mouvements m where m.source_type = 'retour_depot' and m.source_id = public.fiducie_retour_source(r.id, b.owner_id) and m.owner_id = b.owner_id), 0) repris
                from public.fiducie_depot_paiements a join public.payments p on p.id = a.payment_id join public.leases l on l.id = p.lease_id
                join public.units u on u.id = l.unit_id join public.buildings b on b.id = u.building_id
               where a.transaction_id = r.depot_id group by b.owner_id loop
@@ -66,12 +72,12 @@ begin
       continue when v_solde < x.du - x.repris;   -- déjà versé : on attend des loyers; le lot du 15 réduit son disponible d'ici là
       insert into public.fiducie_mouvements (owner_id, type, montant, date_valeur, description, source_type, source_id, cree_par)
       values (x.owner_id, 'ajustement', -(x.du - x.repris), (now() at time zone 'America/Toronto')::date,
-              'Dépôt du ' || (select transaction_date from public.bank_transactions where id = r.depot_id) || ' retourné par la banque', 'retour_depot', r.id, p_par);
+              'Dépôt du ' || (select transaction_date from public.bank_transactions where id = r.depot_id) || ' retourné par la banque', 'retour_depot', public.fiducie_retour_source(r.id, x.owner_id), p_par);
     end loop;
     if not exists (select 1 from public.fiducie_depot_paiements a join public.payments p on p.id = a.payment_id join public.leases l on l.id = p.lease_id
                      join public.units u on u.id = l.unit_id join public.buildings b on b.id = u.building_id
                     where a.transaction_id = r.depot_id group by b.owner_id
-                   having sum(a.montant) > coalesce((select -sum(m.montant) from public.fiducie_mouvements m where m.source_type = 'retour_depot' and m.source_id = r.id and m.owner_id = b.owner_id), 0)) then
+                   having sum(a.montant) > coalesce((select -sum(m.montant) from public.fiducie_mouvements m where m.source_type = 'retour_depot' and m.source_id = public.fiducie_retour_source(r.id, b.owner_id) and m.owner_id = b.owner_id), 0)) then
       update public.fiducie_retours set statut = 'applique', applique_le = now() where id = r.id; n := n + 1;
     end if;
   end loop;
@@ -150,5 +156,5 @@ begin
   execute n;
 end $$;
 
-revoke all on function public.fiducie_retour_du(uuid), public.fiducie_appliquer_retours(uuid), public.fiducie_retour_depot(uuid, uuid, uuid) from public, anon, authenticated;
-grant execute on function public.fiducie_retour_du(uuid), public.fiducie_appliquer_retours(uuid), public.fiducie_retour_depot(uuid, uuid, uuid) to service_role;
+revoke all on function public.fiducie_retour_source(uuid, uuid), public.fiducie_retour_du(uuid), public.fiducie_appliquer_retours(uuid), public.fiducie_retour_depot(uuid, uuid, uuid) from public, anon, authenticated;
+grant execute on function public.fiducie_retour_source(uuid, uuid), public.fiducie_retour_du(uuid), public.fiducie_appliquer_retours(uuid), public.fiducie_retour_depot(uuid, uuid, uuid) to service_role;
