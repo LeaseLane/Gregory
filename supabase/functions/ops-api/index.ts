@@ -554,6 +554,12 @@ Deno.serve(async (req) => {
       if (!uuid(transaction_id) || !uuid(ligne_id)) return new Response(JSON.stringify({ error: "Retour invalide" }), { status: 400, headers: corsHeaders });
       return repondre(() => rpcAttente("fiducie_retour_versement", { p_transaction: transaction_id, p_ligne: ligne_id, p_par: userId }), "fiducie.versement_retourne", transaction_id, { ligne_id });
     }
+    // Dépôt de loyer retourné par la banque (19 nov. 2026) : sortie du relevé reliée au dépôt d'origine
+    if (action === "fiducie_retour_depot") {
+      const { sortie_id, depot_id } = body;
+      if (!uuid(sortie_id) || !uuid(depot_id)) return new Response(JSON.stringify({ error: "Retour invalide" }), { status: 400, headers: corsHeaders });
+      return repondre(() => rpcAttente("fiducie_retour_depot", { p_sortie: sortie_id, p_depot: depot_id, p_par: userId }), "fiducie.depot_retourne", depot_id, { sortie_id });
+    }
     if (action === "fiducie_attentes") {
       const lire = (q: string) => fetch(`${supabaseUrl}/rest/v1/${q}`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
       const [attentes, sorties, lignes, proprios] = await Promise.all([

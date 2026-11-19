@@ -170,7 +170,7 @@ function Releve({ proprio, immeubles, faire, occupe, fermer }: { proprio: Solde;
 
 // ---------- 2. Dépôts du compte (relevé BMO importé) ----------
 function Depots({ faire, occupe }: { faire: Faire; occupe: boolean }) {
-  const [deplie, setDeplie] = useState<string | null>(null), [version, setVersion] = useState(0);
+  const [deplie, setDeplie] = useState<string | null>(null), [version, setVersion] = useState(0), [retour, setRetour] = useState<{ depot: string; sortie: string } | null>(null);
   const [D, setD] = useState<{ depots: Depot[]; baux: BailF[] } | null>(null), [choix, setChoix] = useState<Record<string, string>>({}), [tous, setTous] = useState(false);
   const charger = useCallback(async () => setD(await faire<{ depots: Depot[]; baux: BailF[] }>({ action: 'fiducie_depots' })), [faire]);
   useEffect(() => { charger(); }, [charger]);
@@ -195,7 +195,20 @@ function Depots({ faire, occupe }: { faire: Faire; occupe: boolean }) {
               {ouvert && d.amount > 0 && <button className="lien" style={{ marginLeft: 12 }} aria-expanded={deplie === d.id} onClick={() => setDeplie(deplie === d.id ? null : d.id)}>Répartir…</button>}
               {ouvert && <button className="lien" style={{ marginLeft: 12, color: '#9B2E28' }} disabled={occupe} onClick={async () => { const note = prompt('Ignorer ce dépôt ? Il ne sera crédité à aucun propriétaire. Raison :', 'Pas un loyer'); if (note === null) return;
                 if (await faire({ action: 'fiducie_ignorer', transaction_id: d.id, ignorer: true, note }, 'Dépôt ignoré.')) charger(); }}>Ignorer</button>}
+              {d.match_status === 'matched' && d.amount > 0 && !d.ai_suggestion_note?.startsWith('Retourné') && <button className="lien" style={{ color: '#9B2E28' }} aria-expanded={retour?.depot === d.id}
+                onClick={() => setRetour(retour?.depot === d.id ? null : { depot: d.id, sortie: '' })}>Retourné…</button>}
               {d.match_status === 'ignored' && d.amount > 0 && <button className="lien" disabled={occupe} onClick={async () => { if (await faire({ action: 'fiducie_ignorer', transaction_id: d.id, ignorer: false }, 'Dépôt rétabli.')) charger(); }}>Rétablir</button>}</td></tr>
+            {retour?.depot === d.id && (() => { const sorties = D.depots.filter((x) => x.amount === -d.amount && ['unmatched', 'ignored'].includes(x.match_status) && x.transaction_date >= d.transaction_date);
+              return <tr><td colSpan={6}><div className="ligne-ic" style={{ gap: 12, flexWrap: 'wrap' }}>
+                <span className="texte-13">La banque a repris ce dépôt (chèque sans provision, dépôt renversé) ? Choisissez la sortie du relevé :</span>
+                {sorties.length ? <select className="e70-raison" aria-label="Sortie du relevé" style={{ minWidth: 260 }} value={retour.sortie} onChange={(e) => setRetour({ ...retour, sortie: e.target.value })}>
+                  <option value="">Choisir la sortie…</option>{sorties.map((x) => <option key={x.id} value={x.id}>{jour(x.transaction_date)} · {x.description} · {cents(x.amount)}</option>)}</select>
+                  : <span className="gris texte-13">Aucune sortie libre de {cents(-d.amount)} après le {jour(d.transaction_date)} : importez d’abord le relevé qui la contient.</span>}
+                <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 16px' }} disabled={occupe || !retour.sortie} onClick={async () => {
+                  if (!confirm('Le loyer redeviendra dû, le locataire sera avisé et le montant sera repris au propriétaire. Cette opération ne se défait pas. Continuer ?')) return;
+                  const x = await faire<{ resultat: { statut: string } }>({ action: 'fiducie_retour_depot', depot_id: d.id, sortie_id: retour.sortie },
+                    (y) => y.resultat.statut === 'applique' ? 'Retour inscrit : loyer de nouveau dû, montant repris au propriétaire.' : 'Retour inscrit : loyer de nouveau dû. Le propriétaire a déjà été payé : le montant sera retenu sur son prochain versement.');
+                  if (x) { setRetour(null); charger(); } }}>Inscrire le retour</button></div></td></tr>; })()}
             {deplie === d.id && <tr><td colSpan={6}><Repartir depot={d} baux={D.baux} faire={faire} occupe={occupe} fini={() => { setDeplie(null); setVersion((v) => v + 1); charger(); }} /></td></tr>}</Fragment>; })}
           {!liste.length && <tr><td colSpan={6} className="gris">{tous ? 'Aucun dépôt importé.' : 'Rien à rapprocher.'}</td></tr>}</tbody></table>
       <Attentes faire={faire} occupe={occupe} version={version} />
