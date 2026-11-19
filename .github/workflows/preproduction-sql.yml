@@ -15,7 +15,7 @@ jobs:
   sql:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Exécuter en préproduction
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
