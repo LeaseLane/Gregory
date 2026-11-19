@@ -798,6 +798,19 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // « Prêt pour le 1er » : liste verte/rouge et comptes de LeaseLane (3 derniers chiffres seulement).
+    if (action === "fiducie_preparation") {
+      try { return new Response(JSON.stringify(await rpcFiducie("fiducie_preparation", {})), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); }
+      catch (e) { return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: corsHeaders }); }
+    }
+    if (action === "fiducie_comptes") {
+      const p: Record<string, unknown> = {};
+      for (const k of ["fiducie", "exploitation", "bmo"]) if (body[k] && typeof body[k] === "object") p[k] = body[k];
+      if (!Object.keys(p).length) return new Response(JSON.stringify({ error: "Aucun compte à enregistrer." }), { status: 400, headers: corsHeaders });
+      try { return new Response(JSON.stringify(await rpcFiducie("fiducie_comptes_maj", { p, p_par: userId })), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); }
+      catch (e) { return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders }); }
+    }
+
     if (action === "fiducie_sorties_attendues") {
       try { await rpcFiducie("fiducie_rapprocher_sorties", {}); } catch { /* le rapprochement reprendra au prochain import */ }
       const attendues = await rpcFiducie("fiducie_sorties_attendues", {}).catch(() => []);

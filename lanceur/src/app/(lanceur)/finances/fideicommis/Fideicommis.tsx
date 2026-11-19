@@ -5,6 +5,7 @@ import { Icone } from '@/composants/Icones';
 import { argent, jour } from '../onglets';
 import { ImportReleve } from './ImportReleve';
 import { Attentes, Repartir } from './Attentes';
+import { Preparation } from './Preparation';
 
 /* Compte en fidéicommis (BMO) : un seul compte, un registre par propriétaire.
    1. Soldes : solde, réserve (1 000 $ par immeuble par défaut), disponible; relevé, mouvement manuel, coordonnées de versement, réserves.
@@ -28,7 +29,7 @@ type Attendue = { lot_id: string; ligne_id: string | null; date: string; quoi: s
 type Calcul = { date_fin: string; solde_releve: number; total_registre: number; depots_non_attribues: number; sorties_en_transit: number; sorties_hors_registre: number; ecart: number; soldes_negatifs: number };
 type Rappr = Calcul & { id: string; verifie_par: string | null; verifie_le: string | null; created_at: string };
 
-const VUES = [['soldes', 'Soldes'], ['depots', 'Dépôts du compte'], ['versements', 'Versements du 15'], ['rapprochement', 'Rapprochement mensuel']] as const;
+const VUES = [['preparation', 'Prêt pour le 1er'], ['soldes', 'Soldes'], ['depots', 'Dépôts du compte'], ['versements', 'Versements du 15'], ['rapprochement', 'Rapprochement mensuel']] as const;
 const TYPES = [['loyer', 'Loyer reçu (+)'], ['honoraires', 'Honoraires (−)'], ['coordination', 'Coordination (−)'], ['fournisseur', 'Fournisseur (−)'], ['debours', 'Débours (−)'], ['versement', 'Versement au propriétaire (−)'], ['ajustement', 'Ajustement (+ ou −)']] as const;
 const DEPOT: Record<string, [string, string]> = { unmatched: ['À rapprocher', 'todo'], suggested: ['Suggestion', 'action'], matched: ['Rapproché', 'ok'], partial: ['Partiel', 'action'], overpaid: ['Excédent', 'info'], ignored: ['Ignoré', 'neutral'] };
 const LOT: Record<string, [string, string]> = { prepare: ['Préparé', 'action'], envoye: ['Envoyé', 'ok'], annule: ['Annulé', 'neutral'] };
@@ -60,6 +61,7 @@ export function Fideicommis({ vue }: { vue: string }) {
       </nav>
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       {ok && <div className="bandeau info" role="status">{ok}</div>}
+      {vue === 'preparation' && <Preparation faire={faire} occupe={occupe} />}
       {vue === 'soldes' && <Soldes faire={faire} occupe={occupe} />}
       {vue === 'depots' && <Depots faire={faire} occupe={occupe} />}
       {vue === 'versements' && <Versements faire={faire} occupe={occupe} />}
