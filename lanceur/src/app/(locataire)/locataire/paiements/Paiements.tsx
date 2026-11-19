@@ -25,7 +25,7 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
   const [fenetreMode, setFenetreMode] = useState(mode), [toast, setToast] = useState<string | null>(null), [bandeau, setBandeau] = useState<string | null>(erreurRecu);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   if (erreur || !D) return <><BandeauLocataire titre="Paiements" /><div className="bandeau erreur" role="alert">{erreur ?? 'Vos paiements n’ont pas pu être lus.'}</div></>;
-  const annee = new Date(maintenant).getFullYear(), P = D.prochain, offert = D.prelevement_offert ?? true,
+  const annee = new Date(maintenant).getFullYear(), P = D.prochain, offert = D.prelevement_offert === true,
     suspendu = D.mode.type === 'prelevement' && !offert, pad = D.mode.type === 'prelevement' && offert;   // BMO a reporté les prélèvements : un accord existant est suspendu, le locataire paie par Interac
   async function demanderMode(m: string) {
     const { error } = await supabaseNavigateur().rpc('portail_locataire_mode_paiement', { p: { mode: m } });
@@ -62,10 +62,10 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
       <div className="lo-grille trois lo-remonte">
         <section className="carte-l18 e2 lo-kpi" aria-label="Prochain loyer">
           {P?.en_retard ? <><span className="texte-13 fort">{P.echec ? 'Prélèvement refusé' : 'Loyer en retard'}</span><b className="rouge">{argent(P.montant)}</b>
-              <small>{P.echec ? `Le prélèvement du ${dateCourte(P.echeance)} n’a pas abouti. Un nouvel essai est prévu; vous pouvez aussi payer par virement Interac.` : `dû depuis le ${dateCourte(P.echeance)} (${P.jours} jour${P.jours > 1 ? 's' : ''})${pad ? '' : ' · payable au propriétaire'}`}</small>
+              <small>{P.echec ? `Le prélèvement du ${dateCourte(P.echeance)} n’a pas abouti. Un nouvel essai est prévu; vous pouvez aussi payer par virement Interac.` : `dû depuis le ${dateCourte(P.echeance)} (${P.jours} jour${P.jours > 1 ? 's' : ''})${pad ? '' : D.interac ? ` · par Interac à ${D.interac}` : ' · payable au propriétaire'}`}</small>
               <Link className="lien ligne-ic" href="/locataire/messages?nouveau=1&sujet=Entente%20de%20paiement">Proposer une entente de paiement<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link></>
             : <><span className="texte-13 fort">{pad ? 'Prochain prélèvement' : 'Prochain loyer'}</span><b>{P ? dateCourte(P.echeance, true) : '—'}</b>
-              <small>{P ? `${argent(P.montant)}${pad ? ` · ${D.mode.compte ? `compte ${D.mode.compte.replace(/^.*?(·+ ?\d+)$/, '$1')}` : 'prélèvement automatique'}` : ' · à payer au propriétaire'}` : 'Aucun loyer à venir'}</small>
+              <small>{P ? `${argent(P.montant)}${pad ? ` · ${D.mode.compte ? `compte ${D.mode.compte.replace(/^.*?(·+ ?\d+)$/, '$1')}` : 'prélèvement automatique'}` : D.interac ? ` · par Interac à ${D.interac}` : ' · à payer au propriétaire'}` : 'Aucun loyer à venir'}</small>
               <button className="lien ligne-ic" onClick={() => setFenetreMode(true)}>Changer de mode de paiement<Icone nom="arrow" taille={16} couleur="#2E5788" /></button></>}
         </section>
         <section className="carte-l18 e2 lo-kpi" aria-label={`Payé en ${annee}`}><span className="texte-13 fort">Payé en {annee}</span><b>{argent(D.annee.paye)}</b>

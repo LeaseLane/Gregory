@@ -79,7 +79,7 @@ export function Accueil({ prenom, maintenant, donnees, erreur }: { prenom: strin
         <section className="carte-l18 e2" aria-label="Prochain loyer">
           {D.prochain_loyer ? <><header className="tete-action"><span className="texte-13 fort">Prochain loyer</span><span className={`puce ${D.prochain_loyer.en_retard ? 'todo' : 'ok'}`}>{D.prochain_loyer.en_retard ? 'En retard' : 'À jour'}</span></header>
               <p className="lo-montant"><b>{argent(D.prochain_loyer.montant)}</b><span>{D.prochain_loyer.en_retard ? `dû depuis le ${jour(D.prochain_loyer.echeance)}` : `dans ${Math.max(0, Math.round((new Date(`${D.prochain_loyer.echeance}T12:00:00`).getTime() - auj.getTime()) / 864e5))} jours`}</span></p>
-              <p className="gris texte-13" style={{ margin: 0 }}>{D.prochain_loyer.en_retard ? 'à payer au propriétaire · une entente reste possible' : `le ${jour(D.prochain_loyer.echeance)} · ${D.prochain_loyer.prelevement ? 'prélèvement automatique' : 'à payer au propriétaire'}`}</p></>
+              <p className="gris texte-13" style={{ margin: 0 }}>{D.prochain_loyer.en_retard ? 'en retard · une entente reste possible' : `le ${jour(D.prochain_loyer.echeance)} · ${D.prochain_loyer.prelevement ? 'prélèvement automatique' : 'à payer (voir Paiements)'}`}</p></>
             : <p className="gris texte-13" style={{ margin: 0 }}>Aucun loyer à venir.</p>}
         </section>
       </div>

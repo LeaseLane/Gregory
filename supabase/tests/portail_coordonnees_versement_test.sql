@@ -27,7 +27,7 @@ select ok(not (public.portail_proprietaire_versement() ? 'compte') and public.po
 select is((select count(*)::int from comms.outbox where template_code = 'PRO-15' and recipient = 'pv@exemple-cv.test' and vars ->> 'compte_fin' = '321'), 1, 'courriel « compte modifié » envoyé au propriétaire');
 select public.portail_proprietaire_versement_maj('{"nom_compte":"Paule Versement","institution":"001","transit":"12345","compte":"7654321"}');
 select is((select count(*)::int from comms.outbox where template_code = 'PRO-15' and recipient = 'pv@exemple-cv.test'), 1, 'mêmes coordonnées : ni remise à zéro ni second courriel');
-select ok(not exists (select 1 from public.audit_log where entity_id = '00000000-0000-4000-a000-00000074b001' and details::text like '%7654321%'), 'le journal ne contient jamais le numéro complet');
+select ok(not exists (select 1 from public.audit_log where entity_id = '00000000-0000-4000-a000-00000074b001' and concat(details::text, before::text, after::text) like '%7654321%'), 'le journal ne contient jamais le numéro complet');
 reset role;
 select throws_like($$ select public.fiducie_coordonnees_verifier('00000000-0000-4000-a000-00000074b001', '00000000-0000-4000-a000-00000074a001', 'je confirme moi-même mon compte',
   (select versement_modifie_le from owners where id = '00000000-0000-4000-a000-00000074b001')) $$, '%ne peut pas les vérifier%', 'le propriétaire ne peut pas valider son propre changement');

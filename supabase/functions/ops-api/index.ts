@@ -409,11 +409,10 @@ Deno.serve(async (req) => {
     if (action === "fiducie_courriel") {
       const courriel = String(body.courriel || "").trim().toLowerCase();
       if (courriel && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(courriel)) return new Response(JSON.stringify({ error: "Courriel invalide" }), { status: 400, headers: corsHeaders });
-      const r = await fetch(`${supabaseUrl}/rest/v1/company_settings?id=eq.true`, {
-        method: "PATCH", headers: adminHeaders, body: JSON.stringify({ fiducie_interac_courriel: courriel || null, updated_at: new Date().toISOString() }),
-      });
-      if (!r.ok) return new Response(JSON.stringify({ error: "Non enregistré" }), { status: 502, headers: corsHeaders });
-      await logAudit("fiducie.courriel_interac", "company_settings", null, { actif: !!courriel });
+      // revue du 19 nov. 2026 : l'adresse décide où va le loyer; elle passe par fiducie_comptes_maj (garde en base + alerte EQP-15)
+      try { await rpcFiducie("fiducie_comptes_maj", { p: { interac: courriel || null }, p_par: userId }); }
+      catch (e) { return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders }); }
+      await logAudit("fiducie.courriel_interac", "company_settings", null, { avant_apres: "voir company.bank_accounts_updated", actif: !!courriel });
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -806,9 +805,13 @@ Deno.serve(async (req) => {
     if (action === "fiducie_comptes") {
       const p: Record<string, unknown> = {};
       for (const k of ["fiducie", "exploitation", "bmo"]) if (body[k] && typeof body[k] === "object") p[k] = body[k];
+      if (typeof body.interac === "string") p.interac = body.interac.trim().toLowerCase() || null;
       if (!Object.keys(p).length) return new Response(JSON.stringify({ error: "Aucun compte à enregistrer." }), { status: 400, headers: corsHeaders });
-      try { return new Response(JSON.stringify(await rpcFiducie("fiducie_comptes_maj", { p, p_par: userId })), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); }
-      catch (e) { return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders }); }
+      try {
+        const d = await rpcFiducie("fiducie_comptes_maj", { p, p_par: userId });
+        if (d?.change) await logAudit("fiducie.comptes_modifies", "company_settings", null, { groupes: Object.keys(p) });   // auteur = userId (le journal SQL n'a pas d'auteur sous service_role)
+        return new Response(JSON.stringify(d), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (e) { return new Response(JSON.stringify({ error: (e as Error).message }), { status: 409, headers: corsHeaders }); }
     }
 
     if (action === "fiducie_sorties_attendues") {
@@ -1876,7 +1879,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "get_company_settings") {
-      const res = await fetch(`${supabaseUrl}/rest/v1/company_settings?id=eq.true&select=*`, { headers: adminHeaders });
+      const res = await fetch(`${supabaseUrl}/rest/v1/company_settings?id=eq.true&select=id,legal_name,address,phone_main,phone_emergency,gst_number,qst_number,gst_rate,qst_rate,neq,fiducie_interac_courriel,updated_at`, { headers: adminHeaders });   // jamais les numéros de compte
       const [settings] = await res.json().catch(() => [null]);
       return new Response(JSON.stringify({ settings }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }

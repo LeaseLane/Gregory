@@ -29,7 +29,7 @@ export function Preparation({ faire, occupe }: { faire: Faire; occupe: boolean }
     const g = ouvert!;
     const corps = g === 'bmo' ? { bmo: { originateur: f.originateur, centre: f.centre } }
       : { [g]: { nom: f.nom, institution: f.institution, transit: f.transit, compte: f.compte } };
-    const d = await faire<Prep>({ action: 'fiducie_comptes', ...corps }, 'Compte enregistré. Les administrateurs ont reçu un courriel de sécurité.');
+    const d = await faire<Prep & { change?: boolean }>({ action: 'fiducie_comptes', ...corps }, (x) => x.change ? 'Compte enregistré. Les administrateurs ont reçu un courriel de sécurité.' : 'Rien de changé : ces numéros étaient déjà inscrits.');
     if (d) { setP(d); setOuvert(null); setF({}); }
   }
   const ouvrir = (g: 'fiducie' | 'exploitation' | 'bmo') => { setOuvert(g); setF(g === 'bmo' ? { originateur: C.bmo.originateur ?? '', centre: C.bmo.centre ?? '' }
