@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { SOUS_SITE } from '../onglets';
-/* Studio › Site web : 4 sous-onglets (prototype GS, GP, AR, SE). */
+/* Studio › Site web : 5 sous-onglets (prototype GS, Demandes, GP, AR, SE). */
 export function SousSite({ actif }: { actif: string }) {
   return <nav className="sous-onglets" aria-label="Site web" style={{ marginBottom: 24 }}>{SOUS_SITE.map(([h, l]) => <Link key={h} href={h} className={h === actif ? 'actif' : ''} aria-current={h === actif ? 'page' : undefined}>{l}</Link>)}</nav>;
 }
