@@ -24,8 +24,8 @@ export function Vacance({ donnees: D, erreurLecture }: { donnees: DonneesVacance
           <div style={{ display: 'flex', gap: 8 }}>
             <select className="e70-raison" aria-label="Région" value={R} onChange={(e) => setRegion(e.target.value)}>{regions.map((r) => <option key={r}>{r}</option>)}</select>
             <select className="e70-raison" aria-label="Trier" value={tri} onChange={(e) => setTri(e.target.value as 'vacance' | 'nom')}><option value="vacance">Plus haut taux d’abord</option><option value="nom">Par nom</option></select></div></div>
-        <table className="tableau" style={{ marginTop: 12 }}><thead><tr><th>Zone</th><th style={{ width: '40%' }}>Taux de vacance</th><th>Loyer moyen</th><th>Logements</th><th>Fiabilité</th></tr></thead>
-          <tbody>{zones.map((z) => <tr key={z.zone}><td><strong>{z.zone}</strong></td>
+        <table className="tableau" style={{ marginTop: 12 }}><thead><tr><th style={{ width: '30%' }}>Zone</th><th style={{ width: '34%' }}>Taux de vacance</th><th>Loyer moyen</th><th>Logements</th><th>Fiabilité</th></tr></thead>
+          <tbody>{zones.map((z) => <tr key={z.zone}><td style={{ whiteSpace: 'normal', overflow: 'visible', textOverflow: 'clip' }}><strong>{z.zone}</strong></td>
             <td>{z.vacance == null ? <span className="gris">non publié par la SCHL</span>
               : <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div style={{ background: '#EEF1F6', borderRadius: 6, flex: 1, height: 12 }} aria-hidden><div style={{ width: `${Math.min(z.vacance / MAX, 1) * 100}%`, background: teinte(z.vacance), height: 12, borderRadius: 6 }} /></div><strong>{z.vacance.toLocaleString('fr-CA', { minimumFractionDigits: 1 })} %</strong></div>}</td>
             <td>{z.loyer == null ? '—' : `${z.loyer.toLocaleString('fr-CA')} $`}</td><td>{z.logements.toLocaleString('fr-CA')}</td><td className="gris texte-13">{z.fiabilite ? FIAB[z.fiabilite] : '—'}</td></tr>)}</tbody></table>
