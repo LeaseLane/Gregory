@@ -23,7 +23,9 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
     setOuvert(true); }, [type0]);
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
   // « Importer le bail » (Greg, 2026-11-09) : le bail lu préremplit la fiche; rien n'est créé avant « Créer le client ».
-  const [lu, setLu] = useState<BailLu | null>(null), [fichierBail, setFichierBail] = useState<File | null>(null), [lecture, setLecture] = useState(false);
+  const [lu, setLu] = useState<BailLu | null>(null), [fichierBail, setFichierBail] = useState<File | null>(null), [lecture, setLecture] = useState(false), [invProprio, setInvProprio] = useState(true);
+  // Bail lu sur un logement reconnu (Greg, 23 nov. 2026) : locataire, bail, colocataires et invitations en une seule étape (lanceur_importer_bail).
+  const complet = f.type === 'locataire' && !!lu && !!logement;
   async function lireBail(fichier: File) {
     if (fichier.size > 10 * 1024 * 1024) return setErreur('Le bail dépasse 10 Mo : envoyez une copie plus légère.');
     setLecture(true); setErreur(null);
@@ -37,9 +39,13 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
   }
   async function creer() {
     setEnvoi(true); setErreur(null);
-    const { data, error } = await supabaseNavigateur().rpc('lanceur_creer_client', { p: { ...f, immeubles: f.type === 'proprietaire' ? imm.filter((i) => i.adresse.trim()).map((i) => ({ ...i, logements: Number(i.logements) || 1 })) : [] } });
+    const { data, error } = complet
+      ? await supabaseNavigateur().rpc('lanceur_importer_bail', { p: { unit_id: logement, loyer: lu!.loyer, debut: lu!.debut, fin: lu!.fin, langue: f.langue, inviter: f.inviter, inviter_proprietaire: invProprio,
+          consentement_courriel: f.consentement_courriel, consentement_sms: f.consentement_sms,
+          locataires: [{ nom: f.nom, courriel: f.courriel || null, telephone: f.telephone || null }, ...lu!.locataires.slice(1)] } })
+      : await supabaseNavigateur().rpc('lanceur_creer_client', { p: { ...f, immeubles: f.type === 'proprietaire' ? imm.filter((i) => i.adresse.trim()).map((i) => ({ ...i, logements: Number(i.logements) || 1 })) : [] } });
     setEnvoi(false); if (error) return setErreur(error.message);
-    const id = (data as { id: string }).id, sb = supabaseNavigateur();
+    const id = complet ? (data as { tenant_id: string }).tenant_id : (data as { id: string }).id, sb = supabaseNavigateur();
     // Le bail importé est rangé dans les documents du locataire (même dossier que la fiche locataire).
     if (fichierBail && f.type === 'locataire') {
       const chemin = `locataires/${id}/documents/${crypto.randomUUID().slice(0, 8)}-bail.${fichierBail.type === 'application/pdf' ? 'pdf' : fichierBail.type.split('/')[1]}`;
@@ -47,7 +53,10 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
       if (!e1) await sb.rpc('lanceur_locataire_document_ajouter', { p: { tenant_id: id, titre: 'Bail', chemin, taille: fichierBail.size } });
     }
     const q = new URLSearchParams();
-    if (f.type === 'locataire' && (logement || lu)) {
+    if (complet) {
+      const d = data as { colocataires: number; invitations: number; proprietaire: string };
+      q.set('importe', `${d.colocataires}.${d.invitations}.${d.proprietaire}`);
+    } else if (f.type === 'locataire' && (logement || lu)) {
       q.set('bail', logement ?? 'choisir');
       if (lu?.loyer) q.set('loyer', String(lu.loyer)); if (lu?.debut) q.set('debut', lu.debut); if (lu?.fin) q.set('fin', lu.fin);
     }
@@ -77,8 +86,7 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
                 <strong>Bail lu, à vérifier avant de créer.</strong>{' '}
                 {[lu.adresse && `${lu.adresse}${lu.logement ? ` — logement ${lu.logement}` : ''}`, lu.loyer && `${lu.loyer.toLocaleString('fr-CA')} $ par mois`,
                   lu.debut && `du ${jourLong(lu.debut)}${lu.fin ? ` au ${jourLong(lu.fin)}` : ' (durée indéterminée)'}`].filter(Boolean).join(' · ')}.
-                {' '}{logement ? 'Le bail s’ouvrira sur ce logement après la création.' : 'Logement non trouvé parmi les logements libres : vous le choisirez à l’étape du bail.'}
-                {lu.locataires.length > 1 && <> Autres locataires au bail : {lu.locataires.slice(1).map((l) => l.nom).join(', ')} (à ajouter comme colocataires).</>}
+                {' '}{logement ? <>« Créer » fait tout d’un coup : le locataire, le bail sur ce logement{lu.locataires.length > 1 ? `, les colocataires (${lu.locataires.slice(1).map((l) => l.nom).join(', ')})` : ''} et les invitations au portail.</> : 'Logement non trouvé parmi les logements libres : vous le choisirez à l’étape du bail.'}
                 {lu.remarques && <> À vérifier : {lu.remarques}</>}</div>}
             </div>}
             <div className="po-deux">{champ('nom', 'Nom')}{f.type === 'proprietaire' ? champ('entreprise', 'Entreprise (facultatif)', { ph: 'Ex. : Placements Nguyen inc.' }) : <div />}
@@ -95,10 +103,12 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
             <label className="case"><input type="checkbox" checked={f.consentement_sms} onChange={(e) => setF({ ...f, consentement_sms: e.target.checked })} />SMS · accord exprès reçu</label>
             <p className="gris texte-12">Cochez seulement si la personne a donné son accord exprès. La date et la source sont inscrites au journal.</p>
             <label className="lo-bascule nc-invite"><input type="checkbox" role="switch" checked={f.inviter} onChange={(e) => setF({ ...f, inviter: e.target.checked })} /><i />
-              <div><strong>Inviter au portail {f.type === 'proprietaire' ? 'propriétaire' : 'locataire'}</strong><span className="gris texte-13">Un courriel avec un code personnel part à la création du client.</span></div></label>
+              <div><strong>Inviter au portail {f.type === 'proprietaire' ? 'propriétaire' : 'locataire'}</strong><span className="gris texte-13">{complet ? 'Chaque locataire du bail qui a un courriel reçoit son code personnel.' : 'Un courriel avec un code personnel part à la création du client.'}</span></div></label>
+            {complet && <label className="lo-bascule nc-invite"><input type="checkbox" role="switch" checked={invProprio} onChange={(e) => setInvProprio(e.target.checked)} /><i />
+              <div><strong>Inviter aussi le propriétaire de l’immeuble</strong><span className="gris texte-13">Seulement s’il n’a pas encore accès à son portail.</span></div></label>}
           </div>
           <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={() => setOuvert(false)}>Annuler</button>
-            <button className="bouton bouton-principal" disabled={envoi || f.nom.trim().length < 2 || ((f.type === 'proprietaire' || f.inviter) ? !f.courriel.includes('@') : !!f.courriel.trim() && !f.courriel.includes('@'))}>{envoi ? 'Création…' : 'Créer le client'}</button></footer>
+            <button className="bouton bouton-principal" disabled={envoi || f.nom.trim().length < 2 || ((f.type === 'proprietaire' || f.inviter) ? !f.courriel.includes('@') : !!f.courriel.trim() && !f.courriel.includes('@'))}>{envoi ? 'Création…' : complet ? 'Créer le locataire et le bail' : 'Créer le client'}</button></footer>
         </form></div>}
     </>
   );
