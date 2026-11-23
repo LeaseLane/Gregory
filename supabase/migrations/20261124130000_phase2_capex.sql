@@ -38,7 +38,8 @@ begin
                     'en_retard', annee_installation + vie < y0, 'valide', valide and not perso) order by annee_installation + vie) from c), '[]'::jsonb),
     'annees', (select jsonb_agg(jsonb_build_object('annee', cum.annee, 'depenses', cum.depenses, 'reserve_fin', cum.reserve_fin,
                     'details', coalesce((select jsonb_agg(jsonb_build_object('composant', o.composant, 'libelle', o.libelle, 'montant', o.montant)) from occ o where o.annee = cum.annee), '[]'::jsonb)) order by cum.annee) from cum),
-    'premiere_alerte', (select min(annee) from cum where reserve_fin < 0)) into res;
+    'premiere_alerte', (select min(annee) from cum where reserve_fin < 0),
+    'defauts', (select jsonb_agg(jsonb_build_object('composant', composant, 'libelle', libelle, 'duree_vie', duree_vie, 'cout_logement', cout_logement) order by libelle) from crm.capex_defauts)) into res;
   return res;
 end $$;
 
@@ -57,7 +58,7 @@ begin
     v_an := nullif(x ->> 'annee_installation', '')::int;
     if v_an is null then delete from crm.capex_composants where building_id = v_b and composant = x ->> 'composant';
     else
-      if v_an < 1850 or v_an > 2100 then raise exception 'Année d’installation invalide.' using errcode = 'PT422'; end if;
+      if v_an < 1850 or v_an > extract(year from now() at time zone 'America/Toronto')::int then raise exception 'Année d’installation invalide.' using errcode = 'PT422'; end if;
       insert into crm.capex_composants (building_id, composant, annee_installation, duree_vie, cout_logement)
       values (v_b, x ->> 'composant', v_an, nullif(x ->> 'duree_vie', '')::int, nullif(x ->> 'cout_logement', '')::numeric)
       on conflict (building_id, composant) do update set annee_installation = excluded.annee_installation, duree_vie = excluded.duree_vie, cout_logement = excluded.cout_logement;

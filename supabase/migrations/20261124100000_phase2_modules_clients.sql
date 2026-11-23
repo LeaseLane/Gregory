@@ -7,12 +7,12 @@ create table if not exists crm.modules_clients (
 alter table crm.modules_catalogue enable row level security; alter table crm.modules_clients enable row level security;
 revoke all on crm.modules_catalogue, crm.modules_clients from public, anon, authenticated;
 insert into crm.modules_catalogue (module, libelle, description) values
-  ('vacance', 'Carte des taux de vacance', 'Taux de vacance par secteur (SCHL) pour cibler la publicité.'),
-  ('taux', 'Veille des taux', 'Taux directeur, taux hypothécaires et calcul de refinancement.'),
-  ('capex', 'Prévision CapEx', 'Dépenses en capital par immeuble sur 15 à 20 ans, avec alerte de manque de liquidités.'),
-  ('donnees_publiques', 'Données publiques', 'Changements de propriétaire repérés dans le rôle d’évaluation.'),
+  ('vacance', 'Vacance', 'Taux de vacance par zone (SCHL), pour cibler la publicité.'),
+  ('taux', 'Taux', 'Taux directeur, taux hypothécaires et calcul de refinancement.'),
+  ('capex', 'CapEx', 'Remplacements prévus sur 20 ans, avec inflation et alerte de liquidités.'),
+  ('donnees_publiques', 'Nouveaux propriétaires', 'Immeubles dont le propriétaire est inscrit au rôle d’évaluation depuis peu.'),
   ('fonctions_avancees', 'Fonctions avancées', 'Fonctions réservées à l’administration, activées pour un propriétaire qui les demande.')
-on conflict (module) do nothing;
+on conflict (module) do update set libelle = excluded.libelle, description = excluded.description;
 
 create or replace function crm.module_actif(p_owner uuid, p_module text) returns boolean language sql stable security definer set search_path = '' as $$
   select coalesce((select actif from crm.modules_clients where owner_id = p_owner and module = p_module), false);
@@ -23,7 +23,7 @@ create or replace function public.lanceur_modules_lire(p_owner uuid) returns jso
 begin
   perform crm.require_aal2();
   if not crm.can('clients.lire') then raise exception 'Votre rôle ne donne pas accès aux clients.' using errcode = 'PT403'; end if;
-  return coalesce((select jsonb_agg(jsonb_build_object('module', c.module, 'libelle', c.libelle, 'description', c.description, 'actif', coalesce(m.actif, false)) order by c.libelle)
+  return coalesce((select jsonb_agg(jsonb_build_object('module', c.module, 'libelle', c.libelle, 'description', c.description, 'actif', coalesce(m.actif, false)) order by array_position(array['vacance', 'taux', 'capex', 'donnees_publiques', 'fonctions_avancees'], c.module))
     from crm.modules_catalogue c left join crm.modules_clients m on m.module = c.module and m.owner_id = p_owner), '[]'::jsonb);
 end $$;
 

@@ -2259,3 +2259,23 @@ html[lang^="en"] .tableau thead th { white-space: normal; height: auto; min-heig
 }
 .segment a { text-decoration: none; color: #3E4A59; cursor: pointer; white-space: nowrap; }
 .segment a.actif { color: #0C2147; }
+
+/* Phase 2 · Marché (revue à froid, 23 nov. 2026) : une grille de 8, pas de marges qui s'additionnent, tableaux de lecture (rien de cliquable). */
+.e70-raison.sans-marge { margin-bottom: 0; }
+.espace-page > .bandeau { margin: 0; }
+.bandeau.info > span.un-bloc { display: block; }
+.tableau.pleine { width: 100%; margin: 0; }
+.tableau.lecture tbody tr { cursor: default; } .tableau.lecture tbody tr:hover td { background: none; }
+.tableau.dense td { height: 48px; }
+.tableau.pleine td:first-child, .tableau.pleine th:first-child { padding-left: 12px; }
+.segment.marche { background: #fff; border: 1px solid #E1E6EC; justify-self: start; }
+.segment.marche a.actif { background: #ECF2F9; border-color: transparent; }
+.gris-vrai { color: #58697F !important; }
+.marche-formulaire { display: grid; gap: 16px; }
+.marche-champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; align-items: end; }
+.marche-reponse { display: grid; gap: 4px; padding: 16px; border-radius: 12px; background: #F7F9FB; border: 1px solid #E1E6EC; }
+.marche-reponse b { font-size: 22px; font-weight: 700; color: #0C2147; } .marche-reponse span { font-size: 14px; color: #3E4A59; }
+.barre-rail { height: 8px; border-radius: 4px; background: #EEF1F5; flex: 1; min-width: 80px; } .barre-rail > div { height: 8px; border-radius: 4px; background: #4581CB; }
+.kpis.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kpis.trois .kpi { min-height: 0; }
+.marche-aide { max-width: 72ch; }

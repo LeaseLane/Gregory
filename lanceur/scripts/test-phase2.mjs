@@ -27,31 +27,40 @@ try {
   await p.screenshot({ path: `${SORTIE}/2-taux.png` });
   // 3. CapEx
   await p.goto('http://localhost:3020/finances/capex', { waitUntil: 'networkidle2', timeout: 120000 });
-  await p.waitForSelector('#cx-toiture', { timeout: 60000 });
+  const AN = (n) => `input[aria-label="${n} : année d’installation"]`;
+  await p.waitForSelector(AN('Toiture'), { timeout: 60000 });
   t = await texte(p); verifier(/estimations non validées/.test(t), 'capex : bandeau « non validées » tant que rien n’est confirmé');
-  await p.type('#cx-toiture', '2001'); await p.type('#cx-fenetres', '2005');
+  await p.$eval(AN('Toiture'), (e) => e.select()); await p.type(AN('Toiture'), '1500');
+  verifier(await p.$eval('section form button', (b) => b.disabled), 'capex : année impossible (1500) : bouton bloqué avant l’envoi');
+  await p.$eval(AN('Toiture'), (e) => e.select()); await p.type(AN('Toiture'), '2001');
+  await p.$eval(AN('Fenêtres'), (e) => e.select()); await p.type(AN('Fenêtres'), '2005');
   await p.$eval('#cx-ann', (e) => (e.value = '')); await p.type('#cx-ann', '1000');
-  await p.click('section form button'); await p.waitForFunction(() => document.body.innerText.includes('Échéance 2026'), { timeout: 30000 });
-  t = await texte(p); verifier(/Manque de liquidités dès/.test(t) || /couvre toutes les dépenses/.test(t), 'capex : alerte ou confirmation de liquidités affichée');
-  verifier(await p.$$eval('table tbody tr', (r) => r.length) === 20, 'capex : 20 années projetées');
+  await p.click('section form button'); await p.waitForFunction(() => document.body.innerText.includes('Enregistré'), { timeout: 30000 });
+  t = await texte(p); verifier(/Premier manque de liquidités/.test(t) && /Versement annuel requis/.test(t), 'capex : les trois indicateurs sont là');
+  verifier(await p.$$eval('table', (r) => r.length) === 2, 'capex : tableau des composants et tableau de projection');
+  verifier(await p.$$eval('table:last-of-type tbody tr', (r) => r.length) < 20, 'capex : seules les années avec dépenses sont listées');
   await p.screenshot({ path: `${SORTIE}/3-capex.png`, fullPage: true });
   // 4. Nouveaux propriétaires
   await p.goto('http://localhost:3020/finances/changements', { waitUntil: 'networkidle2', timeout: 120000 });
   await p.waitForFunction(() => document.body.innerText.includes('Rôle à jour au'), { timeout: 60000 });
   t = await texte(p); verifier(/3 novembre 2025/.test(t), 'changements : rôle à jour au 3 novembre 2025, dit à l’écran');
+  verifier(/ne sont plus des ventes récentes/.test(t), 'changements : le rôle date de plus de 90 jours, dit à l’écran');
+  verifier(!/\bBO\b|\bRU\b/.test(t.split('Propriétaire connu')[1] ?? ''), 'changements : adresses en toutes lettres, casse normale');
   await p.screenshot({ path: `${SORTIE}/4-nouveaux-proprietaires.png` });
   // 5. Modules sur la fiche propriétaire
   await p.goto('http://localhost:3020/clients/proprietaires', { waitUntil: 'networkidle2', timeout: 120000 });
   const lien = await p.$$eval('a[href^="/clients/proprietaires/"]', (a) => a[0]?.getAttribute('href'));
   verifier(!!lien, 'modules : un propriétaire à ouvrir');
   await p.goto(`http://localhost:3020${lien}`, { waitUntil: 'networkidle2', timeout: 120000 });
-  await p.waitForSelector('input[aria-label="Prévision CapEx"]', { timeout: 60000 });
-  verifier(await p.$$eval('section[aria-label="Modules"] input[type=checkbox]', (c) => c.length) === 5 && await p.$$eval('section[aria-label="Modules"] input:checked', (c) => c.length) === 0, 'modules : 5 interrupteurs, tous désactivés par défaut');
-  await p.click('input[aria-label="Prévision CapEx"]'); await p.waitForFunction(() => document.querySelector('input[aria-label="Prévision CapEx"]').checked, { timeout: 15000 });
-  await new Promise((r) => setTimeout(r, 800)); await p.reload({ waitUntil: 'networkidle2' }); await p.waitForSelector('input[aria-label="Prévision CapEx"]');
-  verifier(await p.$eval('input[aria-label="Prévision CapEx"]', (c) => c.checked), 'modules : l’activation survit au rechargement');
+  const SW = 'section[aria-label="Modules"] button[role=switch][aria-label="CapEx"]';
+  await p.waitForSelector(SW, { timeout: 60000 });
+  verifier(await p.$$eval('section[aria-label="Modules"] button[role=switch]', (c) => c.length) === 5 && await p.$$eval('section[aria-label="Modules"] button[aria-checked=true]', (c) => c.length) === 0, 'modules : 5 interrupteurs, tous désactivés par défaut');
+  await p.click(SW); await p.waitForFunction((s) => document.querySelector(s).getAttribute('aria-checked') === 'true', { timeout: 15000 }, SW);
+  verifier((await texte(p)).includes('CapEx : module activé.'), 'modules : confirmation « module activé » affichée');
+  await new Promise((r) => setTimeout(r, 800)); await p.reload({ waitUntil: 'networkidle2' }); await p.waitForSelector(SW);
+  verifier(await p.$eval(SW, (c) => c.getAttribute('aria-checked') === 'true'), 'modules : l’activation survit au rechargement');
   await p.screenshot({ path: `${SORTIE}/5-modules.png` });
-  await p.click('input[aria-label="Prévision CapEx"]'); await new Promise((r) => setTimeout(r, 800)); // remet à l'état d'origine
+  await p.click(SW); await new Promise((r) => setTimeout(r, 800)); // remet à l'état d'origine
 } catch (e) { console.log('ERREUR', e.message); echecs++; }
 finally { await nav.close(); }
 console.log(echecs ? `${echecs} échec(s)` : 'tout est vert'); process.exit(echecs ? 1 : 0);
