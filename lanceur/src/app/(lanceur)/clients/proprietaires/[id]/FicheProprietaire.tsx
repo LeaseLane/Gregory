@@ -7,6 +7,7 @@ import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
 import { jourCourt, argentL } from '@/lib/format';
 import { useT } from '@/composants/Langue';
+import { ModulesClient } from './ModulesClient';
 
 /* e20 · Fiche propriétaire : loyers payés chez lui (6 mois, jamais « versé »), occupation, dépenses, demandes; logements par immeuble avec retards;
    relevés mensuels émis le 5; approbation en attente (relance); préférences de communication (LCAP); documents; journal récent. */
@@ -106,6 +107,7 @@ export function FicheProprietaire({ donnees: D, propositions = [], erreurLecture
               <span className="tete-action"><strong>{a.quoi} · {argent(a.montant)}</strong><button className="lien" disabled={envoi} onClick={() => rpc('lanceur_relancer_proprietaire', { type: 'depense', id: a.id }, t('Relance envoyée dans son portail.'))}>{t('Relancer')}</button></span>
               <span className="gris texte-13">{a.fournisseur ? `${a.fournisseur} · ` : ''}{t('demandée le {d}', { d: jour(a.le) })}</span></div></li>)}
               {!D.approbations.length && <li className="gris texte-13">{t('Aucune décision attendue.')}</li>}</ul></section>
+          <ModulesClient ownerId={D.id} peutEcrire />
           <section className="carte-l18" aria-label={t('Préférences de communication')}><h2 className="titre-carte">{t('Préférences de communication')}</h2>
             <ul className="lo-docs">
               <li><span className="a-faire-ic"><Icone nom="mail" taille={18} couleur="#0C2147" /></span><div><strong>{t('Courriel')}</strong><span className="gris texte-13">{D.consentements.courriel ? `${D.consentements.courriel.base === 'express' ? t('Consentement exprès') : t('Consentement tacite')} · ${jour(D.consentements.courriel.le)}` : t('Messages transactionnels seulement')}</span></div></li>
