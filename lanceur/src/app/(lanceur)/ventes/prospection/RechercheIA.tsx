@@ -7,13 +7,15 @@ import { Icone } from '@/composants/Icones';
    d'évaluation regroupé par propriétaire → un panneau à droite (coordonnées, à propos, immeubles) → au pipeline ou écarté. */
 type Source = { url: string; extrait?: string };
 type Imm = { id: string; adresse: string; municipalite: string; logements: number; annee: number | null; statut: string | null; km: number | null;
-  propose_nom: string | null; propose_note: string | null; propose_sources: Source[] | null; cherche: boolean };
+  propose_nom: string | null; propose_note: string | null; propose_sources: Source[] | null; cherche: boolean; ecarte?: boolean; ecarte_le?: string | null; ecarte_note?: string | null; ecarte_par?: string | null };
 type Coord = { nom: string | null; site: string | null; telephone: string | null; courriel: string | null; decideur: string | null; gestionnaire: string | null; refus: boolean;
   sources: Source[]; a_propos: { entreprise?: string; personne?: string; remarque?: string } | null };
 type Groupe = { cle: string; nom: string | null; immeubles: number; logements: number; logements_total: number | null; villes: string; km: number | null;
   liste: Imm[]; coordonnees: Coord | null; suggestion: string | null; reserve_nom: string | null; reserve_moi: boolean };
 type Resultat = { total: number; immeubles: number; logements: number; avec_coordonnees: number; identifies: number; resultats: Groupe[]; non_geocodes: number | null;
-  cout_mois_cents: number; recherches_mois: number; peut_ecrire: boolean; prospecteur?: boolean; a_chercher?: { id: string; adresse: string }[] };
+  cout_mois_cents: number; recherches_mois: number; peut_ecrire: boolean; prospecteur?: boolean; a_chercher?: { id: string; adresse: string }[]; nb_ecartes?: number; vue?: string };
+/* Tri (retour de Greg, 23 nov. 2026) : fait en base sur tous les résultats, avant les 200 affichés. */
+const TRIS: [string, string][] = [['defaut', 'Par défaut'], ['logements', 'Logements'], ['immeubles', 'Immeubles'], ['nom', 'Nom (A à Z)'], ['coordonnees', 'Coordonnées d’abord'], ['distance', 'Distance']];
 export type Filtres = { villes?: string[]; min?: number | null; max?: number | null; annee_min?: number | null; annee_max?: number | null; statut?: 'morale' | 'physique' | null;
   pres_de?: { adresse: string; km: number; lat: number; lon: number; libelle?: string } | null; q?: string | null; coordonnees?: 'avec' | 'sans' | null };
 
@@ -56,10 +58,10 @@ export function RechercheIA() {
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 7000); return () => clearTimeout(t); }, [toast]);
 
   // Seule la dernière recherche s'affiche : la liste par défaut, plus lente, ne remplace jamais une recherche lancée entre-temps.
-  const derniere = useRef(0);
+  const derniere = useRef(0), tri = useRef('defaut'), vue = useRef<'actifs' | 'ecartes'>('actifs'), [, rafraichir] = useState(0);
   const charger = useCallback(async (f: Filtres, garder?: string | null) => {
     const n = ++derniere.current;
-    const { data, error } = await supabaseNavigateur().rpc('lanceur_recherche_role', { p: f });
+    const { data, error } = await supabaseNavigateur().rpc('lanceur_recherche_role', { p: { ...f, tri: tri.current === 'defaut' ? null : tri.current, ecartes: vue.current === 'ecartes' ? 'oui' : null } });
     if (n !== derniere.current) return;
     if (error) { setBandeau(error.message); return; }
     const r = data as Resultat;
@@ -138,12 +140,12 @@ export function RechercheIA() {
     setToast(`${faits} immeuble${faits > 1 ? 's' : ''} cherché${faits > 1 ? 's' : ''} : ${inscrits} avec propriétaire, ${aConfirmer} à confirmer, ${ecartes} écarté${ecartes > 1 ? 's' : ''}.`);
     if (erreurs.length) setBandeau(`${erreurs.length >= 5 ? 'Recherche arrêtée après 5 erreurs. ' : ''}${erreurs.slice(0, 5).join(' · ')}`);
   }
-  async function decider(g: Groupe, decision: 'ajouter' | 'ecarter') {
-    setOccupe(decision === 'ajouter' ? 'Ajout au pipeline…' : 'Écart…'); setBandeau(null);
+  async function decider(g: Groupe, decision: 'ajouter' | 'ecarter' | 'retablir') {
+    setOccupe(decision === 'ajouter' ? 'Ajout au pipeline…' : decision === 'retablir' ? 'Rétablissement…' : 'Écart…'); setBandeau(null);
     const { error } = await supabaseNavigateur().rpc('lanceur_recherche_decider', { p: { cle: g.cle, decision } });
     setOccupe(null);
     if (error) { setBandeau(error.message); return; }
-    setToast(decision === 'ajouter' ? `${g.nom} ajouté au pipeline (Mandats propriétaires).` : `${g.nom ?? g.liste[0].adresse} écarté.`);
+    setToast(decision === 'ajouter' ? `${g.nom} ajouté au pipeline (Mandats propriétaires).` : decision === 'retablir' ? `${g.nom ?? g.liste[0].adresse} rétabli : il revient dans la recherche.` : `${g.nom ?? g.liste[0].adresse} écarté (retrouvable dans « Écartés »).`);
     await charger(filtres, decision === 'ajouter' ? g.cle : null);
   }
   async function confirmer(i: Imm, oui: boolean) {
@@ -191,7 +193,16 @@ export function RechercheIA() {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 400px', gap: 24, alignItems: 'start' }}>
         <section className="carte-l18" aria-label="Résultats">
           <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>{res ? `${nb(res.total)} propriétaire${res.total > 1 ? 's' : ''}` : 'Recherche…'}</h2>
-            {res && <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{nb(res.immeubles)} immeuble{res.immeubles > 1 ? 's' : ''} · {nb(res.logements)} logements · {nb(res.identifies)} propriétaire{res.identifies > 1 ? 's' : ''} connu{res.identifies > 1 ? 's' : ''} · {nb(res.avec_coordonnees)} avec coordonnées{res.total > 200 ? ' · les 200 premiers affichés' : ''}</p>}</div></header>
+            {res && <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{nb(res.immeubles)} immeuble{res.immeubles > 1 ? 's' : ''} · {nb(res.logements)} logements · {nb(res.identifies)} propriétaire{res.identifies > 1 ? 's' : ''} connu{res.identifies > 1 ? 's' : ''} · {nb(res.avec_coordonnees)} avec coordonnées{res.total > 200 ? ' · les 200 premiers affichés' : ''}</p>}</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="lo-segments" role="group" aria-label="Propriétaires actifs ou écartés">{(['actifs', 'ecartes'] as const).map((v) => <button key={v} type="button" className={vue.current === v ? 'actif' : ''} aria-pressed={vue.current === v}
+                onClick={() => { vue.current = v; rafraichir((n) => n + 1); setOccupe(v === 'ecartes' ? 'Chargement des écartés…' : 'Chargement…'); charger(filtres).finally(() => setOccupe(null)); }}>
+                {v === 'actifs' ? 'Actifs' : `Écartés${res?.nb_ecartes ? ` (${nb(res.nb_ecartes)})` : ''}`}</button>)}</div>
+              <label className="texte-13 gris" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>Trier
+                <select className="e70-raison" style={{ width: 'auto', minWidth: 170 }} value={tri.current} aria-label="Trier les résultats"
+                  onChange={(e) => { tri.current = e.target.value; rafraichir((n) => n + 1); charger(filtres, choisi); }}>
+                  {TRIS.filter(([k]) => k !== 'distance' || filtres.pres_de).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
+            </div></header>
           <table className="tableau"><thead><tr><th style={{ width: '40%' }}><label style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <input type="checkbox" aria-label="Tout cocher" checked={!!res?.resultats.length && coches.size === res.resultats.length}
                 onChange={(e) => setCoches(e.target.checked ? new Set(res?.resultats.map((x) => x.cle)) : new Set())} />Propriétaire</label></th>
@@ -210,7 +221,7 @@ export function RechercheIA() {
                 <td className="texte-13" style={{ overflowWrap: 'anywhere' }}>{x.coordonnees ? [x.coordonnees.telephone, x.coordonnees.refus ? null : x.coordonnees.courriel].filter(Boolean).map((c) => <span key={c!} style={{ display: 'block' }}>{c}</span>)
                   : <span className="gris">{x.nom ? 'À trouver' : '—'}</span>}</td></tr>))}
               {res && !res.resultats.length && <tr><td colSpan={4} className="gris">Aucun immeuble pour ces filtres. {filtres.max != null && filtres.max < 12 ? 'La liste ne contient que les immeubles de 12 logements et plus (rôle d’évaluation).' : 'Retirez un filtre ou élargissez le rayon.'}</td></tr>}</tbody></table>
-          {res?.peut_ecrire && <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, gap: 12, flexWrap: 'wrap' }}>
+          {res?.peut_ecrire && vue.current === 'actifs' && <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, gap: 12, flexWrap: 'wrap' }}>
             <span className="gris texte-13">{coches.size} coché{coches.size > 1 ? 's' : ''} · {cochesATrouver.length} à chercher</span>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {!!res.a_chercher?.length && <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 16px' }} disabled={!!occupe} onClick={trouverTous}
@@ -233,15 +244,21 @@ export function RechercheIA() {
   );
 }
 
-function Panneau({ g, peut, occupe, trouver, decider, confirmer, reserver }: { g: Groupe; peut: boolean; occupe: boolean; trouver: () => void; decider: (d: 'ajouter' | 'ecarter') => void; confirmer: (i: Imm, oui: boolean) => void; reserver: (liberer: boolean) => void }) {
+function Panneau({ g, peut, occupe, trouver, decider, confirmer, reserver }: { g: Groupe; peut: boolean; occupe: boolean; trouver: () => void; decider: (d: 'ajouter' | 'ecarter' | 'retablir') => void; confirmer: (i: Imm, oui: boolean) => void; reserver: (liberer: boolean) => void }) {
   const c = g.coordonnees, i0 = g.liste[0], sources = (c?.sources ?? []).filter((s, k, t) => t.findIndex((x) => hote(x.url) === hote(s.url)) === k).slice(0, 4);
   return (
     <aside className="carte-l18" aria-label="Propriétaire choisi" style={{ overflowWrap: 'anywhere', minWidth: 0 }}>
       <p className="surtitre gris" style={{ margin: 0 }}>{g.nom ? 'Propriétaire choisi' : 'Immeuble choisi'}</p>
       <h2 className="titre-carte" style={{ margin: '4px 0 2px' }}>{personne(c?.decideur) ?? g.nom ?? i0.adresse}</h2>
       <p className="gris texte-13" style={{ margin: 0 }}>{personne(c?.decideur) ? `${g.nom} · ` : ''}{g.immeubles} immeuble{g.immeubles > 1 ? 's' : ''} · {g.logements} logements{g.logements_total && g.logements_total > g.logements ? ` (${g.logements_total} au total au rôle)` : ''} · {g.villes}</p>
+      {/* Écarté (retour de Greg, 23 nov. 2026) : quand, par qui, pourquoi, et « Rétablir » pour le remettre dans la recherche. */}
+      {i0.ecarte && <>
+        <p className="bandeau info texte-13" style={{ marginTop: 12 }}>Écarté{i0.ecarte_le ? ` le ${new Date(i0.ecarte_le).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}{i0.ecarte_par ? ` par ${i0.ecarte_par}` : ''}{i0.ecarte_note ? ` · ${i0.ecarte_note}` : ''}</p>
+        {peut && <button className="bouton bouton-principal" style={{ marginTop: 8, width: 'auto', padding: '0 16px' }} disabled={occupe} onClick={() => decider('retablir')}>Rétablir dans la recherche</button>}
+        <hr className="filet" />
+      </>}
       {/* Actions en haut du panneau (Octa, 2026-11-16) : on décide sans faire défiler. */}
-      {peut && <>
+      {peut && !i0.ecarte && <>
         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
           {g.nom && (g.suggestion === 'approved' ? <span className="puce ok" style={{ alignSelf: 'center' }}>Au pipeline</span>
             : <button className="bouton bouton-principal" style={{ flex: '1 1 160px' }} disabled={occupe} onClick={() => decider('ajouter')}>Ajouter au pipeline</button>)}
