@@ -1,4 +1,5 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
+import { MarcheNav } from '../MarcheNav';
 import { CadreEspace } from '@/composants/CadreEspace';
 import { ONGLETS_FIN, SOUS_FIN } from '../onglets';
 import { Taux, type Taux as T } from './Taux';
@@ -7,7 +8,8 @@ import { Taux, type Taux as T } from './Taux';
 export default async function Page() {
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_taux');
   return (
-    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={13} onglets={ONGLETS_FIN}>
+    <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={12} onglets={ONGLETS_FIN}>
+      <MarcheNav actif="taux" />
       <Taux taux={(data as T[] | null) ?? []} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les taux n’ont pas pu être lus.') : null} />
     </CadreEspace>
   );

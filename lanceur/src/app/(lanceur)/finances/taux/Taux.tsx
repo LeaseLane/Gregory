@@ -31,9 +31,9 @@ export function Taux({ taux, erreurLecture }: { taux: Taux[]; erreurLecture: str
         <form onSubmit={calculer} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, alignItems: 'end' }}>
           {([['capital', 'Capital restant ($)'], ['actuel', 'Taux actuel (%)'], ['nouveau', 'Nouveau taux (%)'], ['ans', 'Amortissement (ans)']] as const).map(([k, l]) =>
             <div key={k}><label className="fenetre-lib" htmlFor={`tx-${k}`}>{l}</label><input id={`tx-${k}`} className="e70-raison" inputMode="decimal" value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} required /></div>)}
-          <button className="bouton bouton-principal" disabled={occupe}>{occupe ? 'Calcul…' : 'Calculer'}</button></form>
+          <button className="bouton bouton-principal" style={{ height: 48 }} disabled={occupe}>{occupe ? 'Calcul…' : 'Calculer'}</button></form>
         {erreur && <div className="bandeau erreur" role="alert" style={{ marginTop: 12 }}>{erreur}</div>}
-        {res && <div className="bandeau info" role="status" style={{ marginTop: 12 }}>Mensualité : <strong>{$(res.mensualite_actuelle)}</strong> → <strong>{$(res.mensualite_nouvelle)}</strong>.
+        {res && <div className="bandeau info" role="status" style={{ marginTop: 12 }}>Mensualité : <strong>{$(res.mensualite_actuelle)}</strong> → <strong>{$(res.mensualite_nouvelle)}</strong>.{' '}
           {res.ecart_mensuel >= 0 ? <> Économie de <strong>{$(res.ecart_mensuel)}</strong> par mois, <strong>{$(res.ecart_annuel)}</strong> par année.</> : <> Hausse de <strong>{$(-res.ecart_mensuel)}</strong> par mois, <strong>{$(-res.ecart_annuel)}</strong> par année.</>}</div>}
       </section>
     </>

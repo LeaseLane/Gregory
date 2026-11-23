@@ -337,8 +337,8 @@ li.sel .av-agent { background: #fff; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .filtres { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .segment { display: inline-flex; gap: 0; height: 48px; padding: 4px; border-radius: 12px; background: #EEF1F5; }
-.segment button { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid transparent; border-radius: 8px; background: none; font: inherit; font-size: 13px; font-weight: 500; color: #3E4A59; cursor: pointer; }
-.segment button.actif { background: #fff; border-color: #E1E6EC; font-weight: 600; color: #0C2147; }
+.segment button, .segment a { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid transparent; border-radius: 8px; background: none; font: inherit; font-size: 13px; font-weight: 500; color: #3E4A59; cursor: pointer; }
+.segment button.actif, .segment a.actif { background: #fff; border-color: #E1E6EC; font-weight: 600; color: #0C2147; }
 .segment .compte { background: #C8DAF0; }
 .filtre { position: relative; display: inline-flex; align-items: center; height: 48px; border: 1px solid #E1E6EC; border-radius: 12px; background: #fff; }
 .filtre select { field-sizing: content; appearance: none; height: 46px; padding: 0 44px 0 16px; border: 0; border-radius: 12px; background: transparent; font: inherit; font-size: 13px; font-weight: 500; color: #0C2147; cursor: pointer; }
@@ -2257,3 +2257,5 @@ html[lang^="en"] .tableau thead th { white-space: normal; height: auto; min-heig
   .lo-carte-resume b { font-size: 30px; }
   .lo-carte-cadre { height: 720px; }
 }
+.segment a { text-decoration: none; color: #3E4A59; cursor: pointer; white-space: nowrap; }
+.segment a.actif { color: #0C2147; }
