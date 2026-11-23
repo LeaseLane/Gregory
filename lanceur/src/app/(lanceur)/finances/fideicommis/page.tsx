@@ -8,7 +8,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
   const { vue } = await searchParams;
   return (
     <CadreEspace icone="dollar" nom="Finances" sous={SOUS_FIN} actif={9} onglets={ONGLETS_FIN}>
-      <Fideicommis vue={['soldes', 'depots', 'versements', 'rapprochement'].includes(vue ?? '') ? vue! : 'soldes'} />
+      <Fideicommis vue={['preparation', 'soldes', 'depots', 'versements', 'rapprochement'].includes(vue ?? '') ? vue! : 'soldes'} />
     </CadreEspace>
   );
 }

@@ -7,14 +7,14 @@ declare
   d1 uuid := gen_random_uuid(); r jsonb;
 begin
   alter table fiducie_mouvements disable trigger fiducie_immuable;
-  delete from fiducie_lot_lignes; delete from fiducie_mouvements; delete from bank_transactions where compte = 'fiducie';
+  delete from fiducie_retours; delete from fiducie_depot_paiements; delete from fiducie_attentes; delete from fiducie_lot_honoraires; update bank_transactions set fiducie_lot_id = null, fiducie_lot_ligne_id = null where fiducie_lot_id is not null; delete from fiducie_lot_lignes; delete from fiducie_mouvements; delete from bank_transactions where compte = 'fiducie';
   alter table fiducie_mouvements enable trigger fiducie_immuable;
 
   insert into owners (id, full_name) values (o, 'Mensuel');
   insert into buildings (id, owner_id, address) values (b, o, 'M');
   insert into units (id, building_id, unit_number) values (u, b, '1');
   insert into tenants (id, full_name) values (t, 'Locataire M');
-  insert into leases (id, tenant_id, unit_id, status, monthly_rent) values (l, t, u, 'active', 1000);
+  insert into leases (id, tenant_id, unit_id, status, monthly_rent, start_date) values (l, t, u, 'active', 1000, '2026-01-01');
   insert into payments (lease_id, amount, due_date, status) values (l, 1000, '2026-10-01', 'pending');
 
   -- Banque : loyer reçu (rapproché), dépôt inconnu, frais bancaires.

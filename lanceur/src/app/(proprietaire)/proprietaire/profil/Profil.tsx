@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { Confidentialite } from '@/composants/portail/Confidentialite';
+import { CompteVersement } from './CompteVersement';
 import { dateCourte } from '@/composants/portail/format';
 
 /* Propriétaire · Profil (CONCORDANCE 2.14, écran N) : Mes informations, Notifications (familles du propriétaire, LCAP), Confidentialité.
@@ -38,7 +39,7 @@ export function Profil({ donnees: D, onglet, maintenant, erreur }: { donnees: Pr
       <div><h1 className="po-titre">Mon profil</h1><p className="po-sous" style={{ margin: '4px 0 0' }}>Vos informations, vos avis et vos droits sur vos renseignements</p></div>
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       <section className="studio-liste" aria-label="Profil">
-        <nav className="po-onglets">{[['infos', 'Mes informations'], ['notifications', 'Notifications'], ['confidentialite', 'Confidentialité']].map(([k, l]) =>
+        <nav className="po-onglets">{[['infos', 'Mes informations'], ['versement', 'Compte de versement'], ['notifications', 'Notifications'], ['confidentialite', 'Confidentialité']].map(([k, l]) =>
           <Link key={k} href={`/proprietaire/profil${k === 'infos' ? '' : `?t=${k}`}`} className={onglet === k ? 'actif' : ''} aria-current={onglet === k ? 'page' : undefined}>{l}</Link>)}
           <form action="/deconnexion?p=proprietaire" method="post" style={{ marginLeft: 'auto', alignSelf: 'center' }}><button className="lien ligne-ic lo-sortir"><Icone nom="arrow" taille={14} couleur="#2E5788" />Me déconnecter</button></form></nav>
         <div className="lo-profil-corps">
@@ -53,6 +54,7 @@ export function Profil({ donnees: D, onglet, maintenant, erreur }: { donnees: Pr
             <p className="gris texte-13">Pour changer le courriel de connexion, <Link className="lien" href="/proprietaire/messages?nouveau=1">écrivez à l’équipe</Link> (vérification d’identité).</p>
             {titulaire && <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><Ok k="infos" /><button className="bouton bouton-principal po-bouton" disabled={!modifie || envoi}>Enregistrer les modifications</button></div>}
           </form>}
+          {onglet === 'versement' && <CompteVersement nomDefaut={D.nom_complet} />}
           {onglet === 'notifications' && <>
             <h2 className="titre-carte" style={{ marginBottom: 2 }}>Comment vous joindre</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>Avis de service liés à vos immeubles.</p>
             <table className="lo-grille-avis"><thead><tr><th>Type d’avis</th><th>Courriel</th><th>SMS</th></tr></thead>

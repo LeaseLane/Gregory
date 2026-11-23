@@ -5,9 +5,9 @@ import { ONGLETS_CLI, SOUS_CLI } from '../../onglets';
 import { FicheLocataire, type Colocataire, type DonneesLocataire, type LoyersDus } from './FicheLocataire';
 
 /* Clients · Fiche locataire (e22) : lecture sensible, inscrite au journal à chaque ouverture. */
-export default async function Page({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ payer?: string; bail?: string; loyer?: string; debut?: string; fin?: string }> }) {
+export default async function Page({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ payer?: string; bail?: string; loyer?: string; debut?: string; fin?: string; importe?: string }> }) {
   const { id } = await params;
-  const { payer, bail: bailLogement, loyer: bailLoyer, debut: bailDebut, fin: bailFin } = await searchParams;   // ?bail= : candidat validé, le bail s'ouvre sur le logement proposé   // Opérations › À traiter : « Marquer payé » ouvre la fenêtre sur ce loyer
+  const { payer, bail: bailLogement, loyer: bailLoyer, debut: bailDebut, fin: bailFin, importe } = await searchParams;   // ?bail= : candidat validé, le bail s'ouvre sur le logement proposé   // Opérations › À traiter : « Marquer payé » ouvre la fenêtre sur ce loyer
   const moi = await lireMoi();
   const sb = await supabaseServeur();
   const { data, error } = await sb.rpc('lanceur_locataire', { p_id: id });
@@ -19,7 +19,17 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const colocataires = bail ? ((await sb.rpc('lanceur_bail_colocataires', { p_lease: bail })).data as Colocataire[] | null) ?? [] : [];
   return (
     <CadreEspace icone="users" nom="Clients" sous={SOUS_CLI} actif={1} onglets={ONGLETS_CLI}>
+      {importe && <BailImporte code={importe} />}
       <FicheLocataire admin={moi?.role === 'admin'} payerLoyer={payer ?? null} bailLogement={bailLogement ?? null} bailLu={{ loyer: Number(bailLoyer) || null, debut: bailDebut, fin: bailFin }} invitation={inv?.[0]?.created_at ?? null} loyers={loyers} donnees={(data as DonneesLocataire | null) ?? null} colocataires={colocataires} erreurLecture={error ? (['PT403', 'PT404'].includes(error.code ?? '') ? error.message : 'La fiche n’a pas pu être lue.') : null} />
     </CadreEspace>
   );
+}
+
+// Retour de « Importer le bail » en une étape (23 nov. 2026) : ce qui a été créé et qui a été invité.
+function BailImporte({ code }: { code: string }) {
+  const [cos, inv, prop] = code.split('.');
+  const nb = (n: string, un: string, plusieurs: string) => `${Number(n) || 0} ${Number(n) > 1 ? plusieurs : un}`;
+  const p = { invite: 'Propriétaire invité à son portail.', deja_inscrit: 'Le propriétaire a déjà accès à son portail.', non_envoye: 'Propriétaire non invité (courriel manquant ou invitation déjà en cours).',
+    sans_proprietaire: 'Aucun propriétaire relié à cet immeuble.', non_demande: '' }[prop as 'invite'] ?? '';
+  return <div className="bandeau info" role="status">Bail importé : locataire et bail créés{Number(cos) ? `, ${nb(cos, 'colocataire ajouté', 'colocataires ajoutés')}` : ''}, {nb(inv, 'invitation au portail envoyée', 'invitations au portail envoyées')}. {p}</div>;
 }

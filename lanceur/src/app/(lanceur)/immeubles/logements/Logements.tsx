@@ -7,7 +7,7 @@ import { BarresClassees, JaugeSeuil } from '@/composants/Graphes';
 import { argent, dateCourte } from '../onglets';
 import { adresse, piece } from '@/lib/format';
 
-/* e28 · Logements : loyer contre marché = jauge à seuil (le trait marque la médiane du quartier pour le même type) et écart écrit en encre;
+/* e28 · Logements : loyer contre marché = jauge à seuil (le trait marque le loyer moyen SCHL de la zone pour le même nombre de chambres; aucun trait sans zone SCHL connue) et écart écrit en encre;
    sous le marché = barres classées, emphase sur le plus grand écart. Au renouvellement, la hausse suit le calcul du TAL (jamais le marché). */
 type Lg = { id: string; libelle: string; quartier: string | null; type: string | null; loyer: number | null; mediane: number | null; etat: string; fin: string | null; libre: string | null };
 export type DonneesLogements = { logements: Lg[]; total: number; loyer_moyen: number | null; immeubles: { id: string; adresse: string }[]; types: string[];
@@ -38,20 +38,20 @@ export function Logements({ donnees: D, filtres, erreurLecture }: { donnees: Don
       </div>
       <div className="grille-2-1">
         <section className="carte-l18" aria-label="Logements"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Logements</h2>
-          <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{D.total} logements{D.loyer_moyen ? ` · loyer moyen ${argent(D.loyer_moyen)}` : ''} · le trait marque la médiane du quartier pour le même type</p>
+          <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{D.total} logements{D.loyer_moyen ? ` · loyer moyen ${argent(D.loyer_moyen)}` : ''} · le trait marque le loyer moyen SCHL de la zone (octobre 2025) pour le même nombre de chambres</p>
           <table className="tableau tab-fixe"><colgroup><col style={{ width: '27%' }} /><col style={{ width: '7%' }} /><col style={{ width: '11%' }} /><col style={{ width: '24%' }} /><col style={{ width: '13%' }} /><col /></colgroup>
             <thead><tr><th>Logement</th><th>Type</th><th className="droite">Loyer</th><th>Loyer vs marché</th><th>Statut</th><th className="droite">Fin du bail</th></tr></thead>
             <tbody>{L.map((l) => { const d = l.loyer != null && l.mediane != null ? Number(l.loyer) - Number(l.mediane) : null, [e, k] = ETAT[l.etat] ?? [l.etat, 'neutral'];
               return <tr key={l.id}><td className="fort">{adresse(l.libelle)}<span className="sous gris">{l.quartier ?? '—'}</span></td><td>{piece(l.type) ?? '—'}</td><td className="droite fort">{argent(l.loyer)}</td>
                 <td>{l.mediane != null && l.loyer != null ? <span className="ligne-ic"><JaugeSeuil valeur={Number(l.loyer)} cible={Number(l.mediane)} max={maxLoyer} largeur={120} />
-                  <span className={d! < 0 ? 'fort' : 'gris'} style={{ fontSize: 13 }}>{d! < 0 ? '−' : '+'}{argent(Math.abs(d!))}</span></span> : <span className="gris texte-13">Médiane inconnue</span>}</td>
+                  <span className={d! < 0 ? 'fort' : 'gris'} style={{ fontSize: 13 }}>{d! < 0 ? '−' : '+'}{argent(Math.abs(d!))}</span></span> : <span className="gris texte-13">Pas de référence SCHL</span>}</td>
                 <td><span className={`puce ${k}`}>{e}</span></td><td className="droite">{l.etat === 'loue' ? dateCourte(l.fin, true) : <span className="gris">{l.libre ? `Libre le ${dateCourte(l.libre)}` : 'Libre maintenant'}</span>}</td></tr>; })}
               {!D.logements.length && <tr><td colSpan={6} className="gris">Aucun logement dans ce filtre.</td></tr>}</tbody></table>
           {D.logements.length > 12 && !tous && <button className="lien" onClick={() => setTous(true)}>Afficher les {D.logements.length - 12} autres logements</button>}
         </section>
         <div className="po-colonne">
           <section className="carte-l18 e2" aria-label="Sous le marché"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{D.sous_marche_total} logement{D.sous_marche_total > 1 ? 's' : ''} sous le marché</h2>
-            <p className="gris texte-13" style={{ margin: '0 0 16px' }}>Écart avec le loyer médian du quartier · {argent(D.sous_marche_somme)} par mois</p>
+            <p className="gris texte-13" style={{ margin: '0 0 16px' }}>Écart avec le loyer moyen de la zone (SCHL, octobre 2025) · {argent(D.sous_marche_somme)} par mois</p>
             {D.sous_marche.length ? <BarresClassees lignes={D.sous_marche.map((s) => ({ libelle: adresse(s.libelle), valeur: Number(s.ecart), texte: `−${argent(s.ecart)}` }))} /> : <p className="gris texte-13">Aucun loyer sous la médiane.</p>}
             <div className="cleo-lecture"><Icone nom="spark" taille={18} couleur="#2E5788" /><span>Au renouvellement, Cléo propose une hausse selon le calcul du TAL; vous approuvez chaque avis.</span></div></section>
           <section className="carte-l18" aria-label="Logements vacants"><div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Logements vacants</h2>

@@ -1,8 +1,11 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
 import { argent, jour } from '../onglets';
+import { ImportReleve } from './ImportReleve';
+import { Attentes, Repartir } from './Attentes';
+import { Preparation } from './Preparation';
 
 /* Compte en fidéicommis (BMO) : un seul compte, un registre par propriétaire.
    1. Soldes : solde, réserve (1 000 $ par immeuble par défaut), disponible; relevé, mouvement manuel, coordonnées de versement, réserves.
@@ -16,11 +19,17 @@ type Depot = { id: string; transaction_date: string; description: string; amount
   leases: { tenants: { full_name: string } | null; units: { unit_number: string; reference_paiement: string | null; buildings: { address: string; owners: { full_name: string } | null } | null } | null } | null };
 type BailF = { lease_id: string; reference: string; locataire: string; loyer: number };
 type LigneLot = { owner_id: string; proprietaire: string; honoraires: number; reserve: number; versement: number; solde_apres: number; coordonnees: boolean; note: string | null };
-type Lot = { id: string; date_versement: string; statut: string; envoye_le: string | null; fiducie_lot_lignes: { owner_id: string; montant: number; owners: { full_name: string } | null }[] };
+type Lot = { id: string; date_versement: string; statut: string; envoye_le: string | null; mode_envoi: 'fichier' | 'manuel' | null; fiducie_lot_honoraires: { montant: number }[];
+  bank_transactions: { id: string; transaction_date: string; amount: number; description: string }[];
+  fiducie_lot_lignes: { owner_id: string; montant: number; nom_compte: string; institution: string; transit: string; compte: string; owners: { full_name: string } | null }[] };
+type Virement = { id?: string; nom_compte: string; institution: string; transit: string; compte: string; montant: number; vire_le: string | null };
+type Manuel = { lot_id: string; date: string; virements: Virement[]; honoraires: Virement | null };
+type Libre = { id: string; transaction_date: string; description: string; amount: number };
+type Attendue = { lot_id: string; ligne_id: string | null; date: string; quoi: string; montant: number; en_retard: boolean };
 type Calcul = { date_fin: string; solde_releve: number; total_registre: number; depots_non_attribues: number; sorties_en_transit: number; sorties_hors_registre: number; ecart: number; soldes_negatifs: number };
 type Rappr = Calcul & { id: string; verifie_par: string | null; verifie_le: string | null; created_at: string };
 
-const VUES = [['soldes', 'Soldes'], ['depots', 'Dépôts du compte'], ['versements', 'Versements du 15'], ['rapprochement', 'Rapprochement mensuel']] as const;
+const VUES = [['preparation', 'Prêt pour le 1er'], ['soldes', 'Soldes'], ['depots', 'Dépôts du compte'], ['versements', 'Versements du 15'], ['rapprochement', 'Rapprochement mensuel']] as const;
 const TYPES = [['loyer', 'Loyer reçu (+)'], ['honoraires', 'Honoraires (−)'], ['coordination', 'Coordination (−)'], ['fournisseur', 'Fournisseur (−)'], ['debours', 'Débours (−)'], ['versement', 'Versement au propriétaire (−)'], ['ajustement', 'Ajustement (+ ou −)']] as const;
 const DEPOT: Record<string, [string, string]> = { unmatched: ['À rapprocher', 'todo'], suggested: ['Suggestion', 'action'], matched: ['Rapproché', 'ok'], partial: ['Partiel', 'action'], overpaid: ['Excédent', 'info'], ignored: ['Ignoré', 'neutral'] };
 const LOT: Record<string, [string, string]> = { prepare: ['Préparé', 'action'], envoye: ['Envoyé', 'ok'], annule: ['Annulé', 'neutral'] };
@@ -37,21 +46,6 @@ async function ops<T>(corps: Record<string, unknown>): Promise<T> {
   if (!r.ok || d?.error) throw new Error(d?.error ?? `Erreur ${r.status}`);
   return d as T;
 }
-// Relevé CSV de la banque : date (AAAA-MM-JJ), description, montant (+ dépôt, − sortie), référence facultative. Même lecture que l'ancien admin.
-function lireCsv(texte: string) {
-  const lignes: string[][] = []; let ligne: string[] = [], champ = '', guillemets = false;
-  for (let i = 0; i < texte.length; i++) {
-    const c = texte[i], n = texte[i + 1];
-    if (guillemets) { if (c === '"' && n === '"') { champ += '"'; i++; } else if (c === '"') guillemets = false; else champ += c; continue; }
-    if (c === '"') guillemets = true; else if (c === ',') { ligne.push(champ); champ = ''; }
-    else if (c === '\n' || c === '\r') { if (c === '\r' && n === '\n') i++; ligne.push(champ); champ = ''; if (ligne.some((f) => f.trim())) lignes.push(ligne); ligne = []; }
-    else champ += c;
-  }
-  if (champ || ligne.length) { ligne.push(champ); if (ligne.some((f) => f.trim())) lignes.push(ligne); }
-  return lignes.map((c) => ({ date: (c[0] ?? '').trim(), description: (c[1] ?? '').trim(), amount: String(c[2] ?? '').trim().replace(/\s/g, '').replace(',', '.'), reference: (c[3] ?? '').trim() || undefined }))
-    .filter((r) => /^\d{4}-\d{2}-\d{2}/.test(r.date) && r.amount && !isNaN(Number(r.amount)));
-}
-
 export function Fideicommis({ vue }: { vue: string }) {
   const [bandeau, setBandeau] = useState<string | null>(null), [ok, setOk] = useState<string | null>(null), [occupe, setOccupe] = useState(false);
   // Stable d'un rendu à l'autre : les chargements des sections en dépendent (sinon ils se relanceraient en boucle).
@@ -67,6 +61,7 @@ export function Fideicommis({ vue }: { vue: string }) {
       </nav>
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       {ok && <div className="bandeau info" role="status">{ok}</div>}
+      {vue === 'preparation' && <Preparation faire={faire} occupe={occupe} />}
       {vue === 'soldes' && <Soldes faire={faire} occupe={occupe} />}
       {vue === 'depots' && <Depots faire={faire} occupe={occupe} />}
       {vue === 'versements' && <Versements faire={faire} occupe={occupe} />}
@@ -117,8 +112,11 @@ function Releve({ proprio, immeubles, faire, occupe, fermer }: { proprio: Solde;
   const charger = useCallback(async () => setR(await faire<{ ouverture: number; mouvements: Mvt[] }>({ action: 'fiducie_releve', owner_id: proprio.owner_id, debut: debut || null, fin: fin || null })), [faire, proprio.owner_id, debut, fin]);
   useEffect(() => { charger(); }, [charger]);
   let courant = Number(R?.ouverture ?? 0);
+  const [verif, setVerif] = useState<string | null>(null), [vu, setVu] = useState<string | null>(null);
   async function coordonnees() {
-    const d = await faire<{ coordonnees: { versement_nom_compte: string | null; versement_institution: string | null; versement_transit: string | null; versement_compte: string | null } }>({ action: 'fiducie_coordonnees', owner_id: proprio.owner_id, lire: true });
+    const d = await faire<{ coordonnees: { versement_nom_compte: string | null; versement_institution: string | null; versement_transit: string | null; versement_compte: string | null; versement_modifie_le: string | null; versement_verifie_le: string | null; versement_verification_note: string | null } }>({ action: 'fiducie_coordonnees', owner_id: proprio.owner_id, lire: true });
+    if (d) setVerif(!d.coordonnees.versement_compte ? null : d.coordonnees.versement_verifie_le && (!d.coordonnees.versement_modifie_le || d.coordonnees.versement_verifie_le >= d.coordonnees.versement_modifie_le) ? `Vérifiées le ${jour(d.coordonnees.versement_verifie_le)} : ${d.coordonnees.versement_verification_note ?? ''}` : 'a_verifier');
+    if (d) setVu(d.coordonnees.versement_modifie_le);
     if (d) setCo({ nom_compte: d.coordonnees.versement_nom_compte ?? '', institution: d.coordonnees.versement_institution ?? '', transit: d.coordonnees.versement_transit ?? '', compte: d.coordonnees.versement_compte ?? '' });
   }
   return (
@@ -142,6 +140,11 @@ function Releve({ proprio, immeubles, faire, occupe, fermer }: { proprio: Solde;
             <div className="fenetre-actions"><button type="button" className="bouton bouton-contour" onClick={() => setM(null)}>Annuler</button><button className="bouton bouton-principal" disabled={occupe || !m.montant || !m.description.trim()}>Inscrire</button></div></form>}
           {co && <form className="carte-l18" style={{ marginBottom: 12 }} onSubmit={async (e) => { e.preventDefault(); if (await faire({ action: 'fiducie_coordonnees', owner_id: proprio.owner_id, ...co }, 'Coordonnées de versement enregistrées.')) setCo(null); }}>
             <h3 className="titre-carte" style={{ fontSize: 15 }}>Compte où verser le 15</h3>
+            {verif === 'a_verifier' ? <div className="bandeau erreur" role="status" style={{ marginBottom: 8 }}>À vérifier : aucun versement vers ce compte tant qu’un collègue n’a pas rappelé le propriétaire au numéro déjà au dossier (jamais celui du courriel qui demande le changement).
+              <button type="button" className="lien" style={{ marginLeft: 8 }} disabled={occupe} onClick={async () => { const note = prompt('Décrivez la vérification (numéro appelé, date, qui a confirmé) :', ''); if (!note) return;
+                if (await faire({ action: 'fiducie_coordonnees_verifier', owner_id: proprio.owner_id, note, vu }, 'Coordonnées vérifiées : le propriétaire sera payé au prochain lot.')) coordonnees(); }}>J’ai fait le rappel : vérifier</button></div>
+              : verif ? <p className="gris texte-13" style={{ margin: '0 0 8px' }}>{verif}</p> : null}
+            <p className="gris texte-13" style={{ margin: '0 0 8px' }}>Toute modification remet la vérification à zéro.</p>
             <div className="po-deux"><label className="fenetre-lib">Nom du titulaire<input className="e70-raison" value={co.nom_compte} onChange={(e) => setCo({ ...co, nom_compte: e.target.value })} /></label>
               <label className="fenetre-lib">Institution (3 chiffres)<input className="e70-raison" inputMode="numeric" value={co.institution} onChange={(e) => setCo({ ...co, institution: e.target.value })} /></label>
               <label className="fenetre-lib">Transit (5 chiffres)<input className="e70-raison" inputMode="numeric" value={co.transit} onChange={(e) => setCo({ ...co, transit: e.target.value })} /></label>
@@ -167,47 +170,78 @@ function Releve({ proprio, immeubles, faire, occupe, fermer }: { proprio: Solde;
 
 // ---------- 2. Dépôts du compte (relevé BMO importé) ----------
 function Depots({ faire, occupe }: { faire: Faire; occupe: boolean }) {
+  const [deplie, setDeplie] = useState<string | null>(null), [version, setVersion] = useState(0), [retour, setRetour] = useState<{ depot: string; sortie: string } | null>(null);
   const [D, setD] = useState<{ depots: Depot[]; baux: BailF[] } | null>(null), [choix, setChoix] = useState<Record<string, string>>({}), [tous, setTous] = useState(false);
   const charger = useCallback(async () => setD(await faire<{ depots: Depot[]; baux: BailF[] }>({ action: 'fiducie_depots' })), [faire]);
   useEffect(() => { charger(); }, [charger]);
-  async function importer(f: File) {
-    const rows = lireCsv(await f.text());
-    if (!rows.length) return faire({ action: 'fiducie_importer', rows: [] });
-    const r = await faire<{ importes: number; auto: number; suggestions: number; a_traiter: number; sorties: number; doublons: number; erreurs: string[] }>({ action: 'fiducie_importer', rows },
-      (b) => `${b.importes} ligne(s) importée(s) : ${b.auto} rapprochée(s) automatiquement, ${b.suggestions} à confirmer, ${b.a_traiter} à rapprocher, ${b.sorties} sortie(s)${b.doublons ? `, ${b.doublons} déjà importée(s)` : ''}${b.erreurs.length ? `. ${b.erreurs.length} erreur(s) : ${b.erreurs.slice(0, 3).join(' · ')}` : '.'}`);
-    if (r) charger();
-  }
   if (!D) return <p className="gris">Chargement…</p>;
   const ouverts = D.depots.filter((d) => ['unmatched', 'suggested'].includes(d.match_status)), liste = tous ? D.depots : ouverts;
   return (
     <section className="carte-l18" aria-label="Dépôts du compte">
       <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Dépôts du compte en fidéicommis</h2>
-        <p className="gris texte-13" style={{ margin: 0 }}>{ouverts.length} à rapprocher · relevé BMO en CSV : date (AAAA-MM-JJ), description, montant, référence facultative. Un dépôt avec la référence du logement se rapproche seul.</p></div>
+        <p className="gris texte-13" style={{ margin: 0 }}>{ouverts.length} à rapprocher · relevé BMO (CSV ou Excel) : chaque import doit suivre le précédent. Un dépôt avec la référence du logement et le nom du locataire ou le bon montant se rapproche seul.</p></div>
         <span className="ligne-ic"><label className="case texte-13"><input type="checkbox" checked={tous} onChange={(e) => setTous(e.target.checked)} />Tout l’historique</label>
-          <label className="bouton bouton-principal" style={{ width: 'auto', height: 36, padding: '0 14px', fontSize: 13, cursor: 'pointer' }}><Icone nom="upload" taille={16} couleur="#fff" />Importer le relevé
-            <input type="file" hidden accept=".csv,text/csv" disabled={occupe} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) importer(f); }} /></label></span></div>
+          <ImportReleve faire={faire} occupe={occupe} fini={charger} /></span></div>
       <table className="tableau" style={{ marginTop: 12 }}><thead><tr><th>Date</th><th>Description</th><th className="droite">Montant</th><th>État</th><th>Bail</th><th /></tr></thead>
         <tbody>{liste.map((d) => { const [lib, ton] = DEPOT[d.match_status] ?? [d.match_status, 'neutral']; const l = d.leases; const ouvert = ['unmatched', 'suggested'].includes(d.match_status);
-          return <tr key={d.id}><td>{jour(d.transaction_date)}</td><td>{d.description}{d.ai_suggestion_note && <span className="sous gris">{d.ai_suggestion_note}</span>}</td>
+          return <Fragment key={d.id}><tr><td>{jour(d.transaction_date)}</td><td>{d.description}{d.ai_suggestion_note && <span className="sous gris">{d.ai_suggestion_note}</span>}</td>
             <td className="droite fort" style={{ color: d.amount < 0 ? '#9B2E28' : undefined }}>{cents(d.amount)}</td><td><span className={`puce ${ton}`}>{lib}</span></td>
             <td>{l ? <>{l.tenants?.full_name ?? '—'}<span className="sous gris">{[l.units?.buildings?.address, l.units?.unit_number, l.units?.buildings?.owners?.full_name].filter(Boolean).join(' · ')}</span></>
               : ouvert ? <select className="e70-raison" style={{ minWidth: 220 }} value={choix[d.id] ?? ''} onChange={(e) => setChoix({ ...choix, [d.id]: e.target.value })}><option value="">Choisir le bail…</option>
                 {D.baux.map((b) => <option key={b.lease_id} value={b.lease_id}>{b.reference} · {b.locataire} · {cents(b.loyer)}</option>)}</select> : '—'}</td>
             <td className="droite" style={{ whiteSpace: 'nowrap' }}>{ouvert && d.amount > 0 && <button className="lien" disabled={occupe || !(choix[d.id] || d.lease_id)} onClick={async () => {
-                const r = await faire<{ excedent?: number }>({ action: 'fiducie_assigner', transaction_id: d.id, lease_id: choix[d.id] || d.lease_id }, (x) => (x.excedent ?? 0) > 0 ? `Rapproché. Excédent de ${cents(x.excedent)} gardé au registre du propriétaire.` : 'Rapproché : loyer payé et registre crédité.');
-                if (r) charger(); }}>{d.match_status === 'suggested' && !choix[d.id] ? 'Confirmer' : 'Rapprocher'}</button>}
+                const r = await faire<{ excedent?: number }>({ action: 'fiducie_assigner', transaction_id: d.id, lease_id: choix[d.id] || d.lease_id }, (x) => (x.excedent ?? 0) > 0 ? `Rapproché. Excédent de ${cents(x.excedent)} en attente de décision (plus bas).` : 'Rapproché : loyer payé et registre crédité.');
+                if (r) { setVersion((v) => v + 1); charger(); } }}>{d.match_status === 'suggested' && !choix[d.id] ? 'Confirmer' : 'Rapprocher'}</button>}
+              {ouvert && d.amount > 0 && <button className="lien" style={{ marginLeft: 12 }} aria-expanded={deplie === d.id} onClick={() => setDeplie(deplie === d.id ? null : d.id)}>Répartir…</button>}
               {ouvert && <button className="lien" style={{ marginLeft: 12, color: '#9B2E28' }} disabled={occupe} onClick={async () => { const note = prompt('Ignorer ce dépôt ? Il ne sera crédité à aucun propriétaire. Raison :', 'Pas un loyer'); if (note === null) return;
                 if (await faire({ action: 'fiducie_ignorer', transaction_id: d.id, ignorer: true, note }, 'Dépôt ignoré.')) charger(); }}>Ignorer</button>}
-              {d.match_status === 'ignored' && d.amount > 0 && <button className="lien" disabled={occupe} onClick={async () => { if (await faire({ action: 'fiducie_ignorer', transaction_id: d.id, ignorer: false }, 'Dépôt rétabli.')) charger(); }}>Rétablir</button>}</td></tr>; })}
+              {d.match_status === 'matched' && d.amount > 0 && !d.ai_suggestion_note?.startsWith('Retourné') && <button className="lien" style={{ color: '#9B2E28' }} aria-expanded={retour?.depot === d.id}
+                onClick={() => setRetour(retour?.depot === d.id ? null : { depot: d.id, sortie: '' })}>Retourné…</button>}
+              {d.match_status === 'ignored' && d.amount > 0 && <button className="lien" disabled={occupe} onClick={async () => { if (await faire({ action: 'fiducie_ignorer', transaction_id: d.id, ignorer: false }, 'Dépôt rétabli.')) charger(); }}>Rétablir</button>}</td></tr>
+            {retour?.depot === d.id && (() => { const sorties = D.depots.filter((x) => x.amount === -d.amount && ['unmatched', 'ignored'].includes(x.match_status) && x.transaction_date >= d.transaction_date);
+              return <tr><td colSpan={6}><div className="ligne-ic" style={{ gap: 12, flexWrap: 'wrap' }}>
+                <span className="texte-13">La banque a repris ce dépôt (chèque sans provision, dépôt renversé) ? Choisissez la sortie du relevé :</span>
+                {sorties.length ? <select className="e70-raison" aria-label="Sortie du relevé" style={{ minWidth: 260 }} value={retour.sortie} onChange={(e) => setRetour({ ...retour, sortie: e.target.value })}>
+                  <option value="">Choisir la sortie…</option>{sorties.map((x) => <option key={x.id} value={x.id}>{jour(x.transaction_date)} · {x.description} · {cents(x.amount)}</option>)}</select>
+                  : <span className="gris texte-13">Aucune sortie libre de {cents(-d.amount)} après le {jour(d.transaction_date)} : importez d’abord le relevé qui la contient.</span>}
+                <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 16px' }} disabled={occupe || !retour.sortie} onClick={async () => {
+                  if (!confirm('Le loyer redeviendra dû, le locataire sera avisé et le montant sera repris au propriétaire. Cette opération ne se défait pas. Continuer ?')) return;
+                  const x = await faire<{ resultat: { statut: string } }>({ action: 'fiducie_retour_depot', depot_id: d.id, sortie_id: retour.sortie },
+                    (y) => y.resultat.statut === 'applique' ? 'Retour inscrit : loyer de nouveau dû, montant repris au propriétaire.' : 'Retour inscrit : loyer de nouveau dû. Le propriétaire a déjà été payé : le montant sera retenu sur son prochain versement.');
+                  if (x) { setRetour(null); charger(); } }}>Inscrire le retour</button></div></td></tr>; })()}
+            {deplie === d.id && <tr><td colSpan={6}><Repartir depot={d} baux={D.baux} faire={faire} occupe={occupe} fini={() => { setDeplie(null); setVersion((v) => v + 1); charger(); }} /></td></tr>}</Fragment>; })}
           {!liste.length && <tr><td colSpan={6} className="gris">{tous ? 'Aucun dépôt importé.' : 'Rien à rapprocher.'}</td></tr>}</tbody></table>
+      <Attentes faire={faire} occupe={occupe} version={version} />
     </section>
   );
 }
 
 // ---------- 3. Versements du 15 ----------
+// Ce qui est parti du registre mais pas encore vu au relevé (rapproché tout seul à chaque import du relevé).
+function SortiesAttendues({ faire, occupe, version, change }: { faire: Faire; occupe: boolean; version: number; change: () => void }) {
+  const [A, setA] = useState<{ attendues: Attendue[]; libres: Libre[] } | null>(null), [choix, setChoix] = useState<Record<number, string>>({});
+  useEffect(() => { faire<{ attendues: Attendue[]; libres: Libre[] }>({ action: 'fiducie_sorties_attendues' }).then((d) => setA({ attendues: d?.attendues ?? [], libres: d?.libres ?? [] })); }, [faire, version]);
+  if (!A || !A.attendues.length) return null;
+  return (
+    <section className="carte-l18" aria-label="Sorties attendues au relevé" style={{ marginTop: 16 }}>
+      <h2 className="titre-carte" style={{ marginBottom: 2 }}>Sorties attendues au relevé</h2>
+      <p className="gris texte-13" style={{ margin: '0 0 12px' }}>Envoyées depuis la plateforme, pas encore vues dans un relevé importé. Rapprochées seules quand le montant ne laisse aucun doute; sinon, choisissez la sortie du relevé. Plus de 5 jours après la date : vérifiez dans le site de BMO.</p>
+      <table className="tableau"><thead><tr><th>Date</th><th>Quoi</th><th className="droite">Montant</th><th>État</th></tr></thead>
+        <tbody>{A.attendues.map((x, i) => { const compat = A.libres.filter((s) => Math.round(-s.amount * 100) === Math.round(x.montant * 100));
+          return <tr key={i}><td>{jour(x.date)}</td><td>{x.quoi}</td><td className="droite">{cents(x.montant)}</td>
+          <td>{compat.length ? <span className="ligne-ic" style={{ gap: 8, flexWrap: 'wrap' }}><select className="e70-raison" aria-label="Sortie du relevé" value={choix[i] ?? ''} onChange={(e) => setChoix({ ...choix, [i]: e.target.value })}>
+              <option value="">Sortie du relevé…</option>{compat.map((s) => <option key={s.id} value={s.id}>{s.transaction_date} · {s.description} · {cents(s.amount)}</option>)}</select>
+              <button className="lien" disabled={occupe || !choix[i]} onClick={async () => { if (await faire({ action: 'fiducie_lier_sortie', sortie_id: choix[i], lot_id: x.lot_id, ligne_id: x.ligne_id }, 'Sortie reliée au versement.')) change(); }}>Relier</button></span>
+            : <span className={`puce ${x.en_retard ? 'todo' : 'neutral'}`}>{x.en_retard ? 'À vérifier' : 'En attente du relevé'}</span>}</td></tr>; })}</tbody></table>
+    </section>
+  );
+}
+
 function Versements({ faire, occupe }: { faire: Faire; occupe: boolean }) {
+  const [manuel, setManuel] = useState<Manuel | null>(null);
   const [date, setDate] = useState(prochain15()), [apercu, setApercu] = useState<{ total: number; nombre: number; lignes: LigneLot[] } | null>(null), [lots, setLots] = useState<Lot[] | null>(null);
-  const charger = useCallback(async () => setLots((await faire<{ lots: Lot[] }>({ action: 'fiducie_lots' }))?.lots ?? []), [faire]);
+  const [version, setVersion] = useState(0);
+  const charger = useCallback(async () => { setLots((await faire<{ lots: Lot[] }>({ action: 'fiducie_lots' }))?.lots ?? []); setVersion((v) => v + 1); }, [faire]);
   useEffect(() => { charger(); }, [charger]);
   async function fichier(lot: string) {
     const d = await faire<{ nom: string; contenu: string; type?: string }>({ action: 'fiducie_lot_fichier', lot_id: lot }, (x) => `Fichier ${x.nom} téléchargé : déposez-le dans les Services bancaires en ligne de BMO, puis « Marquer envoyé ».`);
@@ -218,7 +252,7 @@ function Versements({ faire, occupe }: { faire: Faire; occupe: boolean }) {
     <>
       <section className="carte-l18" aria-label="Préparer les versements">
         <h2 className="titre-carte" style={{ marginBottom: 2 }}>Préparer les versements</h2>
-        <p className="gris texte-13">Pour chaque propriétaire : solde − honoraires des factures émises − réserve = versement. Aucune avance; un propriétaire sans coordonnées est sauté. L’aperçu ne change rien.</p>
+        <p className="gris texte-13">Pour chaque propriétaire : solde − honoraires des factures émises − réserve = versement. Aucune avance; un propriétaire sans coordonnées, ou dont les coordonnées ne sont pas encore vérifiées par un collègue, est sauté. Les honoraires retenus partent avec le lot vers le compte d’exploitation. L’aperçu ne change rien.</p>
         <div className="ligne-ic" style={{ gap: 8 }}><input type="date" className="e70-raison" style={{ width: 170 }} value={date} onChange={(e) => { setDate(e.target.value); setApercu(null); }} />
           <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 16px' }} disabled={occupe || !date} onClick={async () => setApercu(await faire({ action: 'fiducie_lot_apercu', date }))}>Aperçu</button>
           {apercu && apercu.nombre > 0 && <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 16px' }} disabled={occupe} onClick={async () => {
@@ -229,16 +263,41 @@ function Versements({ faire, occupe }: { faire: Faire; occupe: boolean }) {
             <td className="droite">{cents(l.honoraires)}</td><td className="droite">{cents(l.reserve)}</td><td className="droite fort">{cents(l.versement)}</td><td className="droite">{cents(l.solde_apres)}</td><td className="gris texte-13">{l.note ?? ''}</td></tr>)}
             <tr><td className="fort">Total · {apercu.nombre} versement(s)</td><td colSpan={2} /><td className="droite fort">{cents(apercu.total)}</td><td colSpan={2} /></tr></tbody></table>}
       </section>
+      <SortiesAttendues faire={faire} occupe={occupe} version={version} change={charger} />
+      {manuel && <section className="carte-l18" aria-label="Virements à faire à la main" style={{ marginTop: 16 }}>
+        <h2 className="titre-carte" style={{ marginBottom: 2 }}>Virements à faire à la main · lot du {jour(manuel.date)}</h2>
+        <p className="gris texte-13" style={{ margin: '0 0 12px' }}>Dans le site de BMO, depuis le compte en fidéicommis. Une ligne = un virement, au montant exact. Cochez chaque virement dès qu’il est fait : une ligne cochée ne se refait jamais, et le lot ne s’annule plus.</p>
+        <table className="tableau"><thead><tr><th>Fait</th><th>Bénéficiaire</th><th>Institution</th><th>Transit</th><th>Compte</th><th className="droite">Montant</th></tr></thead>
+          <tbody>{[...manuel.virements, ...(manuel.honoraires ? [{ ...manuel.honoraires, id: undefined, nom_compte: `${manuel.honoraires.nom_compte} (honoraires, compte d’exploitation)` }] : [])].map((v, i) =>
+            <tr key={i}><td>{v.vire_le ? <span className="puce ok">Fait le {jour(v.vire_le)}</span>
+              : <button className="lien" disabled={occupe} onClick={async () => { if (!confirm(`Virement de ${cents(v.montant)} à ${v.nom_compte} fait dans le site de BMO ?`)) return;
+                  if (await faire({ action: 'fiducie_lot_virement_fait', lot_id: manuel.lot_id, ligne_id: v.id ?? null })) { const d = await faire<Omit<Manuel, 'lot_id'>>({ action: 'fiducie_lot_manuel', lot_id: manuel.lot_id }); if (d) setManuel({ ...d, lot_id: manuel.lot_id }); } }}>Cocher fait</button>}</td>
+              <td className="fort">{v.nom_compte}</td><td>{v.institution}</td><td>{v.transit}</td><td>{v.compte}</td><td className="droite fort">{cents(v.montant)}</td></tr>)}</tbody></table>
+        <div className="ligne-ic" style={{ gap: 8, marginTop: 12 }}>
+          <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 16px' }} disabled={occupe || manuel.virements.some((v) => !v.vire_le) || (!!manuel.honoraires && !manuel.honoraires.vire_le)} onClick={async () => {
+            if (!confirm('Tous les virements sont cochés : marquer le lot envoyé ?')) return;
+            if (await faire({ action: 'fiducie_lot_envoye', lot_id: manuel.lot_id, mode: 'manuel' }, 'Lot marqué envoyé à la main.')) { setManuel(null); charger(); } }}>Tous faits : marquer envoyé</button>
+          <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 16px' }} onClick={() => setManuel(null)}>Fermer</button></div>
+      </section>}
       <section className="carte-l18" aria-label="Lots" style={{ marginTop: 16 }}>
         <h2 className="titre-carte">Lots</h2>
         {!lots ? <p className="gris">Chargement…</p> : <table className="tableau"><thead><tr><th>Date</th><th>État</th><th className="droite">Total</th><th>Propriétaires</th><th /></tr></thead>
-          <tbody>{lots.map((l) => { const [lib, ton] = LOT[l.statut] ?? [l.statut, 'neutral']; const total = l.fiducie_lot_lignes.reduce((t, x) => t + Number(x.montant), 0);
+          <tbody>{lots.map((l) => { const [lib, ton] = LOT[l.statut] ?? [l.statut, 'neutral']; const hon = (l.fiducie_lot_honoraires ?? []).reduce((t, x) => t + Number(x.montant), 0); const total = l.fiducie_lot_lignes.reduce((t, x) => t + Number(x.montant), 0);
             return <tr key={l.id}><td className="fort">{jour(l.date_versement)}</td><td><span className={`puce ${ton}`}>{lib}</span>{l.envoye_le && <span className="sous gris">le {jour(l.envoye_le)}</span>}</td>
-              <td className="droite fort">{cents(total)}</td><td className="texte-13">{l.fiducie_lot_lignes.map((x) => `${x.owners?.full_name ?? '—'} ${cents(x.montant)}`).join(' · ')}</td>
-              <td className="droite" style={{ whiteSpace: 'nowrap' }}>{l.statut !== 'annule' && <button className="lien" disabled={occupe} onClick={() => fichier(l.id)}>Fichier BMO</button>}
-                {l.statut === 'prepare' && <><button className="lien" style={{ marginLeft: 12 }} disabled={occupe} onClick={async () => { if (await faire({ action: 'fiducie_lot_envoye', lot_id: l.id }, 'Lot marqué envoyé.')) charger(); }}>Marquer envoyé</button>
-                  <button className="lien" style={{ marginLeft: 12, color: '#9B2E28' }} disabled={occupe} onClick={async () => { if (!confirm('Annuler ce lot ? Les versements sont retirés du registre (écritures inverses).')) return;
-                    if (await faire({ action: 'fiducie_lot_annuler', lot_id: l.id }, 'Lot annulé.')) charger(); }}>Annuler</button></>}</td></tr>; })}
+              <td className="droite fort">{cents(total + hon)}{hon > 0 && <span className="sous gris">dont {cents(hon)} d’honoraires vers le compte d’exploitation</span>}</td><td className="texte-13">{l.fiducie_lot_lignes.map((x) => `${x.owners?.full_name ?? '—'} ${cents(x.montant)}`).join(' · ')}{l.mode_envoi && <span className="sous gris">{l.mode_envoi === 'fichier' ? 'Envoi par fichier' : 'Envoi à la main'}</span>}</td>
+              <td className="droite" style={{ whiteSpace: 'nowrap' }}>{l.statut === 'prepare' && l.mode_envoi !== 'manuel' && <button className="lien" disabled={occupe} onClick={async () => { await fichier(l.id); charger(); }}>Fichier BMO</button>}
+                {l.statut === 'prepare' && l.mode_envoi === 'fichier' && <button className="lien" style={{ marginLeft: 12 }} disabled={occupe} onClick={async () => { if (!confirm('Le fichier a bien été déposé et accepté par BMO ?')) return; if (await faire({ action: 'fiducie_lot_envoye', lot_id: l.id, mode: 'fichier' }, 'Lot marqué envoyé par fichier.')) charger(); }}>Envoyé par fichier</button>}
+                {l.statut === 'prepare' && l.mode_envoi !== 'fichier' && <button className="lien" style={{ marginLeft: 12 }} disabled={occupe} onClick={async () => {
+                  if (l.mode_envoi !== 'manuel' && !confirm('Faire les virements à la main dans le site de BMO ? Le lot ne pourra plus être envoyé par fichier.')) return;
+                  const d = await faire<Omit<Manuel, 'lot_id'>>({ action: 'fiducie_lot_manuel', lot_id: l.id }); if (d) { setManuel({ ...d, lot_id: l.id }); charger(); } }}>{l.mode_envoi === 'manuel' ? 'Voir les virements' : 'À la main…'}</button>}
+                {l.statut === 'prepare' && <>
+                  <button className="lien" style={{ marginLeft: 12, color: '#9B2E28' }} disabled={occupe} onClick={async () => {
+                    const commence = !!l.mode_envoi;
+                    if (!confirm(commence ? `L’envoi de ce lot a commencé (${l.mode_envoi === 'fichier' ? 'fichier téléchargé' : 'virements à la main'}). Annulez SEULEMENT si BMO a refusé le fichier ou si aucun virement n’est parti : sinon les propriétaires seraient payés deux fois.\n\nVérifié dans le site de BMO : rien n’est parti ?` : 'Annuler ce lot ? Les versements sont retirés du registre (écritures inverses).')) return;
+                    if (await faire({ action: 'fiducie_lot_annuler', lot_id: l.id, refuse_par_bmo: commence }, 'Lot annulé.')) { setManuel(null); charger(); } }}>Annuler</button></>}
+                {(l.bank_transactions ?? []).map((s) => <span key={s.id} className="sous gris">Vu au relevé le {jour(s.transaction_date)} ({cents(-s.amount)}) <button className="lien" disabled={occupe} onClick={async () => {
+                  if (!confirm('Cette sortie du relevé n’est pas ce versement ? Elle redevient à regarder et le versement redevient attendu.')) return;
+                  if (await faire({ action: 'fiducie_delier_sortie', sortie_id: s.id }, 'Rapprochement défait.')) charger(); }}>Défaire</button></span>)}</td></tr>; })}
             {!lots.length && <tr><td colSpan={5} className="gris">Aucun lot.</td></tr>}</tbody></table>}
       </section>
     </>

@@ -8,8 +8,18 @@ const baux: Bail[] = [
   { lease_id: "d", reference: "LL-10004", locataire: "Julie Tremblay", loyer: 1150, du_ouvert: [1150] },
 ];
 
-Deno.test("référence trouvée : appliqué automatiquement, même si le montant diffère", () => {
-  assertEquals(classer({ description: "VIREMENT INTERAC ll10002", amount: 500 }, baux), { type: "auto", lease_id: "b", reference: "LL-10002" });
+Deno.test("référence + nom : automatique, même si le montant diffère (paiement partiel)", () => {
+  assertEquals(classer({ description: "VIREMENT INTERAC ROY ll10002", amount: 500 }, baux), { type: "auto", lease_id: "b", reference: "LL-10002" });
+});
+
+Deno.test("référence + montant (loyer ou solde dû) : automatique sans le nom", () => {
+  assertEquals(classer({ description: "VIREMENT INTERAC LL-10001", amount: 1150 }, baux).type, "auto");
+  assertEquals(classer({ description: "VIREMENT INTERAC LL-10003", amount: 730 }, baux).type, "auto");
+});
+
+Deno.test("référence seule, sans nom ni montant concordants : à confirmer (coquille ou ancien locataire)", () => {
+  const c = classer({ description: "VIREMENT INTERAC PAUL GAGNON LL-10002", amount: 1150 }, baux);
+  assertEquals([c.type, c.type === "suggestion" ? c.lease_id : null], ["suggestion", "b"]);
 });
 
 Deno.test("référence d'un logement sans bail actif : rien d'automatique", () => {

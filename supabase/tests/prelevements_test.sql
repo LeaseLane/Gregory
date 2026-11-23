@@ -6,6 +6,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
 select plan(21);
+select set_config('fiducie.comptes_maj', '1', true);   -- garde des comptes : levée pour préparer l'essai
+update company_settings set prelevements_actifs = true where id = true;
+select set_config('fiducie.comptes_maj', '', true);   -- ces tests couvrent le prélèvement une fois activé par BMO (éteint par défaut depuis le 19 nov.)
 
 create function pg_temp.comme(p_id uuid, p_aal text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', p_id, 'aal', p_aal, 'role', 'authenticated')::text, true);
