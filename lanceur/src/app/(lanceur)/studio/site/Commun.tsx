@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { SOUS_SITE } from '../onglets';
-/* Studio › Site web : 4 sous-onglets (prototype GS, GP, AR, SE). */
-export function SousSite({ actif }: { actif: string }) {
-  return <nav className="sous-onglets" aria-label="Site web" style={{ marginBottom: 24 }}>{SOUS_SITE.map(([h, l]) => <Link key={h} href={h} className={h === actif ? 'actif' : ''} aria-current={h === actif ? 'page' : undefined}>{l}</Link>)}</nav>;
+/* Studio › Site web : 5 sous-onglets (prototype GS, Demandes, GP, AR, SE). */
+export function SousSite({ actif, comptes }: { actif: string; comptes?: Record<string, number> }) {   // comptes : pastille par sous-onglet (ex. nouvelles demandes)
+  return <nav className="sous-onglets" aria-label="Site web" style={{ marginBottom: 24 }}>{SOUS_SITE.map(([h, l]) => <Link key={h} href={h} className={h === actif ? 'actif' : ''} aria-current={h === actif ? 'page' : undefined}>
+    {l}{!!comptes?.[h] && <span className="compte" style={{ marginLeft: 6 }} aria-label={`${comptes[h]} nouvelles`}>{comptes[h]}</span>}</Link>)}</nav>;
 }
 export type Art = { id: string; groupe: string; langue: string; slug: string | null; titre: string; categorie: string; statut: string; score: number; criteres: { id: string; champ: string | null; p: number; ok: boolean; t: string; d?: string }[];
   mot_cle: string; relu_par: string; relu_le: string | null; publie_le: string | null; modifie_le: string; jumelle: string | null };
