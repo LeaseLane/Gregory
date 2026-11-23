@@ -9,7 +9,7 @@ export const ONGLETS_FIN: Onglet[] = [{ libelle: 'Vue d’ensemble', href: '/fin
   { libelle: 'Comptabilité', href: '/finances/comptabilite', groupe: 'Comptabilité' }, { libelle: 'Rapprochement', href: '/finances/rapprochement', groupe: 'Comptabilité' }, { libelle: 'Anomalies', href: '/finances/anomalies', groupe: 'Comptabilité' },
   { libelle: 'Fidéicommis', href: '/finances/fideicommis', groupe: 'Comptabilité' },
   { libelle: 'Relevés', href: '/finances/releves', groupe: 'Relevés' }, { libelle: 'Relevés 31', href: '/finances/releves-31', groupe: 'Relevés' },
-  { libelle: 'Vacance', href: '/finances/vacance', groupe: 'Marché' }, { libelle: 'Taux', href: '/finances/taux', groupe: 'Marché' }];
+  { libelle: 'Vacance', href: '/finances/vacance', groupe: 'Marché' }, { libelle: 'Taux', href: '/finances/taux', groupe: 'Marché' }, { libelle: 'CapEx', href: '/finances/capex', groupe: 'Marché' }];
 export const SOUS_FIN = 'Facturation, paiements, comptabilité et banques';
 export const argent = (n: number | string | null | undefined, cents = false, locale = 'fr-CA') => n == null ? '—' : locale.startsWith('en') ? argentL(n, locale, cents) : `${Number(n).toLocaleString(locale, { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }).replace(/[  ]/g, ' ')}\u00a0$`;
 export const jour = (iso: string | null | undefined, locale = 'fr-CA') => !iso ? '—' : new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
