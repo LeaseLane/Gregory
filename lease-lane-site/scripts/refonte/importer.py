@@ -140,6 +140,8 @@ for url, nom in routes.items():
     if nom == 'inscrire-mon-entreprise.html':
         assert t.count(INSC_ANCRE) == 1 and t.count(INSC_AIDE) == 1, 'inscrire-mon-entreprise.html : formulaire modifié par Steven'
         t = t.replace(INSC_ANCRE, INSC_CHAMPS + INSC_ANCRE).replace(INSC_AIDE, 'Cinq champs obligatoires, marqués d’un *. Le reste se complète dans la plateforme.')
+    # Accueil : les deux cartes flottantes du héros (Logements à louer « Bientôt », Cléo 24/7) retirées à la demande d'Octa (23 nov. 2026).
+    t = re.sub(r'\s*<ul class="hf"[^>]*>.*?</ul>', '', t, count=1, flags=re.S)
     # Images chargées au défilement, sauf le logo de l'en-tête (visible dès l'arrivée). Les héros sont des fonds CSS.
     t = re.sub(r'<img\b(?![^>]*\bloading=)(?![^>]*class="logo-[hv]")([^>]*)>',
                lambda m: '<img loading="lazy"' + ('' if 'decoding=' in m[1] else ' decoding="async"') + m[1] + '>', t)
