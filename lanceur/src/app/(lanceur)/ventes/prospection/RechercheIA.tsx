@@ -52,7 +52,7 @@ async function agent(corps: Record<string, unknown>) {
 export function RechercheIA() {
   const [texte, setTexte] = useState(''), [filtres, setFiltres] = useState<Filtres>(DEFAUT), [res, setRes] = useState<Resultat | null>(null);
   const [choisi, setChoisi] = useState<string | null>(null), [coches, setCoches] = useState<Set<string>>(new Set());
-  const [occupe, setOccupe] = useState<string | null>(null), [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null);
+  const [occupe, setOccupe] = useState<string | null>(null), [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null), [horsCible, setHorsCible] = useState<{ adresse: string; nom: string; raison: string }[]>([]);
   const [enregistrees, setEnregistrees] = useState<{ nom: string; filtres: Filtres }[]>([]);
   useEffect(() => { setEnregistrees(lireLocal()); }, []);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 7000); return () => clearTimeout(t); }, [toast]);
@@ -96,14 +96,16 @@ export function RechercheIA() {
     return true;
   }
   async function trouver(groupes: Groupe[]) {
-    setBandeau(null);
+    setBandeau(null); setHorsCible([]);
     if (res?.prospecteur && groupes.length === 1 && !groupes[0].reserve_moi && !(await reserver(groupes[0]))) return;
-    const erreurs: string[] = [];
+    const erreurs: string[] = [], retires: { adresse: string; nom: string; raison: string }[] = [];
     for (const [k, g] of groupes.entries()) {
       setOccupe(`Recherche ${k + 1} / ${groupes.length} : ${g.nom ?? g.liste[0].adresse} (environ 30 s)…`);
-      const { erreur } = g.nom ? await agent({ action: 'coordonnees', cle: g.cle }) : await agent({ action: 'proprietaire', id: g.liste[0].id });
+      const { d, erreur } = g.nom ? await agent({ action: 'coordonnees', cle: g.cle }) : await agent({ action: 'proprietaire', id: g.liste[0].id });
       if (erreur) erreurs.push(`${g.nom ?? g.liste[0].adresse} : ${erreur}`);
+      else if (d?.hors_cible) retires.push({ adresse: g.liste[0].adresse, nom: d.proprietaire, raison: d.hors_cible });
     }
+    setHorsCible(retires);
     await charger(filtres, choisi);
     setOccupe(null); if (erreurs.length) setBandeau(erreurs.join(' · '));
   }
@@ -112,11 +114,12 @@ export function RechercheIA() {
   //    immeuble écarté si rien n'est trouvé; 2. les coordonnées et la présentation de chaque propriétaire inscrit (une fois par propriétaire).
   // ponytail: boucle dans le navigateur, 4 à la fois, page ouverte; file côté serveur si les lots dépassent quelques centaines.
   const arret = useRef(false);
+  const RAISONS: Record<string, string> = { fpi: 'fonds immobilier ou grand propriétaire institutionnel', rpa: 'résidence pour aînés', logement_social: 'logement social ou coopérative' };
   async function trouverTous() {
     const liste = res?.a_chercher ?? [];
     if (!liste.length || !window.confirm(`L’agent cherchera le propriétaire de ${nb(liste.length)} immeuble${liste.length > 1 ? 's' : ''}, puis les coordonnées de chaque propriétaire trouvé.\n\nCoût estimé : de ${argent(liste.length * COUT_RECHERCHE_CENTS)} à ${argent(liste.length * COUT_RECHERCHE_CENTS * 2)} (environ ${COUT_RECHERCHE_CENTS} ¢ par recherche).\nDurée estimée : ${Math.max(1, Math.round(liste.length / 8))} à ${Math.max(2, Math.round(liste.length / 4))} min, page ouverte.\n\nLes immeubles sans propriétaire trouvé seront écartés. Continuer?`)) return;
     arret.current = false; setBandeau(null);
-    let faits = 0, inscrits = 0, aConfirmer = 0, ecartes = 0, coord = 0; const erreurs: string[] = [], cles = new Set<string>();
+    const horsTous: { adresse: string; nom: string; raison: string }[] = []; let faits = 0, inscrits = 0, aConfirmer = 0, ecartes = 0, coord = 0; const erreurs: string[] = [], cles = new Set<string>();
     // 4 à la fois; plusieurs erreurs (crédit épuisé, service en panne) : on arrête plutôt que de les répéter sur toute la liste.
     const enLot = async <T,>(elements: T[], un: (x: T) => Promise<void>) => {
       let k = 0;
@@ -126,7 +129,8 @@ export function RechercheIA() {
     setOccupe(`Recherche des propriétaires : 0 / ${liste.length}…`);
     await enLot(liste, async (i) => {
       const { d, erreur } = await agent({ action: 'proprietaire', id: i.id });
-      faits++; if (erreur && /réservée? par un collègue/.test(erreur)) return; if (erreur) erreurs.push(`${i.adresse} : ${erreur}`); else if (d.inscrit) { inscrits++; if (d.chercher_coordonnees && d.cle) cles.add(d.cle); } else if (d.proprietaire) aConfirmer++; else if (d.ecarte) ecartes++;
+      faits++; if (d?.hors_cible) horsTous.push({ adresse: i.adresse, nom: d.proprietaire, raison: d.hors_cible });
+      if (erreur && /réservée? par un collègue/.test(erreur)) return; if (erreur) erreurs.push(`${i.adresse} : ${erreur}`); else if (d.inscrit) { inscrits++; if (d.chercher_coordonnees && d.cle) cles.add(d.cle); } else if (d.proprietaire) aConfirmer++; else if (d.ecarte) ecartes++;
       setOccupe(`Recherche des propriétaires : ${faits} / ${liste.length} · ${inscrits} trouvé${inscrits > 1 ? 's' : ''} · ${ecartes} écarté${ecartes > 1 ? 's' : ''}…`);
     });
     const aJoindre = [...cles];
@@ -137,6 +141,7 @@ export function RechercheIA() {
       setOccupe(`Recherche des coordonnées : ${coord} / ${aJoindre.length}…`);
     });
     await charger(filtres, null); setOccupe(null);
+    setHorsCible(horsTous);
     setToast(`${faits} immeuble${faits > 1 ? 's' : ''} cherché${faits > 1 ? 's' : ''} : ${inscrits} avec propriétaire, ${aConfirmer} à confirmer, ${ecartes} écarté${ecartes > 1 ? 's' : ''}.`);
     if (erreurs.length) setBandeau(`${erreurs.length >= 5 ? 'Recherche arrêtée après 5 erreurs. ' : ''}${erreurs.slice(0, 5).join(' · ')}`);
   }
@@ -187,6 +192,9 @@ export function RechercheIA() {
       </section>
 
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
+      {horsCible.length > 0 && <div className="bandeau info" role="status"><strong>{horsCible.length === 1 ? 'Cet immeuble a été retiré de la liste' : `${horsCible.length} immeubles ont été retirés de la liste`} : le propriétaire est hors de votre cible.</strong>
+        <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{horsCible.slice(0, 5).map((h, k) => <li key={k}>{h.adresse} : {h.nom} ({RAISONS[h.raison] ?? h.raison})</li>)}{horsCible.length > 5 && <li>et {horsCible.length - 5} autre{horsCible.length - 5 > 1 ? 's' : ''}</li>}</ul>
+        <span className="texte-13">Ils sont dans l’onglet « Écartés » : vous pouvez les rétablir en un clic. <button type="button" className="lien" onClick={() => setHorsCible([])}>Fermer</button></span></div>}
       {occupe && <div className="bandeau info" role="status">{occupe} Gardez cette page ouverte.{occupe.startsWith('Recherche des ') && <> <button type="button" className="lien" onClick={() => { arret.current = true; }}>Arrêter</button></>}</div>}
       {res?.non_geocodes ? <div className="bandeau info">{nb(res.non_geocodes)} immeuble{res.non_geocodes > 1 ? 's' : ''} n’{res.non_geocodes > 1 ? 'ont' : 'a'} pas pu être placé{res.non_geocodes > 1 ? 's' : ''} sur la carte : hors du rayon pour l’instant. Le rayon couvre Québec et Lévis.</div> : null}
 

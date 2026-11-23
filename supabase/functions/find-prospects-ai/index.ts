@@ -193,7 +193,7 @@ Une fois la recherche terminée, appelle l'outil "soumettre".`;
     // Confiance élevée ou moyenne : l'agent inscrit lui-même le propriétaire (null sinon : la proposition attend une personne).
     const inscrit = bloc?.input?.proprietaire ? await rpc("service_role_immeuble_confirmer", { p_id: id }) : null;
     return json({ ok: true, proprietaire: bloc?.input?.proprietaire ?? null, confiance: bloc?.input?.confiance ?? null, ecarte: !!bloc?.input && !bloc.input.proprietaire,
-      inscrit: !!inscrit, cle: inscrit?.cle ?? null, chercher_coordonnees: !!inscrit?.chercher_coordonnees, cout_cents: cout });
+      inscrit: !!inscrit, cle: inscrit?.cle ?? null, chercher_coordonnees: !!inscrit?.chercher_coordonnees, hors_cible: inscrit?.hors_cible ?? null, cout_cents: cout });
   }
   // La phrase → filtres (modèle rapide, outil forcé), puis l'adresse « près de » géocodée.
   async function comprendre(texte: string, par: string | null) {
