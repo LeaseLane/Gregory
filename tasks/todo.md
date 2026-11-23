@@ -1,0 +1,6 @@
+- [ ] T1 modules-clients : table crm.modules_clients, crm.module_actif(), lanceur_modules_lire/ecrire, écran Clients › Modules. Verify : modules_clients_test.sql, tsc
+- [ ] T2 carte-vacance : table crm.vacance_schl (54 zones), lanceur_vacance(), écran Finances › Statistiques › Vacance (carte + tableau). Verify : test, tsc, capture
+- [ ] T3 veille-taux : table crm.taux_marche, fonction de rafraîchissement (Banque du Canada), lanceur_refinancement(), écran. Verify : test valeurs connues
+- [ ] T4 capex : composants par immeuble, projection 15-20 ans, alerte. Verify : test valeurs connues, capture
+- [ ] T5 donnees-publiques : changements de propriétaire dans le rôle. Verify : test
+- [ ] Checkpoint : tests verts préprod, tsc/build, captures, résumé à Octa
