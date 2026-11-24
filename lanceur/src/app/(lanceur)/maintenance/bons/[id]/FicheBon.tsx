@@ -6,7 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import type { Carte } from '../Bons';
 import { heure } from '../../onglets';
-import { adresse } from '@/lib/format';
+import { adresse, montantSaisi } from '@/lib/format';
 import { ACCEPTE, deposer, ouvrir, retirer } from '../../pieces';
 
 /* e33 · Fiche bon de travail : étapes (créé → soumissions → accord → planifié → réalisé → facturé), détails, accès au logement (avis de 24 h, art. 1931 C.c.Q.),
@@ -140,8 +140,8 @@ export function FicheBon({ donnees: D, maintenant, erreurLecture, factures = nul
             <p className="gris texte-12">Au moins 24 h d’avis au locataire, sauf urgence (art. 1931 C.c.Q.).</p></>}
           {modal === 'assigner' && <><label className="fenetre-lib" htmlFor="m-w">Fournisseur</label><select id="m-w" className="e70-raison" value={m.worker_id} onChange={(e) => setM({ ...m, worker_id: e.target.value })}><option value="">Choisir</option>
             {D.fournisseurs.map((w) => <option key={w.id} value={w.id} disabled={!!w.conformite || w.id === D.worker_id}>{w.nom}{w.specialite ? ` · ${w.specialite}` : ''}{w.conformite ? ` — ${w.conformite}` : ''}</option>)}</select></>}
-          {modal === 'realiser' && <><div className="po-deux"><div><label className="fenetre-lib" htmlFor="m-h">Facture avant taxes</label><input id="m-h" className="e70-raison" inputMode="decimal" value={m.facture_ht} onChange={(e) => setM({ ...m, facture_ht: e.target.value.replace(/[^\d.]/g, '') })} /></div>
-            <div><label className="fenetre-lib" htmlFor="m-t">Total avec taxes</label><input id="m-t" className="e70-raison" inputMode="decimal" value={m.facture_ttc} placeholder={m.facture_ht ? (Number(m.facture_ht) * 1.14975).toFixed(2) : ''} onChange={(e) => setM({ ...m, facture_ttc: e.target.value.replace(/[^\d.]/g, '') })} /></div></div>
+          {modal === 'realiser' && <><div className="po-deux"><div><label className="fenetre-lib" htmlFor="m-h">Facture avant taxes</label><input id="m-h" className="e70-raison" inputMode="decimal" value={m.facture_ht} onChange={(e) => setM({ ...m, facture_ht: montantSaisi(e.target.value) })} /></div>
+            <div><label className="fenetre-lib" htmlFor="m-t">Total avec taxes</label><input id="m-t" className="e70-raison" inputMode="decimal" value={m.facture_ttc} placeholder={m.facture_ht ? (Number(m.facture_ht) * 1.14975).toFixed(2) : ''} onChange={(e) => setM({ ...m, facture_ttc: montantSaisi(e.target.value) })} /></div></div>
             <p className="gris texte-12">Le locataire reçoit « C’est réparé » avec un lien pour confirmer. La dépense est inscrite au relevé du propriétaire.</p></>}
           {modal === 'fermer' && <><label className="fenetre-lib" htmlFor="m-n">Comment la réparation a été confirmée</label><input id="m-n" className="e70-raison" value={m.note} onChange={(e) => setM({ ...m, note: e.target.value })} placeholder="Ex. : confirmé au téléphone par la locataire" /></>}
           {modal === 'annuler' && <><label className="fenetre-lib" htmlFor="m-x">Raison</label><input id="m-x" className="e70-raison" value={m.raison} onChange={(e) => setM({ ...m, raison: e.target.value })} /><p className="gris texte-12">Une demande d’accord en attente est retirée.</p></>}

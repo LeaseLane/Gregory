@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { argent, jour } from '../onglets';
+import { montantSaisi } from '@/lib/format';
 
 /* e41 · Comptabilité : des montants exacts, lus en colonnes (débit et crédit alignés à droite); la clôture se lit de haut en bas, l'étape en cours en accent.
    QuickBooks n'est pas branché : l'état « non configuré » s'affiche tel quel et l'étape reste ouverte (elle ne bloque pas le verrouillage). */
@@ -93,8 +94,8 @@ export function Comptabilite({ donnees: D, filtres, erreurLecture }: { donnees: 
             <p className="fenetre-lib" style={{ marginTop: 16 }}>Lignes</p>
             {saisie.lignes.map((l, i) => <div key={i} className="ec-ligne"><select className="e70-raison" value={l.code} onChange={(e) => setSaisie({ ...saisie, lignes: saisie.lignes.map((x, j) => j === i ? { ...x, code: e.target.value } : x) })} aria-label="Compte">
               <option value="">Compte</option>{D.comptes.map((a) => <option key={a.code} value={a.code}>{a.code} · {a.nom}</option>)}</select>
-              <input className="e70-raison" inputMode="decimal" placeholder="Débit" value={l.debit} onChange={(e) => setSaisie({ ...saisie, lignes: saisie.lignes.map((x, j) => j === i ? { ...x, debit: e.target.value.replace(/[^\d.]/g, ''), credit: '' } : x) })} />
-              <input className="e70-raison" inputMode="decimal" placeholder="Crédit" value={l.credit} onChange={(e) => setSaisie({ ...saisie, lignes: saisie.lignes.map((x, j) => j === i ? { ...x, credit: e.target.value.replace(/[^\d.]/g, ''), debit: '' } : x) })} /></div>)}
+              <input className="e70-raison" inputMode="decimal" placeholder="Débit" value={l.debit} onChange={(e) => setSaisie({ ...saisie, lignes: saisie.lignes.map((x, j) => j === i ? { ...x, debit: montantSaisi(e.target.value), credit: '' } : x) })} />
+              <input className="e70-raison" inputMode="decimal" placeholder="Crédit" value={l.credit} onChange={(e) => setSaisie({ ...saisie, lignes: saisie.lignes.map((x, j) => j === i ? { ...x, credit: montantSaisi(e.target.value), debit: '' } : x) })} /></div>)}
             <button type="button" className="lien ligne-ic" onClick={() => setSaisie({ ...saisie, lignes: [...saisie.lignes, { code: '', debit: '', credit: '' }] })}><Icone nom="plus" taille={16} couleur="#2E5788" />Ajouter une ligne</button>
             <p className={`texte-13 ${Math.abs(solde) > 0.001 ? 'rouge-txt' : 'gris'}`}>{Math.abs(solde) > 0.001 ? `Écart de ${argent(Math.abs(solde), true)} : débits et crédits doivent s’équilibrer.` : 'Débits et crédits équilibrés.'}</p>
           </div>

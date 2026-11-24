@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { argent, jour } from '../onglets';
-import { adresse } from '@/lib/format';
+import { adresse, montantSaisi } from '@/lib/format';
 // Numéro de facture en tête de la description (« F-20931 · Panne d'éclairage », saisie de l'équipe) : colonne Facture de la maquette e44
 const numero = (d: string | null) => { const m = d?.match(/^([A-Z0-9][A-Z0-9-]{2,}) · (.*)$/); return m ? { no: m[1], reste: m[2] } : { no: null, reste: d }; };
 
@@ -88,7 +88,7 @@ export function FacturesFournisseurs({ donnees: D, statut, choisie, erreurLectur
               <option value="">Choisir</option>{D.immeubles.map((b) => <option key={b.id} value={b.id}>{b.adresse}</option>)}</select></>}
             {([['fournisseur', 'Fournisseur'], ['description', 'Description']] as const).map(([k, l]) => <div key={k} style={{ marginTop: 12 }}><label className="fenetre-lib" htmlFor={`nf-${k}`}>{l}</label>
               <input id={`nf-${k}`} className="e70-raison" value={nouvelle[k]} onChange={(e) => setNouvelle({ ...nouvelle, [k]: e.target.value })} /></div>)}
-            <div className="po-deux" style={{ marginTop: 12 }}><div><label className="fenetre-lib" htmlFor="nf-m">Montant avec taxes</label><input id="nf-m" className="e70-raison" inputMode="decimal" value={nouvelle.montant} onChange={(e) => setNouvelle({ ...nouvelle, montant: e.target.value.replace(/[^\d.]/g, '') })} /></div>
+            <div className="po-deux" style={{ marginTop: 12 }}><div><label className="fenetre-lib" htmlFor="nf-m">Montant avec taxes</label><input id="nf-m" className="e70-raison" inputMode="decimal" value={nouvelle.montant} onChange={(e) => setNouvelle({ ...nouvelle, montant: montantSaisi(e.target.value) })} /></div>
               <div><label className="fenetre-lib" htmlFor="nf-e">Échéance</label><input id="nf-e" type="date" className="e70-raison" value={nouvelle.echeance} onChange={(e) => setNouvelle({ ...nouvelle, echeance: e.target.value })} /></div></div>
           </div>
           <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={() => setNouvelle(null)}>Annuler</button>

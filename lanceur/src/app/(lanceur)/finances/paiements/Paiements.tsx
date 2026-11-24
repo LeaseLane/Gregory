@@ -7,7 +7,7 @@ import { Icone } from '@/composants/Icones';
 import { BarresClassees, Courbe } from '@/composants/Graphes';
 import { initiales } from '@/lib/ventes';
 import { argent, jour, moisLong } from '../onglets';
-import { adresse } from '@/lib/format';
+import { adresse, montantSaisi } from '@/lib/format';
 
 /* l15 · Paiements : les loyers sont payés directement aux propriétaires; Lease Lane les suit et relance (jamais « encaissés »).
    Graphique : 2 séries de même unité sur un axe (mois en accent, précédent en gris), base 80 % étiquetée, survol jour par jour. */
@@ -105,7 +105,7 @@ export function Paiements({ donnees: D, filtres, erreurLecture }: { donnees: Don
         <form className="fenetre" role="dialog" aria-modal="true" aria-labelledby="pp-t" style={{ width: 440 }} onSubmit={(e) => { e.preventDefault(); rpc('lanceur_paiement_payer', { id: payer.id, ...m }, 'Paiement inscrit.'); }}>
           <h2 id="pp-t" style={{ marginTop: 0, fontSize: 20 }}>Loyer payé · {payer.locataire}</h2>
           <p className="gris texte-13">Le loyer est payé au propriétaire : inscrivez ce qu’il a reçu. Un montant partiel laisse le solde dû.</p>
-          <div className="po-deux"><div><label className="fenetre-lib" htmlFor="pp-m">Montant reçu</label><input id="pp-m" className="e70-raison" inputMode="decimal" value={m.montant} onChange={(e) => setM({ ...m, montant: e.target.value.replace(/[^\d.]/g, '') })} /></div>
+          <div className="po-deux"><div><label className="fenetre-lib" htmlFor="pp-m">Montant reçu</label><input id="pp-m" className="e70-raison" inputMode="decimal" value={m.montant} onChange={(e) => setM({ ...m, montant: montantSaisi(e.target.value) })} /></div>
             <div><label className="fenetre-lib" htmlFor="pp-d">Payé le</label><input id="pp-d" type="date" className="e70-raison" value={m.le} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setM({ ...m, le: e.target.value })} /></div></div>
           <label className="fenetre-lib" htmlFor="pp-o" style={{ marginTop: 12 }}>Mode</label><select id="pp-o" className="e70-raison" value={m.mode} onChange={(e) => setM({ ...m, mode: e.target.value })}>
             <option value="virement">Virement Interac</option><option value="cheque">Chèque</option><option value="prelevement">Prélèvement</option><option value="comptant">Comptant</option></select>

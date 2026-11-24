@@ -6,6 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { BarresClassees } from '@/composants/Graphes';
 import { argent, jour } from '../onglets';
+import { montantSaisi } from '@/lib/format';
 
 /* e43 · Anomalies : l'anomalie mise en avant (les deux opérations côte à côte, les valeurs identiques surlignées, jamais colorées), la décision humaine inscrite au journal;
    anomalies par type = barres classées, emphase sur celle qui revient le plus. Règles : celles que la détection quotidienne applique vraiment. */
@@ -47,7 +48,7 @@ export function Anomalies({ donnees: D, erreurLecture }: { donnees: DonneesAnoma
             {A.bon && A.depense && A.type === 'depassement_cout' && <p className="texte-13">Prévu au bon <Link href={`/maintenance/bons/${A.bon.id}`}>{A.bon.numero}</Link> : {argent(A.bon.estime, true)} · facturé {argent(A.depense.montant, true)}</p>}
             {D.peut_ecrire && (decision ? <div style={{ marginTop: 16 }}><label className="fenetre-lib" htmlFor="an-n">{decision === 'resolved' ? 'Ce qui a été fait (remboursement demandé, avoir reçu…)' : 'Pourquoi ce n’est pas une anomalie'}</label>
               <input id="an-n" className="e70-raison" value={note} onChange={(e) => setNote(e.target.value)} />
-              {decision === 'resolved' && <><label className="fenetre-lib" htmlFor="an-r" style={{ marginTop: 8 }}>Montant récupéré (facultatif)</label><input id="an-r" className="e70-raison" inputMode="decimal" value={recupere} onChange={(e) => setRecupere(e.target.value.replace(/[^\d.]/g, ''))} style={{ maxWidth: 200 }} /></>}
+              {decision === 'resolved' && <><label className="fenetre-lib" htmlFor="an-r" style={{ marginTop: 8 }}>Montant récupéré (facultatif)</label><input id="an-r" className="e70-raison" inputMode="decimal" value={recupere} onChange={(e) => setRecupere(montantSaisi(e.target.value))} style={{ maxWidth: 200 }} /></>}
               <div className="fiche-actions" style={{ marginTop: 12 }}><button className="bouton bouton-principal" disabled={note.trim().length < 3} onClick={decider}>Confirmer</button><button className="lien" onClick={() => setDecision(null)}>Annuler</button></div></div>
               : <div className="fiche-actions" style={{ marginTop: 20 }}><button className="bouton bouton-principal" onClick={() => setDecision('resolved')}><Icone nom="send" taille={16} couleur="#fff" />C’est une anomalie : la régler</button>
                 <button className="bouton bouton-contour" onClick={() => setDecision('dismissed')}>Ce n’est pas une anomalie</button><span className="ligne-ic gris texte-12"><Icone nom="shieldc" taille={16} couleur="#58697F" />Votre décision est inscrite au journal.</span></div>)}

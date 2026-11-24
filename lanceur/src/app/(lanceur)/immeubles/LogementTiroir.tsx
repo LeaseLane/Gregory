@@ -5,6 +5,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { BailFenetre, type BailMode } from './BailFenetre';
 import { Photos } from './Photos';
+import { montantSaisi } from '@/lib/format';
 
 /* Logement : ajout ou modification (numéro, type, loyer demandé, superficie, étage, disponibilité). Rendre un logement disponible lance l'annonce automatique. */
 export type LogementEdit = { id?: string; numero: string; type: string | null; loyer: number | null; superficie: number | null; etage: number | null; statut: string; locataire?: string | null; tenant_id?: string | null };
@@ -18,7 +19,7 @@ export function LogementTiroir({ buildingId, adresse, logement, fermer, fait, ph
     setEnvoi(false); if (error) return setErreur(error.message); fermer(); router.refresh();
   }
   const champ = (k: keyof typeof f, l: string, num = false) => <div><label className="fenetre-lib" htmlFor={`lg-${k}`}>{l}</label>
-    <input id={`lg-${k}`} className="e70-raison" inputMode={num ? 'decimal' : undefined} value={f[k]} onChange={(e) => setF({ ...f, [k]: num ? e.target.value.replace(/[^\d.]/g, '') : e.target.value })} /></div>;
+    <input id={`lg-${k}`} className="e70-raison" inputMode={num ? 'decimal' : undefined} value={f[k]} onChange={(e) => setF({ ...f, [k]: num ? montantSaisi(e.target.value) : e.target.value })} /></div>;
   // Baux (2026-11-08) : un logement libre reçoit un locataire; un logement loué change de locataire (départ + arrivée, nouveau loyer).
   if (bail) return <BailFenetre quoi={bail} fermer={() => setBail(null)} fait={(m) => { setBail(null); fermer(); fait?.(m); }} />;
   const libelle = `${adresse ?? ''}${adresse ? ' — ' : ''}${logement?.numero ?? ''}`;

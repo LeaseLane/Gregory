@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { montantSaisi } from '@/lib/format';
 
 /* e37 · Catalogue : fourchette = barre min–max d'une teinte sur une échelle commune (écart à la référence, de −50 % à +50 %), point d'encre pour la médiane, trait pour la référence.
    Prix du travail le plus fréquent = colonnes par tranche de 100 $ partant de zéro, emphase sur la tranche la plus fréquente. Au-delà de 15 % au-dessus de la référence, Cléo le signale. */
@@ -75,7 +76,7 @@ export function Catalogue({ donnees: D, erreurLecture }: { donnees: DonneesCatal
             {([['label', 'Nom'], ['category', 'Catégorie'], ['task_type', 'Type de tâche (code)']] as const).map(([k, l]) => <div key={k} style={{ marginBottom: 12 }}><label className="fenetre-lib" htmlFor={`ca-${k}`}>{l}</label>
               <input id={`ca-${k}`} className="e70-raison" value={edit[k]} onChange={(e) => setEdit({ ...edit, [k]: e.target.value })} /></div>)}
             <div className="po-deux">{([['fixed_owner_price', 'Prix de référence ($)'], ['fixed_worker_pay', 'Payé au fournisseur ($)'], ['estimated_duration_minutes', 'Durée (minutes)']] as const).map(([k, l]) =>
-              <div key={k}><label className="fenetre-lib" htmlFor={`ca-${k}`}>{l}</label><input id={`ca-${k}`} className="e70-raison" inputMode="decimal" value={edit[k]} onChange={(e) => setEdit({ ...edit, [k]: e.target.value.replace(/[^\d.]/g, '') })} /></div>)}
+              <div key={k}><label className="fenetre-lib" htmlFor={`ca-${k}`}>{l}</label><input id={`ca-${k}`} className="e70-raison" inputMode="decimal" value={edit[k]} onChange={(e) => setEdit({ ...edit, [k]: montantSaisi(e.target.value) })} /></div>)}
               <div><label className="fenetre-lib" htmlFor="ca-pm">Tarification</label><select id="ca-pm" className="e70-raison" value={edit.pricing_model} onChange={(e) => setEdit({ ...edit, pricing_model: e.target.value })}>
                 <option value="forfait">Forfait</option><option value="horaire">Horaire</option><option value="diagnostic">Diagnostic</option></select></div></div>
             <label className="case" style={{ marginTop: 12 }}><input type="checkbox" checked={edit.requires_rbq} onChange={(e) => setEdit({ ...edit, requires_rbq: e.target.checked })} />Licence RBQ requise</label>

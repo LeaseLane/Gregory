@@ -20,3 +20,10 @@ export const jourCourt = (iso: string) => {
   const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso), j = qc(d).jour;
   return `${j === 1 ? '1er' : j} ${d.toLocaleDateString('fr-CA', { month: 'short', timeZone: FUSEAU })}`;
 };
+
+/** Montant tapé au clavier → texte décimal pour la base : « 689,85 » → « 689.85 », « 1 250,50 $ » → « 1250.50 ».
+    La virgule est la décimale au Québec : avant le 2026-11-24, ces champs l'effaçaient et 689,85 devenait 68 985. */
+export const montantSaisi = (v: string) => {
+  const s = v.replace(/,/g, '.').replace(/[^\d.]/g, ''), i = s.indexOf('.');
+  return i < 0 ? s : s.slice(0, i + 1) + s.slice(i + 1).replace(/\./g, '');
+};

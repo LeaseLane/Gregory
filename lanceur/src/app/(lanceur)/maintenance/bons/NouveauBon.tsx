@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { CATALOGUE_SERVICES } from '@/lib/drapeaux';
+import { montantSaisi } from '@/lib/format';
 
 /* e38 · Nouveau bon de travail (tiroir de 600 px) : demande liée, logement, travaux, mode (assigner ou demander des soumissions), fournisseurs invités, budget
    avec la référence du catalogue, accès au logement. Un fournisseur sans assurance valide (ou sans licence RBQ requise) n'est pas proposé. */
@@ -84,7 +85,7 @@ export function NouveauBon({ ouvrir = false, demande, fournisseur }: { ouvrir?: 
                   {!!suggeres.length && suggeres.every((x) => f.invites.includes(x)) && <p className="gris texte-12">Choisis par Cléo : les mieux notés pour ce métier dans ce secteur.</p>}
                   <p className="gris texte-12">Une tâche vous rappelle d’envoyer la demande de soumission à chacun.</p></>}
               <div className="po-deux" style={{ marginTop: 16 }}><div><label className="fenetre-lib" htmlFor="nb-b">Budget <span className="gris texte-12">obligatoire</span></label>
-                <input id="nb-b" className="e70-raison" inputMode="decimal" value={f.budget} onChange={(e) => setF({ ...f, budget: e.target.value.replace(/[^\d.]/g, '') })} /></div>
+                <input id="nb-b" className="e70-raison" inputMode="decimal" value={f.budget} onChange={(e) => setF({ ...f, budget: montantSaisi(e.target.value) })} /></div>
                 {CATALOGUE_SERVICES && <div><label className="fenetre-lib" htmlFor="nb-c">Travail du catalogue</label><select id="nb-c" className="e70-raison" value={f.service_catalog_id} onChange={(e) => setF({ ...f, service_catalog_id: e.target.value })}>
                   <option value="">Aucun</option>{ctx.catalogue.map((c) => <option key={c.id} value={c.id}>{c.libelle}</option>)}</select></div>}</div>
               {CATALOGUE_SERVICES && cat?.reference && <p className="gris texte-13">Référence du catalogue : {Math.round(cat.reference)} $</p>}
