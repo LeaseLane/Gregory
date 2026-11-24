@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 import { Notifications } from '@/composants/Notifications';
 import { Palette } from '@/composants/Palette';
+import type { Droits } from '@/lib/espaces';
 import { Cleo } from '@/composants/Cleo';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 
@@ -11,7 +12,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
    ⌘K ouvre la palette (e02 : actions, fiches, pages); « Demander à Cléo » ouvre la conversation (e03). */
 const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/ventes', 'Ventes'], ['/maintenance', 'Maintenance'], ['/clients', 'Clients'], ['/juridique', 'Juridique'], ['/studio', 'Studio'], ['/cleo-ia', 'Cléo et IA'], ['/finances', 'Finances'], ['/immeubles', 'Immeubles'], ['/reglages', 'Rapports et réglages']];
 
-export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, moi }: { initiales: string; courriel: string; nom: string; role: string; nonLues: number; moi: string }) {
+export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, moi, droits }: { initiales: string; courriel: string; nom: string; role: string; nonLues: number; moi: string; droits?: Droits | null }) {
   const [nonLues, setNonLues] = useState(initial);
   // Thème (e04, l00d) : mémorisé dans ce navigateur; « Système » suit le réglage de l'appareil. Le sombre ne couvre que l'accueil pour l'instant (seule maquette sombre).
   const [theme, setTheme] = useState('clair');
@@ -103,7 +104,7 @@ export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, mo
         </a>
       )}
       {tiroir && <Notifications fermer={() => setTiroir(false)} surLecture={setNonLues} />}
-      {palette && <Palette fermer={() => setPalette(false)} demanderCleo={(q) => { setPalette(false); setCleo(q); }} />}
+      {palette && <Palette droits={droits ?? null} fermer={() => setPalette(false)} demanderCleo={(q) => { setPalette(false); setCleo(q); }} />}
       {cleo !== null && <Cleo question={cleo} fermer={() => setCleo(null)} />}
     </>
   );

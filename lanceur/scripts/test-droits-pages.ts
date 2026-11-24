@@ -1,0 +1,21 @@
+// Vérifie ce que chaque rôle voit (onglets, entrée des Ventes, fidéicommis) : npx tsx scripts/test-droits-pages.ts
+import { voitPage, entreeEspace, ESPACES_ADMIN } from '../src/lib/espaces.ts';
+const compta = { role: 'comptabilite', permissions: ['finances.ecritures.ecrire','finances.lire','finances.paiements.ecrire','rapports.lire'] };
+const loc = { role: 'location', permissions: ['clients.lire','immeubles.ecrire','immeubles.lire','operations.lire','ventes.lire','ventes.location.ecrire','ventes.location.lire'] };
+const lect = { role: 'lecture', permissions: ['clients.lire','finances.lire','ia.lire','immeubles.lire','juridique.lire','maintenance.lire','operations.lire','rapports.lire','studio.lire','ventes.lire'] };
+const admin = { role: 'admin', permissions: ['*'] };
+const ok = (c: boolean, m: string) => { if (!c) { console.error('ÉCHEC', m); process.exitCode = 1; } };
+ok(voitPage(compta, '/finances/vue'), 'compta voit finances');
+ok(!voitPage(compta, '/finances/fideicommis'), 'compta ne voit pas la fiducie');
+ok(voitPage(admin, '/finances/fideicommis'), 'admin voit la fiducie');
+ok(!voitPage(compta, '/operations/inbox'), 'compta pas inbox');
+ok(!voitPage(loc, '/ventes/mandats'), 'location pas mandats');
+ok(voitPage(loc, '/ventes/location?x=1'), 'location voit location');
+ok(!voitPage(lect, '/ventes/a-appeler'), 'lecture pas prospection');
+ok(voitPage(lect, '/ventes/leads'), 'lecture voit leads');
+ok(voitPage(loc, '/compte'), 'page sans droit visible');
+const ventes = ESPACES_ADMIN.find((e) => e.racine === '/ventes')!;
+ok(entreeEspace(loc, ventes) === '/ventes/location', 'entrée ventes location');
+ok(entreeEspace(lect, ventes) === '/ventes/leads', 'entrée ventes lecture');
+ok(entreeEspace(admin, ventes) === '/ventes/mandats', 'entrée ventes admin');
+console.log(process.exitCode ? 'tests en échec' : '12 vérifications OK');

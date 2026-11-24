@@ -19,7 +19,7 @@ const d = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso)
 const argent = (n?: number) => n == null ? '—' : `${Math.round(n).toLocaleString('fr-CA').replace(/ |,/g, ' ')}\u00a0$`;
 const ROLES: Record<string, string> = { location: 'Location', gestionnaire: 'Gestion', comptabilite: 'Comptabilité', admin: 'Admin', prospection: 'Prospection' };
 const REPONSES: [string, string][] = [['accepte', 'Accepte'], ['refuse', 'Refuse la modification (reste, TAL)'], ['quitte', 'Quitte le logement'], ['reputee_acceptee', 'Sans réponse : réputée acceptée']];
-const delaiTexte = (p: DonneesProcessus['parametres'][number]) => p.code.startsWith('renewal_notice') ? `${p.value.min_mois} à ${p.value.max_mois} mois avant la fin` : `${p.value.mois} mois`;
+const delaiTexte = (p: DonneesProcessus['parametres'][number]) => p.code.startsWith('renewal_notice') ? `${p.value.min_mois} à ${p.value.max_mois} mois avant la fin` : p.value.jours != null ? `${p.value.jours} jours` : `${p.value.mois} mois`;  // cession : 15 jours (art. 1871 C.c.Q.)
 
 export function Processus({ donnees, erreurLecture }: { donnees: DonneesProcessus | null; erreurLecture: string | null }) {
   const router = useRouter();

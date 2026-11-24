@@ -24,7 +24,8 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
   const router = useRouter();
   const [tiroir, setTiroir] = useState(false), [survivant, setSurvivant] = useState<'a' | 'b'>('a'), [fusion, setFusion] = useState(false);
   // Bouton « Nouveau lead » de l'en-tête des Ventes (CadreEspace) : ?nouveau=1 ouvre le tiroir à l'arrivée.
-  useEffect(() => { if (new URLSearchParams(window.location.search).get('nouveau') === '1') setTiroir(true); }, []);
+  // Sans pipeline où écrire (rôle Lecture seule : la base n'en renvoie aucun), pas de tiroir.
+  useEffect(() => { if (new URLSearchParams(window.location.search).get('nouveau') === '1' && donnees?.pipelines?.length) setTiroir(true); }, [donnees]);
   const [bandeau, setBandeau] = useState<string | null>(null), [toast, setToast] = useState<string | null>(null), [envoi, setEnvoi] = useState(false);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   if (erreurLecture || !donnees) return <div className="bandeau erreur" role="alert">{erreurLecture}</div>;
@@ -114,7 +115,7 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
 // Nouveau lead (maquette e16) : tiroir de 600 px; doublon signalé pendant la saisie (non bloquant); consentement LCAP explicite.
 // mien : « Nouveau prospect » de Ventes › Mes prospects (pipeline des mandats, la personne qui le crée en est responsable).
 export function NouveauLead({ donnees, fermer, cree, mien = false }: { donnees: Pick<DonneesLeads, 'pipelines' | 'prochains' | 'liste_sources'>; fermer: () => void; cree: (id: string, qui: string | null) => void; mien?: boolean }) {
-  const [f, setF] = useState({ pipeline: mien ? 'mandats' : donnees.pipelines[0]?.code ?? 'mandats', nom: '', courriel: '', telephone: '', source_id: '', adresse: '', portes: '', consentement: false });
+  const [f, setF] = useState({ pipeline: mien ? 'mandats' : donnees.pipelines?.[0]?.code ?? 'mandats', nom: '', courriel: '', telephone: '', source_id: '', adresse: '', portes: '', consentement: false });
   const [doublons, setDoublons] = useState<{ id: string; nom: string; raison: string; client_depuis: number | null; locataire: boolean; deal_id: string | null }[]>([]);
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
   const maj = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
@@ -130,7 +131,7 @@ export function NouveauLead({ donnees, fermer, cree, mien = false }: { donnees: 
     setEnvoi(false);
     if (error) setErreur(error.message); else { const r = data as { deal_id: string; owner: string | null }; cree(r.deal_id, r.owner); }
   }
-  const prochain = donnees.prochains[f.pipeline];
+  const prochain = donnees.prochains?.[f.pipeline];
   return (
     <div className="voile tiroir-voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermer()}>
       <aside className="tiroir" role="dialog" aria-modal="true" aria-labelledby="nl-t" style={{ width: 'min(600px, calc(100vw - 48px))' }}>
@@ -138,7 +139,7 @@ export function NouveauLead({ donnees, fermer, cree, mien = false }: { donnees: 
         <div className="tiroir-liste formulaire">
           {!mien && <><span className="fenetre-lib">Pipeline</span>
           <div className="segment large" role="tablist" style={{ width: '100%', marginBottom: 20 }}>
-            {donnees.pipelines.map((p) => <button key={p.code} role="tab" aria-selected={f.pipeline === p.code} className={f.pipeline === p.code ? 'actif' : ''} onClick={() => setF({ ...f, pipeline: p.code })}>{p.name}</button>)}
+            {(donnees.pipelines ?? []).map((p) => <button key={p.code} role="tab" aria-selected={f.pipeline === p.code} className={f.pipeline === p.code ? 'actif' : ''} onClick={() => setF({ ...f, pipeline: p.code })}>{p.name}</button>)}
           </div></>}
           <label className="fenetre-lib" htmlFor="nl-nom">Nom<span>obligatoire</span></label>
           <input id="nl-nom" className="e70-raison" value={f.nom} onChange={maj('nom')} autoFocus />
@@ -149,7 +150,7 @@ export function NouveauLead({ donnees, fermer, cree, mien = false }: { donnees: 
             {d.deal_id && <Link className="lien" href={`/ventes/deals/${d.deal_id}`}>Ouvrir la fiche</Link>}</div>)}
           <div className="nt-grille">
             <label className="fenetre-lib">Téléphone<input className="e70-raison" value={f.telephone} onChange={maj('telephone')} placeholder="418 555-0172" /></label>
-            <label className="fenetre-lib">Source<select className="e70-raison" value={f.source_id} onChange={maj('source_id')}><option value="">Choisir…</option>{donnees.liste_sources.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+            <label className="fenetre-lib">Source<select className="e70-raison" value={f.source_id} onChange={maj('source_id')}><option value="">Choisir…</option>{(donnees.liste_sources ?? []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
             <label className="fenetre-lib">Adresse de l’immeuble<input className="e70-raison" value={f.adresse} onChange={maj('adresse')} /></label>
             <label className="fenetre-lib">Portes<input type="number" min={1} className="e70-raison" value={f.portes} onChange={maj('portes')} /></label>
           </div>

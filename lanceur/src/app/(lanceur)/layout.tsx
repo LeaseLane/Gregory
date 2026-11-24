@@ -6,7 +6,7 @@ import { AccesReserve } from '@/composants/AccesReserve';
 import { lireMoi, peut, ROLES } from '@/lib/moi';
 import { BarreBasAdmin } from '@/composants/BarreBasAdmin';
 import { TableauxCartes } from '@/composants/TableauxCartes';
-import { ESPACES_ADMIN } from '@/lib/espaces';
+import { ESPACES_ADMIN, entreeEspace } from '@/lib/espaces';
 import { Inactivite } from '@/composants/Inactivite';
 import { CoquilleProspecteur } from '@/composants/CoquilleProspecteur';
 import { Portee, type OptionsPortee } from '@/composants/Portee';
@@ -37,9 +37,9 @@ export default async function LanceurLayout({ children }: { children: React.Reac
   return (
     <div className="coquille">
       {moi && <Inactivite minutes={Number((politique as { inactivite_minutes?: number } | null)?.inactivite_minutes ?? 0)} />}
-      <BarreHaut initiales={initiales} courriel={u.email ?? ''} nom={moi?.nom && !moi.nom.includes('@') ? moi.nom : (u.email ?? '')} role={moi ? (ROLES[moi.role] ?? moi.role) : ''} nonLues={Number((notifs as { non_lues?: number } | null)?.non_lues ?? 0)} moi={u.id} />
+      <BarreHaut initiales={initiales} courriel={u.email ?? ''} nom={moi?.nom && !moi.nom.includes('@') ? moi.nom : (u.email ?? '')} role={moi ? (ROLES[moi.role] ?? moi.role) : ''} nonLues={Number((notifs as { non_lues?: number } | null)?.non_lues ?? 0)} moi={u.id} droits={moi ? { role: moi.role, permissions: moi.permissions } : null} />
       {moi ? (
-        <>{portee && <Portee options={portee as OptionsPortee} choix={porteeValide((await cookies()).get(TEMOIN_PORTEE)?.value)} />}{children}<BarreBasAdmin espaces={ESPACES_ADMIN.filter((e) => peut(moi, e.droit))} /><TableauxCartes /></>
+        <>{portee && <Portee options={portee as OptionsPortee} choix={porteeValide((await cookies()).get(TEMOIN_PORTEE)?.value)} />}{children}<BarreBasAdmin espaces={ESPACES_ADMIN.filter((e) => peut(moi, e.droit)).map((e) => ({ ...e, href: entreeEspace(moi, e) }))} /><TableauxCartes /></>
       ) : (
         <AccesReserve
           titre="L’espace admin est réservé à l’équipe Lease Lane"

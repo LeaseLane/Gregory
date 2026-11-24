@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
+import { voitPage, entreeEspace, type Droits } from '@/lib/espaces';
 
 /* Palette ⌘K (maquette e02) : une saisie, et l'admin répond : actions, fiches, pages, ou une question à Cléo.
    Le terme trouvé est en gras; ↑ ↓ naviguent, Entrée ouvre, Échap ferme. Seules les pages qui existent sont listées. */
@@ -28,7 +29,9 @@ function Gras({ t, q }: { t: string; q: string }) {
   return <>{t.slice(0, i)}<b>{t.slice(i, i + q.trim().length)}</b>{t.slice(i + q.trim().length)}</>;
 }
 
-export function Palette({ fermer, demanderCleo }: { fermer: () => void; demanderCleo: (q: string) => void }) {
+export function Palette({ fermer, demanderCleo, droits }: { fermer: () => void; demanderCleo: (q: string) => void; droits: Droits | null }) {
+  // Seulement les pages du rôle (même règle que les onglets); sans droits connus, la liste reste entière (la page refusera).
+  const permise = (lien: string) => !droits || voitPage(droits, lien);
   const router = useRouter();
   const champ = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState(''), [res, setRes] = useState<{ actions: Ligne[]; fiches: Ligne[] }>({ actions: [], fiches: [] }), [i, setI] = useState(0);
@@ -43,7 +46,7 @@ export function Palette({ fermer, demanderCleo }: { fermer: () => void; demander
     }, 180);
     return () => clearTimeout(t);
   }, [q]);
-  const pages: Ligne[] = q.trim() ? PAGES.filter(([e, p]) => sansAccents(`${e} ${p}`).includes(sansAccents(q.trim()))).slice(0, 4).map(([e, p, l]) => ({ groupe: 'Pages', titre: p, chemin: [e, p], lien: l, icone: 'file' })) : ESPACES.map(([e, l, ic]) => ({ groupe: 'Aller à', titre: e, lien: l, icone: ic }));
+  const pages: Ligne[] = q.trim() ? PAGES.filter(([e, p, l]) => permise(l) && sansAccents(`${e} ${p}`).includes(sansAccents(q.trim()))).slice(0, 4).map(([e, p, l]) => ({ groupe: 'Pages', titre: p, chemin: [e, p], lien: l, icone: 'file' })) : ESPACES.map(([e, l, ic]): [string, string, string] => [e, droits ? entreeEspace(droits, { racine: '/' + l.split('/')[1], href: l }) : l, ic]).filter(([, l]) => permise(l)).map(([e, l, ic]) => ({ groupe: 'Aller à', titre: e, lien: l, icone: ic }));
   const lignes: Ligne[] = [...res.actions, ...res.fiches, ...pages, ...(q.trim() ? [{ groupe: 'Demander à Cléo', titre: `« ${q.trim()} »`, droite: 'Cléo cite ses sources', cleo: q.trim() }] : [])];
   useEffect(() => { setI(0); }, [q, res]);
   function ouvrir(l: Ligne) {

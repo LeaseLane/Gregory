@@ -4,7 +4,8 @@ import { Icone } from '@/composants/Icones';
 import { BoutonExporter } from '@/composants/BoutonExporter';
 import { DefileActif } from '@/composants/DefileActif';
 import { supabaseServeur } from '@/lib/supabase/serveur';
-import { lireMoi } from '@/lib/moi';
+import { lireMoi, ROLES } from '@/lib/moi';
+import { voitPage, peutFaire, type Droits } from '@/lib/espaces';
 
 /* En-tête d'un espace (B.space de la maquette) : pastille marine 56, titre 28, sous-titre, filet, onglets
    (actif : fond b025 + trait b500 de 3 px; pastille de compte). Un onglet sans page n'est pas un lien.
@@ -21,20 +22,26 @@ const lirePastilles = cache(async (): Promise<Pastilles> => {
 /* Largeurs des boutons d'en-tête de la maquette (blk.js B.SP.actions). */
 export const LARGEURS: Record<string, number> = { 'Exporter': 136, 'Nouvelle demande': 208, 'Nouveau lead': 176, 'Importer un CSV': 184, 'Nouveau client': 184, 'Ajouter un immeuble': 220,
   'Nouveau bon de travail': 236, 'Ouvrir un dossier': 200, 'Nouvelle campagne': 204, 'Nouvelle automatisation': 252, 'Nouveau projet': 184 };
-const lien = (href: string, libelle: string, icone: string, principal = false) =>
+const lien = (href: string, libelle: string, icone: string, principal = false, permis = true) => !permis ? null :
   <Link key={libelle} href={href} className={'bouton ' + (principal ? 'bouton-principal' : 'bouton-contour')} style={{ width: LARGEURS[libelle] }}><Icone nom={icone} taille={20} couleur={principal ? '#fff' : '#0C2147'} />{libelle}</Link>;
 
 /* Boutons de la maquette par espace; un bouton dont l'écran n'existe pas encore n'est pas affiché. */
-const ACTIONS: Record<string, (onglet: string) => React.ReactNode> = {
-  'Opérations': () => <><BoutonExporter nom="operations" />{lien('/operations?nouveau=1', 'Nouvelle demande', 'plus', true)}</>,
-  'Ventes': () => <>{lien('/ventes/leads/import', 'Importer un CSV', 'upload')}{lien('/ventes/leads?nouveau=1', 'Nouveau lead', 'plus', true)}</>,
-  'Clients': () => <><BoutonExporter nom="clients" />{lien('/clients/proprietaires?nouveau=1', 'Nouveau client', 'plus', true)}</>,
-  'Immeubles': () => <><BoutonExporter nom="immeubles" />{lien('/immeubles?nouveau=1', 'Ajouter un immeuble', 'plus', true)}</>,
-  'Maintenance': () => <><BoutonExporter nom="maintenance" />{lien('/maintenance/bons?nouveau=1', 'Nouveau bon de travail', 'plus', true)}</>,
+/* Un bouton qui crée ou modifie n'apparaît qu'avec le droit d'écriture du rôle (Lecture seule : aucun). */
+const ACTIONS: Record<string, (onglet: string, ecrit: (droit: string) => boolean) => React.ReactNode> = {
+  'Opérations': (_, e) => <><BoutonExporter nom="operations" />{lien('/operations?nouveau=1', 'Nouvelle demande', 'plus', true, e('operations.ecrire'))}</>,
+  'Ventes': (_, e) => { const lead = e('ventes.mandats.ecrire') || e('ventes.location.ecrire'); return <>{lien('/ventes/leads/import', 'Importer un CSV', 'upload', false, lead)}{lien('/ventes/leads?nouveau=1', 'Nouveau lead', 'plus', true, lead)}</>; },
+  'Clients': (_, e) => <><BoutonExporter nom="clients" />{lien('/clients/proprietaires?nouveau=1', 'Nouveau client', 'plus', true, e('clients.ecrire'))}</>,
+  'Immeubles': (_, e) => <><BoutonExporter nom="immeubles" />{lien('/immeubles?nouveau=1', 'Ajouter un immeuble', 'plus', true, e('immeubles.ecrire'))}</>,
+  'Maintenance': (_, e) => <><BoutonExporter nom="maintenance" />{lien('/maintenance/bons?nouveau=1', 'Nouveau bon de travail', 'plus', true, e('maintenance.ecrire'))}</>,
   'Finances': () => <BoutonExporter nom="finances" />,
-  'Studio': (onglet) => onglet === 'Campagnes' ? lien('/studio/campagnes?nouvelle=1', 'Nouvelle campagne', 'plus', true) : null, // le bouton d'une autre page (Nouvel article…) vient de la page
+  'Studio': (onglet, e) => onglet === 'Campagnes' ? lien('/studio/campagnes?nouvelle=1', 'Nouvelle campagne', 'plus', true, e('studio.ecrire')) : null, // le bouton d'une autre page (Nouvel article…) vient de la page
   'Rapports et réglages': () => <BoutonExporter nom="rapports" />,
 };
+
+/* Droit d'écriture d'un espace : sans lui, les boutons qu'une page fournit (Nouveau client, Déposer un document, Ajouter un immeuble…)
+   ne s'affichent pas non plus. Ventes, Finances et Réglages ont des droits par page : leurs pages vérifient elles-mêmes. */
+const ECRITURE: Record<string, string> = { 'Opérations': 'operations.ecrire', 'Clients': 'clients.ecrire', 'Immeubles': 'immeubles.ecrire',
+  'Maintenance': 'maintenance.ecrire', 'Juridique': 'juridique.ecrire', 'Studio': 'studio.ecrire' };
 
 const ONGLETS_PROSPECTEUR = ['/ventes/prospection', '/ventes/immeubles', '/ventes/mes-prospects', '/ventes/a-rappeler'];
 const MODULES_PROSPECTEUR: Record<string, [string, string, string]> = {
@@ -47,9 +54,13 @@ const MODULES_PROSPECTEUR: Record<string, [string, string, string]> = {
 export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, children }: { icone: string; nom: string; sous: string; onglets: Onglet[]; actif: number; actions?: React.ReactNode; children: React.ReactNode }) {
   const p = (await lirePastilles())[nom] ?? {};
   // Prospecteur (rôle « prospection ») : seulement ses onglets; la base refuse aussi le reste (20261113170000).
-  const prospecteur = nom === 'Ventes' && (await lireMoi())?.role === 'prospection';
+  const moi = await lireMoi(), droits: Droits = moi ?? { role: '', permissions: [] };
+  const prospecteur = nom === 'Ventes' && moi?.role === 'prospection';
   const tabs = onglets.map((o) => (o.compte === undefined && p[o.libelle]?.n ? { ...o, compte: p[o.libelle].n, rouge: o.rouge ?? p[o.libelle].r } : o))
-    .map((o) => (prospecteur && !ONGLETS_PROSPECTEUR.includes(o.href ?? '') ? { ...o, cache: true } : o));
+    .map((o) => (prospecteur && !ONGLETS_PROSPECTEUR.includes(o.href ?? '') ? { ...o, cache: true } : o))
+    .map((o) => (!o.cache && !voitPage(droits, o.href) ? { ...o, cache: true } : o));   // onglet hors du rôle : caché (même règle que la base)
+  // Page hors du rôle (lien direct, ancien favori) : un message clair au lieu d'une page à moitié vide.
+  const refusee = !prospecteur && !voitPage(droits, onglets[actif]?.href);
   // Onglets du haut : une page sans groupe, ou un groupe (lien vers sa première page, pastille = somme de ses pages). Sous-onglets : les pages du groupe actif.
   const visibles = tabs.map((o, i) => ({ ...o, actif: i === actif })).filter((o) => !o.cache), groupeActif = tabs[actif]?.groupe;
   const haut = visibles.reduce<(Onglet & { actif: boolean })[]>((h, o) => {
@@ -59,7 +70,7 @@ export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, c
     return h;
   }, []);
   const pagesGroupe = groupeActif ? visibles.filter((o) => o.groupe === groupeActif && o.href) : [];
-  const boutons = actions === undefined ? (prospecteur ? null : ACTIONS[nom]?.(onglets[actif]?.libelle ?? '')) : actions;
+  const boutons = actions === undefined ? (prospecteur ? null : (refusee ? null : ACTIONS[nom]?.(onglets[actif]?.libelle ?? '', (d) => peutFaire(droits, d)))) : (refusee || (ECRITURE[nom] && !peutFaire(droits, ECRITURE[nom])) ? null : actions);
   // Prospecteur : la barre de gauche remplace les onglets; l'en-tête porte le module (la fiche d'un prospect relève de « Mes prospects »).
   if (prospecteur) {
     const ici = ONGLETS_PROSPECTEUR.includes(onglets[actif]?.href ?? '') ? onglets[actif].href! : '/ventes/mes-prospects';
@@ -99,7 +110,12 @@ export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, c
           {pagesGroupe.map((o) => <Link key={o.libelle} href={o.href!} className={o.actif ? 'actif' : ''} aria-current={o.actif ? 'page' : undefined}>{o.libelle}{o.compte ? <span className={'compte' + (o.rouge ? ' rouge' : '')}>{o.compte}</span> : null}</Link>)}
         </nav>}
       </section>
-      {children}
+      {refusee ? (
+        <section className="carte-vide" role="status" style={{ marginTop: 24 }}>
+          <h2 className="titre-carte" style={{ margin: 0 }}>Cette page ne fait pas partie de votre rôle</h2>
+          <p className="gris" style={{ margin: 0 }}>Votre rôle ({ROLES[droits.role] ?? droits.role}) ne donne pas accès à cette page. Un administrateur peut changer votre rôle dans Rapports et réglages › Équipe et permissions.</p>
+        </section>
+      ) : children}
     </main>
   );
 }

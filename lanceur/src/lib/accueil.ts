@@ -1,5 +1,6 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { peut, type Moi } from '@/lib/moi';
+import { ESPACES_ADMIN, entreeEspace } from '@/lib/espaces';
 
 /* Accueil (maquette l00) : chaque tuile porte un vrai chiffre, lu par l'opération héritée admin-api
    (vue d'ensemble, jeton de l'usager, 2FA exigée) et par health-check. Les chiffres de la maquette sont
@@ -74,7 +75,7 @@ export async function lireAccueil(moi: Moi): Promise<Accueil> {
 
   // Sans la vue d'ensemble, une puce ne doit rien affirmer (« Aucune urgence » à côté d'un « — » serait faux).
   if (!ok) for (const x of tuiles) if (x.valeur === '—' && !x.puce.texte.includes(' · ')) { x.puce = { texte: moi.role === 'admin' ? 'Données indisponibles' : 'Pas encore pour votre rôle', ton: 'neutral' }; x.viz = null; }
-  const visibles = tuiles.filter((x) => !x.droit || peut(moi, x.droit));
+  const visibles = tuiles.filter((x) => !x.droit || peut(moi, x.droit)).map((x) => { const e = ESPACES_ADMIN.find((y) => y.nom === x.nom); return e ? { ...x, href: entreeEspace(moi, e) } : x; });
   const morceaux = [urgences && pl(urgences, 'urgence', 'urgences'), retards && pl(retards, 'loyer en retard', 'loyers en retard'), baux && pl(baux, 'bail à renouveler', 'baux à renouveler')].filter(Boolean);
   const briefing = moi.role !== 'admin' ? 'Votre briefing s’enrichira à mesure que vos espaces ouvriront.' : !ok ? 'Le résumé du jour n’a pas pu être lu. Les espaces restent accessibles.' : morceaux.length ? `${morceaux.join(', ')}.${urgences ? ' Commencez par les urgences dans Opérations.' : ''}` : 'Rien d’urgent ce matin : aucune urgence, aucun loyer en retard.';
   return { tuiles: visibles, briefing: briefing.charAt(0).toUpperCase() + briefing.slice(1), urgences, erreur };
