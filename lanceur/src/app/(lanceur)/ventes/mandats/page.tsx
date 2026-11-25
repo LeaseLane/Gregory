@@ -1,10 +1,12 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
+import { tServeur } from '@/lib/i18n/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
 import { Pipeline, type DonneesPipeline } from '@/composants/ventes/Pipeline';
 import { VENTES, ongletsVentes } from '@/lib/ventes';
 
 /* Ventes · Pipeline « Mandats propriétaires (maquette l05) ». */
 export default async function Page() {
+  const { t } = await tServeur();
   const supabase = await supabaseServeur();
   const [{ data, error }, { data: raisons }] = await Promise.all([
     supabase.rpc('lanceur_pipeline', { p_code: 'mandats' }),
@@ -13,7 +15,7 @@ export default async function Page() {
   const d = data as DonneesPipeline | null;
   return (
     <CadreEspace icone={VENTES.icone} nom={VENTES.nom} sous={VENTES.sous} actif={0} onglets={ongletsVentes()}>
-      <Pipeline donnees={d} raisons={(raisons as { code: string; label: string }[] | null) ?? []} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Le pipeline n’a pas pu être lu.') : null} />
+      <Pipeline donnees={d} raisons={(raisons as { code: string; label: string }[] | null) ?? []} erreurLecture={error ? (error.code === 'PT403' ? error.message : t('Le pipeline n’a pas pu être lu.')) : null} />
     </CadreEspace>
   );
 }

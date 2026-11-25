@@ -11,6 +11,8 @@ import d_reglages from './reglages';
 import d_studio from './studio';
 import d_proprietaire from './proprietaire';
 import d_locataire from './locataire';
+import d_motifs from './motifs';
+import d_arbitrage from './arbitrage';
 
 export const DICO_EN: Record<string, string> = {
   ...d_commun,
@@ -25,4 +27,6 @@ export const DICO_EN: Record<string, string> = {
   ...d_studio,
   ...d_proprietaire,
   ...d_locataire,
+  ...d_motifs,
+  ...d_arbitrage,   // en dernier : tranche les mots traduits différemment selon la section
 };

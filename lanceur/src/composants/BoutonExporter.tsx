@@ -2,15 +2,17 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
+import { useT } from '@/composants/Langue';
 
 /* « Exporter » de l'en-tête d'espace (maquette B.SP.actions) : les tableaux affichés sur la page, en un fichier CSV
    (séparateur « ; », UTF-8 avec BOM pour Excel). Rien n'est envoyé au serveur : c'est ce que la personne voit déjà. */
 const cellule = (t: string) => `"${t.replace(/\s+/g, ' ').trim().replace(/"/g, '""')}"`;
 
 export function BoutonExporter({ nom }: { nom: string }) {
+  const { t } = useT();
   const chemin = usePathname(), [aTable, setATable] = useState(true);
   /* Sans tableau à la page (Clés d'API, Sécurité…), le bouton n'aurait aucun effet : on ne l'affiche pas. Deuxième lecture après 600 ms pour les tableaux qui arrivent après l'hydratation. */
-  useEffect(() => { const lire = () => setATable(!!document.querySelector('.espace-page table')); lire(); const t = setTimeout(lire, 600); return () => clearTimeout(t); }, [chemin]);
+  useEffect(() => { const lire = () => setATable(!!document.querySelector('.espace-page table')); lire(); const tm = setTimeout(lire, 600); return () => clearTimeout(tm); }, [chemin]);
   function exporter() {
     const tables = [...document.querySelectorAll<HTMLTableElement>('.espace-page table')];
     if (!tables.length) return;
@@ -27,5 +29,5 @@ export function BoutonExporter({ nom }: { nom: string }) {
     URL.revokeObjectURL(url);
   }
   if (!aTable) return null;
-  return <button type="button" className="bouton bouton-contour" style={{ width: 136 }} onClick={exporter}><Icone nom="download" taille={20} couleur="#0C2147" />Exporter</button>;
+  return <button type="button" className="bouton bouton-contour" style={{ width: 136 }} onClick={exporter}><Icone nom="download" taille={20} couleur="#0C2147" />{t('Exporter')}</button>;
 }

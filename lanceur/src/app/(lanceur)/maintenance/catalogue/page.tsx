@@ -1,17 +1,19 @@
 import { notFound } from 'next/navigation';
 import { CATALOGUE_SERVICES } from '@/lib/drapeaux';
 import { supabaseServeur } from '@/lib/supabase/serveur';
+import { tServeur } from '@/lib/i18n/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
 import { ongletsMaint, SOUS_MAINT } from '../onglets';
 import { Catalogue, type DonneesCatalogue } from './Catalogue';
 
 /* Maintenance · Catalogue (e37) : travaux types, prix de référence, fourchette observée, délai, fournisseur privilégié; Cléo compare chaque soumission à ces prix. */
 export default async function Page() {
+  const { t } = await tServeur();
   if (!CATALOGUE_SERVICES) notFound();   // catalogue fermé (lib/drapeaux.ts)
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_catalogue');
   return (
     <CadreEspace icone="wrench" nom="Maintenance" sous={SOUS_MAINT} actif={4} onglets={ongletsMaint()}>
-      <Catalogue donnees={(data as DonneesCatalogue | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Le catalogue n’a pas pu être lu.') : null} />
+      <Catalogue donnees={(data as DonneesCatalogue | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : t('Le catalogue n’a pas pu être lu.')) : null} />
     </CadreEspace>
   );
 }

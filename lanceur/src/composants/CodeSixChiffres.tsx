@@ -1,9 +1,11 @@
 'use client';
 import { useRef } from 'react';
+import { useT } from '@/composants/Langue';
 
 /* Six cases du code (maquette e66) : 56 × 64, coins 12; vide g200, remplie g400, case active b500 2 px + halo.
    Saisie, collage du code entier, retour arrière, flèches. */
 export function CodeSixChiffres({ valeur, onChange, onComplet, desactive }: { valeur: string; onChange: (v: string) => void; onComplet?: (v: string) => void; desactive?: boolean }) {
+  const { t } = useT();
   const cases = useRef<(HTMLInputElement | null)[]>([]);
   const chiffres = Array.from({ length: 6 }, (_, i) => valeur[i] ?? '');
   const actif = Math.min(valeur.length, 5);
@@ -17,7 +19,7 @@ export function CodeSixChiffres({ valeur, onChange, onComplet, desactive }: { va
   }
 
   return (
-    <div className="code6" role="group" aria-label="Code à 6 chiffres">
+    <div className="code6" role="group" aria-label={t('Code à 6 chiffres')}>
       {chiffres.map((c, i) => (
         <input
           key={i}
@@ -25,7 +27,7 @@ export function CodeSixChiffres({ valeur, onChange, onComplet, desactive }: { va
           className={'code6-case' + (c ? ' rempli' : '') + (i === actif && !desactive ? ' actif' : '')}
           inputMode="numeric"
           autoComplete={i === 0 ? 'one-time-code' : 'off'}
-          aria-label={`Chiffre ${i + 1}`}
+          aria-label={t('Chiffre {n}', { n: i + 1 })}
           maxLength={6}
           value={c}
           disabled={desactive}

@@ -4,10 +4,12 @@ import { CadreEspace } from '@/composants/CadreEspace';
 import { VENTES, ongletsVentes, ROLE_VISIBLE } from '@/lib/ventes';
 import { Prospection, type DonneesProspection } from './Prospection';
 import { RechercheIA } from './RechercheIA';
+import { tServeur } from '@/lib/i18n/serveur';
 
 /* Ventes · Prospection IA (maquette l08) : l'agent trouve, une personne révise avant tout contact, séquences encadrées.
    2026-11-06 : vue « Recherche » (phrase → filtres → rôle d'évaluation par propriétaire), là où le rôle est visible (pas en production pour l'instant). */
 export default async function Page({ searchParams }: { searchParams: Promise<{ vue?: string }> }) {
+  const { t } = await tServeur();
   const { vue } = await searchParams;
   const recherche = ROLE_VISIBLE && vue !== 'reviser';
   const supabase = await supabaseServeur();
@@ -16,10 +18,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
   return (
     <CadreEspace icone={VENTES.icone} nom={VENTES.nom} sous={VENTES.sous} actif={4} onglets={ongletsVentes()}>
       {ROLE_VISIBLE && <div className="lo-segments" style={{ marginBottom: 16, width: 340 }}>
-        <Link className={recherche ? 'actif' : ''} href="/ventes/prospection">Recherche</Link>
-        <Link className={recherche ? '' : 'actif'} href="/ventes/prospection?vue=reviser">À réviser{d ? ` · ${d.a_reviser}` : ''}</Link></div>}
+        <Link className={recherche ? 'actif' : ''} href="/ventes/prospection">{t('Recherche')}</Link>
+        <Link className={recherche ? '' : 'actif'} href="/ventes/prospection?vue=reviser">{t('À réviser')}{d ? ` · ${d.a_reviser}` : ''}</Link></div>}
       {recherche ? <RechercheIA />
-        : <Prospection donnees={d} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'La prospection n’a pas pu être lue.') : null} />}
+        : <Prospection donnees={d} erreurLecture={error ? (error.code === 'PT403' ? error.message : t('La prospection n’a pas pu être lue.')) : null} />}
     </CadreEspace>
   );
 }

@@ -1,9 +1,11 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { Icone } from '@/composants/Icones';
+import { useT } from '@/composants/Langue';
 
 /* Messages vocaux des portails : enregistrement (MediaRecorder du navigateur) et lecteur avec forme d'onde (pics calculés du son). */
 export function useVocal() {
+  const { t } = useT();
   const [etat, setEtat] = useState<'repos' | 'enregistre' | 'pret'>('repos'), [blob, setBlob] = useState<Blob | null>(null), [duree, setDuree] = useState(0), [erreur, setErreur] = useState<string | null>(null);
   const rec = useRef<MediaRecorder | null>(null), debut = useRef(0);
   async function demarrer() {
@@ -14,7 +16,7 @@ export function useVocal() {
       r.ondataavailable = (e) => morceaux.push(e.data);
       r.onstop = () => { flux.getTracks().forEach((t) => t.stop()); setBlob(new Blob(morceaux, { type: r.mimeType || 'audio/webm' })); setDuree(Math.round((Date.now() - debut.current) / 1000)); setEtat('pret'); };
       rec.current = r; debut.current = Date.now(); r.start(); setEtat('enregistre');
-    } catch { setErreur('Le micro n’est pas accessible : autorisez-le dans votre navigateur, ou écrivez votre message.'); }
+    } catch { setErreur(t('Le micro n’est pas accessible : autorisez-le dans votre navigateur, ou écrivez votre message.')); }
   }
   const arreter = () => rec.current?.state === 'recording' && rec.current.stop();
   const effacer = () => { setBlob(null); setDuree(0); setEtat('repos'); };
@@ -24,6 +26,7 @@ export function useVocal() {
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 export function LecteurVocal({ source, duree, effacer }: { source: Blob | (() => Promise<string | null>); duree?: number; effacer?: () => void }) {
+  const { t } = useT();
   const audio = useRef<HTMLAudioElement | null>(null);
   const [pics, setPics] = useState<number[]>([]), [pos, setPos] = useState(0), [total, setTotal] = useState(duree ?? 0), [joue, setJoue] = useState(false), [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
@@ -44,10 +47,10 @@ export function LecteurVocal({ source, duree, effacer }: { source: Blob | (() =>
   const avance = total ? pos / total : 0;
   return (
     <div className="vocal">
-      <button type="button" className="vocal-jouer" onClick={basculer} disabled={!url} aria-label={joue ? 'Pause' : 'Écouter le message vocal'}><Icone nom={joue ? 'pause' : 'play'} taille={18} couleur="#fff" trait={joue ? 2.6 : 1.75} /></button>
+      <button type="button" className="vocal-jouer" onClick={basculer} disabled={!url} aria-label={joue ? t('Pause') : t('Écouter le message vocal')}><Icone nom={joue ? 'pause' : 'play'} taille={18} couleur="#fff" trait={joue ? 2.6 : 1.75} /></button>
       <div className="vocal-onde" aria-hidden="true">{pics.map((h, i) => <i key={i} className={i / pics.length < avance ? 'lu' : ''} style={{ height: `${Math.round(h * 100)}%` }} />)}</div>
       <span className="vocal-temps">{mmss(pos)} / {mmss(total)}</span>
-      {effacer && <button type="button" className="vocal-effacer" onClick={effacer} aria-label="Supprimer l’enregistrement"><Icone nom="trash" taille={18} couleur="#3E4A59" /></button>}
+      {effacer && <button type="button" className="vocal-effacer" onClick={effacer} aria-label={t('Supprimer l’enregistrement')}><Icone nom="trash" taille={18} couleur="#3E4A59" /></button>}
       {url && <audio ref={audio} src={url} preload="metadata" onTimeUpdate={(e) => setPos(e.currentTarget.currentTime)} onEnded={() => { setJoue(false); setPos(0); }}
         onLoadedMetadata={(e) => { if (isFinite(e.currentTarget.duration) && !duree) setTotal(e.currentTarget.duration); }} />}
     </div>

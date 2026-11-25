@@ -1,3 +1,4 @@
+import { tServeur } from '@/lib/i18n/serveur';
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
 import { ONGLETS_STUDIO } from '../../onglets';
@@ -7,6 +8,7 @@ import { Gabarits, type Gabarit } from './Gabarits';
 /* Studio · Gabarits (maquette e54) : tableau filtré à gauche, aperçu du gabarit choisi (tel que reçu) et sa
    version SMS à droite. Le rendu est celui de l'envoyeur (_shared/gabarits.ts), avec les valeurs d'exemple. */
 export default async function Page({ params }: { params: Promise<{ code?: string[] }> }) {
+  const { t } = await tServeur();
   const { code = [] } = await params;
   const supabase = await supabaseServeur();
   const { data, error } = await supabase.rpc('lanceur_gabarits');
@@ -29,7 +31,7 @@ export default async function Page({ params }: { params: Promise<{ code?: string
         selection={g?.code ?? null}
         apercu={apercu}
         prod={process.env.LL_ENV === 'production'}
-        erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les gabarits n’ont pas pu être lus.') : null}
+        erreurLecture={error ? (error.code === 'PT403' ? error.message : t('Les gabarits n’ont pas pu être lus.')) : null}
       />
     </CadreEspace>
   );

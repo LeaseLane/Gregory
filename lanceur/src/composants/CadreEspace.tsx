@@ -6,6 +6,8 @@ import { DefileActif } from '@/composants/DefileActif';
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { lireMoi, ROLES } from '@/lib/moi';
 import { voitPage, peutFaire, type Droits } from '@/lib/espaces';
+import { tServeur } from '@/lib/i18n/serveur';
+import type { T } from '@/lib/i18n/langue';
 
 /* En-tête d'un espace (B.space de la maquette) : pastille marine 56, titre 28, sous-titre, filet, onglets
    (actif : fond b025 + trait b500 de 3 px; pastille de compte). Un onglet sans page n'est pas un lien.
@@ -22,19 +24,19 @@ const lirePastilles = cache(async (): Promise<Pastilles> => {
 /* Largeurs des boutons d'en-tête de la maquette (blk.js B.SP.actions). */
 export const LARGEURS: Record<string, number> = { 'Exporter': 136, 'Nouvelle demande': 208, 'Nouveau lead': 176, 'Importer un CSV': 184, 'Nouveau client': 184, 'Ajouter un immeuble': 220,
   'Nouveau bon de travail': 236, 'Ouvrir un dossier': 200, 'Nouvelle campagne': 204, 'Nouvelle automatisation': 252, 'Nouveau projet': 184 };
-const lien = (href: string, libelle: string, icone: string, principal = false, permis = true) => !permis ? null :
-  <Link key={libelle} href={href} className={'bouton ' + (principal ? 'bouton-principal' : 'bouton-contour')} style={{ width: LARGEURS[libelle] }}><Icone nom={icone} taille={20} couleur={principal ? '#fff' : '#0C2147'} />{libelle}</Link>;
+const lien = (t: T, href: string, libelle: string, icone: string, principal = false, permis = true) => !permis ? null :
+  <Link key={libelle} href={href} className={'bouton ' + (principal ? 'bouton-principal' : 'bouton-contour')} style={{ minWidth: LARGEURS[libelle] }}><Icone nom={icone} taille={20} couleur={principal ? '#fff' : '#0C2147'} />{t(libelle)}</Link>;
 
 /* Boutons de la maquette par espace; un bouton dont l'écran n'existe pas encore n'est pas affiché. */
 /* Un bouton qui crée ou modifie n'apparaît qu'avec le droit d'écriture du rôle (Lecture seule : aucun). */
-const ACTIONS: Record<string, (onglet: string, ecrit: (droit: string) => boolean) => React.ReactNode> = {
-  'Opérations': (_, e) => <><BoutonExporter nom="operations" />{lien('/operations?nouveau=1', 'Nouvelle demande', 'plus', true, e('operations.ecrire'))}</>,
-  'Ventes': (_, e) => { const lead = e('ventes.mandats.ecrire') || e('ventes.location.ecrire'); return <>{lien('/ventes/leads/import', 'Importer un CSV', 'upload', false, lead)}{lien('/ventes/leads?nouveau=1', 'Nouveau lead', 'plus', true, lead)}</>; },
-  'Clients': (_, e) => <><BoutonExporter nom="clients" />{lien('/clients/proprietaires?nouveau=1', 'Nouveau client', 'plus', true, e('clients.ecrire'))}</>,
-  'Immeubles': (_, e) => <><BoutonExporter nom="immeubles" />{lien('/immeubles?nouveau=1', 'Ajouter un immeuble', 'plus', true, e('immeubles.ecrire'))}</>,
-  'Maintenance': (_, e) => <><BoutonExporter nom="maintenance" />{lien('/maintenance/bons?nouveau=1', 'Nouveau bon de travail', 'plus', true, e('maintenance.ecrire'))}</>,
+const ACTIONS: Record<string, (onglet: string, ecrit: (droit: string) => boolean, t: T) => React.ReactNode> = {
+  'Opérations': (_, e, t) => <><BoutonExporter nom="operations" />{lien(t, '/operations?nouveau=1', 'Nouvelle demande', 'plus', true, e('operations.ecrire'))}</>,
+  'Ventes': (_, e, t) => { const lead = e('ventes.mandats.ecrire') || e('ventes.location.ecrire'); return <>{lien(t, '/ventes/leads/import', 'Importer un CSV', 'upload', false, lead)}{lien(t, '/ventes/leads?nouveau=1', 'Nouveau lead', 'plus', true, lead)}</>; },
+  'Clients': (_, e, t) => <><BoutonExporter nom="clients" />{lien(t, '/clients/proprietaires?nouveau=1', 'Nouveau client', 'plus', true, e('clients.ecrire'))}</>,
+  'Immeubles': (_, e, t) => <><BoutonExporter nom="immeubles" />{lien(t, '/immeubles?nouveau=1', 'Ajouter un immeuble', 'plus', true, e('immeubles.ecrire'))}</>,
+  'Maintenance': (_, e, t) => <><BoutonExporter nom="maintenance" />{lien(t, '/maintenance/bons?nouveau=1', 'Nouveau bon de travail', 'plus', true, e('maintenance.ecrire'))}</>,
   'Finances': () => <BoutonExporter nom="finances" />,
-  'Studio': (onglet, e) => onglet === 'Campagnes' ? lien('/studio/campagnes?nouvelle=1', 'Nouvelle campagne', 'plus', true, e('studio.ecrire')) : null, // le bouton d'une autre page (Nouvel article…) vient de la page
+  'Studio': (onglet, e, t) => onglet === 'Campagnes' ? lien(t, '/studio/campagnes?nouvelle=1', 'Nouvelle campagne', 'plus', true, e('studio.ecrire')) : null, // le bouton d'une autre page (Nouvel article…) vient de la page
   'Rapports et réglages': () => <BoutonExporter nom="rapports" />,
 };
 
@@ -52,6 +54,7 @@ const MODULES_PROSPECTEUR: Record<string, [string, string, string]> = {
 };
 
 export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, children }: { icone: string; nom: string; sous: string; onglets: Onglet[]; actif: number; actions?: React.ReactNode; children: React.ReactNode }) {
+  const { t } = await tServeur();
   const p = (await lirePastilles())[nom] ?? {};
   // Prospecteur (rôle « prospection ») : seulement ses onglets; la base refuse aussi le reste (20261113170000).
   const moi = await lireMoi(), droits: Droits = moi ?? { role: '', permissions: [] };
@@ -70,7 +73,7 @@ export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, c
     return h;
   }, []);
   const pagesGroupe = groupeActif ? visibles.filter((o) => o.groupe === groupeActif && o.href) : [];
-  const boutons = actions === undefined ? (prospecteur ? null : (refusee ? null : ACTIONS[nom]?.(onglets[actif]?.libelle ?? '', (d) => peutFaire(droits, d)))) : (refusee || (ECRITURE[nom] && !peutFaire(droits, ECRITURE[nom])) ? null : actions);
+  const boutons = actions === undefined ? (prospecteur ? null : (refusee ? null : ACTIONS[nom]?.(onglets[actif]?.libelle ?? '', (d) => peutFaire(droits, d), t))) : (refusee || (ECRITURE[nom] && !peutFaire(droits, ECRITURE[nom])) ? null : actions);
   // Prospecteur : la barre de gauche remplace les onglets; l'en-tête porte le module (la fiche d'un prospect relève de « Mes prospects »).
   if (prospecteur) {
     const ici = ONGLETS_PROSPECTEUR.includes(onglets[actif]?.href ?? '') ? onglets[actif].href! : '/ventes/mes-prospects';
@@ -79,7 +82,7 @@ export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, c
       <main className="espace-page">
         <section className="espace-tete"><div className="espace-tete-haut">
           <span className="espace-pastille"><Icone nom={ic} taille={28} couleur="#fff" /></span>
-          <div><h1>{titre}</h1><p>{sousTitre}</p></div>
+          <div><h1>{t(titre)}</h1><p>{t(sousTitre)}</p></div>
           {boutons && <div className="espace-actions">{boutons}</div>}
         </div></section>
         {children}
@@ -92,28 +95,28 @@ export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, c
         <div className="espace-tete-haut">
           <span className="espace-pastille"><Icone nom={icone} taille={28} couleur="#fff" /></span>
           <div>
-            <h1>{nom}</h1>
-            <p>{sous}</p>
+            <h1>{t(nom)}</h1>
+            <p>{t(sous)}</p>
           </div>
           {boutons && <div className="espace-actions">{boutons}</div>}
         </div>
-        <nav className="onglets" aria-label={`Pages de ${nom}`}>
+        <nav className="onglets" aria-label={t('Pages de {nom}', { nom: t(nom) })}>
           <DefileActif />
           {haut.map((o) => {
-            const contenu = <>{o.libelle}{o.compte ? <span className={'compte' + (o.rouge ? ' rouge' : '')}>{o.compte}</span> : null}</>;
+            const contenu = <>{t(o.libelle + '|' + nom)}{o.compte ? <span className={'compte' + (o.rouge ? ' rouge' : '')}>{o.compte}</span> : null}</>;
             return o.href
               ? <Link key={o.libelle} href={o.href} className={'onglet' + (o.actif ? ' actif' : '')} aria-current={o.actif && !pagesGroupe.length ? 'page' : undefined}>{contenu}</Link>
-              : <span key={o.libelle} className="onglet inactif" aria-disabled="true" title="Arrive avec sa tranche">{contenu}</span>;
+              : <span key={o.libelle} className="onglet inactif" aria-disabled="true" title={t('Arrive avec sa tranche')}>{contenu}</span>;
           })}
         </nav>
-        {pagesGroupe.length > 1 && <nav className="sous-onglets sous-espace" aria-label={`Pages de ${tabs[actif]?.groupe}`}>
-          {pagesGroupe.map((o) => <Link key={o.libelle} href={o.href!} className={o.actif ? 'actif' : ''} aria-current={o.actif ? 'page' : undefined}>{o.libelle}{o.compte ? <span className={'compte' + (o.rouge ? ' rouge' : '')}>{o.compte}</span> : null}</Link>)}
+        {pagesGroupe.length > 1 && <nav className="sous-onglets sous-espace" aria-label={t('Pages de {nom}', { nom: t(tabs[actif]?.groupe ?? '') })}>
+          {pagesGroupe.map((o) => <Link key={o.libelle} href={o.href!} className={o.actif ? 'actif' : ''} aria-current={o.actif ? 'page' : undefined}>{t(o.libelle + '|' + nom)}{o.compte ? <span className={'compte' + (o.rouge ? ' rouge' : '')}>{o.compte}</span> : null}</Link>)}
         </nav>}
       </section>
       {refusee ? (
         <section className="carte-vide" role="status" style={{ marginTop: 24 }}>
-          <h2 className="titre-carte" style={{ margin: 0 }}>Cette page ne fait pas partie de votre rôle</h2>
-          <p className="gris" style={{ margin: 0 }}>Votre rôle ({ROLES[droits.role] ?? droits.role}) ne donne pas accès à cette page. Un administrateur peut changer votre rôle dans Rapports et réglages › Équipe et permissions.</p>
+          <h2 className="titre-carte" style={{ margin: 0 }}>{t('Cette page ne fait pas partie de votre rôle')}</h2>
+          <p className="gris" style={{ margin: 0 }}>{t('Votre rôle ({role}) ne donne pas accès à cette page. Un administrateur peut changer votre rôle dans Rapports et réglages › Équipe et permissions.', { role: t(ROLES[droits.role] ?? droits.role) })}</p>
         </section>
       ) : children}
     </main>

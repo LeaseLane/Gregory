@@ -1,11 +1,13 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
+import { tServeur } from '@/lib/i18n/serveur';
 import { Automatisations, type Etat, type DonneesAuto } from './Automatisations';
 import { ONGLETS_IA } from '../onglets';
 
 /* Cléo et IA · Automatisations (maquette l18) et coupe-circuit « Suspendre tous les envois » (e70).
    Seules les règles qui existent vraiment sont listées (T2 : la relance de loyer); les autres arrivent avec leurs tranches. */
 export default async function Page() {
+  const { t } = await tServeur();
   const supabase = await supabaseServeur();
   const [{ data, error }, { data: auto }] = await Promise.all([supabase.rpc('lanceur_envois_etat'), supabase.rpc('lanceur_automatisations')]);
   return (
@@ -16,7 +18,7 @@ export default async function Page() {
       actif={1}
       onglets={ONGLETS_IA.map((o) => o.libelle === 'Automatisations' ? { ...o, compte: ((auto as DonneesAuto | null)?.regles ?? []).filter((r) => r.existe).length || undefined } : o)}
     >
-      <Automatisations etat={(data as Etat | null) ?? null} auto={(auto as DonneesAuto | null) ?? null} erreurLecture={error ? 'L’état des envois n’a pas pu être lu.' : null} />
+      <Automatisations etat={(data as Etat | null) ?? null} auto={(auto as DonneesAuto | null) ?? null} erreurLecture={error ? t('L’état des envois n’a pas pu être lu.') : null} />
     </CadreEspace>
   );
 }

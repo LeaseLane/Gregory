@@ -3,12 +3,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { useT } from '@/composants/Langue';
 
 /* Ajouter ou modifier un fournisseur : identité, spécialités, zones, licence RBQ, assurance. Un nouveau fournisseur reste « à vérifier » jusqu'à la vérification de ses documents. */
 export type FournEdit = { id: string; nom: string; entreprise: string | null; contact: string; specialites: (string | null)[]; zones: string[] | null; courriel: string | null; telephone: string | null;
   rbq: string | null; rbq_requise: boolean; rbq_expiration: string | null; assurance: string | null; actif: boolean };
 export function FournisseurTiroir({ fournisseur, libelle, compact }: { fournisseur?: FournEdit; libelle?: string; compact?: boolean }) {
   const router = useRouter();
+  const { t } = useT();
   const init = () => ({ nom: fournisseur?.contact ?? '', entreprise: fournisseur?.entreprise ?? '', specialites: (fournisseur?.specialites.filter(Boolean) ?? []).join(', '), zones: (fournisseur?.zones ?? []).join(', '),
     courriel: fournisseur?.courriel ?? '', telephone: fournisseur?.telephone ?? '', rbq: fournisseur?.rbq ?? '', rbq_requise: fournisseur?.rbq_requise ?? false, rbq_expiration: fournisseur?.rbq_expiration ?? '', assurance: fournisseur?.assurance ?? '', actif: fournisseur?.actif ?? true });
   const [ouvert, setOuvert] = useState(false), [f, setF] = useState(init), [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
@@ -23,23 +25,23 @@ export function FournisseurTiroir({ fournisseur, libelle, compact }: { fournisse
     <div><label className="fenetre-lib" htmlFor={`fo-${k}`}>{l}</label><input id={`fo-${k}`} className="e70-raison" type={type} placeholder={ph} value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} /></div>;
   return (
     <>
-      {fournisseur ? <button className="haut-ibtn" onClick={() => { setF(init()); setOuvert(true); }} aria-label="Modifier le fournisseur"><Icone nom="pencil" taille={18} couleur="#0C2147" /></button>
-        : compact ? <button className="haut-ibtn" onClick={() => setOuvert(true)} aria-label="Ajouter un fournisseur" title="Ajouter un fournisseur"><Icone nom="plus" taille={20} couleur="#0C2147" /></button>
-        : <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setOuvert(true)}><Icone nom="plus" taille={16} couleur="#fff" />{libelle ?? 'Ajouter un fournisseur'}</button>}
+      {fournisseur ? <button className="haut-ibtn" onClick={() => { setF(init()); setOuvert(true); }} aria-label={t('Modifier le fournisseur')}><Icone nom="pencil" taille={18} couleur="#0C2147" /></button>
+        : compact ? <button className="haut-ibtn" onClick={() => setOuvert(true)} aria-label={t('Ajouter un fournisseur')} title={t('Ajouter un fournisseur')}><Icone nom="plus" taille={20} couleur="#0C2147" /></button>
+        : <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setOuvert(true)}><Icone nom="plus" taille={16} couleur="#fff" />{libelle ?? t('Ajouter un fournisseur')}</button>}
       {ouvert && <div className="voile tiroir-voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setOuvert(false)}>
         <form className="tiroir tiroir-large" role="dialog" aria-modal="true" aria-labelledby="fo-t" onSubmit={(e) => { e.preventDefault(); enregistrer(); }}>
-          <header className="tiroir-tete"><h2 id="fo-t">{fournisseur ? `Modifier ${fournisseur.nom}` : 'Ajouter un fournisseur'}</h2><button type="button" className="haut-ibtn" onClick={() => setOuvert(false)} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
+          <header className="tiroir-tete"><h2 id="fo-t">{fournisseur ? t('Modifier {n}', { n: fournisseur.nom }) : t('Ajouter un fournisseur')}</h2><button type="button" className="haut-ibtn" onClick={() => setOuvert(false)} aria-label={t('Fermer')}><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
           <div className="tiroir-corps">
             {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
-            <div className="po-deux">{champ('entreprise', 'Entreprise')}{champ('nom', 'Personne-ressource')}{champ('courriel', 'Courriel', 'email')}{champ('telephone', 'Téléphone', 'tel')}</div>
-            <div style={{ marginTop: 12 }}>{champ('specialites', 'Spécialités', 'text', 'Ex. : Plomberie, Chauffage')}</div><div style={{ marginTop: 12 }}>{champ('zones', 'Zones', 'text', 'Ex. : Québec, Lévis')}</div>
-            <p className="fenetre-lib" style={{ marginTop: 16 }}>Documents</p>
-            <label className="case"><input type="checkbox" checked={f.rbq_requise} onChange={(e) => setF({ ...f, rbq_requise: e.target.checked })} />Licence RBQ requise pour ses travaux</label>
-            <div className="po-deux">{champ('rbq', 'Licence RBQ', 'text', '5678-1234-01')}{champ('rbq_expiration', 'Licence valide jusqu’au', 'date')}{champ('assurance', 'Assurance valide jusqu’au', 'date')}</div>
-            {fournisseur && <label className="case" style={{ marginTop: 12 }}><input type="checkbox" checked={f.actif} onChange={(e) => setF({ ...f, actif: e.target.checked })} />Actif (proposé pour les bons de travail)</label>}
+            <div className="po-deux">{champ('entreprise', t('Entreprise'))}{champ('nom', t('Personne-ressource'))}{champ('courriel', t('Courriel'), 'email')}{champ('telephone', t('Téléphone'), 'tel')}</div>
+            <div style={{ marginTop: 12 }}>{champ('specialites', t('Spécialités'), 'text', t('Ex. : Plomberie, Chauffage'))}</div><div style={{ marginTop: 12 }}>{champ('zones', t('Zones'), 'text', t('Ex. : Québec, Lévis'))}</div>
+            <p className="fenetre-lib" style={{ marginTop: 16 }}>{t('Documents')}</p>
+            <label className="case"><input type="checkbox" checked={f.rbq_requise} onChange={(e) => setF({ ...f, rbq_requise: e.target.checked })} />{t('Licence RBQ requise pour ses travaux')}</label>
+            <div className="po-deux">{champ('rbq', t('Licence RBQ'), 'text', '5678-1234-01')}{champ('rbq_expiration', t('Licence valide jusqu’au'), 'date')}{champ('assurance', t('Assurance valide jusqu’au'), 'date')}</div>
+            {fournisseur && <label className="case" style={{ marginTop: 12 }}><input type="checkbox" checked={f.actif} onChange={(e) => setF({ ...f, actif: e.target.checked })} />{t('Actif (proposé pour les bons de travail)')}</label>}
           </div>
-          <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={() => setOuvert(false)}>Annuler</button>
-            <button className="bouton bouton-principal" disabled={envoi || (f.nom.trim().length < 2 && f.entreprise.trim().length < 2)}>Enregistrer</button></footer>
+          <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={() => setOuvert(false)}>{t('Annuler')}</button>
+            <button className="bouton bouton-principal" disabled={envoi || (f.nom.trim().length < 2 && f.entreprise.trim().length < 2)}>{t('Enregistrer')}</button></footer>
         </form></div>}
     </>
   );

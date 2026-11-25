@@ -4,28 +4,33 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { useT } from '@/composants/Langue';
+import { argentL } from '@/lib/format';
 
 type Agent = { cle: string; agent: string; modele: string; route: boolean; delai: number | null; appels: number; cout: number; repli: string | null };
 export type DonneesRouteur = { reserve: true; responsable: string | null } | { reserve: false; depense: number; budget: number; projection: number; jour: number; jours_mois: number;
   agents: Agent[]; portes: number; clients: number; modeles: string[]; prix: Record<string, [number, number]> };
-const argent = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[  ]/g, ' ')}\u00a0$`;
 const NOM: Record<string, string> = { 'claude-haiku-4-5': 'Claude Haiku 4.5', 'claude-sonnet-5': 'Claude Sonnet 5', 'claude-opus-5': 'Claude Opus 5' };
 const nom = (m: string) => NOM[m] ?? m;
 // agents qui lisent leur modèle dans le routeur (modelePour, _shared/ia.ts) : les seuls qu'on peut changer ici
 const BRANCHES = new Set(['cleo', 'handle-service-request', 'reconcile-bank-transactions', 'prospection', 'recrutement', 'handle-document-upload']);
-const mois = () => new Date().toLocaleDateString('fr-CA', { month: 'long' });
+const delaiTxt = (d: number, locale: string) => `${locale.startsWith('en') ? String(d) : String(d).replace('.', ',')} s`;
 
 export function Routeur({ donnees: D, erreurLecture }: { donnees: DonneesRouteur | null; erreurLecture: string | null }) {
   const router = useRouter();
+  const { t, locale } = useT();
+  const argent = (n: number) => argentL(n, locale, true);
+  const moisL = () => new Date().toLocaleDateString(locale, { month: 'long' });
+  const pl = (n: number) => (locale.startsWith('en') ? n !== 1 : n > 1);
   const [edit, setEdit] = useState<string | null>(null), [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null);
   if (!D) return <div className="bandeau erreur" role="alert">{erreurLecture}</div>;
   // e65 · Accès réservé
   if (D.reserve) return (
-    <section className="carte-l18 reserve-ia" aria-label="Accès réservé"><span className="tuile-ic"><Icone nom="lock" taille={24} couleur="#0C2147" /></span>
-      <h2 className="releve-titre">Le routeur IA est réservé aux admins</h2>
-      <p className="texte-13">{D.responsable ?? 'Un admin'} en est responsable : il touche aux coûts, aux clés et au choix des modèles de chaque agent.</p>
-      <p className="gris texte-13">Pour y accéder, demandez le rôle Admin à {D.responsable ?? 'un admin'}. En attendant, vous pouvez consulter les décisions automatisées et les automatisations.</p>
-      <div className="studio-actions sans-marge" style={{ marginTop: 16 }}><Link className="bouton bouton-principal" href="/cleo-ia/decisions">Voir les décisions automatisées</Link><Link className="bouton bouton-contour" href="/cleo-ia/automatisations">Voir les automatisations</Link></div>
+    <section className="carte-l18 reserve-ia" aria-label={t('Accès réservé')}><span className="tuile-ic"><Icone nom="lock" taille={24} couleur="#0C2147" /></span>
+      <h2 className="releve-titre">{t('Le routeur IA est réservé aux admins')}</h2>
+      <p className="texte-13">{t('{nom} en est responsable : il touche aux coûts, aux clés et au choix des modèles de chaque agent.', { nom: D.responsable ?? t('Un admin') })}</p>
+      <p className="gris texte-13">{t('Pour y accéder, demandez le rôle Admin à {nom}. En attendant, vous pouvez consulter les décisions automatisées et les automatisations.', { nom: D.responsable ?? t('un admin') })}</p>
+      <div className="studio-actions sans-marge" style={{ marginTop: 16 }}><Link className="bouton bouton-principal" href="/cleo-ia/decisions">{t('Voir les décisions automatisées')}</Link><Link className="bouton bouton-contour" href="/cleo-ia/automatisations">{t('Voir les automatisations')}</Link></div>
     </section>);
   async function changer(cle: string, modele: string) {
     setEnvoi(true); setErreur(null);
@@ -44,42 +49,42 @@ export function Routeur({ donnees: D, erreurLecture }: { donnees: DonneesRouteur
     <>
       {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
       <div className="grille-2-1">
-        <section className="carte-l18" aria-label="Budget"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{depasse ? `Dépassement du budget prévu vers le ${jourDepasse} ${mois()}` : `Dans le budget en ${mois()}`}</h2>
-          <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{mois().charAt(0).toUpperCase() + mois().slice(1)} · dépenses au {D.jour} et projection au rythme actuel</p>
-          <p className="cleo-gros"><b>{argent(D.depense)}</b> dépensés sur {argent(D.budget)} · {Math.round(ratio * 100)} %</p>
+        <section className="carte-l18" aria-label={t('Budget')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{depasse ? t('Dépassement du budget prévu vers le {jour} {mois}', { jour: jourDepasse, mois: moisL() }) : t('Dans le budget en {mois}', { mois: moisL() })}</h2>
+          <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{t('{mois} · dépenses au {jour} et projection au rythme actuel', { mois: moisL().charAt(0).toUpperCase() + moisL().slice(1), jour: D.jour })}</p>
+          <p className="cleo-gros"><b>{argent(D.depense)}</b> {t('dépensés sur {budget} · {pct} %', { budget: argent(D.budget), pct: Math.round(ratio * 100) })}</p>
           <div className="budget-barre"><i style={{ width: `${(100 * ratio) / echelle}%` }} /><s style={{ left: `${(100 * ratio) / echelle}%`, width: `${(100 * Math.max(0, projR - ratio)) / echelle}%` }} />
-            <b style={{ left: `${80 / echelle}%` }}><span>Alerte 80 %</span></b><b className="fort" style={{ left: `${100 / echelle}%` }}><span>Budget {argent(D.budget)}</span></b></div>
-          <p className="ligne-entre texte-12" style={{ marginTop: 8 }}><span className="gris">0 $</span><b>Projection {argent(D.projection)} au {D.jours_mois} {mois()}</b></p>
+            <b style={{ left: `${80 / echelle}%` }}><span>{t('Alerte 80 %')}</span></b><b className="fort" style={{ left: `${100 / echelle}%` }}><span>{t('Budget {montant}', { montant: argent(D.budget) })}</span></b></div>
+          <p className="ligne-entre texte-12" style={{ marginTop: 8 }}><span className="gris">{argent(0)}</span><b>{t('Projection {montant} au {jour} {mois}', { montant: argent(D.projection), jour: D.jours_mois, mois: moisL() })}</b></p>
         </section>
-        {cand ? <section className="carte-l18 e2" aria-label="Proposition"><p className="ligne-ic surtitre" style={{ margin: 0 }}><img src="/img/cleo.png" alt="" className="avatar-cleo" style={{ width: 32, height: 32 }} />Proposition de Cléo</p>
-          <h2 className="titre-carte" style={{ margin: '8px 0 2px' }}>Passer {cand.agent.toLowerCase()} au modèle léger</h2>
-          <table className="comparaison-modeles"><thead><tr><th /><th>Actuel<span>{nom(cand.modele)}</span></th><th className="leger">Léger<span>{nom(leger)}</span></th></tr></thead>
-            <tbody><tr><td>Coût de {mois()} à ce jour</td><td>{argent(cand.cout)}</td><td className="leger"><b>{argent(cand.cout - economie)}</b></td></tr>
-              <tr><td>Temps de réponse moyen</td><td>{cand.delai !== null ? `${String(cand.delai).replace('.', ',')} s` : '—'}</td><td className="leger">plus rapide</td></tr></tbody></table>
-          <p className="texte-13" style={{ margin: '12px 0' }}><b>Économie estimée : {argent(economie)} ce mois-ci</b><span className="sous gris">Selon les prix publics par jeton. La qualité se vérifie dans les décisions automatisées après le changement.</span></p>
-          <div className="deux-boutons"><button className="bouton bouton-principal" disabled={envoi} onClick={() => changer(cand.cle, leger)}>Appliquer le changement</button><Link className="bouton bouton-contour" href="/cleo-ia/decisions">Voir les décisions</Link></div>
-          <p className="gris texte-12" style={{ marginTop: 8 }}>Le changement est inscrit au Journal; retour arrière en un clic.</p>
-        </section> : <section className="carte-l18"><h2 className="titre-carte">Aucune proposition</h2><p className="gris texte-13">Les agents branchés au routeur utilisent déjà le modèle léger.</p></section>}
+        {cand ? <section className="carte-l18 e2" aria-label={t('Proposition')}><p className="ligne-ic surtitre" style={{ margin: 0 }}><img src="/img/cleo.png" alt="" className="avatar-cleo" style={{ width: 32, height: 32 }} />{t('Proposition de Cléo')}</p>
+          <h2 className="titre-carte" style={{ margin: '8px 0 2px' }}>{t('Passer {agent} au modèle léger', { agent: cand.agent.toLowerCase() })}</h2>
+          <table className="comparaison-modeles"><thead><tr><th /><th>{t('Actuel')}<span>{nom(cand.modele)}</span></th><th className="leger">{t('Léger')}<span>{nom(leger)}</span></th></tr></thead>
+            <tbody><tr><td>{t('Coût de {mois} à ce jour', { mois: moisL() })}</td><td>{argent(cand.cout)}</td><td className="leger"><b>{argent(cand.cout - economie)}</b></td></tr>
+              <tr><td>{t('Temps de réponse moyen')}</td><td>{cand.delai !== null ? delaiTxt(cand.delai, locale) : '—'}</td><td className="leger">{t('plus rapide')}</td></tr></tbody></table>
+          <p className="texte-13" style={{ margin: '12px 0' }}><b>{t('Économie estimée : {montant} ce mois-ci', { montant: argent(economie) })}</b><span className="sous gris">{t('Selon les prix publics par jeton. La qualité se vérifie dans les décisions automatisées après le changement.')}</span></p>
+          <div className="deux-boutons"><button className="bouton bouton-principal" disabled={envoi} onClick={() => changer(cand.cle, leger)}>{t('Appliquer le changement')}</button><Link className="bouton bouton-contour" href="/cleo-ia/decisions">{t('Voir les décisions')}</Link></div>
+          <p className="gris texte-12" style={{ marginTop: 8 }}>{t('Le changement est inscrit au Journal; retour arrière en un clic.')}</p>
+        </section> : <section className="carte-l18"><h2 className="titre-carte">{t('Aucune proposition')}</h2><p className="gris texte-13">{t('Les agents branchés au routeur utilisent déjà le modèle léger.')}</p></section>}
       </div>
       <div className="grille-2-1" style={{ marginTop: 24 }}>
-        <section className="carte-l18" aria-label="Agents"><div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>{premier ? `${premier.agent} représente ${part >= 45 && part <= 55 ? 'la moitié' : `${part} %`} du coût IA` : 'Aucun appel ce mois-ci'}</h2>
-            <p className="gris texte-13" style={{ margin: 0 }}>{mois().charAt(0).toUpperCase() + mois().slice(1)}, au {D.jour} · coût, modèle principal et repli de chaque agent</p></div>
-            <span className="puce neutral"><Icone nom="lock" taille={14} couleur="#3E4A59" />Réservé aux admins</span></div>
+        <section className="carte-l18" aria-label={t('Agents')}><div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>{premier ? (part >= 45 && part <= 55 ? t('{agent} représente la moitié du coût IA', { agent: premier.agent }) : t('{agent} représente {part} % du coût IA', { agent: premier.agent, part })) : t('Aucun appel ce mois-ci')}</h2>
+            <p className="gris texte-13" style={{ margin: 0 }}>{t('{mois}, au {jour} · coût, modèle principal et repli de chaque agent', { mois: moisL().charAt(0).toUpperCase() + moisL().slice(1), jour: D.jour })}</p></div>
+            <span className="puce neutral"><Icone nom="lock" taille={14} couleur="#3E4A59" />{t('Réservé aux admins')}</span></div>
           <table className="tableau tab-fixe" style={{ marginTop: 12 }}><colgroup><col style={{ width: '27%' }} /><col style={{ width: '22%' }} /><col style={{ width: '17%' }} /><col style={{ width: '9%' }} /><col /></colgroup>
-            <thead><tr><th>Agent</th><th>Modèle</th><th>Repli</th><th className="droite">Délai</th><th>Coût du mois</th></tr></thead>
-            <tbody>{D.agents.map((a) => <tr key={a.cle}><td><b className="fort">{a.agent}</b><span className="sous gris">{a.appels} appel{a.appels > 1 ? 's' : ''}</span></td>
-              <td>{edit === a.cle ? <select className="filtre" autoFocus defaultValue={a.modele} disabled={envoi} onChange={(e) => changer(a.cle, e.target.value)} onBlur={() => setEdit(null)} aria-label={`Modèle de ${a.agent}`}>
+            <thead><tr><th>{t('Agent')}</th><th>{t('Modèle')}</th><th>{t('Repli')}</th><th className="droite">{t('Délai')}</th><th>{t('Coût du mois')}</th></tr></thead>
+            <tbody>{D.agents.map((a) => <tr key={a.cle}><td><b className="fort">{t(a.agent)}</b><span className="sous gris">{pl(a.appels) ? t('{n} appels', { n: a.appels }) : t('{n} appel', { n: a.appels })}</span></td>
+              <td>{edit === a.cle ? <select className="filtre" autoFocus defaultValue={a.modele} disabled={envoi} onChange={(e) => changer(a.cle, e.target.value)} onBlur={() => setEdit(null)} aria-label={t('Modèle de {agent}', { agent: a.agent })}>
                   {D.modeles.map((m) => <option key={m} value={m}>{nom(m)}</option>)}</select>
-                : BRANCHES.has(a.cle) ? <button className="lien-texte modele-bouton" onClick={() => setEdit(a.cle)} title="Changer le modèle">{nom(a.modele)}<Icone nom="pencil" taille={14} couleur="#58697F" /></button>
-                : <span title="Cet agent ne lit pas encore son modèle dans le routeur">{nom(a.modele)}</span>}</td>
-              <td className="gris">{a.repli ? nom(a.repli) : '—'}</td><td className="droite">{a.delai !== null ? `${String(a.delai).replace('.', ',')} s` : '—'}</td>
+                : BRANCHES.has(a.cle) ? <button className="lien-texte modele-bouton" onClick={() => setEdit(a.cle)} title={t('Changer le modèle')}>{nom(a.modele)}<Icone nom="pencil" taille={14} couleur="#58697F" /></button>
+                : <span title={t('Cet agent ne lit pas encore son modèle dans le routeur')}>{nom(a.modele)}</span>}</td>
+              <td className="gris">{a.repli ? nom(a.repli) : '—'}</td><td className="droite">{a.delai !== null ? delaiTxt(a.delai, locale) : '—'}</td>
               <td><span className="barre-cout"><i style={{ width: `${(100 * a.cout) / max}%` }} /><b>{argent(a.cout)}</b></span></td></tr>)}
-              {!D.agents.length && <tr><td colSpan={5} className="gris">Aucun appel d’IA ce mois-ci.</td></tr>}</tbody></table>
-          <p className="ligne-ic gris texte-13" style={{ margin: '12px 24px 0' }}><Icone nom="shieldc" taille={16} couleur="#58697F" />Métadonnées de chaque appel : modèle, jetons, temps, coût, agent. Jamais le contenu des conversations (Loi 25).</p>
+              {!D.agents.length && <tr><td colSpan={5} className="gris">{t('Aucun appel d’IA ce mois-ci.')}</td></tr>}</tbody></table>
+          <p className="ligne-ic gris texte-13" style={{ margin: '12px 24px 0' }}><Icone nom="shieldc" taille={16} couleur="#58697F" />{t('Métadonnées de chaque appel : modèle, jetons, temps, coût, agent. Jamais le contenu des conversations (Loi 25).')}</p>
         </section>
-        <section className="carte-l18" aria-label="Coût par porte"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{argent(parPorte)} par porte en moyenne</h2>
-          <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{mois().charAt(0).toUpperCase() + mois().slice(1)}, au {D.jour} · {D.portes} portes, {D.clients} clients</p>
-          <ul className="lo-docs">{D.agents.slice(0, 4).map((a) => <li key={a.cle}><div><strong>{a.agent}</strong><span className="gris texte-13">{argent(D.portes ? a.cout / D.portes : 0)} par porte</span></div></li>)}</ul>
+        <section className="carte-l18" aria-label={t('Coût par porte')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('{montant} par porte en moyenne', { montant: argent(parPorte) })}</h2>
+          <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{t('{mois}, au {jour} · {portes} portes, {clients} clients', { mois: moisL().charAt(0).toUpperCase() + moisL().slice(1), jour: D.jour, portes: D.portes, clients: D.clients })}</p>
+          <ul className="lo-docs">{D.agents.slice(0, 4).map((a) => <li key={a.cle}><div><strong>{t(a.agent)}</strong><span className="gris texte-13">{t('{montant} par porte', { montant: argent(D.portes ? a.cout / D.portes : 0) })}</span></div></li>)}</ul>
         </section>
       </div>
     </>

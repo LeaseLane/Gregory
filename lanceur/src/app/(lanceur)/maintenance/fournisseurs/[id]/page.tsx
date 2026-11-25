@@ -1,4 +1,5 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
+import { tServeur } from '@/lib/i18n/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
 import { ongletsMaint, SOUS_MAINT } from '../../onglets';
 import { FicheFournisseur, type DonneesFournisseur } from './FicheFournisseur';
@@ -6,10 +7,11 @@ import { FicheFournisseur, type DonneesFournisseur } from './FicheFournisseur';
 /* Maintenance · Fiche fournisseur (e35). */
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const { t } = await tServeur();
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_fournisseur', { p_id: id });
   return (
     <CadreEspace icone="wrench" nom="Maintenance" sous={SOUS_MAINT} actif={2} onglets={ongletsMaint()}>
-      <FicheFournisseur donnees={(data as DonneesFournisseur | null) ?? null} erreurLecture={error ? (['PT403', 'PT404'].includes(error.code ?? '') ? error.message : 'La fiche n’a pas pu être lue.') : null} />
+      <FicheFournisseur donnees={(data as DonneesFournisseur | null) ?? null} erreurLecture={error ? (['PT403', 'PT404'].includes(error.code ?? '') ? error.message : t('La fiche n’a pas pu être lue.')) : null} />
     </CadreEspace>
   );
 }

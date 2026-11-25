@@ -1,3 +1,4 @@
+import { tServeur } from '@/lib/i18n/serveur';
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { CadreEspace, LARGEURS } from '@/composants/CadreEspace';
 import { Icone } from '@/composants/Icones';
@@ -7,6 +8,7 @@ import { Juridique, type DonneesJur, type Vue } from './Juridique';
 const ONGLETS: [Vue, string, string][] = [['dossiers', 'Dossiers', '/juridique'], ['rappels', 'Rappels', '/juridique/rappels'], ['mises', 'Mises en demeure', '/juridique/mises-en-demeure'],
   ['tal', 'Tribunal (TAL)', '/juridique/tal'], ['modeles', 'Modèles', '/juridique/modeles']];
 export async function PageJuridique({ vue, id, ouvrir }: { vue: Vue; id?: string; ouvrir?: boolean }) {
+  const { t } = await tServeur();
   const supabase = await supabaseServeur();
   const { data, error } = await supabase.rpc('lanceur_juridique');
   const d = (data as DonneesJur | null) ?? null;
@@ -16,8 +18,8 @@ export async function PageJuridique({ vue, id, ouvrir }: { vue: Vue; id?: string
   return (
     <CadreEspace icone="scale" nom="Juridique" sous="Rappels, mises en demeure et dossiers au TAL : rédigés par l’IA, approuvés par une personne" actif={ONGLETS.findIndex(([v]) => v === vue)}
       onglets={ONGLETS.map(([v, l, href]) => ({ libelle: l, href, compte: comptes[v] || undefined, rouge: v === 'mises' && comptes.mises > 0 }))}
-      actions={d?.peut_ecrire ? <a className="bouton bouton-principal" href={`${ici}?ouvrir=1`} style={{ width: LARGEURS['Ouvrir un dossier'] }}><Icone nom="plus" taille={20} couleur="#fff" />Ouvrir un dossier</a> : null}>
-      <Juridique vue={vue} id={id} ouvrir={ouvrir} donnees={d} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Le juridique n’a pas pu être lu.') : null} />
+      actions={d?.peut_ecrire ? <a className="bouton bouton-principal" href={`${ici}?ouvrir=1`} style={{ width: LARGEURS['Ouvrir un dossier'] }}><Icone nom="plus" taille={20} couleur="#fff" />{t('Ouvrir un dossier')}</a> : null}>
+      <Juridique vue={vue} id={id} ouvrir={ouvrir} donnees={d} erreurLecture={error ? (error.code === 'PT403' ? error.message : t('Le juridique n’a pas pu être lu.')) : null} />
     </CadreEspace>
   );
 }

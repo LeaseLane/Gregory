@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { supabaseNavigateur, choisirMemoire } from '@/lib/supabase/client';
+import { useT } from '@/composants/Langue';
 
 const IconeCourriel = ({ taille = 18 }: { taille?: number }) => (
   <svg width={taille} height={taille} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
@@ -15,6 +16,7 @@ const IconeImmeuble = () => <svg width="18" height="18" viewBox="0 0 24 24" fill
 
 /* Lanceur (sans espace) ou portails (espace : onglets Locataire / Propriétaire, retour vers /espace qui choisit la coquille). */
 export function FormulaireConnexion({ espace }: { espace?: Espace } = {}) {
+  const { t } = useT();
   const [courriel, setCourriel] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
   const [voir, setVoir] = useState(false);
@@ -25,7 +27,7 @@ export function FormulaireConnexion({ espace }: { espace?: Espace } = {}) {
 
   const courrielOk = () => {
     if (courriel.trim()) return true;
-    setErreur('Inscrivez d’abord votre courriel.');
+    setErreur(t('Inscrivez d’abord votre courriel.'));
     return false;
   };
 
@@ -34,14 +36,14 @@ export function FormulaireConnexion({ espace }: { espace?: Espace } = {}) {
     setErreur('');
     setInfo('');
     if (!courrielOk()) return;
-    if (!motDePasse) return setErreur('Inscrivez votre mot de passe, ou recevez un lien par courriel.');
+    if (!motDePasse) return setErreur(t('Inscrivez votre mot de passe, ou recevez un lien par courriel.'));
     setEnvoi(true);
     choisirMemoire(rester);
     const { error } = await supabaseNavigateur().auth.signInWithPassword({ email: courriel.trim(), password: motDePasse });
     if (error) {
       // journal d'accès : la tentative refusée est inscrite (plafonnée par adresse IP en base)
       await supabaseNavigateur().rpc('journal_acces_refuse', { p: { courriel: courriel.trim(), raison: 'mot_de_passe' } }).then(() => null, () => null);
-      setErreur('Courriel ou mot de passe incorrect. Vérifiez-les, ou utilisez « Mot de passe oublié ? ».');
+      setErreur(t('Courriel ou mot de passe incorrect. Vérifiez-les, ou utilisez « Mot de passe oublié ? ».'));
       setEnvoi(false);
       return;
     }
@@ -59,7 +61,7 @@ export function FormulaireConnexion({ espace }: { espace?: Espace } = {}) {
       email: courriel.trim(),
       options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/auth/retour${espace ? '?suite=/espace' : ''}` },
     });
-    setInfo('Si un compte existe pour cette adresse, un lien de connexion vient d’être envoyé.');
+    setInfo(t('Si un compte existe pour cette adresse, un lien de connexion vient d’être envoyé.'));
   }
 
   async function oublie() {
@@ -68,50 +70,50 @@ export function FormulaireConnexion({ espace }: { espace?: Espace } = {}) {
     if (!courrielOk()) return;
     if (espace) { window.location.assign(`/espace/oubli?p=${espace}&courriel=${encodeURIComponent(courriel.trim())}`); return; }
     await supabaseNavigateur().auth.resetPasswordForEmail(courriel.trim(), { redirectTo: `${window.location.origin}/auth/retour?suite=/mot-de-passe` });
-    setInfo('Si un compte existe pour cette adresse, un lien pour choisir un nouveau mot de passe vient d’être envoyé.');
+    setInfo(t('Si un compte existe pour cette adresse, un lien pour choisir un nouveau mot de passe vient d’être envoyé.'));
   }
 
   return (
     <form className="auth-carte" onSubmit={connecter} noValidate>
-      {espace && <nav className="auth-bascule" aria-label="Espace">
-        <a href="/espace/connexion?p=locataire" className={espace === 'locataire' ? 'actif' : ''} aria-current={espace === 'locataire' ? 'page' : undefined}><IconeCle />Locataire</a>
-        <a href="/espace/connexion?p=proprietaire" className={espace === 'proprietaire' ? 'actif' : ''} aria-current={espace === 'proprietaire' ? 'page' : undefined}><IconeImmeuble />Propriétaire</a></nav>}
-      <h2>Connectez-vous en insérant vos <span>informations</span> ci-dessous.</h2>
+      {espace && <nav className="auth-bascule" aria-label={t('Espace')}>
+        <a href="/espace/connexion?p=locataire" className={espace === 'locataire' ? 'actif' : ''} aria-current={espace === 'locataire' ? 'page' : undefined}><IconeCle />{t('Locataire')}</a>
+        <a href="/espace/connexion?p=proprietaire" className={espace === 'proprietaire' ? 'actif' : ''} aria-current={espace === 'proprietaire' ? 'page' : undefined}><IconeImmeuble />{t('Propriétaire')}</a></nav>}
+      <h2>{t('Connectez-vous en insérant vos')} <span>{t('informations')}</span> {t('ci-dessous.')}</h2>
       <div className="champ">
-        <label htmlFor="courriel">Courriel</label>
+        <label htmlFor="courriel">{t('Courriel')}</label>
         <div className="saisie">
-          <input id="courriel" type="email" autoComplete="username" placeholder="vous@courriel.ca" value={courriel} onChange={(e) => setCourriel(e.target.value)} />
+          <input id="courriel" type="email" autoComplete="username" placeholder={t('vous@courriel.ca')} value={courriel} onChange={(e) => setCourriel(e.target.value)} />
           <span className="icone"><IconeCourriel /></span>
         </div>
       </div>
       <div className="champ">
         <div className="champ-ligne">
-          <label htmlFor="mdp">Mot de passe</label>
-          <button type="button" className="lien" onClick={oublie}>Mot de passe oublié ?</button>
+          <label htmlFor="mdp">{t('Mot de passe')}</label>
+          <button type="button" className="lien" onClick={oublie}>{t('Mot de passe oublié ?')}</button>
         </div>
         <div className="saisie">
           <input id="mdp" type={voir ? 'text' : 'password'} autoComplete="current-password" placeholder="••••••••••" value={motDePasse} onChange={(e) => setMotDePasse(e.target.value)} />
-          <button type="button" className="icone" onClick={() => setVoir(!voir)} aria-label={voir ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}><IconeOeil barre={voir} /></button>
+          <button type="button" className="icone" onClick={() => setVoir(!voir)} aria-label={voir ? t('Masquer le mot de passe') : t('Afficher le mot de passe')}><IconeOeil barre={voir} /></button>
         </div>
       </div>
       <label className="case">
         <input type="checkbox" checked={rester} onChange={(e) => setRester(e.target.checked)} />
-        Rester connecté sur cet appareil
+        {t('Rester connecté sur cet appareil')}
       </label>
       {erreur && <p className="erreur" role="alert">{erreur}</p>}
       {info && <p className="aide" role="status" style={{ margin: 0 }}>{info}</p>}
       <button className="bouton bouton-principal" type="submit" disabled={envoi}>
-        {envoi ? 'Connexion…' : 'Me connecter'}
+        {envoi ? t('Connexion…') : t('Me connecter')}
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
       </button>
       <div style={{ display: 'grid', gap: 16 }}>
-        <div className="ou">ou</div>
+        <div className="ou">{t('ou')}</div>
         {/* Maquette : « courriel ou texto ». Le texto attend le branchement Twilio (T2). */}
         <button type="button" className="bouton bouton-secondaire" onClick={lien}>
-          <IconeCourriel taille={16} /> Recevoir un lien par courriel
+          <IconeCourriel taille={16} /> {t('Recevoir un lien par courriel')}
         </button>
       </div>
-      {espace && <p className="auth-premiere">Première visite ? <a className="lien" href={`/espace/inscription?p=${espace}`}>Créer mon compte avec mon code d’invitation</a></p>}
+      {espace && <p className="auth-premiere">{t('Première visite ?')} <a className="lien" href={`/espace/inscription?p=${espace}`}>{t('Créer mon compte avec mon code d’invitation')}</a></p>}
     </form>
   );
 }

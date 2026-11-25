@@ -12,8 +12,11 @@ export const TEMOIN_LANGUE = 'll-langue';
 export const LOCALES: Record<Langue, string> = { fr: 'fr-CA', en: 'en-CA' };
 export const langueValide = (v?: string | null): Langue => (v === 'en' ? 'en' : 'fr');
 
+// Même mot, deux sens : 'Relancer|campagne' s'affiche « Relancer » en français et prend sa propre traduction
+// anglaise si elle existe, sinon celle de « Relancer ». Aucun texte de l'interface ne contient « | ».
 export function traduire(dico: Dico | null, fr: string, vars?: Vars): string {
-  const s = (dico && dico[fr]) || fr;
+  let s = dico?.[fr];
+  if (!s) { const i = fr.indexOf('|'); const base = i > 0 ? fr.slice(0, i) : fr; s = dico?.[base] || base; }
   return vars ? s.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k] ?? '') : m)) : s;
 }
 export const fabriqueT = (dico: Dico | null): T => (fr, vars) => traduire(dico, fr, vars);

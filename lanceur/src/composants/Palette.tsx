@@ -5,6 +5,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { initiales } from '@/lib/ventes';
 import { voitPage, entreeEspace, type Droits } from '@/lib/espaces';
+import { useT } from '@/composants/Langue';
 
 /* Palette ⌘K (maquette e02) : une saisie, et l'admin répond : actions, fiches, pages, ou une question à Cléo.
    Le terme trouvé est en gras; ↑ ↓ naviguent, Entrée ouvre, Échap ferme. Seules les pages qui existent sont listées. */
@@ -23,14 +24,15 @@ const PAGES: [string, string, string][] = [
 type Ligne = { groupe: string; titre: string; droite?: string; lien?: string; ini?: boolean; icone?: string; chemin?: [string, string]; cleo?: string };
 const sansAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-function Gras({ t, q }: { t: string; q: string }) {
-  const i = sansAccents(t).indexOf(sansAccents(q.trim()));
-  if (!q.trim() || i < 0) return <>{t}</>;
-  return <>{t.slice(0, i)}<b>{t.slice(i, i + q.trim().length)}</b>{t.slice(i + q.trim().length)}</>;
+function Gras({ s, q }: { s: string; q: string }) {
+  const i = sansAccents(s).indexOf(sansAccents(q.trim()));
+  if (!q.trim() || i < 0) return <>{s}</>;
+  return <>{s.slice(0, i)}<b>{s.slice(i, i + q.trim().length)}</b>{s.slice(i + q.trim().length)}</>;
 }
 
 export function Palette({ fermer, demanderCleo, droits }: { fermer: () => void; demanderCleo: (q: string) => void; droits: Droits | null }) {
   // Seulement les pages du rôle (même règle que les onglets); sans droits connus, la liste reste entière (la page refusera).
+  const { t } = useT();
   const permise = (lien: string) => !droits || voitPage(droits, lien);
   const router = useRouter();
   const champ = useRef<HTMLInputElement>(null);
@@ -38,16 +40,16 @@ export function Palette({ fermer, demanderCleo, droits }: { fermer: () => void; 
   useEffect(() => { champ.current?.focus(); }, []);
   useEffect(() => {
     if (q.trim().length < 2) { setRes({ actions: [], fiches: [] }); return; }
-    const t = setTimeout(async () => {
+    const tm = setTimeout(async () => {
       const { data } = await supabaseNavigateur().rpc('lanceur_recherche', { q: q.trim() });
       const d = (data ?? { actions: [], fiches: [] }) as { actions: { titre: string; droite?: string; lien: string }[]; fiches: { titre: string; droite?: string; lien: string; ini?: boolean; icone?: string }[] };
-      setRes({ actions: d.actions.map((a) => ({ groupe: 'Actions', titre: a.titre, droite: a.droite, lien: a.lien, icone: a.lien.startsWith('tel:') ? 'phone' : 'check' })),
-        fiches: d.fiches.map((f) => ({ groupe: 'Fiches', titre: f.titre, droite: f.droite, lien: f.lien, ini: f.ini, icone: f.icone })) });
+      setRes({ actions: d.actions.map((a) => ({ groupe: t('Actions'), titre: a.titre, droite: a.droite, lien: a.lien, icone: a.lien.startsWith('tel:') ? 'phone' : 'check' })),
+        fiches: d.fiches.map((f) => ({ groupe: t('Fiches'), titre: f.titre, droite: f.droite, lien: f.lien, ini: f.ini, icone: f.icone })) });
     }, 180);
-    return () => clearTimeout(t);
+    return () => clearTimeout(tm);
   }, [q]);
-  const pages: Ligne[] = q.trim() ? PAGES.filter(([e, p, l]) => permise(l) && sansAccents(`${e} ${p}`).includes(sansAccents(q.trim()))).slice(0, 4).map(([e, p, l]) => ({ groupe: 'Pages', titre: p, chemin: [e, p], lien: l, icone: 'file' })) : ESPACES.map(([e, l, ic]): [string, string, string] => [e, droits ? entreeEspace(droits, { racine: '/' + l.split('/')[1], href: l }) : l, ic]).filter(([, l]) => permise(l)).map(([e, l, ic]) => ({ groupe: 'Aller à', titre: e, lien: l, icone: ic }));
-  const lignes: Ligne[] = [...res.actions, ...res.fiches, ...pages, ...(q.trim() ? [{ groupe: 'Demander à Cléo', titre: `« ${q.trim()} »`, droite: 'Cléo cite ses sources', cleo: q.trim() }] : [])];
+  const pages: Ligne[] = q.trim() ? PAGES.filter(([e, p, l]) => permise(l) && sansAccents(`${t(e)} ${t(p)}`).includes(sansAccents(q.trim()))).slice(0, 4).map(([e, p, l]) => ({ groupe: t('Pages'), titre: t(p), chemin: [t(e), t(p)] as [string, string], lien: l, icone: 'file' })) : ESPACES.map(([e, l, ic]): [string, string, string] => [e, droits ? entreeEspace(droits, { racine: '/' + l.split('/')[1], href: l }) : l, ic]).filter(([, l]) => permise(l)).map(([e, l, ic]) => ({ groupe: t('Aller à'), titre: t(e), lien: l, icone: ic }));
+  const lignes: Ligne[] = [...res.actions, ...res.fiches, ...pages, ...(q.trim() ? [{ groupe: t('Demander à Cléo'), titre: `« ${q.trim()} »`, droite: t('Cléo cite ses sources'), cleo: q.trim() }] : [])];
   useEffect(() => { setI(0); }, [q, res]);
   function ouvrir(l: Ligne) {
     if (l.cleo) { demanderCleo(l.cleo); return; }
@@ -56,15 +58,15 @@ export function Palette({ fermer, demanderCleo, droits }: { fermer: () => void; 
   }
   return (
     <div className="palette-fond" onClick={fermer}>
-      <div className="palette" role="dialog" aria-label="Demandez à Cléo ou cherchez" onClick={(e) => e.stopPropagation()}>
+      <div className="palette" role="dialog" aria-label={t('Demandez à Cléo ou cherchez')} onClick={(e) => e.stopPropagation()}>
         <div className="palette-champ">
           <img src="/img/cleo.png" alt="" className="avatar-cleo" style={{ width: 32, height: 32 }} />
-          <input ref={champ} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Demandez à Cléo ou cherchez…" aria-label="Recherche"
+          <input ref={champ} value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Demandez à Cléo ou cherchez…')} aria-label={t('Recherche')}
             onKeyDown={(e) => { if (e.key === 'ArrowDown') { e.preventDefault(); setI((i + 1) % Math.max(1, lignes.length)); } if (e.key === 'ArrowUp') { e.preventDefault(); setI((i - 1 + lignes.length) % Math.max(1, lignes.length)); }
               if (e.key === 'Enter' && lignes[i]) ouvrir(lignes[i]); }} />
-          {q && <button className="fermer" onClick={() => setQ('')} aria-label="Effacer la saisie"><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button>}
+          {q && <button className="fermer" onClick={() => setQ('')} aria-label={t('Effacer la saisie')}><Icone nom="close" taille={16} couleur="#3E4A59" trait={2} /></button>}
         </div>
-        {!q.trim() && <p className="palette-vide">Cherchez une personne, un logement, un dossier ou une page, ou posez une question à Cléo.</p>}
+        {!q.trim() && <p className="palette-vide">{t('Cherchez une personne, un logement, un dossier ou une page, ou posez une question à Cléo.')}</p>}
         {lignes.length > 0 && (
           <div className="palette-res" role="listbox">
             {lignes.map((l, k) => <div key={k}>
@@ -72,13 +74,13 @@ export function Palette({ fermer, demanderCleo, droits }: { fermer: () => void; 
               <button role="option" aria-selected={k === i} className={'palette-ligne' + (k === i ? ' sel' : '')} onMouseEnter={() => setI(k)} onClick={() => ouvrir(l)}>
                 {l.cleo ? <img src="/img/cleo.png" alt="" className="avatar-cleo" style={{ width: 32, height: 32 }} /> : l.ini ? <span className="ini" style={{ width: 32, height: 32, fontSize: 12 }}>{initiales(l.titre)}</span>
                   : <span className="palette-ic"><Icone nom={l.icone ?? 'file'} taille={18} couleur="#0C2147" /></span>}
-                <span className="palette-titre">{l.chemin ? <>{l.chemin[0]}<Icone nom="chevron" taille={16} couleur="#8A99AB" /><span><Gras t={l.chemin[1]} q={q} /></span></> : <span><Gras t={l.titre} q={q} /></span>}</span>
+                <span className="palette-titre">{l.chemin ? <>{l.chemin[0]}<Icone nom="chevron" taille={16} couleur="#8A99AB" /><span><Gras s={l.chemin[1]} q={q} /></span></> : <span><Gras s={l.titre} q={q} /></span>}</span>
                 <span className="palette-droite">{l.droite}</span>
-                {k === i && <kbd className="touche">Entrée</kbd>}
+                {k === i && <kbd className="touche">{t('Entrée|clavier')}</kbd>}
               </button></div>)}
           </div>)}
-        <div className="palette-pied"><kbd className="touche">↑</kbd><kbd className="touche">↓</kbd><span>naviguer</span><kbd className="touche">Entrée</kbd><span>ouvrir</span><kbd className="touche">Échap</kbd><span>fermer</span>
-          <span style={{ marginLeft: 'auto' }}>{q.trim() ? `${lignes.length} résultat${lignes.length > 1 ? 's' : ''}` : ''}</span></div>
+        <div className="palette-pied"><kbd className="touche">↑</kbd><kbd className="touche">↓</kbd><span>{t('naviguer')}</span><kbd className="touche">{t('Entrée|clavier')}</kbd><span>{t('ouvrir')}</span><kbd className="touche">{t('Échap')}</kbd><span>{t('fermer')}</span>
+          <span style={{ marginLeft: 'auto' }}>{q.trim() ? (lignes.length > 1 ? t('{n} résultats', { n: lignes.length }) : t('{n} résultat', { n: lignes.length })) : ''}</span></div>
       </div>
     </div>
   );

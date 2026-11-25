@@ -1,5 +1,6 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
+import { tServeur } from '@/lib/i18n/serveur';
 import { AApprouver } from './AApprouver';
 import type { Motif, Proposition } from '@/lib/propositions';
 
@@ -7,6 +8,7 @@ import type { Motif, Proposition } from '@/lib/propositions';
    Ouverte à tout membre de l'équipe : la liste ne montre que ce que le rôle peut décider (spec T1 § 2). */
 export default async function Page({ params }: { params: Promise<{ sel?: string[] }> }) {
   const { sel = [] } = await params;
+  const { t } = await tServeur();
   const supabase = await supabaseServeur();
   const [{ data: props, error }, { data: motifs }] = await Promise.all([
     supabase.rpc('lanceur_propositions', { p_statut: 'pending' }),
@@ -33,7 +35,7 @@ export default async function Page({ params }: { params: Promise<{ sel?: string[
         motifs={(motifs as Motif[] | null) ?? []}
         selection={sel[0] ?? null}
         modification={sel[1] === 'modifier'}
-        erreurLecture={error ? 'Les propositions n’ont pas pu être lues.' : null}
+        erreurLecture={error ? t('Les propositions n’ont pas pu être lues.') : null}
       />
     </CadreEspace>
   );

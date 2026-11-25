@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { useT } from '@/composants/Langue';
 
 /* Baux dans le nouvel admin (Grégory, 2026-11-08) : une seule fenêtre pour les trois gestes.
    - ajouter  : nouveau bail. Depuis un logement libre (nouveau locataire) ou depuis une fiche locataire (choix du logement).
@@ -20,6 +21,7 @@ const lendemain = (d: string) => { const x = new Date(`${d}T12:00:00`); x.setDat
 
 export function BailFenetre({ quoi, fermer, fait }: { quoi: BailMode; fermer: () => void; fait: (message: string) => void }) {
   const router = useRouter();
+  const { t } = useT();
   const nouveauLocataire = quoi.mode === 'changer' || (quoi.mode === 'ajouter' && 'unitId' in quoi);
   const [f, setF] = useState({ unit_id: 'unitId' in quoi ? quoi.unitId : 'logement' in quoi ? quoi.logement ?? '' : '', nom: '', courriel: '', telephone: '',
     loyer: 'loyer' in quoi && quoi.loyer ? String(quoi.loyer) : '', debut: quoi.mode === 'changer' ? '' : ('debut' in quoi && quoi.debut) || auj(), fin: ('fin' in quoi && quoi.fin) || '', depart: '', motif: 'depart', note: '' });
@@ -49,17 +51,17 @@ export function BailFenetre({ quoi, fermer, fait }: { quoi: BailMode; fermer: ()
     setEnvoi(false);
     if (r.error) return setErreur(r.error.message);
     const statut = quoi.mode === 'changer' ? (r.data as { nouveau: { statut: string } }).nouveau.statut : quoi.mode === 'ajouter' ? (r.data as { statut: string }).statut : null;
-    fait(quoi.mode === 'terminer' ? `Fin du bail inscrite au ${f.depart}.`
-      : quoi.mode === 'changer' ? `${quoi.ancien} part le ${f.depart}; ${f.nom.trim()} arrive le ${f.debut || lendemain(f.depart)} à ${f.loyer} $ par mois.`
-      : statut === 'a_venir' ? `Bail créé : il commence le ${f.debut}.` : 'Bail créé : le logement est loué.');
+    fait(quoi.mode === 'terminer' ? t('Fin du bail inscrite au {d}.', { d: f.depart })
+      : quoi.mode === 'changer' ? t('{a} part le {d}; {n} arrive le {e} à {l} $ par mois.', { a: quoi.ancien, d: f.depart, n: f.nom.trim(), e: f.debut || lendemain(f.depart), l: f.loyer })
+      : statut === 'a_venir' ? t('Bail créé : il commence le {d}.', { d: f.debut }) : t('Bail créé : le logement est loué.'));
     router.refresh();
   }
 
-  const titre = quoi.mode === 'terminer' ? 'Mettre fin au bail' : quoi.mode === 'changer' ? 'Changer de locataire' : 'unitId' in quoi ? 'Ajouter un locataire' : 'Ajouter un bail';
-  const texte = quoi.mode === 'terminer' ? `${quoi.nom} · ${quoi.libelle}. Les loyers après la fin sont retirés (ou ramenés au montant déjà reçu); le logement se libère à la date de fin.`
-    : quoi.mode === 'changer' ? `${quoi.libelle} · ${quoi.ancien} part, le nouveau locataire arrive avec son loyer. Les deux se font ensemble.`
-    : 'unitId' in quoi ? `${quoi.libelle} · un nouveau locataire et son bail. Les loyers se créent tout seuls chaque mois.`
-    : `Pour ${quoi.nom} : choisissez le logement, le loyer et les dates.`;
+  const titre = quoi.mode === 'terminer' ? t('Mettre fin au bail') : quoi.mode === 'changer' ? t('Changer de locataire') : 'unitId' in quoi ? t('Ajouter un locataire') : t('Ajouter un bail');
+  const texte = quoi.mode === 'terminer' ? t('{nom} · {lib}. Les loyers après la fin sont retirés (ou ramenés au montant déjà reçu); le logement se libère à la date de fin.', { nom: quoi.nom, lib: quoi.libelle })
+    : quoi.mode === 'changer' ? t('{lib} · {a} part, le nouveau locataire arrive avec son loyer. Les deux se font ensemble.', { lib: quoi.libelle, a: quoi.ancien })
+    : 'unitId' in quoi ? t('{lib} · un nouveau locataire et son bail. Les loyers se créent tout seuls chaque mois.', { lib: quoi.libelle })
+    : t('Pour {nom} : choisissez le logement, le loyer et les dates.', { nom: quoi.nom });
   const champ = (k: keyof typeof f, l: string, type = 'text', extra: React.InputHTMLAttributes<HTMLInputElement> = {}) =>
     <label className="fenetre-lib">{l}<input className="e70-raison" type={type} value={f[k]} onChange={maj(k)} {...extra} /></label>;
   const pret = quoi.mode === 'terminer' ? !!f.depart
@@ -68,29 +70,29 @@ export function BailFenetre({ quoi, fermer, fait }: { quoi: BailMode; fermer: ()
   return (
     <div className="voile tiroir-voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermer()}>
       <form className="tiroir" role="dialog" aria-modal="true" aria-labelledby="bail-t" onSubmit={(e) => { e.preventDefault(); ok(); }}>
-        <header className="tiroir-tete"><h2 id="bail-t">{titre}</h2><button type="button" className="haut-ibtn" onClick={fermer} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
+        <header className="tiroir-tete"><h2 id="bail-t">{titre}</h2><button type="button" className="haut-ibtn" onClick={fermer} aria-label={t('Fermer')}><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
         <div className="tiroir-corps">
           <p className="gris texte-13" style={{ marginTop: 0 }}>{texte}</p>
           {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
           {(quoi.mode === 'terminer' || quoi.mode === 'changer') && <>
-            {quoi.mode === 'changer' && <h3 className="titre-carte" style={{ fontSize: 15 }}>Départ de {quoi.ancien}</h3>}
-            <div className="po-deux">{champ('depart', quoi.mode === 'changer' ? 'Dernier jour du bail' : 'Date de fin', 'date')}
-              <label className="fenetre-lib">Motif<select className="e70-raison" value={f.motif} onChange={maj('motif')}>{MOTIFS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label></div>
-            <label className="fenetre-lib">Note (facultatif)<textarea className="e70-raison" rows={2} value={f.note} onChange={maj('note')} /></label></>}
+            {quoi.mode === 'changer' && <h3 className="titre-carte" style={{ fontSize: 15 }}>{t('Départ de {nom}', { nom: quoi.ancien })}</h3>}
+            <div className="po-deux">{champ('depart', quoi.mode === 'changer' ? t('Dernier jour du bail') : t('Date de fin'), 'date')}
+              <label className="fenetre-lib">{t('Motif')}<select className="e70-raison" value={f.motif} onChange={maj('motif')}>{MOTIFS.map(([v, l]) => <option key={v} value={v}>{t(l)}</option>)}</select></label></div>
+            <label className="fenetre-lib">{t('Note (facultatif)')}<textarea className="e70-raison" rows={2} value={f.note} onChange={maj('note')} /></label></>}
           {quoi.mode !== 'terminer' && <>
-            {quoi.mode === 'changer' && <h3 className="titre-carte" style={{ fontSize: 15, marginTop: 20 }}>Nouveau locataire</h3>}
-            {choixLogement && <label className="fenetre-lib">Logement<select className="e70-raison" value={f.unit_id} onChange={(e) => {
+            {quoi.mode === 'changer' && <h3 className="titre-carte" style={{ fontSize: 15, marginTop: 20 }}>{t('Nouveau locataire')}</h3>}
+            {choixLogement && <label className="fenetre-lib">{t('Logement')}<select className="e70-raison" value={f.unit_id} onChange={(e) => {
               const l = logements?.find((x) => x.id === e.target.value); setF({ ...f, unit_id: e.target.value, loyer: f.loyer || (l?.loyer ? String(l.loyer) : '') }); }}>
-              <option value="">{logements === null ? 'Chargement…' : logements.length ? 'Choisir un logement libre ou en préavis' : 'Aucun logement libre'}</option>
+              <option value="">{logements === null ? t('Chargement…') : logements.length ? t('Choisir un logement libre ou en préavis') : t('Aucun logement libre')}</option>
               {logements?.map((l) => <option key={l.id} value={l.id}>{l.libelle}</option>)}</select></label>}
-            {nouveauLocataire && <>{champ('nom', 'Nom')}<div className="po-deux">{champ('courriel', 'Courriel (facultatif)', 'email')}{champ('telephone', 'Téléphone (facultatif)', 'tel')}</div></>}
-            <div className="po-deux">{champ('loyer', 'Loyer mensuel ($)', 'text', { inputMode: 'decimal' })}
-              {champ('debut', quoi.mode === 'changer' ? `Début (par défaut le ${f.depart ? lendemain(f.depart) : 'lendemain du départ'})` : 'Début du bail', 'date')}
-              {quoi.mode === 'ajouter' && champ('fin', 'Fin du bail (facultatif)', 'date')}</div>
-            {nouveauLocataire && <p className="gris texte-13">Le portail s’offre ensuite depuis la fiche du locataire (« Inviter au portail »).</p>}</>}
+            {nouveauLocataire && <>{champ('nom', t('Nom'))}<div className="po-deux">{champ('courriel', t('Courriel (facultatif)'), 'email')}{champ('telephone', t('Téléphone (facultatif)'), 'tel')}</div></>}
+            <div className="po-deux">{champ('loyer', t('Loyer mensuel ($)'), 'text', { inputMode: 'decimal' })}
+              {champ('debut', quoi.mode === 'changer' ? (f.depart ? t('Début (par défaut le {d})', { d: lendemain(f.depart) }) : t('Début (par défaut le lendemain du départ)')) : t('Début du bail'), 'date')}
+              {quoi.mode === 'ajouter' && champ('fin', t('Fin du bail (facultatif)'), 'date')}</div>
+            {nouveauLocataire && <p className="gris texte-13">{t('Le portail s’offre ensuite depuis la fiche du locataire (« Inviter au portail »).')}</p>}</>}
         </div>
-        <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>Annuler</button>
-          <button className={quoi.mode === 'terminer' ? 'bouton bouton-danger' : 'bouton bouton-principal'} disabled={envoi || !pret}>{envoi ? 'Enregistrement…' : titre}</button></footer>
+        <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>{t('Annuler')}</button>
+          <button className={quoi.mode === 'terminer' ? 'bouton bouton-danger' : 'bouton bouton-principal'} disabled={envoi || !pret}>{envoi ? t('Enregistrement…') : titre}</button></footer>
       </form>
     </div>
   );

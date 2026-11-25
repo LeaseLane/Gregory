@@ -1,9 +1,11 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
+import { tServeur } from '@/lib/i18n/serveur';
 import { Taches, type DonneesTaches } from './Taches';
 
 /* Opérations · Mes tâches (maquette l03) : en retard, aujourd'hui, à venir; vues; retards par personne. */
 export default async function Page() {
+  const { t } = await tServeur();
   const supabase = await supabaseServeur();
   const [{ data, error }, { data: nb }, { data: fils }] = await Promise.all([
     supabase.rpc('lanceur_taches'), supabase.rpc('lanceur_nb_a_approuver'), supabase.rpc('lanceur_conversations'),
@@ -24,7 +26,7 @@ export default async function Page() {
         { libelle: 'Appels', href: '/operations/appels' },
       ]}
     >
-      <Taches donnees={(data as DonneesTaches | null) ?? null} erreurLecture={error ? 'Les tâches n’ont pas pu être lues.' : null} />
+      <Taches donnees={(data as DonneesTaches | null) ?? null} erreurLecture={error ? t('Les tâches n’ont pas pu être lues.') : null} />
     </CadreEspace>
   );
 }

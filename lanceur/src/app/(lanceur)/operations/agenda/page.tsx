@@ -1,10 +1,12 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
+import { tServeur } from '@/lib/i18n/serveur';
 import { Agenda, type DonneesAgenda } from './Agenda';
 
 /* Opérations · Agenda (maquette e05) : journée ou semaine (?vue=semaine), mois, à planifier, visite libre. ?jour=AAAA-MM-JJ */
 export default async function Page({ searchParams }: { searchParams: Promise<{ jour?: string; vue?: string }> }) {
   const { jour, vue } = await searchParams;
+  const { t } = await tServeur();
   const aujourdhui = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
   const j = jour && /^\d{4}-\d{2}-\d{2}$/.test(jour) ? jour : aujourdhui;
   const supabase = await supabaseServeur();
@@ -30,7 +32,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ j
       ]}
     >
       <Agenda donnees={(data as DonneesAgenda | null) ?? null} aujourdhui={aujourdhui} semaine={semaine ? { lundi, evenements: (sem as DonneesAgenda['evenements'] | null) ?? [] } : null}
-        logements={(logements as { id: string; libelle: string }[] | null) ?? []} erreurLecture={error ? (error.code === 'PT403' ? error.message : 'L’agenda n’a pas pu être lu.') : null} />
+        logements={(logements as { id: string; libelle: string }[] | null) ?? []} erreurLecture={error ? (error.code === 'PT403' ? error.message : t('L’agenda n’a pas pu être lu.')) : null} />
     </CadreEspace>
   );
 }

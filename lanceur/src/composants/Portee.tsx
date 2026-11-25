@@ -2,6 +2,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { TEMOIN_PORTEE, etatPortee } from '@/lib/portee';
+import { useT } from '@/composants/Langue';
 
 /* Sélecteur « client → immeuble » (phase 1 du plan du 12 nov. 2026, D01) : tout ce que l'administration affiche ensuite
    (finances, immeubles, clients, maintenance, opérations, juridique) ne concerne que ce client, puis que cet immeuble.
@@ -14,6 +15,7 @@ export function choisirPortee(proprietaire: string, immeuble = '') {
 }
 
 export function Portee({ options, choix }: { options: OptionsPortee; choix: string | null }) {
+  const { t } = useT();
   const router = useRouter(), chemin = usePathname(), [attente, transition] = useTransition();
   const [idClient, idImmeuble = ''] = (choix ?? '').split(':');
   const p = options.proprietaires.find((x) => x.id === idClient) ?? null, immeuble = p?.immeubles.some((x) => x.id === idImmeuble) ? idImmeuble : '';
@@ -23,25 +25,25 @@ export function Portee({ options, choix }: { options: OptionsPortee; choix: stri
     transition(() => router.refresh());
   };
   // Ce que le choix change sur CETTE page : dit en clair, pour ne jamais annoncer un filtre qui n'agit pas.
-  const message = !p ? 'Tous les clients sont affichés ensemble.'
-    : etat === 'fiche' ? 'Cette fiche s’affiche en entier, quel que soit le client choisi.'
-    : etat === 'sans' ? 'Cette page ne dépend pas du client choisi : elle montre tout.'
-    : etat === 'ventes' ? `Vous voyez ce qui se rattache à ${immeuble ? 'cet immeuble' : 'ce client'}; les prospects et les mandats sans client restent affichés.`
-    : `Vous voyez seulement ${immeuble ? 'cet immeuble' : 'ce client'}.`;
+  const message = !p ? t('Tous les clients sont affichés ensemble.')
+    : etat === 'fiche' ? t('Cette fiche s’affiche en entier, quel que soit le client choisi.')
+    : etat === 'sans' ? t('Cette page ne dépend pas du client choisi : elle montre tout.')
+    : etat === 'ventes' ? (immeuble ? t('Vous voyez ce qui se rattache à cet immeuble; les prospects et les mandats sans client restent affichés.') : t('Vous voyez ce qui se rattache à ce client; les prospects et les mandats sans client restent affichés.'))
+    : (immeuble ? t('Vous voyez seulement cet immeuble.') : t('Vous voyez seulement ce client.'));
   return (
-    <section className={'portee' + (p && (etat === 'active' || etat === 'ventes') ? ' active' : '')} aria-label="Client et immeuble affichés" aria-busy={attente}>
-      <label htmlFor="portee-client">Client</label>
+    <section className={'portee' + (p && (etat === 'active' || etat === 'ventes') ? ' active' : '')} aria-label={t('Client et immeuble affichés')} aria-busy={attente}>
+      <label htmlFor="portee-client">{t('Client')}</label>
       <select id="portee-client" className="e70-raison" value={p?.id ?? ''} onChange={(e) => choisir(e.target.value)}>
-        <option value="">Tous les clients</option>
+        <option value="">{t('Tous les clients')}</option>
         {options.proprietaires.map((x) => <option key={x.id} value={x.id}>{x.nom}</option>)}
       </select>
-      <label htmlFor="portee-immeuble">Immeuble</label>
+      <label htmlFor="portee-immeuble">{t('Immeuble')}</label>
       <select id="portee-immeuble" className="e70-raison" value={immeuble} disabled={!p} onChange={(e) => choisir(p!.id, e.target.value)}>
-        <option value="">{p ? `Tous ses immeubles (${p.immeubles.length})` : 'Choisissez d’abord un client'}</option>
+        <option value="">{p ? t('Tous ses immeubles ({n})', { n: p.immeubles.length }) : t('Choisissez d’abord un client')}</option>
         {(p?.immeubles ?? []).map((x) => <option key={x.id} value={x.id}>{x.adresse}</option>)}
       </select>
       <span className={'portee-etat' + (p && etat === 'active' ? '' : ' gris')}>{message}</span>
-      {p && <button type="button" className="lien" onClick={() => choisir('')}>Voir tous les clients</button>}
+      {p && <button type="button" className="lien" onClick={() => choisir('')}>{t('Voir tous les clients')}</button>}
     </section>
   );
 }

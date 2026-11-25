@@ -6,7 +6,9 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { BandeauLocataire } from '@/composants/portail/CoquilleLocataire';
 import { ouvrirFichier } from '@/composants/portail/fichiers';
-import { argent, dateCourte, dateLongue, moisAnnee } from '@/composants/portail/format';
+import { useT } from '@/composants/Langue';
+import { argentL } from '@/lib/format';
+import { dateCourteL, dateLongueL, moisAnneeL } from '../fmt';
 
 /* Locataire · 08 Paiements, 09 Reçu de loyer (art. 1568 C.c.Q.), 10 Changer de mode de paiement. Prélèvement automatique : accord de DPA
    signé ici (règle H1 de Paiements Canada), débité par Lease Lane dans son compte en fidéicommis. Carte de crédit : processeur à choisir, non offerte. États « en retard » et « prélèvement
@@ -21,16 +23,17 @@ export type Recu = { numero: string; emis_le: string; periode: string; montant: 
   locataire: { nom: string; logement: string; ville: string } };
 
 export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant, erreur }: { donnees: PaiementsLoc | null; recu: Recu | null; rl31: RL31 | null; erreurRecu: string | null; mode: boolean; maintenant: string; erreur: string | null }) {
-  const router = useRouter();
+  const router = useRouter(), { t, locale } = useT();
+  const argent = (n: number, cents = false) => argentL(n, locale, cents), dateCourte = (i: string, a = false) => dateCourteL(i, locale, a), dateLongue = (i: string) => dateLongueL(i, locale), moisAnnee = (i: string) => moisAnneeL(i, locale);
   const [fenetreMode, setFenetreMode] = useState(mode), [toast, setToast] = useState<string | null>(null), [bandeau, setBandeau] = useState<string | null>(erreurRecu);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
-  if (erreur || !D) return <><BandeauLocataire titre="Paiements" /><div className="bandeau erreur" role="alert">{erreur ?? 'Vos paiements n’ont pas pu être lus.'}</div></>;
+  if (erreur || !D) return <><BandeauLocataire titre={t('Paiements')} /><div className="bandeau erreur" role="alert">{erreur ?? t('Vos paiements n’ont pas pu être lus.')}</div></>;
   const annee = new Date(maintenant).getFullYear(), P = D.prochain, offert = D.prelevement_offert === true,
     suspendu = D.mode.type === 'prelevement' && !offert, pad = D.mode.type === 'prelevement' && offert;   // BMO a reporté les prélèvements : un accord existant est suspendu, le locataire paie par Interac
   async function demanderMode(m: string) {
     const { error } = await supabaseNavigateur().rpc('portail_locataire_mode_paiement', { p: { mode: m } });
     if (error) return setBandeau(error.message);
-    setFenetreMode(false); setToast('Demande transmise : l’équipe vous écrit pour finaliser le changement.');
+    setFenetreMode(false); setToast(t('Demande transmise : l’équipe vous écrit pour finaliser le changement.'));
   }
   const fermerRecu = () => router.replace('/locataire/paiements', { scroll: false });
   // Accord de DPA : modèle à remplir (pas encore de prélèvement) ou accord signé (lecture, fin du prélèvement).
@@ -44,128 +47,128 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
     setEnvoi(true);
     const { data, error } = await supabaseNavigateur().rpc('portail_locataire_dpa_signer', { p: f }); setEnvoi(false);
     if (error) return setBandeau(error.message);
-    setDpa(null); setToast(`Prélèvement en place : premier débit le ${dateLongue((data as { premier: string }).premier)}.`); router.refresh();
+    setDpa(null); setToast(t('Prélèvement en place : premier débit le {date}.', { date: dateLongue((data as { premier: string }).premier) })); router.refresh();
   }
   async function annulerDpa() {
-    if (!window.confirm('Mettre fin au prélèvement automatique ? Vous paierez ensuite par virement Interac.')) return;
+    if (!window.confirm(t('Mettre fin au prélèvement automatique ? Vous paierez ensuite par virement Interac.'))) return;
     const { error } = await supabaseNavigateur().rpc('portail_locataire_dpa_annuler');
     if (error) return setBandeau(error.message);
-    setDpa(null); setToast('Prélèvement arrêté. Un débit déjà transmis à la banque peut encore passer.'); router.refresh();
+    setDpa(null); setToast(t('Prélèvement arrêté. Un débit déjà transmis à la banque peut encore passer.')); router.refresh();
   }
   const apercu = dpa && !dpa.actif ? dpa.modele.replace('{titulaire}', f.titulaire || '…').replace('{institution}', f.institution || '…').replace('{transit}', f.transit || '…')
     .replace('se terminant par 000', `se terminant par ${f.compte.slice(-3) || '…'}`) : '';
 
   return (
     <>
-      <BandeauLocataire titre="Paiements" sous="Loyers reçus et reçus de loyer" />
+      <BandeauLocataire titre={t('Paiements')} sous={t('Loyers reçus et reçus de loyer')} />
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       <div className="lo-grille trois lo-remonte">
-        <section className="carte-l18 e2 lo-kpi" aria-label="Prochain loyer">
-          {P?.en_retard ? <><span className="texte-13 fort">{P.echec ? 'Prélèvement refusé' : 'Loyer en retard'}</span><b className="rouge">{argent(P.montant)}</b>
-              <small>{P.echec ? `Le prélèvement du ${dateCourte(P.echeance)} n’a pas abouti. Un nouvel essai est prévu; vous pouvez aussi payer par virement Interac.` : `dû depuis le ${dateCourte(P.echeance)} (${P.jours} jour${P.jours > 1 ? 's' : ''})${pad ? '' : D.interac ? ` · par Interac à ${D.interac}` : ' · payable au propriétaire'}`}</small>
-              <Link className="lien ligne-ic" href="/locataire/messages?nouveau=1&sujet=Entente%20de%20paiement">Proposer une entente de paiement<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link></>
-            : <><span className="texte-13 fort">{pad ? 'Prochain prélèvement' : 'Prochain loyer'}</span><b>{P ? dateCourte(P.echeance, true) : '—'}</b>
-              <small>{P ? `${argent(P.montant)}${pad ? ` · ${D.mode.compte ? `compte ${D.mode.compte.replace(/^.*?(·+ ?\d+)$/, '$1')}` : 'prélèvement automatique'}` : D.interac ? ` · par Interac à ${D.interac}` : ' · à payer au propriétaire'}` : 'Aucun loyer à venir'}</small>
-              <button className="lien ligne-ic" onClick={() => setFenetreMode(true)}>Changer de mode de paiement<Icone nom="arrow" taille={16} couleur="#2E5788" /></button></>}
+        <section className="carte-l18 e2 lo-kpi" aria-label={t('Prochain loyer')}>
+          {P?.en_retard ? <><span className="texte-13 fort">{P.echec ? t('Prélèvement refusé') : t('Loyer en retard')}</span><b className="rouge">{argent(P.montant)}</b>
+              <small>{P.echec ? t('Le prélèvement du {date} n’a pas abouti. Un nouvel essai est prévu; vous pouvez aussi payer par virement Interac.', { date: dateCourte(P.echeance) }) : `${P.jours > 1 ? t('dû depuis le {date} ({n} jours)', { date: dateCourte(P.echeance), n: P.jours }) : t('dû depuis le {date} ({n} jour)', { date: dateCourte(P.echeance), n: P.jours })}${pad ? '' : D.interac ? t(' · par Interac à {x}', { x: D.interac }) : t(' · payable au propriétaire')}`}</small>
+              <Link className="lien ligne-ic" href="/locataire/messages?nouveau=1&sujet=Entente%20de%20paiement">{t('Proposer une entente de paiement')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link></>
+            : <><span className="texte-13 fort">{pad ? t('Prochain prélèvement') : t('Prochain loyer')}</span><b>{P ? dateCourte(P.echeance, true) : '—'}</b>
+              <small>{P ? `${argent(P.montant)}${pad ? ` · ${D.mode.compte ? t('compte {c}', { c: D.mode.compte.replace(/^.*?(·+ ?\d+)$/, '$1') }) : t('prélèvement automatique')}` : D.interac ? t(' · par Interac à {x}', { x: D.interac }) : t(' · à payer au propriétaire')}` : t('Aucun loyer à venir')}</small>
+              <button className="lien ligne-ic" onClick={() => setFenetreMode(true)}>{t('Changer de mode de paiement')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></button></>}
         </section>
-        <section className="carte-l18 e2 lo-kpi" aria-label={`Payé en ${annee}`}><span className="texte-13 fort">Payé en {annee}</span><b>{argent(D.annee.paye)}</b>
-          <small>{D.annee.loyers} loyer{D.annee.loyers > 1 ? 's' : ''} sur 12{D.annee.loyers === D.annee.prevus ? ' · tous reçus' : ''}</small><span className="jauge large"><i style={{ width: `${Math.min(100, (100 * D.annee.loyers) / 12)}%` }} /></span></section>
-        <section className="carte-l18 e2 lo-kpi" aria-label="Retards"><header className="tete-action"><span className="texte-13 fort">Retards</span><span className={`puce ${D.en_retard > 0 ? 'todo' : 'ok'}`}>{D.en_retard > 0 ? 'En retard' : 'À jour'}</span></header>
-          <b>{D.retards}</b><small>depuis le début du bail</small></section>
+        <section className="carte-l18 e2 lo-kpi" aria-label={t('Payé en {annee}', { annee })}><span className="texte-13 fort">{t('Payé en {annee}', { annee })}</span><b>{argent(D.annee.paye)}</b>
+          <small>{D.annee.loyers > 1 ? t('{n} loyers sur 12', { n: D.annee.loyers }) : t('{n} loyer sur 12', { n: D.annee.loyers })}{D.annee.loyers === D.annee.prevus ? t(' · tous reçus') : ''}</small><span className="jauge large"><i style={{ width: `${Math.min(100, (100 * D.annee.loyers) / 12)}%` }} /></span></section>
+        <section className="carte-l18 e2 lo-kpi" aria-label={t('Retards')}><header className="tete-action"><span className="texte-13 fort">{t('Retards')}</span><span className={`puce ${D.en_retard > 0 ? 'todo' : 'ok'}`}>{D.en_retard > 0 ? t('En retard') : t('À jour')}</span></header>
+          <b>{D.retards}</b><small>{t('depuis le début du bail')}</small></section>
       </div>
 
       <div className="lo-grille">
-        <section className="carte-l18" aria-label="Historique">
-          <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>Historique</h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>Chaque loyer, daté et reçu</p></div>
-            <button className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="download" taille={16} couleur="#0C2147" />Relevé annuel</button></header>
-          <table className="tableau lo-histo"><colgroup><col style={{ width: '20%' }} /><col style={{ width: '18%' }} /><col style={{ width: '14%' }} /><col style={{ width: '16%' }} /><col style={{ width: '18%' }} /><col /></colgroup><thead><tr><th>Période</th><th>Réception</th><th>Mode</th><th className="droite">Montant</th><th>État</th><th /></tr></thead>
-            <tbody>{D.historique.map((p) => <tr key={p.id}><td className="fort">{moisAnnee(p.periode)}</td><td>{p.recu_le ? `Reçu le ${dateCourte(p.recu_le)}` : p.statut === 'partiel' && p.recu ? `${argent(p.recu)} reçus` : '—'}</td><td>{p.mode ?? '—'}</td>
+        <section className="carte-l18" aria-label={t('Historique')}>
+          <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>{t('Historique')}</h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>{t('Chaque loyer, daté et reçu')}</p></div>
+            <button className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="download" taille={16} couleur="#0C2147" />{t('Relevé annuel')}</button></header>
+          <table className="tableau lo-histo"><colgroup><col style={{ width: '20%' }} /><col style={{ width: '18%' }} /><col style={{ width: '14%' }} /><col style={{ width: '16%' }} /><col style={{ width: '18%' }} /><col /></colgroup><thead><tr><th>{t('Période')}</th><th>{t('Réception')}</th><th>{t('Mode')}</th><th className="droite">{t('Montant')}</th><th>{t('État')}</th><th /></tr></thead>
+            <tbody>{D.historique.map((p) => <tr key={p.id}><td className="fort">{moisAnnee(p.periode)}</td><td>{p.recu_le ? t('Reçu le {date}', { date: dateCourte(p.recu_le) }) : p.statut === 'partiel' && p.recu ? t('{montant} reçus', { montant: argent(p.recu) }) : '—'}</td><td>{p.mode ? t(p.mode) : '—'}</td>
               <td className="droite fort">{argent(p.montant, true)}</td>
-              <td>{p.statut === 'paye' ? <span className="ligne-ic"><span className="okdot" style={{ marginTop: 0 }}><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>Payé</span> : p.statut === 'partiel' ? <span className="puce todo">Reste {argent(p.montant - (p.recu ?? 0))}</span> : p.statut === 'retard' ? <span className="puce todo">En retard</span> : <span className="puce neutral">À venir</span>}</td>
-              <td className="droite">{p.statut === 'paye' && <Link className="lien ligne-ic" scroll={false} href={`/locataire/paiements?r=${p.id}`}><Icone nom="receipt" taille={16} couleur="#2E5788" />Reçu</Link>}</td></tr>)}
-              {!D.historique.length && <tr><td colSpan={6} className="gris">Aucun loyer pour l’instant.</td></tr>}</tbody></table>
+              <td>{p.statut === 'paye' ? <span className="ligne-ic"><span className="okdot" style={{ marginTop: 0 }}><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>{t('Payé')}</span> : p.statut === 'partiel' ? <span className="puce todo">{t('Reste {montant}', { montant: argent(p.montant - (p.recu ?? 0)) })}</span> : p.statut === 'retard' ? <span className="puce todo">{t('En retard')}</span> : <span className="puce neutral">{t('À venir')}</span>}</td>
+              <td className="droite">{p.statut === 'paye' && <Link className="lien ligne-ic" scroll={false} href={`/locataire/paiements?r=${p.id}`}><Icone nom="receipt" taille={16} couleur="#2E5788" />{t('Reçu')}</Link>}</td></tr>)}
+              {!D.historique.length && <tr><td colSpan={6} className="gris">{t('Aucun loyer pour l’instant.')}</td></tr>}</tbody></table>
         </section>
         <div className="lo-colonne">
-          <section className="carte-l18" aria-label="Mode de paiement">
-            <header className="tete-action"><h2 className="titre-carte" style={{ margin: 0 }}>Mode de paiement</h2><button className="lien" onClick={() => setFenetreMode(true)}>Modifier</button></header>
+          <section className="carte-l18" aria-label={t('Mode de paiement')}>
+            <header className="tete-action"><h2 className="titre-carte" style={{ margin: 0 }}>{t('Mode de paiement')}</h2><button className="lien" onClick={() => setFenetreMode(true)}>{t('Modifier')}</button></header>
             <div className="lo-mode"><span className="a-faire-ic"><Icone nom={pad ? 'card' : 'send'} taille={18} couleur="#0C2147" /></span>
-              <div><strong>{pad ? 'Prélèvement automatique' : 'Virement Interac'}</strong><span className="gris texte-13">{pad ? `${D.mode.compte ? `${D.mode.compte} · ` : ''}le 1er du mois` : D.interac ? `À chaque terme, à ${D.interac}` : 'À chaque terme, au propriétaire'}</span></div></div>
-            {!pad && D.reference && <p className="texte-13">Référence à écrire dans le message du virement : <b>{D.reference}</b></p>}
-            {D.carte_offerte && <Link className="lien ligne-ic texte-13" href="/locataire/messages?nouveau=1&sujet=Paiement%20par%20carte">Payer par carte : demander un lien sécurisé (sans frais)<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link>}
-            {suspendu && <p className="bandeau info texte-13">Votre prélèvement automatique est suspendu : la banque ne l’offre pas encore. Aucun montant ne sera prélevé; payez par virement Interac.</p>}
-            {D.mode.type === 'prelevement' && D.mode.accord && <button className="lien ligne-ic" onClick={ouvrirDpa}>Mon accord de prélèvement<Icone nom="arrow" taille={16} couleur="#2E5788" /></button>}
-            <p className="gris texte-12">{pad ? 'Prélevé par Lease Lane, mandataire de votre propriétaire, dans son compte en fidéicommis. Lease Lane n’a pas accès à vos identifiants bancaires.'
-              : D.interac ? 'Les loyers sont déposés dans le compte en fidéicommis de Lease Lane, mandataire de votre propriétaire, puis versés au propriétaire. Lease Lane n’a pas accès à vos identifiants bancaires.'
-              : 'Les loyers sont déposés directement dans le compte du propriétaire. Lease Lane n’a pas accès à vos identifiants bancaires.'}</p>
+              <div><strong>{pad ? t('Prélèvement automatique') : t('Virement Interac')}</strong><span className="gris texte-13">{pad ? `${D.mode.compte ? `${D.mode.compte} · ` : ''}${t('le 1er du mois')}` : D.interac ? t('À chaque terme, à {x}', { x: D.interac }) : t('À chaque terme, au propriétaire')}</span></div></div>
+            {!pad && D.reference && <p className="texte-13">{t('Référence à écrire dans le message du virement :')} <b>{D.reference}</b></p>}
+            {D.carte_offerte && <Link className="lien ligne-ic texte-13" href="/locataire/messages?nouveau=1&sujet=Paiement%20par%20carte">{t('Payer par carte : demander un lien sécurisé (sans frais)')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link>}
+            {suspendu && <p className="bandeau info texte-13">{t('Votre prélèvement automatique est suspendu : la banque ne l’offre pas encore. Aucun montant ne sera prélevé; payez par virement Interac.')}</p>}
+            {D.mode.type === 'prelevement' && D.mode.accord && <button className="lien ligne-ic" onClick={ouvrirDpa}>{t('Mon accord de prélèvement')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></button>}
+            <p className="gris texte-12">{pad ? t('Prélevé par Lease Lane, mandataire de votre propriétaire, dans son compte en fidéicommis. Lease Lane n’a pas accès à vos identifiants bancaires.')
+              : D.interac ? t('Les loyers sont déposés dans le compte en fidéicommis de Lease Lane, mandataire de votre propriétaire, puis versés au propriétaire. Lease Lane n’a pas accès à vos identifiants bancaires.')
+              : t('Les loyers sont déposés directement dans le compte du propriétaire. Lease Lane n’a pas accès à vos identifiants bancaires.')}</p>
           </section>
-          <section className="carte-l18" aria-label="Relevé 31"><h2 className="titre-carte" style={{ marginBottom: 2 }}>Relevé 31 — {D.releve31?.annee ?? annee}</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>Relevé fiscal annuel</p>
-            {D.releve31 ? <Link className="bouton bouton-contour" style={{ width: 'auto', display: 'inline-flex', padding: '0 20px' }} scroll={false} href={`/locataire/paiements?rl31=${D.releve31.id}`}><Icone nom="download" taille={16} couleur="#0C2147" />Voir et télécharger</Link> : <span className="puce neutral">Disponible en février</span>}
-            <p className="texte-13">Il vous est remis au plus tard le 28 février, pour votre déclaration de revenus (crédit d’impôt pour solidarité).</p></section>
+          <section className="carte-l18" aria-label="Relevé 31"><h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Relevé 31 — {annee}', { annee: D.releve31?.annee ?? annee })}</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>{t('Relevé fiscal annuel')}</p>
+            {D.releve31 ? <Link className="bouton bouton-contour" style={{ width: 'auto', display: 'inline-flex', padding: '0 20px' }} scroll={false} href={`/locataire/paiements?rl31=${D.releve31.id}`}><Icone nom="download" taille={16} couleur="#0C2147" />{t('Voir et télécharger')}</Link> : <span className="puce neutral">{t('Disponible en février')}</span>}
+            <p className="texte-13">{t('Il vous est remis au plus tard le 28 février, pour votre déclaration de revenus (crédit d’impôt pour solidarité).')}</p></section>
         </div>
       </div>
 
       {recu && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermerRecu()}>
         <div className="modale lo-recu" role="dialog" aria-modal="true" aria-labelledby="recu-t">
-          <header className="tete-action"><div><h2 id="recu-t" className="ligne-ic" style={{ margin: 0, fontSize: 20 }}>Reçu de loyer <span className="puce ok">Payé</span></h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>{recu.numero} · émis le {dateLongue(recu.emis_le)}</p></div>
-            <button className="haut-ibtn non-imprime" onClick={fermerRecu} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
-          <div className="lo-recu-parties"><div><p className="surtitre">Émis par</p><p>{recu.emetteur.nom}<br />{recu.emetteur.pour.replace(/, Québec$/, '')}<br />{[recu.emetteur.neq && `NEQ ${recu.emetteur.neq}`, recu.emetteur.adresse].filter(Boolean).join(' · ')}</p></div>
-            <div><p className="surtitre">Reçu de</p><p>{recu.locataire.nom}<br />{recu.locataire.logement.replace(/, Québec(?= —)/, '')}<br />{recu.locataire.ville.replace(/^([^,]+), Québec \(Québec\)/, '$1 (Québec)')}</p></div></div>
-          <table className="tableau lo-recu-table"><thead><tr><th>Description</th><th>Période</th><th className="droite">Montant</th></tr></thead>
-            <tbody><tr><td>Loyer mensuel</td><td>{moisAnnee(recu.periode)}</td><td className="droite">{argent(recu.montant, true)}</td></tr></tbody>
-            <tfoot><tr><td colSpan={2} className="fort">Total payé</td><td className="droite lo-recu-total">{argent(recu.montant, true)}</td></tr></tfoot></table>
-          <p className="lo-recu-note">Reçu par {recu.mode} le {dateLongue(recu.emis_le)}. Ce reçu atteste du paiement complet du loyer pour la période indiquée (art. 1568 C.c.Q.). Votre Relevé 31 annuel vous sera remis au plus tard le 28 février.</p>
-          <div className="a-faire-actions non-imprime" style={{ justifyContent: 'flex-end' }}><button className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="printer" taille={16} couleur="#0C2147" />Imprimer</button>
-            <button className="bouton bouton-principal" onClick={() => window.print()}><Icone nom="download" taille={16} couleur="#fff" />Télécharger le PDF</button></div>
+          <header className="tete-action"><div><h2 id="recu-t" className="ligne-ic" style={{ margin: 0, fontSize: 20 }}>{t('Reçu de loyer')} <span className="puce ok">{t('Payé')}</span></h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>{t('{numero} · émis le {date}', { numero: recu.numero, date: dateLongue(recu.emis_le) })}</p></div>
+            <button className="haut-ibtn non-imprime" onClick={fermerRecu} aria-label={t('Fermer')}><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
+          <div className="lo-recu-parties"><div><p className="surtitre">{t('Émis par')}</p><p>{recu.emetteur.nom}<br />{recu.emetteur.pour.replace(/, Québec$/, '')}<br />{[recu.emetteur.neq && `NEQ ${recu.emetteur.neq}`, recu.emetteur.adresse].filter(Boolean).join(' · ')}</p></div>
+            <div><p className="surtitre">{t('Reçu de')}</p><p>{recu.locataire.nom}<br />{recu.locataire.logement.replace(/, Québec(?= —)/, '')}<br />{recu.locataire.ville.replace(/^([^,]+), Québec \(Québec\)/, '$1 (Québec)')}</p></div></div>
+          <table className="tableau lo-recu-table"><thead><tr><th>{t('Description')}</th><th>{t('Période')}</th><th className="droite">{t('Montant')}</th></tr></thead>
+            <tbody><tr><td>{t('Loyer mensuel')}</td><td>{moisAnnee(recu.periode)}</td><td className="droite">{argent(recu.montant, true)}</td></tr></tbody>
+            <tfoot><tr><td colSpan={2} className="fort">{t('Total payé')}</td><td className="droite lo-recu-total">{argent(recu.montant, true)}</td></tr></tfoot></table>
+          <p className="lo-recu-note">{t('Reçu par {mode} le {date}. Ce reçu atteste du paiement complet du loyer pour la période indiquée (art. 1568 C.c.Q.). Votre Relevé 31 annuel vous sera remis au plus tard le 28 février.', { mode: t(recu.mode), date: dateLongue(recu.emis_le) })}</p>
+          <div className="a-faire-actions non-imprime" style={{ justifyContent: 'flex-end' }}><button className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="printer" taille={16} couleur="#0C2147" />{t('Imprimer')}</button>
+            <button className="bouton bouton-principal" onClick={() => window.print()}><Icone nom="download" taille={16} couleur="#fff" />{t('Télécharger le PDF')}</button></div>
         </div></div>}
 
       {rl31 && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermerRecu()}>
         <div className="modale lo-recu" role="dialog" aria-modal="true" aria-labelledby="rl31-t">
-          <header className="tete-action"><div><h2 id="rl31-t" style={{ margin: 0, fontSize: 20 }}>Relevé 31 — {rl31.annee}</h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>Renseignements sur l’occupation d’un logement au 31 décembre {rl31.annee}{rl31.code === 'A' ? ' · relevé modifié' : ''}</p></div>
-            <button className="haut-ibtn non-imprime" onClick={fermerRecu} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
-          <div className="lo-recu-parties"><div><p className="surtitre">Locateur</p><p>{rl31.donnees.locateur.nom}{rl31.donnees.locateur.adresse ? <><br />{rl31.donnees.locateur.adresse}</> : null}
-              {rl31.donnees.mandataire?.nom ? <><br /><span className="gris">par {rl31.donnees.mandataire.nom}{rl31.donnees.mandataire.neq ? ` · NEQ ${rl31.donnees.mandataire.neq}` : ''}</span></> : null}</p></div>
-            <div><p className="surtitre">Occupant au 31 décembre</p><p>{rl31.donnees.occupant.nom}</p></div></div>
+          <header className="tete-action"><div><h2 id="rl31-t" style={{ margin: 0, fontSize: 20 }}>{t('Relevé 31 — {annee}', { annee: rl31.annee })}</h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>{t('Renseignements sur l’occupation d’un logement au 31 décembre {annee}', { annee: rl31.annee })}{rl31.code === 'A' ? t(' · relevé modifié') : ''}</p></div>
+            <button className="haut-ibtn non-imprime" onClick={fermerRecu} aria-label={t('Fermer')}><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
+          <div className="lo-recu-parties"><div><p className="surtitre">{t('Locateur')}</p><p>{rl31.donnees.locateur.nom}{rl31.donnees.locateur.adresse ? <><br />{rl31.donnees.locateur.adresse}</> : null}
+              {rl31.donnees.mandataire?.nom ? <><br /><span className="gris">{t('par {nom}', { nom: rl31.donnees.mandataire.nom })}{rl31.donnees.mandataire.neq ? ` · NEQ ${rl31.donnees.mandataire.neq}` : ''}</span></> : null}</p></div>
+            <div><p className="surtitre">{t('Occupant au 31 décembre')}</p><p>{rl31.donnees.occupant.nom}</p></div></div>
           <table className="tableau lo-recu-table"><tbody>
-            <tr><td className="fort">Numéro d’identification du logement</td><td className="droite fort">{rl31.donnees.numero_logement}</td></tr>
-            <tr><td className="fort">Adresse du logement</td><td className="droite">{rl31.donnees.logement.adresse.replace(/, Québec(?= —)/, '')}{rl31.donnees.logement.code_postal ? `, ${rl31.donnees.logement.code_postal}` : ''}</td></tr>
-            <tr><td className="fort">Remis le</td><td className="droite">{dateLongue(rl31.remis_le)}</td></tr></tbody></table>
-          <p className="lo-recu-note">Conservez ce relevé : Revenu Québec le demande pour le crédit d’impôt pour solidarité. Une erreur ? Écrivez à votre gestionnaire; un relevé modifié vous sera remis.</p>
-          <div className="a-faire-actions non-imprime" style={{ justifyContent: 'flex-end' }}><button className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="printer" taille={16} couleur="#0C2147" />Imprimer</button>
-            <button className="bouton bouton-principal" onClick={() => window.print()}><Icone nom="download" taille={16} couleur="#fff" />Télécharger le PDF</button></div>
+            <tr><td className="fort">{t('Numéro d’identification du logement')}</td><td className="droite fort">{rl31.donnees.numero_logement}</td></tr>
+            <tr><td className="fort">{t('Adresse du logement')}</td><td className="droite">{rl31.donnees.logement.adresse.replace(/, Québec(?= —)/, '')}{rl31.donnees.logement.code_postal ? `, ${rl31.donnees.logement.code_postal}` : ''}</td></tr>
+            <tr><td className="fort">{t('Remis le')}</td><td className="droite">{dateLongue(rl31.remis_le)}</td></tr></tbody></table>
+          <p className="lo-recu-note">{t('Conservez ce relevé : Revenu Québec le demande pour le crédit d’impôt pour solidarité. Une erreur ? Écrivez à votre gestionnaire; un relevé modifié vous sera remis.')}</p>
+          <div className="a-faire-actions non-imprime" style={{ justifyContent: 'flex-end' }}><button className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="printer" taille={16} couleur="#0C2147" />{t('Imprimer')}</button>
+            <button className="bouton bouton-principal" onClick={() => window.print()}><Icone nom="download" taille={16} couleur="#fff" />{t('Télécharger le PDF')}</button></div>
         </div></div>}
       {fenetreMode && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setFenetreMode(false)}>
         <div className="modale lo-modes" role="dialog" aria-modal="true" aria-labelledby="mode-t">
-          <header className="tete-action"><div><p className="surtitre">Paiements</p><h2 id="mode-t" style={{ margin: 0 }}>Changer de mode de paiement</h2></div>
-            <button className="haut-ibtn" onClick={() => setFenetreMode(false)} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
-          {([['prelevement', 'card', 'Prélèvement automatique', 'Le 1er du mois, depuis votre compte bancaire'], ['interac', 'send', 'Virement Interac', D.interac ? `À chaque terme, à ${D.interac}` : 'À chaque terme'],
-            ['cheque', 'file', 'Chèque à chaque terme', '']] as const).filter(([k]) => k !== 'prelevement' || offert).map(([k, ic, t, s]) => { const actuel = k === 'prelevement' ? pad && !!D.mode.accord : k === 'interac' && !pad;   // un ancien prélèvement sans accord signé ici : à re-signer; prélèvement masqué tant que BMO ne l'a pas activé
+          <header className="tete-action"><div><p className="surtitre">{t('Paiements')}</p><h2 id="mode-t" style={{ margin: 0 }}>{t('Changer de mode de paiement')}</h2></div>
+            <button className="haut-ibtn" onClick={() => setFenetreMode(false)} aria-label={t('Fermer')}><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
+          {([['prelevement', 'card', 'Prélèvement automatique', t('Le 1er du mois, depuis votre compte bancaire')], ['interac', 'send', 'Virement Interac', D.interac ? t('À chaque terme, à {x}', { x: D.interac }) : t('À chaque terme')],
+            ['cheque', 'file', 'Chèque à chaque terme', '']] as const).filter(([k]) => k !== 'prelevement' || offert).map(([k, ic, ti, s]) => { const actuel = k === 'prelevement' ? pad && !!D.mode.accord : k === 'interac' && !pad;   // un ancien prélèvement sans accord signé ici : à re-signer; prélèvement masqué tant que BMO ne l'a pas activé
             return <button key={k} className={`lo-mode-choix ${actuel ? 'actuel' : ''}`} disabled={actuel} onClick={() => k === 'prelevement' ? ouvrirDpa() : demanderMode(k)}><span className="a-faire-ic"><Icone nom={ic} taille={18} couleur="#0C2147" /></span>
-              <div><strong>{t}</strong>{s && <span className="gris texte-13">{s}</span>}</div>{actuel && <span className="puce info">Actuel</span>}</button>; })}
-          {offert && <p className="bandeau info"><Icone nom="info" taille={16} couleur="#2E5788" />Le prélèvement automatique est optionnel. Vous pouvez y mettre fin en tout temps avec un préavis de 10 jours.</p>}
-          <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><button className="bouton bouton-contour" onClick={() => setFenetreMode(false)}>Fermer</button></div>
+              <div><strong>{t(ti)}</strong>{s && <span className="gris texte-13">{s}</span>}</div>{actuel && <span className="puce info">{t('Actuel')}</span>}</button>; })}
+          {offert && <p className="bandeau info"><Icone nom="info" taille={16} couleur="#2E5788" />{t('Le prélèvement automatique est optionnel. Vous pouvez y mettre fin en tout temps avec un préavis de 10 jours.')}</p>}
+          <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><button className="bouton bouton-contour" onClick={() => setFenetreMode(false)}>{t('Fermer')}</button></div>
         </div></div>}
       {dpa && <div className="voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setDpa(null)}>
         <form className="modale lo-modes" role="dialog" aria-modal="true" aria-labelledby="dpa-t" onSubmit={(e) => { e.preventDefault(); signerDpa(); }}>
-          <header className="tete-action"><div><p className="surtitre">Paiements</p><h2 id="dpa-t" style={{ margin: 0 }}>{dpa.actif ? 'Mon accord de prélèvement' : 'Prélèvement automatique'}</h2></div>
-            <button type="button" className="haut-ibtn" onClick={() => setDpa(null)} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
+          <header className="tete-action"><div><p className="surtitre">Paiements</p><h2 id="dpa-t" style={{ margin: 0 }}>{dpa.actif ? t('Mon accord de prélèvement') : t('Prélèvement automatique')}</h2></div>
+            <button type="button" className="haut-ibtn" onClick={() => setDpa(null)} aria-label={t('Fermer')}><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
           {dpa.actif ? <>
-            <p className="texte-13">{argent(dpa.montant)} le 1er du mois, compte {dpa.compte} · signé le {dateLongue(dpa.signe_le)}</p>
+            <p className="texte-13">{t('{montant} le 1er du mois, compte {compte} · signé le {date}', { montant: argent(dpa.montant), compte: dpa.compte, date: dateLongue(dpa.signe_le) })}</p>
             <pre className="lo-dpa">{dpa.texte}</pre>
-            <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><button type="button" className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="printer" taille={16} couleur="#0C2147" />Imprimer</button>
-              <button type="button" className="bouton bouton-contour" onClick={annulerDpa}>Mettre fin au prélèvement</button></div>
+            <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><button type="button" className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="printer" taille={16} couleur="#0C2147" />{t('Imprimer')}</button>
+              <button type="button" className="bouton bouton-contour" onClick={annulerDpa}>{t('Mettre fin au prélèvement')}</button></div>
           </> : <>
-            <p className="texte-13">{argent(dpa.montant)} le 1er du mois, à compter du {dateLongue(dpa.premier)}. Les numéros sont sur un spécimen de chèque ou dans votre application bancaire.</p>
-            <label className="fenetre-lib" htmlFor="dpa-n">Titulaire du compte</label>
+            <p className="texte-13">{t('{montant} le 1er du mois, à compter du {date}. Les numéros sont sur un spécimen de chèque ou dans votre application bancaire.', { montant: argent(dpa.montant), date: dateLongue(dpa.premier) })}</p>
+            <label className="fenetre-lib" htmlFor="dpa-n">{t('Titulaire du compte')}</label>
             <input id="dpa-n" className="e70-raison" maxLength={30} autoComplete="name" value={f.titulaire} onChange={(e) => setF({ ...f, titulaire: e.target.value })} />
-            <div className="po-deux"><div><label className="fenetre-lib" htmlFor="dpa-i">Institution (3 chiffres)</label><input id="dpa-i" className="e70-raison" inputMode="numeric" maxLength={3} value={f.institution} onChange={(e) => setF({ ...f, institution: e.target.value.replace(/\D/g, '') })} /></div>
-              <div><label className="fenetre-lib" htmlFor="dpa-t2">Transit (5 chiffres)</label><input id="dpa-t2" className="e70-raison" inputMode="numeric" maxLength={5} value={f.transit} onChange={(e) => setF({ ...f, transit: e.target.value.replace(/\D/g, '') })} /></div></div>
-            <label className="fenetre-lib" htmlFor="dpa-c">Numéro de compte</label>
+            <div className="po-deux"><div><label className="fenetre-lib" htmlFor="dpa-i">{t('Institution (3 chiffres)')}</label><input id="dpa-i" className="e70-raison" inputMode="numeric" maxLength={3} value={f.institution} onChange={(e) => setF({ ...f, institution: e.target.value.replace(/\D/g, '') })} /></div>
+              <div><label className="fenetre-lib" htmlFor="dpa-t2">{t('Transit (5 chiffres)')}</label><input id="dpa-t2" className="e70-raison" inputMode="numeric" maxLength={5} value={f.transit} onChange={(e) => setF({ ...f, transit: e.target.value.replace(/\D/g, '') })} /></div></div>
+            <label className="fenetre-lib" htmlFor="dpa-c">{t('Numéro de compte')}</label>
             <input id="dpa-c" className="e70-raison" inputMode="numeric" maxLength={12} autoComplete="off" value={f.compte} onChange={(e) => setF({ ...f, compte: e.target.value.replace(/\D/g, '') })} />
             <pre className="lo-dpa">{apercu}</pre>
             <label className="ligne-sms"><input type="checkbox" checked={f.accepte} onChange={(e) => setF({ ...f, accepte: e.target.checked })} />
-              <span>J’ai lu l’accord et j’autorise Lease Lane à débiter ce compte. Ma signature électronique est mon nom ci-dessus.</span></label>
-            <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><button type="button" className="bouton bouton-contour" onClick={() => setDpa(null)}>Annuler</button>
-              <button className="bouton bouton-principal" disabled={envoi || !f.accepte || f.titulaire.trim().length < 2 || f.institution.length !== 3 || f.transit.length !== 5 || f.compte.length < 5}>{envoi ? 'Signature…' : 'Signer l’accord'}</button></div>
+              <span>{t('J’ai lu l’accord et j’autorise Lease Lane à débiter ce compte. Ma signature électronique est mon nom ci-dessus.')}</span></label>
+            <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><button type="button" className="bouton bouton-contour" onClick={() => setDpa(null)}>{t('Annuler')}</button>
+              <button className="bouton bouton-principal" disabled={envoi || !f.accepte || f.titulaire.trim().length < 2 || f.institution.length !== 3 || f.transit.length !== 5 || f.compte.length < 5}>{envoi ? t('Signature…') : t('Signer l’accord')}</button></div>
           </>}
         </form></div>}
       {toast && <div className="toast" role="status"><Icone nom="check" taille={18} couleur="#fff" />{toast}</div>}

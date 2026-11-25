@@ -6,11 +6,13 @@ import { Icone } from '@/composants/Icones';
 import { BailFenetre, type BailMode } from './BailFenetre';
 import { Photos } from './Photos';
 import { montantSaisi } from '@/lib/format';
+import { useT } from '@/composants/Langue';
 
 /* Logement : ajout ou modification (numéro, type, loyer demandé, superficie, étage, disponibilité). Rendre un logement disponible lance l'annonce automatique. */
 export type LogementEdit = { id?: string; numero: string; type: string | null; loyer: number | null; superficie: number | null; etage: number | null; statut: string; locataire?: string | null; tenant_id?: string | null };
 export function LogementTiroir({ buildingId, adresse, logement, fermer, fait, photos }: { buildingId: string; adresse?: string; logement: LogementEdit | null; fermer: () => void; fait?: (message: string) => void; photos?: string[] }) {
   const router = useRouter();
+  const { t } = useT();
   const [f, setF] = useState({ numero: logement?.numero ?? '', type: logement?.type ?? '', loyer: logement?.loyer?.toString() ?? '', superficie: logement?.superficie?.toString() ?? '', etage: logement?.etage?.toString() ?? '', statut: logement?.statut ?? 'occupied' });
   const [envoi, setEnvoi] = useState(false), [erreur, setErreur] = useState<string | null>(null), [bail, setBail] = useState<BailMode | null>(null);
   async function enregistrer() {
@@ -26,24 +28,24 @@ export function LogementTiroir({ buildingId, adresse, logement, fermer, fait, ph
   return (
     <div className="voile tiroir-voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermer()}>
       <form className="tiroir" role="dialog" aria-modal="true" aria-labelledby="lg-t" onSubmit={(e) => { e.preventDefault(); enregistrer(); }}>
-        <header className="tiroir-tete"><h2 id="lg-t">{logement?.id ? `Logement ${logement.numero}` : 'Ajouter un logement'}</h2><button type="button" className="haut-ibtn" onClick={fermer} aria-label="Fermer"><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
+        <header className="tiroir-tete"><h2 id="lg-t">{logement?.id ? t('Logement {n}', { n: logement.numero }) : t('Ajouter un logement')}</h2><button type="button" className="haut-ibtn" onClick={fermer} aria-label={t('Fermer')}><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
         <div className="tiroir-corps">
           {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
           {logement?.id && <div className="tete-action" style={{ padding: '12px 14px', border: '1px solid #DCE3EC', borderRadius: 12, marginBottom: 16 }}>
-            <span className="texte-13">{logement.tenant_id ? <>Loué à <strong>{logement.locataire}</strong></> : <span className="gris">Aucun locataire</span>}</span>
+            <span className="texte-13">{logement.tenant_id ? <>{t('Loué à')} <strong>{logement.locataire}</strong></> : <span className="gris">{t('Aucun locataire')}</span>}</span>
             <button type="button" className="bouton bouton-contour" style={{ width: 'auto', height: 36, padding: '0 14px', fontSize: 13 }}
-              onClick={() => setBail(logement.tenant_id ? { mode: 'changer', unitId: logement.id!, libelle, ancien: logement.locataire ?? 'Le locataire', loyer: logement.loyer }
+              onClick={() => setBail(logement.tenant_id ? { mode: 'changer', unitId: logement.id!, libelle, ancien: logement.locataire ?? t('Le locataire'), loyer: logement.loyer }
                 : { mode: 'ajouter', unitId: logement.id!, libelle, loyer: logement.loyer })}>
-              <Icone nom={logement.tenant_id ? 'users' : 'plus'} taille={16} couleur="#0C2147" />{logement.tenant_id ? 'Changer de locataire' : 'Ajouter un locataire'}</button></div>}
-          <div className="po-deux">{champ('numero', 'Numéro')}{champ('type', 'Type (ex. : 4½)')}{champ('loyer', 'Loyer demandé ($)', true)}{champ('superficie', 'Superficie (pi²)', true)}{champ('etage', 'Étage', true)}
-            <div><label className="fenetre-lib" htmlFor="lg-s">Disponibilité</label><select id="lg-s" className="e70-raison" value={f.statut} onChange={(e) => setF({ ...f, statut: e.target.value })}>
-              <option value="occupied">Loué</option><option value="soon_available">Libre bientôt</option><option value="available">Libre maintenant</option></select></div></div>
-          {f.statut !== 'occupied' && logement?.statut === 'occupied' && <p className="gris texte-13" style={{ marginTop: 12 }}>L’annonce sera rédigée automatiquement, puis à relire dans Mise en marché.</p>}
-          {logement?.id && photos && <div style={{ marginTop: 20 }}><Photos dossier={logement.id} chemins={photos} titre="Photos du logement"
-            aide="Déposez-les dès l’intégration, même si le logement est loué : elles servent à l’annonce le jour où il se libère."
+              <Icone nom={logement.tenant_id ? 'users' : 'plus'} taille={16} couleur="#0C2147" />{logement.tenant_id ? t('Changer de locataire') : t('Ajouter un locataire')}</button></div>}
+          <div className="po-deux">{champ('numero', t('Numéro'))}{champ('type', t('Type (ex. : 4½)'))}{champ('loyer', t('Loyer demandé ($)'), true)}{champ('superficie', t('Superficie (pi²)'), true)}{champ('etage', t('Étage'), true)}
+            <div><label className="fenetre-lib" htmlFor="lg-s">{t('Disponibilité')}</label><select id="lg-s" className="e70-raison" value={f.statut} onChange={(e) => setF({ ...f, statut: e.target.value })}>
+              <option value="occupied">{t('Loué')}</option><option value="soon_available">{t('Libre bientôt')}</option><option value="available">{t('Libre maintenant')}</option></select></div></div>
+          {f.statut !== 'occupied' && logement?.statut === 'occupied' && <p className="gris texte-13" style={{ marginTop: 12 }}>{t('L’annonce sera rédigée automatiquement, puis à relire dans Mise en marché.')}</p>}
+          {logement?.id && photos && <div style={{ marginTop: 20 }}><Photos dossier={logement.id} chemins={photos} titre={t('Photos du logement')}
+            aide={t('Déposez-les dès l’intégration, même si le logement est loué : elles servent à l’annonce le jour où il se libère.')}
             enregistrer={async (c) => { const { error } = await supabaseNavigateur().rpc('lanceur_annonce_photos', { p: { unit_id: logement.id, photos: c } }); return error?.message ?? null; }} /></div>}
         </div>
-        <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>Annuler</button><button className="bouton bouton-principal" disabled={envoi || !f.numero.trim()}>Enregistrer</button></footer>
+        <footer className="tiroir-pied a-faire-actions"><button type="button" className="bouton bouton-contour" onClick={fermer}>{t('Annuler')}</button><button className="bouton bouton-principal" disabled={envoi || !f.numero.trim()}>{t('Enregistrer')}</button></footer>
       </form>
     </div>
   );

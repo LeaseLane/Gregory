@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { useT } from '@/composants/Langue';
 import type { DonneesComptes } from '../Comptes';
 
 /* Matrice des droits : un espace par ligne (lecture et écriture), un rôle par colonne. L'administrateur a tout et ne se modifie pas;
@@ -16,10 +17,11 @@ const ROLES = ['gestionnaire', 'location', 'prospection', 'comptabilite', 'lectu
 
 export function Roles({ donnees: D, erreurLecture }: { donnees: DonneesComptes | null; erreurLecture: string | null }) {
   const router = useRouter();
+  const { t } = useT();
   const [bandeau, setBandeau] = useState<string | null>(erreurLecture), [envoi, setEnvoi] = useState(false);
   const [annuler, setAnnuler] = useState<null | { role: string; perm: string; texte: string; actif: boolean }>(null), minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (minuteur.current) clearTimeout(minuteur.current); }, []);
-  if (!D) return <div className="bandeau erreur" role="alert">{bandeau}</div>;
+  if (!D) return <div className="bandeau erreur" role="alert">{bandeau ? t(bandeau) : bandeau}</div>;
   const a = (role: string, perm: string) => D.roles.find((r) => r.role === role)?.permissions.includes(perm) ?? false;
   async function basculer(role: string, perm: string, voulu?: boolean, annulation = false) {
     const actif = voulu ?? !a(role, perm);
@@ -29,29 +31,29 @@ export function Roles({ donnees: D, erreurLecture }: { donnees: DonneesComptes |
     if (minuteur.current) clearTimeout(minuteur.current);
     if (annulation) { setAnnuler(null); return; }
     const lib = ESPACES.find(([, b]) => perm.startsWith(b + '.'))?.[0] ?? perm, op = perm.split('.').pop();
-    setAnnuler({ role, perm, actif, texte: `Droit ${actif ? 'donné' : 'retiré'} : ${lib} (${op === 'lire' ? 'lecture' : op === 'ecrire' ? 'écriture' : op}) · ${D!.roles.find((r) => r.role === role)?.libelle ?? role}.` });
+    setAnnuler({ role, perm, actif, texte: t(actif ? 'Droit donné : {lib} ({op}) · {role}.' : 'Droit retiré : {lib} ({op}) · {role}.', { lib: t(lib), op: op === 'lire' ? t('lecture') : op === 'ecrire' ? t('écriture') : t(op ?? ''), role: t(D!.roles.find((r) => r.role === role)?.libelle ?? role) }) });
     minuteur.current = setTimeout(() => setAnnuler(null), 8000);
   }
   function exporter() {
-    const l = [['Droit', 'Administrateur', ...ROLES.map((r) => D!.roles.find((x) => x.role === r)?.libelle ?? r)],
-      ...ESPACES.flatMap(([lib, base, ops]) => ops.map((o) => [`${lib} · ${o === 'lire' ? 'lecture' : o === 'ecrire' ? 'écriture' : o}`, 'oui', ...ROLES.map((r) => (a(r, `${base}.${o}`) ? 'oui' : 'non'))]))];
+    const l = [[t('Droit'), t('Administrateur'), ...ROLES.map((r) => t(D!.roles.find((x) => x.role === r)?.libelle ?? r))],
+      ...ESPACES.flatMap(([lib, base, ops]) => ops.map((o) => [`${t(lib)} · ${o === 'lire' ? t('lecture') : o === 'ecrire' ? t('écriture') : t(o)}`, t('oui'), ...ROLES.map((r) => (a(r, `${base}.${o}`) ? t('oui') : t('non')))]))];
     const x = document.createElement('a'); x.href = URL.createObjectURL(new Blob(['﻿' + l.map((r) => r.join(';')).join('\n')], { type: 'text/csv' })); x.download = 'permissions.csv'; x.click();
   }
   return (
     <>
-      {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
-      {annuler && <div className="bandeau info" role="status" style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}><span>{annuler.texte}</span><button type="button" className="lien" disabled={envoi} onClick={() => basculer(annuler.role, annuler.perm, !annuler.actif, true)}>Annuler</button></div>}
-      <section className="carte-l18" aria-label="Rôles et permissions">
-        <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>Rôles et permissions</h2><p className="gris texte-13" style={{ margin: 0 }}>Cliquez une case pour donner ou retirer un droit · inscrit au journal</p></div>
-          <span className="ligne-ic"><span className="legende texte-12" style={{ margin: 0 }}><span className="ligne-ic"><i className="palier oui" style={{ width: 14, height: 14 }} />oui</span><span className="ligne-ic"><i className="palier" style={{ width: 14, height: 14 }} />non</span></span>
-            <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 14px' }} onClick={exporter}><Icone nom="download" taille={16} couleur="#0C2147" />Exporter</button></span></div>
+      {bandeau && <div className="bandeau erreur" role="alert">{t(bandeau)}</div>}
+      {annuler && <div className="bandeau info" role="status" style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}><span>{annuler.texte}</span><button type="button" className="lien" disabled={envoi} onClick={() => basculer(annuler.role, annuler.perm, !annuler.actif, true)}>{t('Annuler')}</button></div>}
+      <section className="carte-l18" aria-label={t('Rôles et permissions')}>
+        <div className="tete-action"><div><h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Rôles et permissions')}</h2><p className="gris texte-13" style={{ margin: 0 }}>{t('Cliquez une case pour donner ou retirer un droit · inscrit au journal')}</p></div>
+          <span className="ligne-ic"><span className="legende texte-12" style={{ margin: 0 }}><span className="ligne-ic"><i className="palier oui" style={{ width: 14, height: 14 }} />{t('oui')}</span><span className="ligne-ic"><i className="palier" style={{ width: 14, height: 14 }} />{t('non')}</span></span>
+            <button className="bouton bouton-contour" style={{ width: 'auto', padding: '0 14px' }} onClick={exporter}><Icone nom="download" taille={16} couleur="#0C2147" />{t('Exporter')}</button></span></div>
         <table className="tableau matrice" style={{ marginTop: 16 }}>
-          <thead><tr><th>Espace</th><th>Droit</th><th>Administrateur</th>{ROLES.map((r) => <th key={r}>{D.roles.find((x) => x.role === r)?.libelle ?? r}</th>)}</tr></thead>
-          <tbody>{ESPACES.flatMap(([lib, base, ops]) => ops.map((o, i) => <tr key={`${base}.${o}`}><td className="fort">{i === 0 ? lib : ''}</td><td className="texte-13 gris">{o === 'lire' ? 'Lecture' : o === 'ecrire' ? 'Écriture' : 'Suspendre'}</td>
-            <td><span className="palier oui" title="L’administrateur a tous les droits"><Icone nom="check" taille={14} couleur="#fff" /></span></td>
+          <thead><tr><th>{t('Espace')}</th><th>{t('Droit')}</th><th>{t('Administrateur')}</th>{ROLES.map((r) => <th key={r}>{t(D.roles.find((x) => x.role === r)?.libelle ?? r)}</th>)}</tr></thead>
+          <tbody>{ESPACES.flatMap(([lib, base, ops]) => ops.map((o, i) => <tr key={`${base}.${o}`}><td className="fort">{i === 0 ? t(lib) : ''}</td><td className="texte-13 gris">{o === 'lire' ? t('Lecture') : o === 'ecrire' ? t('Écriture') : t('Suspendre')}</td>
+            <td><span className="palier oui" title={t('L’administrateur a tous les droits')}><Icone nom="check" taille={14} couleur="#fff" /></span></td>
             {ROLES.map((r) => { const on = a(r, `${base}.${o}`), interdit = r === 'lecture' && o !== 'lire';
-              return <td key={r}><button className={`palier${on ? ' oui' : ''}`} disabled={envoi || (interdit && !on)} aria-pressed={on} aria-label={`${lib}, ${o} : ${r}`} onClick={() => basculer(r, `${base}.${o}`)}>{on && <Icone nom="check" taille={14} couleur="#fff" />}</button></td>; })}</tr>))}</tbody></table>
-        <p className="gris texte-12" style={{ marginTop: 12 }}>Les rôles Propriétaire, Locataire et Fournisseur sont gérés par les portails : chacun ne voit que ses propres dossiers.</p>
+              return <td key={r}><button className={`palier${on ? ' oui' : ''}`} disabled={envoi || (interdit && !on)} aria-pressed={on} aria-label={`${t(lib)}, ${o} : ${r}`} onClick={() => basculer(r, `${base}.${o}`)}>{on && <Icone nom="check" taille={14} couleur="#fff" />}</button></td>; })}</tr>))}</tbody></table>
+        <p className="gris texte-12" style={{ marginTop: 12 }}>{t('Les rôles Propriétaire, Locataire et Fournisseur sont gérés par les portails : chacun ne voit que ses propres dossiers.')}</p>
       </section>
     </>
   );

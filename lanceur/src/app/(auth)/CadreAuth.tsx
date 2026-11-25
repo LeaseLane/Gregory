@@ -1,6 +1,9 @@
 /* Cadre des écrans de connexion : maquette PHASE 2/connexion-finale (auth.jsx + connexion-admin.png).
    Panneau : couches de la maquette (filtre bleu h7-duo, halo, immeubles coupés à l'horizon, reflet,
    bande d'horizon, sol à chevrons), mesurées sur connexion-admin.png à 1440 × 900 et posées en statique. */
+import { BoutonLangue } from '@/composants/Langue';
+import { tServeur } from '@/lib/i18n/serveur';
+
 const SITE = 'https://leaselane.ca';
 const IM = '/img/couverture-immeubles.png';
 
@@ -54,7 +57,9 @@ function Ville() {
   );
 }
 
-export function CadreAuth({ children, espace = 'admin' }: { children: React.ReactNode; espace?: 'admin' | 'propriétaire' | 'locataire' }) {
+export async function CadreAuth({ children, espace = 'admin' }: { children: React.ReactNode; espace?: 'admin' | 'propriétaire' | 'locataire' }) {
+  const { t, langue } = await tServeur();
+  const mot = { admin: t('admin'), 'propriétaire': t('propriétaire'), locataire: t('locataire') }[espace];
   return (
     <div className="auth">
       <aside className="auth-panneau">
@@ -62,17 +67,18 @@ export function CadreAuth({ children, espace = 'admin' }: { children: React.Reac
         <Ville />
         <div className="auth-haut">
           <img className="auth-logo" src="/img/logo-sur-marine.svg" alt="Lease Lane" />
-          <h1 className="auth-titre">Espace <span>{espace}</span></h1>
-          <p className="auth-slogan"><span>Une <b>clé</b> d’avance et ce, en <b>permanence</b>.</span></p>
+          <h1 className="auth-titre">{langue === 'en' ? <><span>{mot}</span> space</> : <>Espace <span>{mot}</span></>}</h1>
+          <p className="auth-slogan">{langue === 'en' ? <span>A <b>key</b> ahead, <b>always</b>.</span> : <span>Une <b>clé</b> d’avance et ce, en <b>permanence</b>.</span>}</p>
         </div>
-        <nav className="auth-pied" aria-label="Information légale">
-          <a href={SITE}><svg aria-hidden="true" className="chev" viewBox="0 0 16 9" fill="none" stroke="#91B5E0" strokeWidth="1.3"><path d="M4 1 1 4.5 4 8M9 1 6 4.5 9 8M14 1l-3 3.5 3 3.5" /></svg>Retour à l’accueil</a>
-          <a href={`${SITE}/conditions-utilisation`}>Conditions d’utilisation</a>
-          <a href={`${SITE}/confidentialite`}>Politique de confidentialité</a>
-          <a href={`${SITE}/temoins`}>Témoins de navigation</a>
+        <nav className="auth-pied" aria-label={t('Information légale')}>
+          <a href={SITE}><svg aria-hidden="true" className="chev" viewBox="0 0 16 9" fill="none" stroke="#91B5E0" strokeWidth="1.3"><path d="M4 1 1 4.5 4 8M9 1 6 4.5 9 8M14 1l-3 3.5 3 3.5" /></svg>{t('Retour à l’accueil')}</a>
+          <a href={`${SITE}/conditions-utilisation`}>{t('Conditions d’utilisation')}</a>
+          <a href={`${SITE}/confidentialite`}>{t('Politique de confidentialité')}</a>
+          <a href={`${SITE}/temoins`}>{t('Témoins de navigation')}</a>
         </nav>
       </aside>
       <main className="auth-droite">
+        <div style={{ position: 'absolute', top: 16, right: 20, zIndex: 2, fontSize: 14 }}><BoutonLangue /></div>
         <div className="grille-fond" aria-hidden="true">
           <svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMax slice" width="100%" height="100%">
             <g stroke="rgba(46,87,136,.2)" strokeWidth="1" fill="none">
@@ -85,9 +91,9 @@ export function CadreAuth({ children, espace = 'admin' }: { children: React.Reac
           {children}
           <a className="auth-gouv" href={`${SITE}/gouvernance`}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3767A2" strokeWidth="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" /></svg>
-            Gouvernance des renseignements personnels
+            {t('Gouvernance des renseignements personnels')}
           </a>
-          <p className="auth-ia">Cléo, l’assistante virtuelle de Lease Lane, est un système d’intelligence artificielle. Certaines demandes sont classées automatiquement ; une personne peut toujours réviser la décision.</p>
+          <p className="auth-ia">{t('Cléo, l’assistante virtuelle de Lease Lane, est un système d’intelligence artificielle. Certaines demandes sont classées automatiquement ; une personne peut toujours réviser la décision.')}</p>
         </div>
       </main>
     </div>

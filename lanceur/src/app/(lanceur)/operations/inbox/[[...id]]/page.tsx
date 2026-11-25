@@ -1,11 +1,13 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
+import { tServeur } from '@/lib/i18n/serveur';
 import { Inbox, type Fil, type Detail } from './Inbox';
 
 /* Opérations · Inbox (maquette l04) : fils à gauche, conversation au centre, contact à droite.
    Les réponses passent par la file des envois (T2) : fenêtre 8 h–22 h, STOP, coupe-circuit. */
 export default async function Page({ params }: { params: Promise<{ id?: string[] }> }) {
   const { id = [] } = await params;
+  const { t } = await tServeur();
   const supabase = await supabaseServeur();
   const [{ data: fils, error }, { data: nb }, { data: moi }] = await Promise.all([
     supabase.rpc('lanceur_conversations'),
@@ -34,7 +36,7 @@ export default async function Page({ params }: { params: Promise<{ id?: string[]
         fils={liste.map((f) => (f.id === choisi?.id ? { ...f, unread: false } : f))}
         detail={(detail as Detail | null) ?? null}
         moi={moi.user?.id ?? null}
-        erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les conversations n’ont pas pu être lues.') : null}
+        erreurLecture={error ? (error.code === 'PT403' ? error.message : t('Les conversations n’ont pas pu être lues.')) : null}
       />
     </CadreEspace>
   );

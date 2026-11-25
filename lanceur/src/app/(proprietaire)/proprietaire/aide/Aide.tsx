@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
+import { useT } from '@/composants/Langue';
 
 /* Propriétaire · 16 Aide : questions fréquentes, réponses alignées sur les décisions du 13 oct. (loyers payés chez vous, honoraires
    facturés le 5, coordination de 10 % dès 1 000 $, le propriétaire propose un locataire et l'équipe valide, prise en charge en 48 h). */
@@ -20,21 +21,22 @@ const FAQ: [string, [string, string][]][] = [
 ];
 
 export function Aide({ gestionnaire }: { gestionnaire: { nom: string; initiales: string; courriel: string } | null }) {
+  const { t } = useT();
   const [ouvert, setOuvert] = useState('Comment sont calculés les honoraires ?');
   return (
     <>
-      <div><h1 className="po-titre">Aide</h1><p className="po-sous" style={{ margin: '4px 0 0' }}>Questions fréquentes des propriétaires</p></div>
+      <div><h1 className="po-titre">{t('Aide')}</h1><p className="po-sous" style={{ margin: '4px 0 0' }}>{t('Questions fréquentes des propriétaires')}</p></div>
       <div className="po-grille-haut">
-        <div className="colonne-l18">{FAQ.map(([titre, qs], k) => <section key={titre} className={`carte-l18 ${k === 0 ? 'e2' : ''}`}><h2 className="titre-carte">{titre}</h2>
-          <ul className="po-faq">{qs.map(([q, r]) => <li key={q}><button aria-expanded={ouvert === q} onClick={() => setOuvert(ouvert === q ? '' : q)}><strong>{q}</strong><Icone nom="chevron" taille={18} couleur="#0C2147" /></button>{ouvert === q && <p>{r}</p>}</li>)}</ul></section>)}</div>
+        <div className="colonne-l18">{FAQ.map(([titre, qs], k) => <section key={titre} className={`carte-l18 ${k === 0 ? 'e2' : ''}`}><h2 className="titre-carte">{t(titre)}</h2>
+          <ul className="po-faq">{qs.map(([q, r]) => <li key={q}><button aria-expanded={ouvert === q} onClick={() => setOuvert(ouvert === q ? '' : q)}><strong>{t(q)}</strong><Icone nom="chevron" taille={18} couleur="#0C2147" /></button>{ouvert === q && <p>{t(r)}</p>}</li>)}</ul></section>)}</div>
         <div className="colonne-l18">
-          <section className="carte-l18 e2"><img src="/img/cleo.png" alt="" className="avatar-cleo" style={{ width: 48, height: 48 }} /><h2 className="titre-carte" style={{ margin: '16px 0 8px' }}>Une question qui n’est pas ici ?</h2>
-            <p className="gris texte-13">Cléo répond tout de suite, jour et nuit. {gestionnaire ? `${gestionnaire.nom.split(' ')[0]} répond` : 'L’équipe répond'} le jour ouvrable suivant.</p>
-            <p className="gris texte-13" style={{ margin: '16px 0 8px' }}>Ouvrez Cléo depuis la barre de recherche, en haut.</p>
-            <Link className="lien" href="/proprietaire/messages?nouveau=1">Écrire à l’équipe</Link></section>
-          {gestionnaire && <section className="carte-l18"><h2 className="titre-carte">Votre équipe Lease Lane</h2>
-            <div className="personne-ligne"><span className="ini" style={{ width: 44, height: 44, fontSize: 13 }}>{gestionnaire.initiales}</span><div><strong>{gestionnaire.nom}</strong><span className="gris">Gestionnaire attitrée</span></div></div>
-            <p className="ligne-ic" style={{ margin: '16px 0 8px' }}><Icone nom="mail" taille={16} couleur="#3E4A59" />{gestionnaire.courriel}</p><p className="ligne-ic" style={{ margin: 0 }}><Icone nom="clock" taille={16} couleur="#3E4A59" />Lun.–ven., 8 h à 17 h</p></section>}
+          <section className="carte-l18 e2"><img src="/img/cleo.png" alt="" className="avatar-cleo" style={{ width: 48, height: 48 }} /><h2 className="titre-carte" style={{ margin: '16px 0 8px' }}>{t('Une question qui n’est pas ici ?')}</h2>
+            <p className="gris texte-13">{t('Cléo répond tout de suite, jour et nuit.')} {gestionnaire ? t('{nom} répond le jour ouvrable suivant.', { nom: gestionnaire.nom.split(' ')[0] }) : t('L’équipe répond le jour ouvrable suivant.')}</p>
+            <p className="gris texte-13" style={{ margin: '16px 0 8px' }}>{t('Ouvrez Cléo depuis la barre de recherche, en haut.')}</p>
+            <Link className="lien" href="/proprietaire/messages?nouveau=1">{t('Écrire à l’équipe')}</Link></section>
+          {gestionnaire && <section className="carte-l18"><h2 className="titre-carte">{t('Votre équipe Lease Lane')}</h2>
+            <div className="personne-ligne"><span className="ini" style={{ width: 44, height: 44, fontSize: 13 }}>{gestionnaire.initiales}</span><div><strong>{gestionnaire.nom}</strong><span className="gris">{t('Gestionnaire attitrée')}</span></div></div>
+            <p className="ligne-ic" style={{ margin: '16px 0 8px' }}><Icone nom="mail" taille={16} couleur="#3E4A59" />{gestionnaire.courriel}</p><p className="ligne-ic" style={{ margin: 0 }}><Icone nom="clock" taille={16} couleur="#3E4A59" />{t('Lun.–ven., 8 h à 17 h')}</p></section>}
         </div>
       </div>
     </>

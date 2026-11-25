@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
 import { BandeauLocataire, useLocataire } from '@/composants/portail/CoquilleLocataire';
+import { useT } from '@/composants/Langue';
 
 /* Locataire · 14 Aide : foire aux questions (loyer, demandes, bail et départ), écrire à la gestionnaire, urgence 24/7, suggérer une
    amélioration (CONCORDANCE 2.14). Carte de crédit non offerte au lancement (décision du 13 oct.). Renseignements généraux, pas un avis juridique. */
@@ -22,28 +23,28 @@ const FAQ: [string, [string, string][]][] = [
 ];
 
 export function Aide() {
-  const { pastilles, ouvrirCleo } = useLocataire();
+  const { pastilles, ouvrirCleo } = useLocataire(), { t } = useT();
   const [ouvert, setOuvert] = useState('Comment payer mon loyer ?');
-  const C = pastilles?.contact, prenom = C?.nom?.split(' ')[0] ?? 'l’équipe';
+  const C = pastilles?.contact, prenom = C?.nom?.split(' ')[0] ?? t('l’équipe');
   return (
     <>
-      <BandeauLocataire titre="Aide" sous="Questions fréquentes des locataires" />
+      <BandeauLocataire titre={t('Aide')} sous={t('Questions fréquentes des locataires')} />
       <div className="lo-grille lo-remonte">
-        <div className="lo-colonne">{FAQ.map(([theme, qs], i) => <section key={theme} className={`carte-l18 ${i === 0 ? 'e2' : ''}`} aria-label={theme}><h2 className="titre-carte">{theme}</h2>
-          <ul className="lo-faq">{qs.map(([q, r]) => <li key={q}><button aria-expanded={ouvert === q} onClick={() => setOuvert(ouvert === q ? '' : q)}>{q}<Icone nom="chevD" taille={18} couleur="#0C2147" /></button>
-            {ouvert === q && <p>{r}</p>}</li>)}</ul></section>)}</div>
+        <div className="lo-colonne">{FAQ.map(([theme, qs], i) => <section key={theme} className={`carte-l18 ${i === 0 ? 'e2' : ''}`} aria-label={t(theme)}><h2 className="titre-carte">{t(theme)}</h2>
+          <ul className="lo-faq">{qs.map(([q, r]) => <li key={q}><button aria-expanded={ouvert === q} onClick={() => setOuvert(ouvert === q ? '' : q)}>{t(q)}<Icone nom="chevD" taille={18} couleur="#0C2147" /></button>
+            {ouvert === q && <p>{t(r)}</p>}</li>)}</ul></section>)}</div>
         <div className="lo-colonne">
-          <section className="carte-l18 e2" aria-label="Une question qui n’est pas ici ?"><span className="a-faire-ic"><Icone nom="message" taille={20} couleur="#0C2147" /></span>
-            <h2 className="titre-carte" style={{ margin: '16px 0 4px' }}>Une question qui n’est pas ici ?</h2>
-            <p className="gris texte-13">{prenom} répond le jour ouvrable suivant. <button className="lien" onClick={() => ouvrirCleo('')}>Cléo</button>, dans le menu, répond tout de suite.</p>
-            <Link className="bouton bouton-principal pleine" href="/locataire/messages?nouveau=1"><Icone nom="message" taille={16} couleur="#fff" />Écrire à {prenom}</Link></section>
-          <section id="urgence" className="carte-l18" aria-label="Urgence 24/7"><div className="personne-ligne"><span className="a-faire-ic rouge"><Icone nom="siren" taille={20} couleur="#9B2E28" /></span>
-            <div><strong style={{ fontSize: 18 }}>Urgence 24/7</strong>{C?.urgence ? <a className="rouge fort" href={`tel:+1${C.urgence.replace(/\D/g, '').slice(-10)}`}>{C.urgence}</a> : <span className="gris texte-13">Numéro communiqué à la signature du bail</span>}</div></div>
-            <p className="texte-13">Fuite, chauffage, électricité, serrure. Une personne répond, jour et nuit.</p>
-            <p className="ligne-ic gris texte-12"><Icone nom="alert" taille={14} couleur="#58697F" />En cas de danger immédiat, composez le 911.</p></section>
-          <section className="carte-l18" aria-label="Suggérer une amélioration"><h2 className="titre-carte">Suggérer une amélioration</h2>
-            <p className="gris texte-13">Une idée pour rendre votre espace plus simple ? Elle est lue par l’équipe.</p>
-            <Link className="bouton bouton-contour pleine" href="/locataire/messages?nouveau=1&sujet=Suggestion%20d%E2%80%99am%C3%A9lioration">Suggérer une amélioration</Link></section>
+          <section className="carte-l18 e2" aria-label={t('Une question qui n’est pas ici ?')}><span className="a-faire-ic"><Icone nom="message" taille={20} couleur="#0C2147" /></span>
+            <h2 className="titre-carte" style={{ margin: '16px 0 4px' }}>{t('Une question qui n’est pas ici ?')}</h2>
+            <p className="gris texte-13">{t('{prenom} répond le jour ouvrable suivant.', { prenom })} <button className="lien" onClick={() => ouvrirCleo('')}>Cléo</button>{t(', dans le menu, répond tout de suite.')}</p>
+            <Link className="bouton bouton-principal pleine" href="/locataire/messages?nouveau=1"><Icone nom="message" taille={16} couleur="#fff" />{t('Écrire à {prenom}', { prenom })}</Link></section>
+          <section id="urgence" className="carte-l18" aria-label={t('Urgence 24/7')}><div className="personne-ligne"><span className="a-faire-ic rouge"><Icone nom="siren" taille={20} couleur="#9B2E28" /></span>
+            <div><strong style={{ fontSize: 18 }}>{t('Urgence 24/7')}</strong>{C?.urgence ? <a className="rouge fort" href={`tel:+1${C.urgence.replace(/\D/g, '').slice(-10)}`}>{C.urgence}</a> : <span className="gris texte-13">{t('Numéro communiqué à la signature du bail')}</span>}</div></div>
+            <p className="texte-13">{t('Fuite, chauffage, électricité, serrure. Une personne répond, jour et nuit.')}</p>
+            <p className="ligne-ic gris texte-12"><Icone nom="alert" taille={14} couleur="#58697F" />{t('En cas de danger immédiat, composez le 911.')}</p></section>
+          <section className="carte-l18" aria-label={t('Suggérer une amélioration')}><h2 className="titre-carte">{t('Suggérer une amélioration')}</h2>
+            <p className="gris texte-13">{t('Une idée pour rendre votre espace plus simple ? Elle est lue par l’équipe.')}</p>
+            <Link className="bouton bouton-contour pleine" href="/locataire/messages?nouveau=1&sujet=Suggestion%20d%E2%80%99am%C3%A9lioration">{t('Suggérer une amélioration')}</Link></section>
         </div>
       </div>
     </>

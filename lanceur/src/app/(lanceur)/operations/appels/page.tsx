@@ -1,10 +1,12 @@
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { CadreEspace } from '@/composants/CadreEspace';
+import { tServeur } from '@/lib/i18n/serveur';
 import { Appels, type DonneesAppels } from './Appels';
 
 /* Opérations · Appels (x17, TT) : appels entrants et sortants, messages vocaux transcrits, composer un appel.
    Pas de maquette pour cet écran : composants et styles repris des écrans l02, l04 et e05. */
 export default async function Page() {
+  const { t } = await tServeur();
   const supabase = await supabaseServeur();
   const [{ data, error }, { data: nb }, { data: fils }] = await Promise.all([
     supabase.rpc('lanceur_appels', { p_jours: 7 }), supabase.rpc('lanceur_nb_a_approuver'), supabase.rpc('lanceur_conversations'),
@@ -26,7 +28,7 @@ export default async function Page() {
       ]}
     >
       <Appels donnees={(data as DonneesAppels | null) ?? null} prod={process.env.LL_ENV === 'production'}
-        erreurLecture={error ? (error.code === 'PT403' ? error.message : 'Les appels n’ont pas pu être lus.') : null} />
+        erreurLecture={error ? (error.code === 'PT403' ? error.message : t('Les appels n’ont pas pu être lus.')) : null} />
     </CadreEspace>
   );
 }
