@@ -801,5 +801,10 @@ const dico: Record<string, string> = {
   "Colonnes": "Columns",
   "Vérification": "Check",
   "Import": "Import",
+  'Importer le bail (PDF, Word, PowerPoint ou photo)': 'Import the lease (PDF, Word, PowerPoint or photo)',
+  'La copie modifiable n’a pas pu être préparée.': 'The editable copy could not be prepared.',
+  'modifiable': 'editable',
+  'Préparation de la copie modifiable… (environ 1 minute)': 'Preparing the editable copy… (about 1 minute)',
+  'Télécharger une copie modifiable (Word)': 'Download an editable copy (Word)',
 };
 export default dico;

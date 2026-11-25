@@ -29,6 +29,21 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
   const [lu, setLu] = useState<BailLu | null>(null), [fichierBail, setFichierBail] = useState<File | null>(null), [lecture, setLecture] = useState(false), [invProprio, setInvProprio] = useState(true);
   // Bail lu sur un logement reconnu (Greg, 23 nov. 2026) : locataire, bail, colocataires et invitations en une seule étape (lanceur_importer_bail).
   const complet = f.type === 'locataire' && !!lu && !!logement;
+  // Copie modifiable (Greg, 2026-11-25) : Cléo transcrit le bail déposé et on télécharge un .docx à corriger dans Word.
+  const [copie, setCopie] = useState(false);
+  async function copieModifiable() {
+    if (!fichierBail || copie) return;
+    setCopie(true); setErreur(null);
+    const corps = new FormData(); corps.append('fichier', fichierBail); corps.append('action', 'transcrire');
+    const r = await fetch('/api/bail/lire', { method: 'POST', body: corps }).then(async (x) => ({ ok: x.ok, j: await x.json().catch(() => ({})) })).catch(() => ({ ok: false, j: {} as { error?: string } }));
+    setCopie(false);
+    if (!r.ok || !r.j.docx) return setErreur(r.j.error ?? t('La copie modifiable n’a pas pu être préparée.'));
+    const octets = Uint8Array.from(atob(r.j.docx), (c) => c.charCodeAt(0));
+    const lien = document.createElement('a');
+    lien.href = URL.createObjectURL(new Blob([octets], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+    lien.download = `${fichierBail.name.replace(/\.[^.]+$/, '')} (${t('modifiable')}).docx`;
+    lien.click(); setTimeout(() => URL.revokeObjectURL(lien.href), 10_000);
+  }
   async function lireBail(fichier: File) {
     if (fichier.size > 10 * 1024 * 1024) return setErreur(t('Le bail dépasse 10 Mo : envoyez une copie plus légère.'));
     setLecture(true); setErreur(null);
@@ -51,7 +66,7 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
     const id = complet ? (data as { tenant_id: string }).tenant_id : (data as { id: string }).id, sb = supabaseNavigateur();
     // Le bail importé est rangé dans les documents du locataire (même dossier que la fiche locataire).
     if (fichierBail && f.type === 'locataire') {
-      const chemin = `locataires/${id}/documents/${crypto.randomUUID().slice(0, 8)}-bail.${fichierBail.type === 'application/pdf' ? 'pdf' : fichierBail.type.split('/')[1]}`;
+      const chemin = `locataires/${id}/documents/${crypto.randomUUID().slice(0, 8)}-bail.${(fichierBail.name.split('.').pop() ?? 'pdf').toLowerCase().replace(/[^a-z0-9]/g, '') || 'pdf'}`;
       const { error: e1 } = await sb.storage.from('portail').upload(chemin, fichierBail, { contentType: fichierBail.type, upsert: false });
       if (!e1) await sb.rpc('lanceur_locataire_document_ajouter', { p: { tenant_id: id, titre: 'Bail', chemin, taille: fichierBail.size } });
     }
@@ -83,14 +98,16 @@ export function NouveauClient({ type: type0 = 'proprietaire' }: { type?: 'propri
             <p className="gris texte-12">{t('Un locataire se crée aussi depuis une candidature acceptée.')}</p>
             {f.type === 'locataire' && <div className="nc-bail" style={{ margin: '12px 0 4px' }}>
               <label className={`bouton bouton-contour${lecture ? ' desactive' : ''}`} style={{ width: 'auto', padding: '0 16px', cursor: lecture ? 'wait' : 'pointer' }}>
-                <Icone nom="upload" taille={16} couleur="#0C2147" />{lecture ? t('Lecture du bail… (environ 30 secondes)') : lu ? t('Importer un autre bail') : t('Importer le bail (PDF ou photo)')}
-                <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" hidden disabled={lecture} onChange={(e) => { const x = e.target.files?.[0]; e.target.value = ''; if (x) lireBail(x); }} /></label>
+                <Icone nom="upload" taille={16} couleur="#0C2147" />{lecture ? t('Lecture du bail… (environ 30 secondes)') : lu ? t('Importer un autre bail') : t('Importer le bail (PDF, Word, PowerPoint ou photo)')}
+                <input type="file" accept=".pdf,.docx,.pptx,.odt,.txt,application/pdf,image/jpeg,image/png,image/webp,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.oasis.opendocument.text,text/plain" hidden disabled={lecture} onChange={(e) => { const x = e.target.files?.[0]; e.target.value = ''; if (x) lireBail(x); }} /></label>
               {lu && <div className="bandeau info" role="status" style={{ marginTop: 12 }}>
                 <strong>{t('Bail lu, à vérifier avant de créer.')}</strong>{' '}
                 {[lu.adresse && `${lu.adresse}${lu.logement ? ` — ${t('logement {n}', { n: lu.logement })}` : ''}`, lu.loyer && t('{m} par mois', { m: argentL(lu.loyer, locale) }),
                   lu.debut && (lu.fin ? t('du {a} au {b}', { a: jourLong(lu.debut, locale), b: jourLong(lu.fin, locale) }) : t('du {a} (durée indéterminée)', { a: jourLong(lu.debut, locale) }))].filter(Boolean).join(' · ')}.
                 {' '}{logement ? <>{lu.locataires.length > 1 ? t('« Créer » fait tout d’un coup : le locataire, le bail sur ce logement, les colocataires ({noms}) et les invitations au portail.', { noms: lu.locataires.slice(1).map((l) => l.nom).join(', ') }) : t('« Créer » fait tout d’un coup : le locataire, le bail sur ce logement et les invitations au portail.')}</> : t('Logement non trouvé parmi les logements libres : vous le choisirez à l’étape du bail.')}
-                {lu.remarques && <> {t('À vérifier :')} {lu.remarques}</>}</div>}
+                {lu.remarques && <> {t('À vérifier :')} {lu.remarques}</>}
+                <div style={{ marginTop: 8 }}><button type="button" className="lien" disabled={copie} onClick={copieModifiable}>
+                  {copie ? t('Préparation de la copie modifiable… (environ 1 minute)') : t('Télécharger une copie modifiable (Word)')}</button></div></div>}
             </div>}
             <div className="po-deux">{champ('nom', t('Nom'))}{f.type === 'proprietaire' ? champ('entreprise', t('Entreprise (facultatif)'), { ph: t('Ex. : Placements Nguyen inc.') }) : <div />}
               {champ('courriel', f.type === 'locataire' && !f.inviter ? t('Courriel (facultatif)') : t('Courriel'), { type: 'email' })}{champ('telephone', t('Téléphone'), { type: 'tel' })}
