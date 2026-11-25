@@ -9,6 +9,7 @@ import { classer, type Bail } from "../_shared/rapprochement-fiducie.ts";
 import { numeroter, verifierContinuite, type LigneReleve } from "../_shared/releve-fiducie.ts";
 import { enTetesAppelInterne } from "../_shared/appel-interne.ts";
 import { notifierEquipe } from "../_shared/inscription.ts";
+import { configMoneris, recu as recuMoneris } from "../_shared/moneris.ts";
 // Liste blanche d'origines : évite d'exposer les fonctions à un
 // site tiers qui embarquerait un appel authentifié depuis le
 // navigateur d'un usager (CSRF via fetch). Les appels serveur à
@@ -538,6 +539,20 @@ Deno.serve(async (req) => {
       const { transaction_id, parts } = body;
       if (!uuid(transaction_id) || !Array.isArray(parts) || !parts.length || parts.length > 20) return new Response(JSON.stringify({ error: "Répartition invalide" }), { status: 400, headers: corsHeaders });
       return repondre(() => rpcAttente("fiducie_repartir_depot", { p_transaction: transaction_id, p_parts: parts, p_par: userId }), "fiducie.depot_reparti", transaction_id, { parts });
+    }
+    // Paiements par carte (Moneris) : liste (avec revérification des billets ouverts chez Moneris) et dépôt au cent près.
+    if (action === "fiducie_cartes") {
+      const c = configMoneris();
+      if (c && body.verifier === true) {
+        const ouverts = await fetch(`${supabaseUrl}/rest/v1/paiements_carte?statut=eq.ouvert&ticket=not.is.null&environnement=eq.${c.env}&select=id,ticket&limit=50`, { headers: adminHeaders }).then((r) => r.json()).catch(() => []);
+        for (const o of ouverts as { id: string; ticket: string }[]) await recuMoneris(c, o.ticket).then((r) => rpcAttente("carte_conclure", { p_id: o.id, p_recu: r })).catch(() => null);
+      }
+      return new Response(JSON.stringify({ cartes: await rpcAttente("fiducie_cartes", {}) }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (action === "fiducie_deposer_carte") {
+      const { transaction_id, cartes } = body;
+      if (!uuid(transaction_id) || !Array.isArray(cartes) || !cartes.length || cartes.length > 200 || !cartes.every(uuid)) return new Response(JSON.stringify({ error: "Dépôt par carte invalide" }), { status: 400, headers: corsHeaders });
+      return repondre(() => rpcAttente("fiducie_deposer_carte", { p_transaction: transaction_id, p_cartes: cartes, p_par: userId }), "fiducie.depot_carte", transaction_id, { cartes: cartes.length });
     }
     if (action === "fiducie_decider") {
       const { attente_id, decision, note } = body;

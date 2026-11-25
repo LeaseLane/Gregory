@@ -20,7 +20,7 @@ type Donnees = { attentes: Attente[]; sorties: Sortie[]; lignes: Ligne[]; propri
 /** Panneau d'un dépôt à traiter : répartir, ou le relier à un versement retourné. */
 export function Repartir({ depot, baux, faire, occupe, fini }: { depot: { id: string; amount: number; description: string }; baux: BailF[]; faire: Faire; occupe: boolean; fini: () => void }) {
   const { t, locale } = useT(); const cents = (n: number) => argent(n, true, locale);
-  const [D, setD] = useState<Donnees | null>(null), [mode, setMode] = useState<'parts' | 'retour'>('parts'), [ligne, setLigne] = useState('');
+  const [D, setD] = useState<Donnees | null>(null), [mode, setMode] = useState<'parts' | 'retour' | 'carte'>(/moneris/i.test(depot.description) ? 'carte' : 'parts'), [ligne, setLigne] = useState('');
   const [parts, setParts] = useState<{ type: 'bail' | 'apport' | 'erreur'; id: string; montant: string; note: string }[]>([{ type: 'bail', id: '', montant: String(depot.amount), note: '' }]);
   useEffect(() => { faire<Donnees>({ action: 'fiducie_attentes' }).then(setD); }, [faire]);
   const total = parts.reduce((s, p) => s + (Number(p.montant.replace(',', '.')) || 0), 0), reste = Math.round((depot.amount - total) * 100) / 100;
@@ -31,8 +31,9 @@ export function Repartir({ depot, baux, faire, occupe, fini }: { depot: { id: st
       <div className="ligne-ic" style={{ gap: 16, marginBottom: 8 }}>
         <label className="case texte-13"><input type="radio" checked={mode === 'parts'} onChange={() => setMode('parts')} />{t('Répartir le dépôt')}</label>
         <label className="case texte-13"><input type="radio" checked={mode === 'retour'} onChange={() => setMode('retour')} />{t('C’est un versement retourné')}</label>
+        <label className="case texte-13"><input type="radio" checked={mode === 'carte'} onChange={() => setMode('carte')} />{t('Paiements par carte (Moneris)')}</label>
       </div>
-      {mode === 'parts' ? <>
+      {mode === 'carte' ? <DepotCarte depot={depot} faire={faire} occupe={occupe} fini={fini} /> : mode === 'parts' ? <>
         {parts.map((p, i) => <div key={i} className="ligne-ic" style={{ gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
           <select className="e70-raison" aria-label={t('Type de la part {n}', { n: i + 1 })} value={p.type} onChange={(e) => maj(i, { type: e.target.value as 'bail', id: '' })}>
             <option value="bail">{t('Loyer d’un bail')}</option><option value="apport">{t('Apport d’un propriétaire')}</option><option value="erreur">{t('Reçu par erreur (à rendre)')}</option></select>
@@ -59,6 +60,43 @@ export function Repartir({ depot, baux, faire, occupe, fini }: { depot: { id: st
       </>}
     </div>
   );
+}
+
+type Carte = { id: string; statut: 'approuve' | 'a_verifier' | 'ouvert'; montant: number; lot: string | null; carte: string | null; motif: string | null; approuve_le: string | null;
+  created_at: string; locataire: string; reference: string | null; echeance: string };
+
+/** Dépôt de Moneris = paiements par carte approuvés, choisis au cent près. Chacun va à son loyer, chez le propriétaire du jour du paiement.
+    Préchoix : le lot Moneris dont le total égale le dépôt (sinon rien; une personne choisit). */
+function DepotCarte({ depot, faire, occupe, fini }: { depot: { id: string; amount: number }; faire: Faire; occupe: boolean; fini: () => void }) {
+  const { t, locale } = useT(); const cents = (n: number) => argent(n, true, locale);
+  const [C, setC] = useState<Carte[] | null>(null), [choix, setChoix] = useState<Set<string>>(new Set());
+  const charger = useCallback(async (verifier = false) => {
+    const d = await faire<{ cartes: Carte[] }>({ action: 'fiducie_cartes', verifier });
+    if (!d) return; setC(d.cartes);
+    const ok = d.cartes.filter((c) => c.statut === 'approuve'), lots = new Map<string, Carte[]>();
+    for (const c of ok) lots.set(c.lot ?? '—', [...(lots.get(c.lot ?? '—') ?? []), c]);
+    const somme = (l: Carte[]) => Math.round(l.reduce((s, c) => s + Number(c.montant), 0) * 100) / 100;
+    const lot = [...lots.values()].find((l) => somme(l) === depot.amount) ?? (somme(ok) === depot.amount ? ok : []);
+    setChoix(new Set(lot.map((c) => c.id)));
+  }, [faire, depot.amount]);
+  useEffect(() => { charger(); }, [charger]);
+  if (!C) return <p className="gris texte-13">{t('Chargement…')}</p>;
+  const ok = C.filter((c) => c.statut === 'approuve'), autres = C.filter((c) => c.statut !== 'approuve');
+  const total = Math.round(ok.filter((c) => choix.has(c.id)).reduce((s, c) => s + Number(c.montant), 0) * 100) / 100, ecart = Math.round((depot.amount - total) * 100) / 100;
+  return <>
+    {ok.length ? <table className="tableau"><thead><tr><th /><th>{t('Payé le')}</th><th>{t('Lot Moneris')}</th><th>{t('Locataire')}</th><th>{t('Loyer du')}</th><th className="droite">{t('Montant')}</th></tr></thead>
+      <tbody>{ok.map((c) => <tr key={c.id}><td><input type="checkbox" aria-label={t('Inclure')} checked={choix.has(c.id)} onChange={(e) => { const n = new Set(choix); if (e.target.checked) n.add(c.id); else n.delete(c.id); setChoix(n); }} /></td>
+        <td>{c.approuve_le ? new Date(c.approuve_le).toLocaleString(locale, { timeZone: 'America/Toronto', dateStyle: 'medium', timeStyle: 'short' }) : '—'}</td><td>{c.lot ?? '—'}</td>
+        <td>{c.locataire}<span className="sous gris">{[c.reference, c.carte].filter(Boolean).join(' · ')}</span></td><td>{c.echeance}</td><td className="droite fort">{cents(c.montant)}</td></tr>)}</tbody></table>
+      : <p className="gris texte-13">{t('Aucun paiement par carte approuvé en attente de dépôt.')}</p>}
+    {autres.length > 0 && <p className="texte-13" style={{ margin: '8px 0' }}>{autres.map((c) => <span key={c.id} className="sous">{c.statut === 'a_verifier' ? `⚠ ${t('À vérifier')}` : t('En cours')} · {c.locataire} · {cents(c.montant)}{c.motif ? ` · ${c.motif}` : ''}</span>)}</p>}
+    <p className="texte-13" style={{ margin: '6px 0' }}><span className={ecart === 0 ? 'gris' : 'rouge-txt'}>{ecart === 0 ? t('les paiements choisis égalent le dépôt') : t('écart avec le dépôt : {montant} (frais retenus, remboursement ou paiement d’un autre lot ? à répartir à la main)', { montant: cents(ecart) })}</span>
+      {' · '}<button className="lien" disabled={occupe} onClick={() => charger(true)}>{t('Revérifier chez Moneris')}</button></p>
+    <button className="bouton bouton-principal" style={{ width: 'auto', padding: '0 16px' }} disabled={occupe || !choix.size || ecart !== 0} onClick={async () => {
+      const r = await faire<{ resultat: { excedent: number } }>({ action: 'fiducie_deposer_carte', transaction_id: depot.id, cartes: [...choix] },
+        (x) => x.resultat.excedent > 0 ? t('Déposé. Excédent de {montant} en attente de décision (loyer déjà payé).', { montant: cents(x.resultat.excedent) }) : t('Déposé : loyers payés et registre crédité.'));
+      if (r) fini(); }}>{t('Déposer {n} paiement(s) par carte', { n: choix.size })}</button>
+  </>;
 }
 
 /** Section « Sommes en attente de décision ». */

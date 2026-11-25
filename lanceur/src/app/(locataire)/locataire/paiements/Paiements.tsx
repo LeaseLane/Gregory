@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
@@ -9,13 +9,14 @@ import { ouvrirFichier } from '@/composants/portail/fichiers';
 import { useT } from '@/composants/Langue';
 import { argentL } from '@/lib/format';
 import { dateCourteL, dateLongueL, moisAnneeL } from '../fmt';
+import { PayerCarte, VerifierCartes } from './PayerCarte';
 
 /* Locataire · 08 Paiements, 09 Reçu de loyer (art. 1568 C.c.Q.), 10 Changer de mode de paiement. Prélèvement automatique : accord de DPA
    signé ici (règle H1 de Paiements Canada), débité par Lease Lane dans son compte en fidéicommis. Carte de crédit : processeur à choisir, non offerte. États « en retard » et « prélèvement
    refusé » sans blâme, avec la marche à suivre (CONCORDANCE 2.10, 2.14). */
-export type PaiementsLoc = { prochain: { echeance: string; montant: number; en_retard: boolean; jours: number; echec: boolean } | null; annee: { paye: number; loyers: number; prevus: number };
-  retards: number; en_retard: number; historique: { id: string; periode: string; recu_le: string | null; mode: string | null; montant: number; recu?: number | null; statut: string }[];
-  mode: { type: string; depuis?: string; compte?: string | null; montant?: number | null; premier?: string | null; accord?: boolean }; interac: string | null; reference: string | null; prelevement_offert?: boolean; carte_offerte?: boolean; releve31: { id: string; annee: number } | null };
+export type PaiementsLoc = { prochain: { echeance: string; montant: number; en_retard: boolean; jours: number; echec: boolean; payable_carte?: boolean } | null; annee: { paye: number; loyers: number; prevus: number };
+  retards: number; en_retard: number; historique: { id: string; periode: string; recu_le: string | null; mode: string | null; montant: number; recu?: number | null; carte_le?: string | null; statut: string }[];
+  mode: { type: string; depuis?: string; compte?: string | null; montant?: number | null; premier?: string | null; accord?: boolean }; interac: string | null; reference: string | null; prelevement_offert?: boolean; carte_offerte?: boolean; cartes_ouvertes?: number; releve31: { id: string; annee: number } | null };
 type Dpa = { actif: false; montant: number; premier: string; modele: string } | { actif: true; montant: number; premier: string; texte: string; signe_le: string; compte: string };
 export type RL31 = { id: string; annee: number; code: string; remis_le: string; donnees: { numero_logement: string; logement: { adresse: string; ville: string | null; code_postal: string | null };
   locateur: { nom: string; adresse: string | null }; mandataire: { nom: string; neq: string | null } | null; occupant: { nom: string }; motif_correction?: string } };
@@ -23,7 +24,7 @@ export type Recu = { numero: string; emis_le: string; periode: string; montant: 
   locataire: { nom: string; logement: string; ville: string } };
 
 export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant, erreur }: { donnees: PaiementsLoc | null; recu: Recu | null; rl31: RL31 | null; erreurRecu: string | null; mode: boolean; maintenant: string; erreur: string | null }) {
-  const router = useRouter(), { t, locale } = useT();
+  const router = useRouter(), { t, locale } = useT(), rafraichir = useCallback(() => router.refresh(), [router]);
   const argent = (n: number, cents = false) => argentL(n, locale, cents), dateCourte = (i: string, a = false) => dateCourteL(i, locale, a), dateLongue = (i: string) => dateLongueL(i, locale), moisAnnee = (i: string) => moisAnneeL(i, locale);
   const [fenetreMode, setFenetreMode] = useState(mode), [toast, setToast] = useState<string | null>(null), [bandeau, setBandeau] = useState<string | null>(erreurRecu);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
@@ -36,6 +37,15 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
     setFenetreMode(false); setToast(t('Demande transmise : l’équipe vous écrit pour finaliser le changement.'));
   }
   const fermerRecu = () => router.replace('/locataire/paiements', { scroll: false });
+  const finCarte = (statut: string) => {
+    if (statut === 'approuve') setToast(t('Paiement approuvé : votre loyer est réglé. Le dépôt suit dans 1 à 3 jours ouvrables.'));
+    else if (statut === 'refuse') setBandeau(t('Paiement refusé par la banque ou la vérification de la carte. Aucun montant n’a été prélevé.'));
+    else if (statut === 'a_verifier') setToast(t('Paiement reçu : l’équipe le vérifie et vous écrit au besoin.'));
+    else setToast(t('Paiement en cours de confirmation : revenez sur cette page dans quelques minutes.'));
+    router.refresh();
+  };
+  const carteOk = D.carte_offerte === true && !!P && P.payable_carte !== false && P.montant > 0,
+    boutonCarte = carteOk && P && <PayerCarte montant={argent(P.montant, true)} libelle={t('Payer {montant} par carte', { montant: argent(P.montant, true) })} fini={finCarte} erreur={setBandeau} />;
   // Accord de DPA : modèle à remplir (pas encore de prélèvement) ou accord signé (lecture, fin du prélèvement).
   const [dpa, setDpa] = useState<Dpa | null>(null), [f, setF] = useState({ titulaire: '', institution: '', transit: '', compte: '', accepte: false }), [envoi, setEnvoi] = useState(false);
   async function ouvrirDpa() {
@@ -61,11 +71,13 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
   return (
     <>
       <BandeauLocataire titre={t('Paiements')} sous={t('Loyers reçus et reçus de loyer')} />
+      <VerifierCartes n={D.cartes_ouvertes ?? 0} fini={rafraichir} />
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       <div className="lo-grille trois lo-remonte">
         <section className="carte-l18 e2 lo-kpi" aria-label={t('Prochain loyer')}>
           {P?.en_retard ? <><span className="texte-13 fort">{P.echec ? t('Prélèvement refusé') : t('Loyer en retard')}</span><b className="rouge">{argent(P.montant)}</b>
               <small>{P.echec ? t('Le prélèvement du {date} n’a pas abouti. Un nouvel essai est prévu; vous pouvez aussi payer par virement Interac.', { date: dateCourte(P.echeance) }) : `${P.jours > 1 ? t('dû depuis le {date} ({n} jours)', { date: dateCourte(P.echeance), n: P.jours }) : t('dû depuis le {date} ({n} jour)', { date: dateCourte(P.echeance), n: P.jours })}${pad ? '' : D.interac ? t(' · par Interac à {x}', { x: D.interac }) : t(' · payable au propriétaire')}`}</small>
+              {boutonCarte}
               <Link className="lien ligne-ic" href="/locataire/messages?nouveau=1&sujet=Entente%20de%20paiement">{t('Proposer une entente de paiement')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link></>
             : <><span className="texte-13 fort">{pad ? t('Prochain prélèvement') : t('Prochain loyer')}</span><b>{P ? dateCourte(P.echeance, true) : '—'}</b>
               <small>{P ? `${argent(P.montant)}${pad ? ` · ${D.mode.compte ? t('compte {c}', { c: D.mode.compte.replace(/^.*?(·+ ?\d+)$/, '$1') }) : t('prélèvement automatique')}` : D.interac ? t(' · par Interac à {x}', { x: D.interac }) : t(' · à payer au propriétaire')}` : t('Aucun loyer à venir')}</small>
@@ -82,9 +94,9 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
           <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>{t('Historique')}</h2><p className="gris texte-13" style={{ margin: '4px 0 0' }}>{t('Chaque loyer, daté et reçu')}</p></div>
             <button className="bouton bouton-contour" onClick={() => window.print()}><Icone nom="download" taille={16} couleur="#0C2147" />{t('Relevé annuel')}</button></header>
           <table className="tableau lo-histo"><colgroup><col style={{ width: '20%' }} /><col style={{ width: '18%' }} /><col style={{ width: '14%' }} /><col style={{ width: '16%' }} /><col style={{ width: '18%' }} /><col /></colgroup><thead><tr><th>{t('Période')}</th><th>{t('Réception')}</th><th>{t('Mode')}</th><th className="droite">{t('Montant')}</th><th>{t('État')}</th><th /></tr></thead>
-            <tbody>{D.historique.map((p) => <tr key={p.id}><td className="fort">{moisAnnee(p.periode)}</td><td>{p.recu_le ? t('Reçu le {date}', { date: dateCourte(p.recu_le) }) : p.statut === 'partiel' && p.recu ? t('{montant} reçus', { montant: argent(p.recu) }) : '—'}</td><td>{p.mode ? t(p.mode) : '—'}</td>
+            <tbody>{D.historique.map((p) => <tr key={p.id}><td className="fort">{moisAnnee(p.periode)}</td><td>{p.recu_le ? t('Reçu le {date}', { date: dateCourte(p.recu_le) }) : p.statut === 'carte' && p.carte_le ? t('Payé le {date}', { date: dateCourte(p.carte_le) }) : p.statut === 'partiel' && p.recu ? t('{montant} reçus', { montant: argent(p.recu) }) : '—'}</td><td>{p.mode ? t(p.mode) : '—'}</td>
               <td className="droite fort">{argent(p.montant, true)}</td>
-              <td>{p.statut === 'paye' ? <span className="ligne-ic"><span className="okdot" style={{ marginTop: 0 }}><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>{t('Payé')}</span> : p.statut === 'partiel' ? <span className="puce todo">{t('Reste {montant}', { montant: argent(p.montant - (p.recu ?? 0)) })}</span> : p.statut === 'retard' ? <span className="puce todo">{t('En retard')}</span> : <span className="puce neutral">{t('À venir')}</span>}</td>
+              <td>{p.statut === 'paye' ? <span className="ligne-ic"><span className="okdot" style={{ marginTop: 0 }}><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>{t('Payé')}</span> : p.statut === 'carte' ? <span className="puce info">{t('Dépôt en cours')}</span> : p.statut === 'partiel' ? <span className="puce todo">{t('Reste {montant}', { montant: argent(p.montant - (p.recu ?? 0)) })}</span> : p.statut === 'retard' ? <span className="puce todo">{t('En retard')}</span> : <span className="puce neutral">{t('À venir')}</span>}</td>
               <td className="droite">{p.statut === 'paye' && <Link className="lien ligne-ic" scroll={false} href={`/locataire/paiements?r=${p.id}`}><Icone nom="receipt" taille={16} couleur="#2E5788" />{t('Reçu')}</Link>}</td></tr>)}
               {!D.historique.length && <tr><td colSpan={6} className="gris">{t('Aucun loyer pour l’instant.')}</td></tr>}</tbody></table>
         </section>
@@ -94,7 +106,7 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
             <div className="lo-mode"><span className="a-faire-ic"><Icone nom={pad ? 'card' : 'send'} taille={18} couleur="#0C2147" /></span>
               <div><strong>{pad ? t('Prélèvement automatique') : t('Virement Interac')}</strong><span className="gris texte-13">{pad ? `${D.mode.compte ? `${D.mode.compte} · ` : ''}${t('le 1er du mois')}` : D.interac ? t('À chaque terme, à {x}', { x: D.interac }) : t('À chaque terme, au propriétaire')}</span></div></div>
             {!pad && D.reference && <p className="texte-13">{t('Référence à écrire dans le message du virement :')} <b>{D.reference}</b></p>}
-            {D.carte_offerte && <Link className="lien ligne-ic texte-13" href="/locataire/messages?nouveau=1&sujet=Paiement%20par%20carte">{t('Payer par carte : demander un lien sécurisé (sans frais)')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link>}
+            {!P?.en_retard && boutonCarte}
             {suspendu && <p className="bandeau info texte-13">{t('Votre prélèvement automatique est suspendu : la banque ne l’offre pas encore. Aucun montant ne sera prélevé; payez par virement Interac.')}</p>}
             {D.mode.type === 'prelevement' && D.mode.accord && <button className="lien ligne-ic" onClick={ouvrirDpa}>{t('Mon accord de prélèvement')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></button>}
             <p className="gris texte-12">{pad ? t('Prélevé par Lease Lane, mandataire de votre propriétaire, dans son compte en fidéicommis. Lease Lane n’a pas accès à vos identifiants bancaires.')
