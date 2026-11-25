@@ -7,7 +7,7 @@ import { Icone } from '@/composants/Icones';
 import { Confidentialite } from '@/composants/portail/Confidentialite';
 import { CompteVersement } from './CompteVersement';
 import { dateCourte } from '@/composants/portail/format';
-import { BoutonLangue, useT } from '@/composants/Langue';
+import { ChoixLangue, useT } from '@/composants/Langue';
 
 /* Propriétaire · Profil (CONCORDANCE 2.14, écran N) : Mes informations, Notifications (familles du propriétaire, LCAP), Confidentialité.
    Pas d'onglet Affichage : le menu du propriétaire reste à gauche (décision du 13 oct.). Le courriel de connexion se change avec l'équipe. */
@@ -52,7 +52,7 @@ export function Profil({ donnees: D, onglet, maintenant, erreur }: { donnees: Pr
               <div><label className="fenetre-lib" htmlFor="pf-e">{t('Entreprise')} <span>{t('facultatif')}</span></label><input id="pf-e" className="e70-raison" value={f.entreprise} disabled={!titulaire} onChange={(e) => setF({ ...f, entreprise: e.target.value })} /></div>
               <div><label className="fenetre-lib" htmlFor="pf-t">{t('Téléphone')}</label><input id="pf-t" type="tel" className="e70-raison" value={f.telephone} disabled={!titulaire} placeholder={t('Ajouter un numéro')} onChange={(e) => setF({ ...f, telephone: e.target.value })} /></div>
               <div><label className="fenetre-lib">{t('Courriel de connexion')}</label><span className="lo-verrou e70-raison">{D.courriel}<Icone nom="lock" taille={16} couleur="#58697F" /></span></div>
-              <div><label className="fenetre-lib">{t('Langue de l’interface')}</label><BoutonLangue className="bouton bouton-contour po-bouton" style={{ width: 'auto', padding: '0 16px' }} /></div>
+              <div><label className="fenetre-lib">{t('Langue de l’interface')}</label><ChoixLangue /></div>
             </div>
             <p className="gris texte-13">{t('Pour changer le courriel de connexion,')} <Link className="lien" href="/proprietaire/messages?nouveau=1">{t('écrivez à l’équipe')}</Link> {t('(vérification d’identité).')}</p>
             {titulaire && <div className="a-faire-actions" style={{ justifyContent: 'flex-end' }}><Ok k="infos" /><button className="bouton bouton-principal po-bouton" disabled={!modifie || envoi}>{t('Enregistrer les modifications')}</button></div>}

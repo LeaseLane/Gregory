@@ -7,7 +7,7 @@ import { Palette } from '@/composants/Palette';
 import type { Droits } from '@/lib/espaces';
 import { Cleo } from '@/composants/Cleo';
 import { supabaseNavigateur } from '@/lib/supabase/client';
-import { BoutonLangue, useT } from '@/composants/Langue';
+import { ChoixLangue, useT } from '@/composants/Langue';
 
 /* Barre du haut (maquette l00) : logo · Accueil · « Demandez à Cléo ou cherchez… » ⌘K · cloche · profil.
    ⌘K ouvre la palette (e02 : actions, fiches, pages); « Demander à Cléo » ouvre la conversation (e03). */
@@ -85,7 +85,7 @@ export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, mo
               <div className="mp-qui"><span className="haut-moi" aria-hidden="true">{initiales}</span><div><strong>{nom}</strong><span>{role ? role.charAt(0).toUpperCase() + role.slice(1) : courriel}</span></div></div>
               <a className="mp-ligne" href="/compte" role="menuitem"><Icone nom="user" taille={18} couleur="#0C2147" />{t('Mon profil')}<Icone nom="chevron" taille={16} couleur="#78838F" /></a>
               <p className="mp-sur">{t('Préférences')}</p>
-              <div className="mp-ligne"><Icone nom="globe" taille={18} couleur="#0C2147" />{t('Langue')}<span className="mp-val"><BoutonLangue /></span></div>
+              <div className="mp-ligne mp-theme"><Icone nom="globe" taille={18} couleur="#0C2147" />{t('Langue')}<ChoixLangue /></div>
               <div className="mp-ligne mp-theme"><Icone nom="spark" taille={18} couleur="#0C2147" />{t('Thème')}
                 <span className="lo-segments">{[['clair', t('Clair')], ['sombre', t('Sombre')], ['systeme', t('Système')]].map(([k, l]) => <button key={k} type="button" className={theme === k ? 'actif' : ''} aria-pressed={theme === k}
                   title={k === 'clair' ? undefined : t('Le thème sombre s’applique à l’accueil pour l’instant')} onClick={() => choisirTheme(k)}>{l}</button>)}</span></div>

@@ -6,7 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { BandeauLocataire, useLocataire } from '@/composants/portail/CoquilleLocataire';
 import { Confidentialite } from '@/composants/portail/Confidentialite';
-import { BoutonLangue, useT } from '@/composants/Langue';
+import { ChoixLangue, useT } from '@/composants/Langue';
 import type { T } from '@/lib/i18n/langue';
 import { dateCourteL, dateLongueL } from '../fmt';
 
@@ -102,7 +102,7 @@ export function Profil({ donnees: D, onglet, maintenant, erreur }: { donnees: Pr
 
         {onglet === 'affichage' && <div className="lo-profil-corps">
           <h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Langue d’affichage')}</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>{t('Choisissez la langue de l’interface. Le changement s’applique tout de suite.')}</p>
-          <p style={{ margin: '0 0 8px' }}><BoutonLangue className="bouton bouton-contour" style={{ width: 'auto', padding: '0 20px' }} /></p>
+          <p style={{ margin: '0 0 8px' }}><ChoixLangue /></p>
           <hr className="lo-sep-h" />
           <h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Position du menu')}</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>{t('Choisissez où le menu s’affiche sur ordinateur et tablette. Le changement s’applique tout de suite.')}</p>
           <div className="lo-positions" role="radiogroup" aria-label={t('Position du menu')}>{POSITIONS.map(([k, l]) => <button key={k} role="radio" aria-checked={menu === k} className={menu === k ? 'actif' : ''} onClick={() => placer(k)}>

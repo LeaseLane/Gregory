@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
 import { LangueProvider } from '@/composants/Langue';
-import { DICO_EN, langueServeur } from '@/lib/i18n/serveur';
+import { DICO_EN, langueServeur, tServeur } from '@/lib/i18n/serveur';
 import { LOCALES } from '@/lib/i18n/langue';
 
 const poppins = localFont({
@@ -16,10 +16,10 @@ const poppins = localFont({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: 'Lease Lane · Espace admin',
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await tServeur();
+  return { title: t('Lease Lane · Espace admin'), robots: { index: false, follow: false } };
+}
 
 /* Dates et heures à l'heure du Québec dans le navigateur, comme au serveur (TZ=America/Toronto, Dockerfile) : un format de date
    sans fuseau prend America/Toronto, sinon un appareil hors Québec affiche une autre date que le rendu serveur (écart

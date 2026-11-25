@@ -30,3 +30,16 @@ export function BoutonLangue({ className, style }: { className?: string; style?:
     </button>
   );
 }
+
+/* Choix « Français | English » (comme le thème) : la langue courante est en surbrillance. Pour une ligne « Langue » de menu
+   ou de profil, où un simple bouton portant l'autre langue se lisait comme la langue courante (retour d'Octa, 2026-11-25). */
+export function ChoixLangue() {
+  const { langue } = useT();
+  const router = useRouter();
+  const choisir = (l: Langue) => { if (l === langue) return; document.cookie = `${TEMOIN_LANGUE}=${l}; path=/; max-age=31536000; SameSite=Lax`; document.documentElement.lang = LOCALES[l]; router.refresh(); };
+  return (
+    <span className="lo-segments" role="group" aria-label={langue === 'en' ? 'Language' : 'Langue'}>
+      {(['fr', 'en'] as const).map((l) => <button key={l} type="button" lang={l} className={langue === l ? 'actif' : ''} aria-pressed={langue === l} onClick={() => choisir(l)}>{l === 'fr' ? 'Français' : 'English'}</button>)}
+    </span>
+  );
+}

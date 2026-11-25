@@ -17,5 +17,7 @@ const dico: Record<string, string> = {
   'Mode': 'Method',
   'Échéance': 'Due date',
   'Marquer payé': 'Mark paid',
+  'Lease Lane · Espace admin': 'Lease Lane · Admin space',
+  'Langue': 'Language',
 };
 export default dico;
