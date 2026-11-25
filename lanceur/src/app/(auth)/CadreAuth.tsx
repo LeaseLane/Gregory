@@ -67,7 +67,7 @@ export async function CadreAuth({ children, espace = 'admin' }: { children: Reac
         <Ville />
         <div className="auth-haut">
           <img className="auth-logo" src="/img/logo-sur-marine.svg" alt="Lease Lane" />
-          <h1 className="auth-titre">{langue === 'en' ? <><span>{mot}</span> space</> : <>Espace <span>{mot}</span></>}</h1>
+          <h1 className="auth-titre">{langue === 'en' ? <><span>{mot.charAt(0).toUpperCase() + mot.slice(1)}</span> space</> :<>Espace <span>{mot}</span></>}</h1>
           <p className="auth-slogan">{langue === 'en' ? <span>A <b>key</b> ahead, <b>always</b>.</span> : <span>Une <b>clé</b> d’avance et ce, en <b>permanence</b>.</span>}</p>
         </div>
         <nav className="auth-pied" aria-label={t('Information légale')}>
