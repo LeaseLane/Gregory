@@ -18,13 +18,13 @@ async function rpc(nom: string, args: unknown) {
   return r.status === 204 ? null : r.json();
 }
 
-type Envoi = { id: string; channel: "email" | "sms"; recipient: string; vars: Record<string, unknown>; template_code: string; contenu: Contenu; sms_text: string | null; unsubscribe_required: boolean };
+type Envoi = { id: string; channel: "email" | "sms"; recipient: string; vars: Record<string, unknown>; template_code: string; contenu: Contenu; sms_text: string | null; locale?: string; unsubscribe_required: boolean };
 
 async function courriel(e: Envoi): Promise<string> {
   // LCAP : pas de message commercial sans lien de désabonnement fonctionnel.
   if (e.unsubscribe_required && !secret) throw new Error("INTERNAL_CALL_SECRET absent : lien de désabonnement impossible");
   const lien = e.unsubscribe_required ? `${url}/functions/v1/envois-retour?d=${await jetonDesabonnement(secret, "email", e.recipient)}` : undefined;
-  const r = rendreCourriel(e.contenu, e.vars, { desabonnement: lien });
+  const r = rendreCourriel(e.contenu, e.vars, { desabonnement: lien }, e.locale === "en" ? "en" : "fr");
   if (!REEL) return `simule-${crypto.randomUUID()}`;
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -39,7 +39,8 @@ async function courriel(e: Envoi): Promise<string> {
 }
 
 async function sms(e: Envoi): Promise<string> {
-  const corps = rendreSms(e.sms_text ?? "", e.vars) + (e.unsubscribe_required ? " Répondez STOP pour ne plus recevoir ces messages." : "");
+  const en = e.locale === "en";
+  const corps = rendreSms(e.sms_text ?? "", e.vars, en ? "en" : "fr") + (e.unsubscribe_required ? (en ? " Reply STOP to unsubscribe." : " Répondez STOP pour ne plus recevoir ces messages.") : "");
   if (!REEL) return `simule-${crypto.randomUUID()}`;
   const sid = Deno.env.get("TWILIO_ACCOUNT_SID"), jeton = Deno.env.get("TWILIO_AUTH_TOKEN"), de = Deno.env.get("TWILIO_FROM_NUMBER");
   if (!sid || !jeton || !de) throw new Error("Twilio non configuré");

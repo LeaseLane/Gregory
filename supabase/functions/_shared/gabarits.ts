@@ -31,6 +31,29 @@ export type Contenu = {
   sign?: Signature; foot?: { reason?: string; commercial?: boolean }; sms?: string;
 };
 export type Liens = { desabonnement?: string; preferences?: string; confidentialite?: string };
+export type Langue = "fr" | "en";
+
+/* Courriel en anglais (2026-11-25) : les variables arrivent formatées à la française par la base (« 1 195 $ », « 1er novembre 2026 »,
+   « d’octobre », « 04/11/2026 », « 9 h 09 », « 10 jours »). En anglais, seules ces formes connues sont converties; un nom, une
+   adresse ou un texte libre passe tel quel. */
+const MOIS_FR = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+const MOIS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+export function versAnglais(v: unknown): unknown {
+  if (typeof v !== "string") return v;
+  const s = v.trim(), mi = (x: string) => MOIS_FR.indexOf(x.toLowerCase());
+  let m: RegExpMatchArray | null;
+  if ((m = s.match(/^(-?\d{1,3}(?:[\s\u00a0\u202f]\d{3})*|-?\d+)(?:,(\d{1,2}))?\s*\$$/))) {
+    const n = Number(m[1].replace(/[\s\u00a0\u202f]/g, "") + (m[2] ? "." + m[2] : ""));
+    return new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD", minimumFractionDigits: m[2] ? 2 : 0, maximumFractionDigits: m[2] ? 2 : 0 }).format(n);
+  }
+  if ((m = s.match(/^(1er|\d{1,2}) (\p{L}+)(?: (\d{4}))?$/u)) && mi(m[2]) >= 0) return `${MOIS_EN[mi(m[2])]} ${parseInt(m[1])}${m[3] ? ", " + m[3] : ""}`;
+  if ((m = s.match(/^(?:d[’']|de )?(\p{L}+)(?: (\d{4}))?$/u)) && mi(m[1]) >= 0) return `${MOIS_EN[mi(m[1])]}${m[2] ? " " + m[2] : ""}`;
+  if ((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)) && +m[2] >= 1 && +m[2] <= 12) return `${MOIS_EN[+m[2] - 1]} ${+m[1]}, ${m[3]}`;
+  if ((m = s.match(/^(\d{1,2}) ?h ?(\d{2})?$/))) { const h = +m[1]; return `${h % 12 || 12}:${m[2] ?? "00"} ${h < 12 ? "a.m." : "p.m."}`; }
+  if ((m = s.match(/^(\d+) jours?( restants?)?$/))) return `${m[1]} day${m[1] === "1" ? "" : "s"}${m[2] ? " left" : ""}`;
+  return v;
+}
+const enAnglais = (vars: Record<string, unknown>) => Object.fromEntries(Object.entries(vars).map(([k, v]) => [k, versAnglais(v)]));
 
 // {variable} → valeur. Une variable absente reste visible ({nom}) pour qu'un essai la révèle au lieu de l'effacer.
 export function remplir(s: string, vars: Record<string, unknown>): string {
@@ -117,22 +140,23 @@ const BLOCS: Record<string, Bloc> = {
     ${td("vertical-align:top;padding-top:2px;", `<p style="margin:0;font-family:${F};font-size:15px;font-weight:600;color:${K.m900};">${tx(o.name, v)}</p><p style="margin:4px 0 0;font-family:${F};font-size:13px;color:${K.g600};">${tx(o.role, v)}</p>`)}</tr>`),
 };
 
-export function rendreCourriel(c: Contenu, vars: Record<string, unknown>, liens: Liens = {}): { subject: string; html: string; text: string } {
+export function rendreCourriel(c: Contenu, varsFr: Record<string, unknown>, liens: Liens = {}, langue: Langue = "fr"): { subject: string; html: string; text: string } {
+  const en = langue === "en", vars = en ? enAnglais(varsFr) : varsFr;
   const urgent = c.accent === "urgent";
   const blocs: [string, any][] = [...(c.blocks ?? []), ...(c.cta ? [["cta", c.cta] as [string, any]] : []), ...(c.sign ? [["divider", {}], ["sign", c.sign]] as [string, any][] : [])];
   const inconnu = blocs.find(([k]) => !BLOCS[k]);
   if (inconnu) throw new Error(`Bloc de gabarit inconnu : ${inconnu[0]}`);
   const foot = c.foot ?? {};
-  const pied = [foot.reason ?? "", "Lease Lane · gestion immobilière · Québec et Lévis",
-    [ADRESSE_BUREAU && `Adresse du bureau : ${ADRESSE_BUREAU}`, "info@leaselane.ca", "leaselane.ca"].filter(Boolean).join(" · ")].filter(Boolean);
+  const pied = [foot.reason ?? "", en ? "Lease Lane · property management · Québec City and Lévis" : "Lease Lane · gestion immobilière · Québec et Lévis",
+    [ADRESSE_BUREAU && (en ? `Office address: ${ADRESSE_BUREAU}` : `Adresse du bureau : ${ADRESSE_BUREAU}`), "info@leaselane.ca", "leaselane.ca"].filter(Boolean).join(" · ")].filter(Boolean);
   const liensPied: [string, string][] = [
-    ...(foot.commercial && liens.desabonnement ? [["Se désabonner", liens.desabonnement] as [string, string]] : []),
-    ["Gérer mes préférences", liens.preferences ?? SITE_BASE_URL],
-    ["Confidentialité (Loi 25)", liens.confidentialite ?? "https://leaselane.ca/confidentialite"],
+    ...(foot.commercial && liens.desabonnement ? [[en ? "Unsubscribe" : "Se désabonner", liens.desabonnement] as [string, string]] : []),
+    [en ? "Manage my preferences" : "Gérer mes préférences", liens.preferences ?? SITE_BASE_URL],
+    [en ? "Privacy (Law 25)" : "Confidentialité (Loi 25)", liens.confidentialite ?? "https://leaselane.ca/confidentialite"],
   ];
   const sujet = remplir(c.subject, vars);
   const html = `<!DOCTYPE html>
-<html lang="fr-CA" xmlns:v="urn:schemas-microsoft-com:vml"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="${en ? "en-CA" : "fr-CA"}" xmlns:v="urn:schemas-microsoft-com:vml"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><title>${esc(sujet)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>@media (max-width:620px){.ll-p{padding-left:24px!important;padding-right:24px!important}}</style></head>
@@ -158,32 +182,32 @@ ${blocs.map(([k, o]) => `<tr><td class="ll-p" style="padding:16px 40px 8px;">${B
 </td></tr></table>
 <!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table></body></html>`;
-  return { subject: sujet, html, text: texteBrut(c, vars, pied, liensPied) };
+  return { subject: sujet, html, text: texteBrut(c, vars, pied, liensPied, en ? ": " : " : ") };
 }
 
 // Version texte brut (multipart) : le même contenu, sans mise en forme.
-function texteBrut(c: Contenu, v: Record<string, unknown>, pied: string[], liens: [string, string][]): string {
+function texteBrut(c: Contenu, v: Record<string, unknown>, pied: string[], liens: [string, string][], sep = " : "): string {
   const r = (s: unknown) => remplir(String(s ?? ""), v);
   const out: string[] = [r(c.title)];
   if (c.intro) out.push(r(c.intro));
   for (const [k, o] of (c.blocks ?? []) as [string, any][]) {
     if (k === "p" || k === "quote") out.push(r(o.t) + (o.by ? `\n— ${r(o.by)}` : ""));
-    else if (k === "kv") out.push(o.rows.map(([a, b]: string[]) => `${r(a)} : ${r(b)}`).join("\n"));
+    else if (k === "kv") out.push(o.rows.map(([a, b]: string[]) => `${r(a)}${sep}${r(b)}`).join("\n"));
     else if (k === "notice") out.push(`${r(o.title)}\n${r(o.t)}`);
     else if (k === "bullets") out.push(o.items.map((t: string) => `- ${r(t)}`).join("\n"));
     else if (k === "steps") out.push(o.rows.map(([st, t, s]: [number, string, string]) => `${st === 1 ? "[x]" : "[ ]"} ${r(t)}${s ? ` (${r(s)})` : ""}`).join("\n"));
     else if (k === "doc") out.push(`${r(o.name)} · ${r(o.meta)}`);
     else if (k === "event") out.push(`${r(o.time)}\n${r(o.place)}`);
-    else if (k === "table") out.push([...o.rows, ...(o.total ? [o.total] : [])].map(([a, b]: string[]) => `${r(a)} : ${r(b)}`).join("\n"));
-    else if (k === "meter") out.push(`${r(o.label)} : ${r(o.value)}\n${r(o.cap)}`);
+    else if (k === "table") out.push([...o.rows, ...(o.total ? [o.total] : [])].map(([a, b]: string[]) => `${r(a)}${sep}${r(b)}`).join("\n"));
+    else if (k === "meter") out.push(`${r(o.label)}${sep}${r(o.value)}\n${r(o.cap)}`);
     else if (k === "code") out.push(r(o.v));
-    else if (k === "compare") out.push(r(o.head) + "\n" + o.rows.map(([n, , lab]: [string, number, string]) => `${r(n)} : ${r(lab)}`).join("\n"));
+    else if (k === "compare") out.push(r(o.head) + "\n" + o.rows.map(([n, , lab]: [string, number, string]) => `${r(n)}${sep}${r(lab)}`).join("\n"));
     else if (k === "bars") out.push(r(o.top));
   }
-  if (c.cta) out.push(`${r(c.cta.l)} : ${c.cta.href ? r(c.cta.href) : SITE_BASE_URL}` + (c.cta.link ? `\n${r(c.cta.link)}${c.cta.linkHref ? ` : ${r(c.cta.linkHref)}` : ""}` : ""));
+  if (c.cta) out.push(`${r(c.cta.l)}${sep}${c.cta.href ? r(c.cta.href) : SITE_BASE_URL}` + (c.cta.link ? `\n${r(c.cta.link)}${c.cta.linkHref ? `${sep}${r(c.cta.linkHref)}` : ""}` : ""));
   if (c.sign) out.push(`${r(c.sign.name)}\n${r(c.sign.role)}`);
-  out.push("---\n" + pied.map(r).join("\n") + "\n" + liens.map(([l, h]) => `${l} : ${h}`).join("\n"));
+  out.push("---\n" + pied.map(r).join("\n") + "\n" + liens.map(([l, h]) => `${l}${sep}${h}`).join("\n"));
   return out.join("\n\n");
 }
 
-export const rendreSms = (sms: string, vars: Record<string, unknown>) => remplir(sms, vars);
+export const rendreSms = (sms: string, vars: Record<string, unknown>, langue: Langue = "fr") => remplir(sms, langue === "en" ? enAnglais(vars) : vars);
