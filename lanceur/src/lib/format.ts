@@ -16,10 +16,16 @@ export const qc = (x: string | Date) => {
   return { iso: `${p.year}-${p.month}-${p.day}`, an: +p.year, mois: +p.month - 1, jour: +p.day, h: +p.hour, min: +p.minute };
 };
 /** « 19 oct. » (« 1er » le premier) : date seule « AAAA-MM-JJ » ou horodatage, au jour de Québec. */
-export const jourCourt = (iso: string) => {
+export const jourCourt = (iso: string, locale = 'fr-CA') => {
   const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso), j = qc(d).jour;
+  if (locale.startsWith('en')) return d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', timeZone: FUSEAU });   // « Oct 19 »
   return `${j === 1 ? '1er' : j} ${d.toLocaleDateString('fr-CA', { month: 'short', timeZone: FUSEAU })}`;
 };
+
+/** Montant dans la langue de l'interface : « 1 195 $ » (fr-CA) ou « $1,195 » (en-CA); cents = 2 décimales. */
+export const argentL = (n: number | string | null | undefined, locale = 'fr-CA', cents = false) => n == null || n === '' ? '—'
+  : new Intl.NumberFormat(locale, { style: 'currency', currency: 'CAD', minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 })
+    .format(Number(n)).replace(/\u202f/g, ' ');
 
 /** Montant tapé au clavier → texte décimal pour la base : « 689,85 » → « 689.85 », « 1 250,50 $ » → « 1250.50 ».
     La virgule est la décimale au Québec : avant le 2026-11-24, ces champs l'effaçaient et 689,85 devenait 68 985. */
