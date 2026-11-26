@@ -14,34 +14,16 @@
 // un secret partagé dans un en-tête, comparé à une variable
 // d'environnement.
 //
-// ⚠️  POURQUOI LA VÉRIFICATION EST INACTIVE SANS SECRET.
-//
-// Si INTERNAL_CALL_SECRET n'est pas défini, cette fonction laisse passer
-// l'appel. C'est délibéré, et c'est la leçon de HEALTH_ALERT_SECRET :
-// quand ce secret-là a divergé du vault le 2026-08-17, l'alerte de santé
-// a cessé de livrer — en silence, pendant des semaines, parce que le
-// refus ressemblait à « pas d'alerte à envoyer ».
-//
-// Refuser par défaut ici casserait d'un coup les paiements, le dispatch
-// des travaux, les rappels de loyer et les relances d'onboarding — sans
-// message d'erreur visible, puisque personne ne lit les journaux du cron.
-//
-// L'ordre de déploiement sûr est donc :
-//
-//   1. Déployer les fonctions (la vérification dort, rien ne change).
-//   2. Appliquer la migration qui fait passer le secret aux appels SQL.
-//   3. Définir INTERNAL_CALL_SECRET dans le tableau de bord Supabase.
-//      La vérification s'active à cet instant, des deux côtés à la fois.
-//
-// Inverser 2 et 3 coupe l'automatisation. La migration porte le même
-// avertissement.
+// ÉCHEC FERMÉ (audit 2026-11). Si INTERNAL_CALL_SECRET n'est pas défini,
+// l'appel est REFUSÉ (403) : un secret oublié ne doit jamais rendre ces
+// fonctions publiques. Le secret doit donc être défini dans Supabase (et
+// dans app.internal_call_secret / le vault côté SQL) AVANT de déployer.
 
 /**
  * Retourne une réponse 403 si l'appel n'est pas authentifié comme interne,
  * ou `null` si l'appel peut continuer.
  *
- * Tant que INTERNAL_CALL_SECRET n'est pas défini, retourne toujours `null`
- * et le signale dans les journaux — voir l'avertissement ci-dessus.
+ * Sans INTERNAL_CALL_SECRET défini, refuse toujours (échec fermé).
  */
 export function refuserSiAppelExterne(
   req: Request,
@@ -50,11 +32,11 @@ export function refuserSiAppelExterne(
   const secret = Deno.env.get("INTERNAL_CALL_SECRET");
 
   if (!secret) {
-    console.warn(
-      "INTERNAL_CALL_SECRET absent — vérification d'appel interne INACTIVE. " +
-        "Cette fonction est appelable publiquement tant que le secret n'est pas défini.",
+    console.error("INTERNAL_CALL_SECRET absent — appel interne refusé (échec fermé).");
+    return new Response(
+      JSON.stringify({ error: "Non autorisé" }),
+      { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-    return null;
   }
 
   const fourni = req.headers.get("x-internal-call-key") || "";
@@ -75,8 +57,8 @@ export function refuserSiAppelExterne(
 /**
  * Pour les fonctions appelées seulement par le cron, les déclencheurs ou
  * une autre fonction edge (T0) : accepte la clé service_role (appels edge
- * qui l'utilisent déjà) ou la clé d'appel interne. Inactive tant que
- * INTERNAL_CALL_SECRET n'est pas défini, comme refuserSiAppelExterne.
+ * qui l'utilisent déjà) ou la clé d'appel interne. Échec fermé sans
+ * INTERNAL_CALL_SECRET, comme refuserSiAppelExterne.
  */
 export function refuserSiNonInterne(
   req: Request,
@@ -126,4 +108,11 @@ function egalTempsConstant(a: string, b: string): boolean {
   let difference = 0;
   for (let i = 0; i < octetsA.length; i++) difference |= octetsA[i] ^ octetsB[i];
   return difference === 0;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Vrai seulement pour un UUID : à vérifier avant d'interpoler un id dans une URL PostgREST. */
+export function estUuid(v: unknown): v is string {
+  return typeof v === "string" && UUID_RE.test(v);
 }

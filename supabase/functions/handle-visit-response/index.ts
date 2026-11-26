@@ -1,6 +1,7 @@
 import { EXPEDITEUR, SITE_BASE_URL } from "../_shared/branding.ts";
 import { avecHtml, POURQUOI } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
+import { refuserSiNonInterne, estUuid } from "../_shared/appel-interne.ts";
 
 
 
@@ -23,6 +24,13 @@ Deno.serve(async (req) => {
     const { visit_id, token, action, note } = body;
     if (!visit_id || !action) {
       return new Response(JSON.stringify({ error: "Paramètres manquants" }), { status: 400, headers: corsHeaders });
+    }
+    if (!estUuid(visit_id)) {
+      return new Response(JSON.stringify({ error: "Paramètres invalides" }), { status: 400, headers: corsHeaders });
+    }
+    if (action === "send_reminder") {
+      const refus = refuserSiNonInterne(req, corsHeaders);
+      if (refus) return refus;
     }
 
     const visitRes = await fetch(

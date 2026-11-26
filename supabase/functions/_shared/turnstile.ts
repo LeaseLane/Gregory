@@ -13,15 +13,9 @@
 // défie jamais personne, « Invisible » peut bloquer de vraies personnes
 // sans qu'elles comprennent pourquoi — d'où Managed.
 //
-// ⚠️  INACTIF SANS SECRET. Si TURNSTILE_SECRET_KEY n'est pas défini, la
-// vérification laisse passer et le signale dans les journaux. C'est le
-// même choix que pour appel-interne.ts, et pour la même raison : le
-// 2026-08-17, HEALTH_ALERT_SECRET désaligné a coupé les alertes pendant
-// 25 jours sans que personne le voie. Refuser par défaut ici bloquerait
-// TOUS les formulaires publics — demandes de visite, mandats, inscriptions
-// de travailleurs — sur une simple erreur de configuration.
-//
-// Le durcissement vient de la présence du secret, pas d'un refus aveugle.
+// ÉCHEC FERMÉ (audit 2026-11) : si TURNSTILE_SECRET_KEY n'est pas défini,
+// la soumission est refusée. Définir le secret AVANT de déployer, sinon
+// tous les formulaires publics répondent 403.
 
 const ENDPOINT = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
@@ -40,11 +34,8 @@ export async function refuserSiRobot(
   const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
 
   if (!secret) {
-    console.warn(
-      "TURNSTILE_SECRET_KEY absent — vérification anti-robot INACTIVE. " +
-        "Les formulaires publics ne sont protégés que par le champ piège et la limite par IP.",
-    );
-    return null;
+    console.error("TURNSTILE_SECRET_KEY absent — soumission refusée (échec fermé).");
+    return refus(corsHeaders, "secret_absent");
   }
 
   const jeton = typeof token === "string" ? token.trim() : "";

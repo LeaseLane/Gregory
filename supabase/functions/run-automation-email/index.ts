@@ -1,6 +1,7 @@
 import { EXPEDITEUR } from "../_shared/branding.ts";
 import { avecHtml } from "../_shared/courriel.ts";
 import { corsHeadersFor } from "../_shared/auth.ts";
+import { refuserSiNonInterne, estUuid } from "../_shared/appel-interne.ts";
 // Envoie le courriel d'une règle d'automatisation (action_type =
 // 'envoyer_rappel_email'), déclenché par execute_automation_rules() via
 // pg_cron/pg_net — jamais appelé directement par un utilisateur. Le texte
@@ -18,10 +19,15 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
+  const refus = refuserSiNonInterne(req, corsHeaders);
+  if (refus) return refus;
   try {
     const { rule_id, entity_type, entity_id } = await req.json();
     if (!rule_id || !entity_type || !entity_id) {
       return new Response(JSON.stringify({ error: "rule_id, entity_type et entity_id requis" }), { status: 400, headers: corsHeaders });
+    }
+    if (!estUuid(rule_id) || !estUuid(entity_id)) {
+      return new Response(JSON.stringify({ error: "rule_id et entity_id doivent être des UUID" }), { status: 400, headers: corsHeaders });
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
