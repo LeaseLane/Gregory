@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: RACINE,
   poweredByHeader: false,
   devIndicators: false,
+  experimental: { agentUpgrade: 'security' },   // mise à niveau de sécurité 16.4.2 → 16.4.6 (26 nov. 2026), demandé par next upgrade
 };
 
 export default nextConfig;
