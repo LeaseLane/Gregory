@@ -21,8 +21,8 @@ declare y0 int := extract(year from now() at time zone 'America/Toronto')::int; 
 begin
   perform crm.require_aal2();
   if not crm.can('finances.lire') then raise exception 'Votre rôle ne donne pas accès aux finances.' using errcode = 'PT403'; end if;
-  if not exists (select 1 from public.buildings where id = p_building) then raise exception 'Immeuble introuvable.' using errcode = 'PT404'; end if;
-  select count(*)::int into v_log from public.units where building_id = p_building;
+  if not exists (select 1 from portee.buildings where id = p_building) then raise exception 'Immeuble introuvable.' using errcode = 'PT404'; end if;
+  select count(*)::int into v_log from portee.units where building_id = p_building;
   select coalesce(i.inflation, 3.0), coalesce(i.reserve_depart, 0), coalesce(i.reserve_annuelle, 0) into v_infl, v_dep, v_ann
     from (select 1) x left join crm.capex_immeubles i on i.building_id = p_building;
   with c as (
