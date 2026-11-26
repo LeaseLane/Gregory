@@ -324,5 +324,9 @@ const dico: Record<string, string> = {
   'Relevés 31': 'Statements 31',
   'Loyers': 'Rents',
   'Facturation, paiements, comptabilité et banques': 'Billing, payments, accounting and banks',
+  "Loyers perçus à {p} % ({x} à percevoir, {n} en retard) : sous le seuil de {s} %.": "Rent collected at {p}% ({x} to collect, {n} late): under the {s}% threshold.",
+  "Flux de trésorerie négatif : {d} de dépenses pour {r} de revenus perçus.": "Negative cash flow: {d} in expenses for {r} in revenue collected.",
+  "Dépense inhabituelle : {quoi}, {x} (médiane des 12 derniers mois : {med}).": "Unusual expense: {quoi}, {x} (12-month median: {med}).",
+  "Dépense inhabituelle : {quoi}, {x} (aucun historique pour comparer).": "Unusual expense: {quoi}, {x} (no history to compare).",
 };
 export default dico;

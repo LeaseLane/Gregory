@@ -6,6 +6,7 @@ import { Icone } from '@/composants/Icones';
 import { choisirPortee } from '@/composants/Portee';
 import { argent as argentBase } from '../onglets';
 import { useT } from '@/composants/Langue';
+import { motifs } from '@/lib/i18n/motifs';
 
 type Immeuble = { id: string; adresse: string; logements: number; occupes: number; attendu: number; paye: number; stationnement: number; buanderie: number; autre: number; depenses: number; net: number; alertes: number };
 type Client = { id: string; nom: string; attendu: number; paye: number; autres: number; depenses: number; net: number; alertes: number; immeubles: Immeuble[] };
@@ -79,7 +80,7 @@ export function Vue({ donnees: D, erreurLecture }: { donnees: DonneesVue | null;
           {ouvertes.length ? <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>{ouvertes.slice(0, 12).map((a, k) => { const d = DETAIL(a); return <li key={a.immeuble_id + a.type + k} style={{ padding: '12px 0', borderTop: k ? '1px solid #E6EBF2' : 0, display: 'grid', gap: 4 }}>
               <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><span className="puce todo">{t(TYPE[a.type])}</span>
                 <button className="lien" onClick={() => voir(a.client_id, a.immeuble_id)} title={t('N’afficher que cet immeuble')}><strong>{a.immeuble}</strong></button><span className="gris texte-13">{a.client}</span></span>
-              <span className="texte-13">{a.texte}</span>
+              <span className="texte-13">{motifs(a.texte, t, locale)}</span>
               <span className="texte-13" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                 {d && <button className="lien" onClick={() => voir(a.client_id, a.immeuble_id, d[1])}>{t(d[0])}</button>}
                 {D.peut_ecrire && <button className="lien" disabled={envoi} onClick={() => marquer(a)}>{t('Marquer comme vue')}</button>}</span></li>; })}</ul>

@@ -11,6 +11,15 @@ const montant = (s: string, locale: string) => {
 type Motif = [RegExp, (m: RegExpMatchArray, t: T, locale: string) => string];
 const MOTIFS: Motif[] = [
   [/^Loyer en retard · (.+)$/, (m, t, l) => `${t('Loyer en retard')} · ${montant(m[1], l)}`],
+  // Alertes de Finances › Vue d'ensemble (lanceur_finance_vue)
+  [/^Loyers perçus à (\d+) % \((.+?) \$ à percevoir, (\d+) en retard\) : sous le seuil de (\d+) %\.$/,
+    (m, t, l) => t('Loyers perçus à {p} % ({x} à percevoir, {n} en retard) : sous le seuil de {s} %.', { p: m[1], x: montant(m[2], l), n: m[3], s: m[4] })],
+  [/^Flux de trésorerie négatif : (.+?) \$ de dépenses pour (.+?) \$ de revenus perçus\.$/,
+    (m, t, l) => t('Flux de trésorerie négatif : {d} de dépenses pour {r} de revenus perçus.', { d: montant(m[1], l), r: montant(m[2], l) })],
+  [/^Dépense inhabituelle : (.+), (.+?) \$ \(médiane des 12 derniers mois : (.+?) \$\)\.$/,
+    (m, t, l) => t('Dépense inhabituelle : {quoi}, {x} (médiane des 12 derniers mois : {med}).', { quoi: m[1], x: montant(m[2], l), med: montant(m[3], l) })],
+  [/^Dépense inhabituelle : (.+), (.+?) \$ \(aucun historique pour comparer\)\.$/,
+    (m, t, l) => t('Dépense inhabituelle : {quoi}, {x} (aucun historique pour comparer).', { quoi: m[1], x: montant(m[2], l) })],
   [/^Prélèvement refusé · (.+)$/, (m, t) => `${t('Prélèvement refusé')} · ${m[1]}`],
   [/^Approbation · (.+)$/, (m, t) => `${t('Approbation')} · ${m[1]}`],
   [/^Candidat proposé · (.+)$/, (m, t) => `${t('Candidat proposé')} · ${m[1]}`],
