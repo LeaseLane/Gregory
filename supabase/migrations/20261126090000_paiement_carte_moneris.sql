@@ -57,7 +57,8 @@ begin
   if v_t is null then raise exception 'Réservé aux locataires.' using errcode = 'PT403'; end if;
   perform crm.exiger_niveau_portail(false);
   if not crm.carte_offerte() then raise exception 'Le paiement par carte n''est pas offert pour l''instant.' using errcode = 'PT403'; end if;
-  if (select fiducie_interac_courriel from public.company_settings where id = true) is null then
+  -- L'argent de Moneris va au compte en fidéicommis : pas de carte tant que ce compte n'est pas inscrit (décision du 26 nov. : pas besoin d'attendre l'adresse Interac).
+  if (select fiducie_compte from public.company_settings where id = true) is null then
     raise exception 'Le paiement par carte n''est pas offert pour l''instant.' using errcode = 'PT403'; end if;
   v_l := crm.bail_locataire(v_t);
   if v_l is null then raise exception 'Aucun bail actif.'; end if;
@@ -263,7 +264,7 @@ begin
       from public.payments p where p.lease_id = any (v_baux) and (p.due_date <= current_date or p.status = 'paid' or public.carte_couvre(p.id))), '[]'::jsonb),
     'mode', case when pad.id is not null then jsonb_build_object('type', 'prelevement', 'depuis', pad.consented_at, 'compte', coalesce('••• ' || right(pad.compte, 3), pad.notes), 'montant', pad.montant, 'premier', pad.premier_prelevement, 'accord', pad.texte is not null) else jsonb_build_object('type', 'virement') end,
     'prelevement_offert', crm.prelevements_offerts(),
-    'carte_offerte', crm.carte_offerte() and exists (select 1 from public.company_settings where id = true and fiducie_interac_courriel is not null),
+    'carte_offerte', crm.carte_offerte() and exists (select 1 from public.company_settings where id = true and fiducie_compte is not null),
     'cartes_ouvertes', (select count(*) from public.paiements_carte c where c.tenant_id = v_t and c.statut = 'ouvert' and c.ticket is not null and c.created_at > now() - interval '7 days'),
     'interac', (select c.courriel_interac from public.consigne_paiement_locataire() c limit 1),
     'reference', (select c.reference_paiement from public.consigne_paiement_locataire() c limit 1),
