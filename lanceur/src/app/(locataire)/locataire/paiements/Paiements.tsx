@@ -9,7 +9,7 @@ import { ouvrirFichier } from '@/composants/portail/fichiers';
 import { useT } from '@/composants/Langue';
 import { argentL } from '@/lib/format';
 import { dateCourteL, dateLongueL, moisAnneeL } from '../fmt';
-import { PayerCarte, VerifierCartes } from './PayerCarte';
+import { VerifierCartes } from './PayerCarte';
 
 /* Locataire · 08 Paiements, 09 Reçu de loyer (art. 1568 C.c.Q.), 10 Changer de mode de paiement. Prélèvement automatique : accord de DPA
    signé ici (règle H1 de Paiements Canada), débité par Lease Lane dans son compte en fidéicommis. Carte de crédit : processeur à choisir, non offerte. États « en retard » et « prélèvement
@@ -23,10 +23,19 @@ export type RL31 = { id: string; annee: number; code: string; remis_le: string; 
 export type Recu = { numero: string; emis_le: string; periode: string; montant: number; mode: string; emetteur: { nom: string; pour: string; neq: string | null; adresse: string | null };
   locataire: { nom: string; logement: string; ville: string } };
 
-export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant, erreur }: { donnees: PaiementsLoc | null; recu: Recu | null; rl31: RL31 | null; erreurRecu: string | null; mode: boolean; maintenant: string; erreur: string | null }) {
+export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant, erreur, carte }: { donnees: PaiementsLoc | null; recu: Recu | null; rl31: RL31 | null; erreurRecu: string | null; mode: boolean; maintenant: string; erreur: string | null; carte?: string }) {
   const router = useRouter(), { t, locale } = useT(), rafraichir = useCallback(() => router.refresh(), [router]);
   const argent = (n: number, cents = false) => argentL(n, locale, cents), dateCourte = (i: string, a = false) => dateCourteL(i, locale, a), dateLongue = (i: string) => dateLongueL(i, locale), moisAnnee = (i: string) => moisAnneeL(i, locale);
   const [fenetreMode, setFenetreMode] = useState(mode), [toast, setToast] = useState<string | null>(null), [bandeau, setBandeau] = useState<string | null>(erreurRecu);
+  // Retour de la page « Payer par carte » : le résultat s'affiche ici, puis l'adresse redevient propre.
+  useEffect(() => {
+    if (!carte) return;
+    if (carte === 'approuve') setToast(t('Paiement approuvé : votre loyer est réglé. Le dépôt suit dans 1 à 3 jours ouvrables.'));
+    else if (carte === 'refuse') setBandeau(t('Paiement refusé par la banque ou la vérification de la carte. Aucun montant n’a été prélevé.'));
+    else if (carte === 'a_verifier') setToast(t('Paiement reçu : l’équipe le vérifie et vous écrit au besoin.'));
+    else setToast(t('Paiement en cours de confirmation : revenez sur cette page dans quelques minutes.'));
+    router.replace('/locataire/paiements', { scroll: false });
+  }, [carte]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   if (erreur || !D) return <><BandeauLocataire titre={t('Paiements')} /><div className="bandeau erreur" role="alert">{erreur ?? t('Vos paiements n’ont pas pu être lus.')}</div></>;
   const annee = new Date(maintenant).getFullYear(), P = D.prochain, offert = D.prelevement_offert === true,
@@ -37,15 +46,9 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
     setFenetreMode(false); setToast(t('Demande transmise : l’équipe vous écrit pour finaliser le changement.'));
   }
   const fermerRecu = () => router.replace('/locataire/paiements', { scroll: false });
-  const finCarte = (statut: string) => {
-    if (statut === 'approuve') setToast(t('Paiement approuvé : votre loyer est réglé. Le dépôt suit dans 1 à 3 jours ouvrables.'));
-    else if (statut === 'refuse') setBandeau(t('Paiement refusé par la banque ou la vérification de la carte. Aucun montant n’a été prélevé.'));
-    else if (statut === 'a_verifier') setToast(t('Paiement reçu : l’équipe le vérifie et vous écrit au besoin.'));
-    else setToast(t('Paiement en cours de confirmation : revenez sur cette page dans quelques minutes.'));
-    router.refresh();
-  };
   const carteOk = D.carte_offerte === true && !!P && P.payable_carte !== false && P.montant > 0,
-    boutonCarte = carteOk && P && <PayerCarte montant={argent(P.montant, true)} libelle={t('Payer {montant} par carte', { montant: argent(P.montant, true) })} fini={finCarte} erreur={setBandeau} />;
+    boutonCarte = carteOk && P && <Link className={`bouton ${P.en_retard ? 'bouton-principal' : 'bouton-contour'} lo-carte-btn`} href="/locataire/paiements/carte">
+      <Icone nom="card" taille={18} couleur={P.en_retard ? '#fff' : '#0C2147'} />{t('Payer {montant} par carte', { montant: argent(P.montant, true) })}</Link>;
   // Accord de DPA : modèle à remplir (pas encore de prélèvement) ou accord signé (lecture, fin du prélèvement).
   const [dpa, setDpa] = useState<Dpa | null>(null), [f, setF] = useState({ titulaire: '', institution: '', transit: '', compte: '', accepte: false }), [envoi, setEnvoi] = useState(false);
   async function ouvrirDpa() {
@@ -81,7 +84,7 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
               <Link className="lien ligne-ic" href="/locataire/messages?nouveau=1&sujet=Entente%20de%20paiement">{t('Proposer une entente de paiement')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link></>
             : <><span className="texte-13 fort">{pad ? t('Prochain prélèvement') : t('Prochain loyer')}</span><b>{P ? dateCourte(P.echeance, true) : '—'}</b>
               <small>{P ? `${argent(P.montant)}${pad ? ` · ${D.mode.compte ? t('compte {c}', { c: D.mode.compte.replace(/^.*?(·+ ?\d+)$/, '$1') }) : t('prélèvement automatique')}` : D.interac ? t(' · par Interac à {x}', { x: D.interac }) : t(' · à payer au propriétaire')}` : t('Aucun loyer à venir')}</small>
-              <button className="lien ligne-ic" onClick={() => setFenetreMode(true)}>{t('Changer de mode de paiement')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></button></>}
+              {boutonCarte || <button className="lien ligne-ic" onClick={() => setFenetreMode(true)}>{t('Changer de mode de paiement')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></button>}</>}
         </section>
         <section className="carte-l18 e2 lo-kpi" aria-label={t('Payé en {annee}', { annee })}><span className="texte-13 fort">{t('Payé en {annee}', { annee })}</span><b>{argent(D.annee.paye)}</b>
           <small>{D.annee.loyers > 1 ? t('{n} loyers sur 12', { n: D.annee.loyers }) : t('{n} loyer sur 12', { n: D.annee.loyers })}{D.annee.loyers === D.annee.prevus ? t(' · tous reçus') : ''}</small><span className="jauge large"><i style={{ width: `${Math.min(100, (100 * D.annee.loyers) / 12)}%` }} /></span></section>
@@ -106,7 +109,7 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
             <div className="lo-mode"><span className="a-faire-ic"><Icone nom={pad ? 'card' : 'send'} taille={18} couleur="#0C2147" /></span>
               <div><strong>{pad ? t('Prélèvement automatique') : t('Virement Interac')}</strong><span className="gris texte-13">{pad ? `${D.mode.compte ? `${D.mode.compte} · ` : ''}${t('le 1er du mois')}` : D.interac ? t('À chaque terme, à {x}', { x: D.interac }) : t('À chaque terme, au propriétaire')}</span></div></div>
             {!pad && D.reference && <p className="texte-13">{t('Référence à écrire dans le message du virement :')} <b>{D.reference}</b></p>}
-            {!P?.en_retard && boutonCarte}
+            {carteOk && <p className="texte-13" style={{ margin: 0 }}>{t('Aussi par carte, sans frais : bouton « Payer par carte » du prochain loyer.')}</p>}
             {suspendu && <p className="bandeau info texte-13">{t('Votre prélèvement automatique est suspendu : la banque ne l’offre pas encore. Aucun montant ne sera prélevé; payez par virement Interac.')}</p>}
             {D.mode.type === 'prelevement' && D.mode.accord && <button className="lien ligne-ic" onClick={ouvrirDpa}>{t('Mon accord de prélèvement')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></button>}
             <p className="gris texte-12">{pad ? t('Prélevé par Lease Lane, mandataire de votre propriétaire, dans son compte en fidéicommis. Lease Lane n’a pas accès à vos identifiants bancaires.')

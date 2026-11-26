@@ -1,9 +1,11 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
 import { useT } from '@/composants/Langue';
 
-/* Paiement du loyer par carte (Moneris Checkout, 26 nov. 2026). Le numéro de carte se tape dans la page de Moneris (cadre),
+/* Paiement du loyer par carte (Moneris Checkout, 26 nov. 2026), sur sa propre page (/locataire/paiements/carte, demande d'Octa). Le numéro de carte se tape dans la page de Moneris (cadre),
    jamais chez nous. À « payment_complete », on demande au serveur de conclure : il lit le reçu chez Moneris et la base décide. */
 type Moneris = { setMode(m: string): void; setCheckoutDiv(id: string): void; setCallback(h: string, f: (d: string) => void): void; startCheckout(t: string): void; closeCheckout(t?: string): void };
 // Le script de Moneris déclare une classe globale (pas une propriété de window).
@@ -28,46 +30,57 @@ export function VerifierCartes({ n, fini }: { n: number; fini: () => void }) {
   return null;
 }
 
-export function PayerCarte({ montant, libelle, fini, erreur }: { montant: string; libelle: string; fini: (statut: string) => void; erreur: (m: string) => void }) {
-  const { t } = useT();
-  const [ouvert, setOuvert] = useState(false), [etat, setEtat] = useState<'chargement' | 'page' | 'conclusion'>('chargement');
-  const m = useRef<{ c: Moneris; ticket: string; id: string } | null>(null);
-  const fermer = () => { try { m.current?.c.closeCheckout(m.current.ticket); } catch { /* déjà fermée */ } m.current = null; setOuvert(false); };
+/** Page « Payer par carte » : résumé de ce qu'on paie à droite (en haut sur téléphone), formulaire de Moneris à gauche.
+    Fin : retour à Paiements avec le résultat (?carte=approuve | refuse | a_verifier | ouvert). */
+export function PageCarte({ montant, quoi, interac }: { montant: string | null; quoi: string; interac: string | null }) {
+  const { t } = useT(), router = useRouter();
+  const [etat, setEtat] = useState<'chargement' | 'page' | 'conclusion'>('chargement'), [erreur, setErreur] = useState<string | null>(null);
+  const lance = useRef(false);
+  useEffect(() => {
+    if (!montant || lance.current) return; lance.current = true;   // une seule préparation (double rendu du mode développement)
+    let m: { c: Moneris; ticket: string } | null = null;
+    (async () => {
+      try {
+        const p = await carte({ action: 'preparer' });
+        await script(p.mode);
+        const c = new monerisCheckout(); m = { c, ticket: p.ticket };
+        c.setMode(p.mode === 'prod' ? 'prod' : 'qa'); c.setCheckoutDiv('monerisCheckout');
+        c.setCallback('page_loaded', () => setEtat('page'));
+        c.setCallback('cancel_transaction', () => router.push('/locataire/paiements'));
+        c.setCallback('error_event', () => setErreur(t('La page de paiement a rencontré une erreur. Aucun montant n’a été prélevé; réessayez.')));
+        c.setCallback('payment_complete', async () => {
+          setEtat('conclusion');
+          const r = await carte({ action: 'conclure', id: p.id }).catch(() => ({ statut: 'ouvert' }));   // sinon revérifié à la prochaine visite
+          try { c.closeCheckout(p.ticket); } catch { /* déjà fermée */ }
+          router.replace(`/locataire/paiements?carte=${r.statut}`);
+        });
+        c.startCheckout(p.ticket);
+      } catch (e) { setErreur((e as Error).message); }
+    })();
+    return () => { try { m?.c.closeCheckout(m.ticket); } catch { /* déjà fermée */ } };
+  }, [montant, router, t]);
 
-  async function payer() {
-    setOuvert(true); setEtat('chargement');
-    try {
-      const p = await carte({ action: 'preparer' });
-      await script(p.mode);
-      const c = new monerisCheckout();
-      c.setMode(p.mode === 'prod' ? 'prod' : 'qa'); c.setCheckoutDiv('monerisCheckout');
-      m.current = { c, ticket: p.ticket, id: p.id };
-      c.setCallback('page_loaded', () => setEtat('page'));
-      c.setCallback('cancel_transaction', fermer);
-      c.setCallback('error_event', () => { fermer(); erreur(t('La page de paiement a rencontré une erreur. Aucun montant n’a été prélevé; réessayez.')); });
-      c.setCallback('payment_complete', async () => {
-        setEtat('conclusion');
-        try { const r = await carte({ action: 'conclure', id: p.id }); fermer(); fini(r.statut); }
-        catch { fermer(); fini('ouvert'); }   // le reçu sera revérifié à la prochaine visite
-      });
-      c.startCheckout(p.ticket);
-    } catch (e) { setOuvert(false); erreur((e as Error).message); }
-  }
-
+  if (!montant) return <section className="carte-l18 lo-carte-vide"><p>{t('Aucun loyer à payer par carte pour l’instant.')}</p>
+    <Link className="bouton bouton-contour" href="/locataire/paiements">{t('Retour aux paiements')}</Link></section>;
   return (
-    <>
-      <button className="bouton bouton-contour ligne-ic" style={{ width: 'auto', padding: '0 16px', marginTop: 8 }} onClick={payer} disabled={ouvert}>
-        <Icone nom="card" taille={16} couleur="#0C2147" />{libelle}</button>
-      {ouvert && <div className="voile" role="presentation">
-        <div className="modale" role="dialog" aria-modal="true" aria-labelledby="carte-t" style={{ maxWidth: 520, width: '100%' }}>
-          <header className="tete-action"><div><h2 id="carte-t" style={{ margin: 0, fontSize: 20 }}>{t('Payer par carte')}</h2>
-            <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{t('{montant} · page sécurisée de Moneris, sans frais', { montant })}</p></div>
-            {etat !== 'conclusion' && <button className="haut-ibtn" onClick={fermer} aria-label={t('Fermer')}><Icone nom="close" taille={20} couleur="#0C2147" /></button>}</header>
-          {etat === 'chargement' && <p className="gris texte-13">{t('Chargement de la page de paiement…')}</p>}
-          {etat === 'conclusion' && <p className="texte-13" role="status">{t('Confirmation du paiement auprès de Moneris…')}</p>}
-          <div style={{ position: 'relative', height: 560, display: etat === 'conclusion' ? 'none' : undefined }}><div id="monerisCheckout" /></div>
-          <p className="gris texte-12" style={{ margin: '8px 0 0' }}>{t('Votre numéro de carte est saisi chez Moneris; Lease Lane ne le voit ni ne le conserve.')}</p>
-        </div></div>}
-    </>
+    <div className="lo-carte-page">
+      <section className="carte-l18 lo-carte-form" aria-label={t('Paiement par carte')}>
+        {erreur ? <><div className="bandeau erreur" role="alert">{erreur}</div><Link className="bouton bouton-contour" href="/locataire/paiements">{t('Retour aux paiements')}</Link></>
+          : <>{etat !== 'page' && <div className="lo-carte-etat" role="status"><span className="lo-carte-roue" aria-hidden="true" />
+              {etat === 'chargement' ? t('Chargement de la page de paiement…') : t('Confirmation du paiement auprès de Moneris…')}</div>}
+            <div className="lo-carte-cadre" data-etat={etat}><div id="monerisCheckout" /></div></>}
+      </section>
+      <aside className="carte-l18 lo-carte-resume" aria-label={t('Ce que vous payez')}>
+        <span className="texte-13 fort">{quoi}</span>
+        <b>{montant}</b>
+        <span className="puce ok">{t('Sans frais')}</span>
+        <ul className="lo-carte-points">
+          <li><Icone nom="check" taille={16} couleur="#1E7A4F" />{t('Votre loyer est réglé dès l’approbation : plus de rappel.')}</li>
+          <li><Icone nom="clock" taille={16} couleur="#5B6B7F" />{t('Le dépôt au compte en fidéicommis suit dans 1 à 3 jours ouvrables.')}</li>
+          <li><Icone nom="lock" taille={16} couleur="#5B6B7F" />{t('Paiement sécurisé par Moneris. Votre numéro de carte ne passe jamais par Lease Lane.')}</li>
+        </ul>
+        {interac && <p className="gris texte-12" style={{ margin: 0 }}>{t('Vous préférez Interac ? Virement à {x}, sans frais.', { x: interac })}</p>}
+      </aside>
+    </div>
   );
 }

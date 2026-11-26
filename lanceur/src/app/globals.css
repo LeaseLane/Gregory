@@ -2231,3 +2231,29 @@ small { font-size: 12px; }
 /* Anglais (2026-11-25) : certains en-têtes de tableau sont plus longs qu'en français et étaient coupés (« REPAIRS (INVOICES PASSED… »).
    En anglais seulement, ils passent à la ligne au lieu d'être tronqués; le français ne change pas. */
 html[lang^="en"] .tableau thead th { white-space: normal; height: auto; min-height: 40px; padding-top: 8px; padding-bottom: 8px; line-height: 1.3; letter-spacing: .6px; overflow: visible; text-overflow: clip; }
+
+/* Locataire · payer par carte (Moneris Checkout, 26 nov. 2026), page à part : formulaire de Moneris à gauche, résumé à droite;
+   téléphone : résumé en haut. Le cadre est assez haut pour voir « Payer » sans défilement interne. */
+.lo-carte-btn { width: 100%; justify-content: center; gap: 8px; margin-top: 12px; }
+.lo-carte-page { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+.lo-carte-form { min-height: 420px; }
+.lo-carte-resume { position: sticky; top: 24px; display: grid; gap: 8px; }
+.lo-carte-resume b { font-size: 36px; line-height: 1.1; color: #0C2147; font-variant-numeric: tabular-nums; }
+.lo-carte-resume .puce { justify-self: start; }
+.lo-carte-points { list-style: none; margin: 8px 0 0; padding: 16px 0 0; border-top: 1px solid #EEF1F5; display: grid; gap: 12px; }
+.lo-carte-points li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: #3A4A5E; }
+.lo-carte-points svg { flex: none; margin-top: 2px; }
+.lo-carte-etat { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #5B6B7F; padding: 8px 0 16px; }
+.lo-carte-roue { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #C8DAF0; border-top-color: #0C2147; animation: lo-tourne .8s linear infinite; }
+@keyframes lo-tourne { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .lo-carte-roue { animation: none; } }
+.lo-carte-cadre { position: relative; height: 640px; }
+.lo-carte-cadre[data-etat="chargement"] { height: 0; overflow: hidden; }
+.lo-carte-cadre[data-etat="conclusion"] { display: none; }
+.lo-carte-vide { display: grid; gap: 16px; justify-items: start; }
+@media (max-width: 900px) {
+  .lo-carte-page { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .lo-carte-resume { position: static; order: -1; }
+  .lo-carte-resume b { font-size: 30px; }
+  .lo-carte-cadre { height: 720px; }
+}
