@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, crm;
-select plan(16);
+select plan(18);
 
 insert into owners (id, full_name) values ('a2a2a2a2-0000-4000-8000-000000000001', 'Proprio Carte A'), ('a2a2a2a2-0000-4000-8000-000000000002', 'Proprio Carte B');
 insert into buildings (id, owner_id, address) values ('b2b2b2b2-0000-4000-8000-000000000001', 'a2a2a2a2-0000-4000-8000-000000000001', '1 rue Carte');
@@ -61,6 +61,13 @@ select throws_like($$select fiducie_deposer_carte('9c000000-0000-4000-8000-00000
 select lives_ok($$select fiducie_deposer_carte('9c000000-0000-4000-8000-00000000c101', array['99000000-0000-4000-8000-000000000001','99000000-0000-4000-8000-000000000003']::uuid[])$$, 'dépôt = deux paiements');
 select is((select string_agg(status || ' ' || paid_date, ', ' order by due_date) from payments where lease_id = 'e2e2e2e2-0000-4000-8000-000000000001'),
   'paid 2026-11-01, paid 2026-11-01', 'loyers payés à la date de la carte (22 h 30 à Montréal), pas à celle du dépôt');
+
+-- Plafond mensuel de 7 500 $ : 2 000 $ approuvés ce mois-ci (dates fixées au mois courant pour le test)
+update paiements_carte set approuve_le = now() where id in ('99000000-0000-4000-8000-000000000001', '99000000-0000-4000-8000-000000000003');
+select ok(carte_plafond_restant() <= 5500, 'plafond : les paiements du mois réduisent ce qui reste');
+update paiements_carte set montant = 4000, approuve_le = now() where id in ('99000000-0000-4000-8000-000000000002', '99000000-0000-4000-8000-000000000003');   -- 4 000 + 4 000 > 7 500
+update paiements_carte set statut = 'approuve' where id = '99000000-0000-4000-8000-000000000002';
+select is(carte_plafond_restant(), 0::numeric, 'plafond atteint : plus rien d’offert (jamais négatif)');
 
 select * from finish();
 rollback;

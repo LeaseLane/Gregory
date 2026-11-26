@@ -39,6 +39,17 @@ $$;
 revoke all on function public.carte_couvre(uuid) from public, anon;
 grant execute on function public.carte_couvre(uuid) to authenticated, service_role;
 
+-- Plafond du magasin Moneris (environ 7 500 $ par mois, décision du 26 nov.) : la carte reste l'exception, Interac la règle.
+-- Au-delà, on n'offre plus la carte plutôt que de laisser Moneris refuser. Mois civil, heure du Québec.
+-- ponytail: plafond fixe ici; à déplacer dans company_settings quand Moneris le relèvera.
+create or replace function public.carte_plafond_restant() returns numeric language sql stable security definer set search_path = '' as $$
+  select greatest(7500 - coalesce((select sum(montant) from public.paiements_carte
+    where statut in ('approuve', 'a_verifier', 'depose')
+      and date_trunc('month', approuve_le at time zone 'America/Toronto') = date_trunc('month', now() at time zone 'America/Toronto')), 0), 0);
+$$;
+revoke all on function public.carte_plafond_restant() from public, anon;
+grant execute on function public.carte_plafond_restant() to authenticated, service_role;
+
 -- 1. Locataire : prépare (ou reprend) une tentative. Rend { id, montant, echeance, reference, langue, ticket?, environnement? }.
 create or replace function public.carte_preparer() returns jsonb language plpgsql security definer set search_path = '' as $$
 declare v_t uuid := public.auth_tenant_id(); v_l uuid; pay record; v_montant numeric; a record; v_ref text; v_langue text;
@@ -63,6 +74,7 @@ begin
   if pay.id is null then raise exception 'Aucun loyer à payer pour l''instant.'; end if;
   v_montant := round(pay.amount - coalesce(pay.amount_received, 0), 2);
   if v_montant > 4000 then raise exception 'Plus de 4 000 $ : payez ce loyer par virement Interac.'; end if;
+  if v_montant > public.carte_plafond_restant() then raise exception 'Le paiement par carte n''est plus offert ce mois-ci : payez ce loyer par virement Interac.'; end if;
 
   -- Un billet encore valide (30 min chez Moneris) pour ce loyer et ce montant est repris : deux onglets = un seul paiement possible.
   select * into a from public.paiements_carte where payment_id = pay.id and statut = 'ouvert' and ticket is not null and montant = v_montant
@@ -234,7 +246,7 @@ begin
   return jsonb_build_object(
     'prochain', case when v_prochain.id is not null then jsonb_build_object('echeance', v_prochain.due_date, 'montant', v_prochain.amount - coalesce(v_prochain.amount_received, 0),
       'en_retard', v_prochain.due_date < current_date, 'jours', current_date - v_prochain.due_date, 'echec', v_prochain.collection_status = 'failed',
-      'payable_carte', v_prochain.due_date <= current_date + 35) end,
+      'payable_carte', v_prochain.due_date <= current_date + 35 and v_prochain.amount - coalesce(v_prochain.amount_received, 0) <= least(4000, public.carte_plafond_restant())) end,
     'annee', jsonb_build_object('paye', coalesce((select sum(amount_received) from public.payments where lease_id = any (v_baux) and status = 'paid' and extract(year from due_date) = extract(year from current_date)), 0),
       'loyers', (select count(*) from public.payments where lease_id = any (v_baux) and status = 'paid' and extract(year from due_date) = extract(year from current_date)),
       'prevus', (select count(*) from public.payments where lease_id = any (v_baux) and extract(year from due_date) = extract(year from current_date))),
