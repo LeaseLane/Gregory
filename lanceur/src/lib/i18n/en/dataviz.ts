@@ -1,0 +1,25 @@
+// Dictionnaire anglais : kit dataviz (src/composants/dataviz) et graphiques des portails. Clé = texte français exact du code.
+const dico: Record<string, string> = {
+  'Voir le tableau': 'View table',
+  'Voir le graphique': 'View chart',
+  'Tableau': 'Table',
+  'Légende': 'Legend',
+  'Période': 'Period',
+  'Catégorie': 'Category',
+  'Total': 'Total',
+  'Aucune donnée pour cette période.': 'No data for this period.',
+  'Le graphique n’a pas pu être affiché.': 'The chart could not be displayed.',
+  'Afficher ou masquer {nom}': 'Show or hide {nom}',
+  'Utilisez les flèches gauche et droite pour parcourir les valeurs.': 'Use the left and right arrow keys to move through the values.',
+  'Tendance : {de} à {a}': 'Trend: {de} to {a}',
+  'en hausse': 'up',
+  'en baisse': 'down',
+  'stable': 'flat',
+  'cible': 'target',
+  '{titre}, {n} jours': '{titre}, {n} days',
+  'Jour': 'Day',
+  'Tendance': 'Trend',
+  'À traiter': 'To do',
+  '6 derniers mois': 'Last 6 months',
+};
+export default dico;

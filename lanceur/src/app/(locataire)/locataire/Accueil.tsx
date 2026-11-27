@@ -1,18 +1,37 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
-import { BandeauLocataire, useLocataire } from '@/composants/portail/CoquilleLocataire';
+import { useLocataire } from '@/composants/portail/CoquilleLocataire';
 import { fenetreAvis } from '@/composants/portail/format';
 import { useT } from '@/composants/Langue';
-import { motifs } from '@/lib/i18n/motifs';
 import { argentL, jourCourt } from '@/lib/format';
 import { dateLongueL, heureQcL } from './fmt';
+import { type VueAccueil, ETAPES } from './AccueilCommun';
+import { AccueilA } from './AccueilA';
+import { AccueilB } from './AccueilB';
+import { AccueilC } from './AccueilC';
 
-/* Locataire · 01 Accueil : parcours du mois, intervention à confirmer, prochain loyer, demande en cours, bail, gestionnaire,
-   raccourcis, 4 indicateurs, loyer comparé au marché. « À confirmer » en puce marine (D3); vouvoiement; dates « 1er » (D13). */
+/* Locataire · 01 Accueil : intervention à confirmer, prochain loyer, demande en cours, bail, gestionnaire,
+   raccourcis, 4 indicateurs, loyer comparé au marché. « À confirmer » en puce marine (D3); vouvoiement; dates « 1er » (D13).
+   Ce fichier calcule les valeurs (VueAccueil) et porte confirmer(); chaque option dessine la page (AccueilA / AccueilB / AccueilC).
+
+   TEMPORAIRE (27 nov. 2026) : trois options à l'essai : A « Action d'abord », B « Loyer au centre », C « Colonne focalisée ».
+   VARIANTE_ACCUEIL et le remplacement par localStorage['ll-accueil'] ('a' | 'b' | 'c', relu à l'événement « storage »)
+   sont à retirer après le choix de Steven, avec les deux options non retenues et leur CSS (globals.css, « Accueil locataire : trois options »). */
+export type VarianteAccueil = 'a' | 'b' | 'c';
+export const VARIANTE_ACCUEIL: VarianteAccueil = 'a';
+// Sélecteur d'essai retiré (Steven, 27 nov. 2026) : l'option affichée, A, est celle de tout le monde; l'ancien choix gardé dans localStorage n'est plus lu.
+const lireVariante = (): VarianteAccueil => VARIANTE_ACCUEIL;
+
+/* Position (0 à 100) de la fenêtre d'avis sur la durée du bail : sert à la chronologie de l'option A du bloc « Mon bail » (temporaire). */
+const positionFenetre = (debut: string, fin: string | null, fen: [string, string]) => {
+  if (!fin) return { pa: 0, pb: 0 };
+  const d = new Date(debut).getTime(), f = new Date(fin).getTime(), pc = (iso: string) => Math.max(0, Math.min(100, (100 * (new Date(`${iso}T12:00:00`).getTime() - d)) / Math.max(1, f - d)));
+  return { pa: pc(fen[0]), pb: pc(fen[1]) };
+};
+
 export type AccueilLoc = {
   logement: string | null; bail: { debut: string; fin: string | null; loyer: number; statut: string; fenetre: string | null } | null;
   prochain_loyer: { montant: number; echeance: string; en_retard: boolean; prelevement: boolean } | null;
@@ -23,29 +42,27 @@ export type AccueilLoc = {
   indicateurs: { paye_annee: number; loyers_payes: number; prevu_annee: number; ponctualite: boolean[]; reponse_min: number | null; reglees_h: number | null };
   loyers: { debut: string; loyer: number }[]; marche: number | null;
 };
-const ETAPES = ['Signalée', 'Qualifiée', 'Assignée', 'Visite', 'Fermée'];
-const ICONE_PARCOURS: Record<string, string> = { loyer: 'card', demande: 'wrench', intervention: 'calendar' };
 
 export function Accueil({ prenom, maintenant, donnees, erreur }: { prenom: string; maintenant: string; donnees: AccueilLoc | null; erreur: string | null }) {
   const router = useRouter(), { pastilles } = useLocataire(), { t, locale } = useT();
   const argent = (n: number) => argentL(Math.round(n), locale), jour = (iso: string) => jourCourt(iso.slice(0, 10), locale), jourLong = (iso: string) => dateLongueL(iso.slice(0, 10), locale);
   const [envoi, setEnvoi] = useState(false), [toast, setToast] = useState<string | null>(null), [bandeau, setBandeau] = useState<string | null>(null);
+  const [variante, setVariante] = useState<VarianteAccueil>(VARIANTE_ACCUEIL);   // TEMPORAIRE (voir en-tête)
+  useEffect(() => {
+    setVariante(lireVariante());
+    const surStockage = (e: StorageEvent) => { if (e.key === null || e.key === 'll-accueil') setVariante(lireVariante()); };
+    window.addEventListener('storage', surStockage);
+    return () => window.removeEventListener('storage', surStockage);
+  }, []);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t); }, [toast]);
   const auj = new Date(maintenant);   // une seule « maintenant », celle du serveur : aucun écart à l'hydratation
   if (erreur || !donnees) return <div className="bandeau erreur" role="alert" style={{ margin: 24 }}>{erreur ?? t('Votre accueil n’a pas pu être lu.')}</div>;
-  const D = donnees, I = D.indicateurs, c = D.a_confirmer[0];
-  // Parcours : du 1er du mois à environ 6 semaines; position proportionnelle à la date.
-  // Tout en UTC à partir du jour du Québec : serveur et navigateur donnent les mêmes pourcentages quel que soit le fuseau de l'appareil (sinon écart d'hydratation, surtout autour du changement d'heure).
-  const aujQc = auj.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' }), [AN, MO] = aujQc.split('-').map(Number);
-  const debut = new Date(Date.UTC(AN, MO - 1, 1)), fin = new Date(Date.UTC(AN, MO, 15)), duree = fin.getTime() - debut.getTime();
-  const pos = (iso: string) => Math.min(100, Math.max(0, (100 * (new Date(`${iso.slice(0, 10)}T12:00:00Z`).getTime() - debut.getTime())) / duree));
-  const jalons = D.parcours.filter((e) => pos(e.date) < 100);
-  // Deux jalons trop proches : on garde le libellé du plus récent (le premier reste lisible au survol).
-  const muets = new Set(jalons.map((e, k) => (k + 1 < jalons.length && pos(jalons[k + 1].date) - pos(e.date) < 9 ? k : -1)).filter((k) => k >= 0));
-  const bail = D.bail, moisBail = bail?.fin ? Math.max(1, Math.round((new Date(bail.fin).getTime() - new Date(bail.debut).getTime()) / (30.44 * 864e5))) : null;
+  const D = donnees, I = D.indicateurs, c = D.a_confirmer[0], bail = D.bail, L = D.prochain_loyer, G = D.gestionnaire;
+  const moisBail = bail?.fin ? Math.max(1, Math.round((new Date(bail.fin).getTime() - new Date(bail.debut).getTime()) / (30.44 * 864e5))) : null;
   const moisFaits = bail ? Math.max(0, Math.round((auj.getTime() - new Date(bail.debut).getTime()) / (30.44 * 864e5))) : 0;
   const restants = bail?.fin ? Math.max(0, Math.round((new Date(bail.fin).getTime() - auj.getTime()) / 864e5)) : null;
   const fen = fenetreAvis(bail?.fenetre);
+  const tel = pastilles?.contact?.telephone ?? null;
 
   async function confirmer(choix: 'present' | 'acces') {
     if (!c) return; setEnvoi(true); setBandeau(null);
@@ -54,104 +71,48 @@ export function Accueil({ prenom, maintenant, donnees, erreur }: { prenom: strin
     setToast(choix === 'present' ? t('C’est noté : vous serez présent.') : t('C’est noté : l’accès est autorisé en votre absence.')); router.refresh();
   }
 
+  const jours = L ? Math.max(0, Math.round((new Date(`${L.echeance}T12:00:00`).getTime() - auj.getTime()) / 864e5)) : 0;
+  const v: VueAccueil = {
+    D, t, locale, argent, jour, jourLong, maintenant: auj.getTime(), envoi, confirmer,
+    titre: t('Bonjour {prenom}', { prenom }),
+    surtitre: auj.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Toronto' }),
+    sous: c ? t('Une seule chose demande votre attention cette semaine.') : t('Rien ne demande votre attention cette semaine.'),
+    visite: c ? {
+      quand: new Date(c.quand).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Toronto' }), heure: heureQcL(c.quand, locale),
+      titre: t('{qui} passe {jour}', { qui: c.qui ?? t('Le fournisseur'), jour: new Date(c.quand).toLocaleDateString(locale, { weekday: 'long', timeZone: 'America/Toronto' }) }), detail: `${c.quoi} · ${c.numero}`,
+    } : null,
+    loyer: L ? {
+      montant: argent(L.montant), retard: L.en_retard, prelevement: L.prelevement, etat: L.en_retard ? t('En retard') : t('À jour'),
+      delai: L.en_retard ? t('dû depuis le {date}', { date: jour(L.echeance) }) : t('dans {n} jours', { n: jours }),
+      detail: L.en_retard ? t('en retard · une entente reste possible') : t('le {date} · {mode}', { date: jour(L.echeance), mode: L.prelevement ? t('prélèvement automatique') : t('à payer (voir Paiements)') }),
+    } : null,
+    demande: D.demande ? { id: D.demande.id, titre: D.demande.titre, etape: D.demande.etape, etat: t(ETAPES[D.demande.etape]), cree: jour(D.demande.cree) } : null,
+    bail: bail ? {
+      actif: bail.statut === 'active' ? t('Actif') : t('Terminé'), pct: Math.min(100, (100 * moisFaits) / (moisBail ?? 12)), fin: bail.fin, debut: bail.debut,
+      libelle: moisBail ? t('Mois {a} sur {b} · {n} jours restants', { a: Math.min(moisFaits + 1, moisBail), b: moisBail, n: restants }) : t('Bail sans date de fin'),
+      finLongue: bail.fin ? jourLong(bail.fin) : null, debutLong: jourLong(bail.debut),
+      renouvellement: fen ? t('Avis de renouvellement du {a} au {b}', { a: jour(fen[0]), b: jour(fen[1]) }) : null,
+      // Pièces des vues temporaires du bloc « Mon bail » (AccueilCommun : VUE_BAIL) : mois, jours restants, fenêtre d'avis (dates courtes + position en % sur la durée du bail)
+      mois: moisBail ? { a: Math.min(moisFaits + 1, moisBail), b: moisBail } : null, restants,
+      fen: fen ? { a: jour(fen[0]), b: jour(fen[1]), ...positionFenetre(bail.debut, bail.fin, fen) } : null,
+    } : null,
+    gest: G ? {
+      nom: G.nom, initiales: G.initiales, prenom: G.nom.split(' ')[0], courriel: G.courriel, tel,
+      lienTel: tel ? `tel:+1${tel.replace(/,.*$/, '').replace(/\D/g, '').slice(-10)}` : null, resume: tel ?? G.courriel,
+    } : null,
+    stats: {
+      annee: auj.getFullYear(), paye: argent(I.paye_annee), prevu: argent(I.prevu_annee), paye$: I.paye_annee, prevu$: Math.max(1, I.prevu_annee),
+      payeSous: I.loyers_payes > 1 ? t('{n} loyers sur 12', { n: I.loyers_payes }) : t('{n} loyer sur 12', { n: I.loyers_payes }),
+      ponct: I.ponctualite, ponctN: t('{n} sur {m}', { n: I.ponctualite.filter(Boolean).length, m: I.ponctualite.length || 12 }),
+      reponse: I.reponse_min == null ? '—' : I.reponse_min < 120 ? t('{n} min', { n: I.reponse_min }) : t('{n} h', { n: Math.round(I.reponse_min / 60) }), reponseMin: I.reponse_min,
+      reglees: I.reglees_h == null ? '—' : t('{n} h', { n: I.reglees_h }), regleesPct: I.reglees_h == null ? null : Math.min(100, (100 * I.reglees_h) / 48),
+    },
+  };
+
   return (
-    <>
-      <BandeauLocataire bas surtitre={auj.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Toronto' })} titre={t('Bonjour, {prenom}', { prenom })}
-        sous={c ? t('Une seule chose demande votre attention cette semaine.') : t('Rien ne demande votre attention cette semaine.')}>
-        <div className="lo-parcours">
-          <p className="lo-parcours-titre">{t('Mon parcours · {de} à {a}', { de: auj.toLocaleDateString(locale, { month: 'long' }), a: fin.toLocaleDateString(locale, { month: 'long' }) })}</p>
-          <div className="lo-ligne"><i className="lo-fait" style={{ width: `${pos(aujQc)}%` }} /><span className="lo-auj" style={{ left: `${pos(aujQc)}%` }}>{t('Aujourd’hui')}</span>
-            {jalons.map((e, k) => <div key={k} className={`lo-jalon ${e.fait ? 'fait' : ''} ${e.type} ${muets.has(k) ? 'muet' : ''}`} title={muets.has(k) ? `${motifs(e.titre, t, locale)} · ${motifs(e.sous, t, locale)}` : undefined} style={{ left: `${pos(e.date)}%` }}>
-              <span className="lo-pastille">{e.fait && e.type === 'loyer' ? <Icone nom="check" taille={14} couleur="#0C2147" trait={2.6} /> : <Icone nom={ICONE_PARCOURS[e.type] ?? 'calendar'} taille={14} couleur="#fff" />}</span>
-              <small>{jour(e.date)}</small><strong>{motifs(e.titre, t, locale)}</strong><span>{motifs(e.sous, t, locale)}</span></div>)}</div>
-        </div>
-      </BandeauLocataire>
-
-      {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
-      <div className="lo-grille lo-remonte">
-        <section className="carte-l18 e2 lo-action" aria-label={t('À confirmer')}>
-          {c ? <><span className="a-faire-ic"><Icone nom="calendar" taille={20} couleur="#0C2147" /></span>
-              <div><p><span className="puce action">{t('À confirmer')}</span><span className="gris texte-13"> {new Date(c.quand).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Toronto' })} · {heureQcL(c.quand, locale)}</span></p>
-                <strong>{t('{qui} passe {jour}', { qui: c.qui ?? t('Le fournisseur'), jour: new Date(c.quand).toLocaleDateString(locale, { weekday: 'long' }) })}</strong><span className="gris texte-13">{c.quoi} · {c.numero}</span></div>
-              <div className="a-faire-actions"><button className="bouton bouton-principal" disabled={envoi} onClick={() => confirmer('present')}>{t('Je serai présent')}</button>
-                <button className="bouton bouton-contour" disabled={envoi} onClick={() => confirmer('acces')}>{t('Autoriser l’accès')}</button></div></>
-            : <p className="ligne-ic" style={{ margin: 0 }}><span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>{t('Aucune intervention à confirmer.')}</p>}
-        </section>
-        <section className="carte-l18 e2" aria-label={t('Prochain loyer')}>
-          {D.prochain_loyer ? <><header className="tete-action"><span className="texte-13 fort">{t('Prochain loyer')}</span><span className={`puce ${D.prochain_loyer.en_retard ? 'todo' : 'ok'}`}>{D.prochain_loyer.en_retard ? t('En retard') : t('À jour')}</span></header>
-              <p className="lo-montant"><b>{argent(D.prochain_loyer.montant)}</b><span>{D.prochain_loyer.en_retard ? t('dû depuis le {date}', { date: jour(D.prochain_loyer.echeance) }) : t('dans {n} jours', { n: Math.max(0, Math.round((new Date(`${D.prochain_loyer.echeance}T12:00:00`).getTime() - auj.getTime()) / 864e5)) })}</span></p>
-              <p className="gris texte-13" style={{ margin: 0 }}>{D.prochain_loyer.en_retard ? t('en retard · une entente reste possible') : t('le {date} · {mode}', { date: jour(D.prochain_loyer.echeance), mode: D.prochain_loyer.prelevement ? t('prélèvement automatique') : t('à payer (voir Paiements)') })}</p></>
-            : <p className="gris texte-13" style={{ margin: 0 }}>{t('Aucun loyer à venir.')}</p>}
-        </section>
-      </div>
-
-      <div className="lo-grille trois">
-        <section className="carte-l18" aria-label={t('Demande en cours')}>
-          <header className="tete-action"><h2 className="titre-carte" style={{ margin: 0 }}>{t('Demande en cours')}</h2>{D.demande && <span className="puce">{t(ETAPES[D.demande.etape])}</span>}</header>
-          {D.demande ? <><p className="gris texte-13" style={{ margin: '4px 0 20px' }}>{D.demande.titre}</p>
-              <ol className="lo-etapes">{ETAPES.map((e, i) => <li key={e} className={i < D.demande!.etape ? 'fait' : i === D.demande!.etape ? 'actuel' : ''}><i /><strong>{t(e)}</strong></li>)}</ol>
-              <Link className="lien ligne-ic" style={{ marginTop: 16 }} href={`/locataire/demandes?d=${D.demande.id}`}>{t('Ouvrir le dossier')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link></>
-            : <p className="gris texte-13">{t('Aucune demande en cours.')}</p>}
-        </section>
-        <section className="carte-l18" aria-label={t('Mon bail')}>
-          <header className="tete-action"><h2 className="titre-carte" style={{ margin: 0 }}>{t('Mon bail')}</h2>{bail && <span className="puce ok">{bail.statut === 'active' ? t('Actif') : t('Terminé')}</span>}</header>
-          {bail ? <><p className="gris texte-13" style={{ margin: '4px 0 20px' }}>{moisBail ? t('Mois {a} sur {b} · {n} jours restants', { a: Math.min(moisFaits + 1, moisBail), b: moisBail, n: restants }) : t('Bail sans date de fin')}</p>
-              {bail.fin && <div className="lo-bail"><span className="jauge large"><i style={{ width: `${Math.min(100, (100 * moisFaits) / (moisBail ?? 12))}%` }} /></span>
-                <div className="lo-bail-dates"><span>{jourLong(bail.debut)}</span><span>{jourLong(bail.fin)}</span></div></div>}
-              {fen && <p className="texte-13" style={{ margin: '12px 0 0' }}>{t('Avis de renouvellement du {a} au {b}', { a: jour(fen[0]), b: jour(fen[1]) })}</p>}</>
-            : <p className="gris texte-13">{t('Aucun bail actif.')}</p>}
-        </section>
-        <section className="carte-l18" aria-label={t('Votre gestionnaire')}>
-          {D.gestionnaire ? <><div className="personne-ligne"><span className="ini" style={{ width: 56, height: 56, fontSize: 16 }}>{D.gestionnaire.initiales}</span><div><strong style={{ fontSize: 16 }}>{D.gestionnaire.nom}</strong><span className="gris">{t('Votre gestionnaire')}</span></div></div>
-              {pastilles?.contact?.telephone ? <p className="ligne-ic" style={{ margin: '16px 0 0' }}><Icone nom="phone" taille={16} couleur="#3E4A59" />{pastilles.contact.telephone}</p>
-                : <p className="ligne-ic" style={{ margin: '16px 0 0' }}><Icone nom="mail" taille={16} couleur="#3E4A59" />{D.gestionnaire.courriel}</p>}
-              <p className="ligne-ic" style={{ margin: '8px 0 16px' }}><Icone nom="clock" taille={16} couleur="#3E4A59" />{t('Lun.–ven., 8 h à 17 h')}</p>
-              <p className="a-faire-actions" style={{ margin: 0 }}><Link className="bouton bouton-contour" style={{ width: 'auto', display: 'inline-flex', padding: '0 20px', alignItems: 'center' }} href="/locataire/messages?nouveau=1">{t('Écrire à {prenom}', { prenom: D.gestionnaire.nom.split(' ')[0] })}</Link>
-                {pastilles?.contact?.telephone && <a className="lien" href={`tel:+1${pastilles.contact.telephone.replace(/,.*$/, '').replace(/\D/g, '').slice(-10)}`}>{t('Appeler')}</a>}</p></>
-            : <p className="gris texte-13">{t('Votre gestionnaire vous sera présentée bientôt.')}</p>}
-        </section>
-      </div>
-
-      <div className="lo-grille trois">{[['plus', 'Nouvelle demande', 'Photo ou vidéo, 2 min', '/locataire/demandes/nouvelle'], ['receipt', 'Mes reçus', 'Reçus de loyer', '/locataire/paiements'], ['file', 'Documents', 'Bail et annexes', '/locataire/documents']].map(([ic, ti, s, h]) =>
-        <Link key={ti} href={h} className="carte-l18 lo-raccourci"><span className="a-faire-ic"><Icone nom={ic} taille={20} couleur="#0C2147" /></span><div><strong>{t(ti)}</strong><span className="gris texte-13">{t(s)}</span></div><Icone nom="chevron" taille={18} couleur="#8A99AB" /></Link>)}</div>
-
-      <div className="po-section"><div><h2>{t('Mes indicateurs')}</h2><p>{t('Vos chiffres clés, mis à jour chaque jour')}</p></div></div>
-      <div className="po-kpis">
-        <div className="carte-l18 kpi-po"><span>{t('Payé en {annee}', { annee: auj.getFullYear() })}</span><b>{argent(I.paye_annee)}</b><small>{I.loyers_payes > 1 ? t('{n} loyers sur 12', { n: I.loyers_payes }) : t('{n} loyer sur 12', { n: I.loyers_payes })}</small>
-          <span className="jauge large"><i style={{ width: `${Math.min(100, (100 * I.paye_annee) / Math.max(1, I.prevu_annee))}%` }} /></span><small>{t('{montant} prévus', { montant: argent(I.prevu_annee) })}</small></div>
-        <div className="carte-l18 kpi-po"><span>{t('Ponctualité')}</span><b>{t('{n} sur {m}', { n: I.ponctualite.filter(Boolean).length, m: I.ponctualite.length || 12 })}</b><small>{t('Loyers payés à temps')}</small>
-          <span className="lo-ponct">{[...I.ponctualite].reverse().map((ok, k) => <i key={k} className={ok ? 'ok' : 'retard'}><Icone nom={ok ? 'check' : 'alert'} taille={12} couleur={ok ? '#12694F' : '#fff'} trait={2.4} /></i>)}</span></div>
-        <div className="carte-l18 kpi-po"><span>{t('Délai de réponse')}</span><b>{I.reponse_min == null ? '—' : I.reponse_min < 120 ? t('{n} min', { n: I.reponse_min }) : t('{n} h', { n: Math.round(I.reponse_min / 60) })}</b><small>{t('Réponse de l’équipe à vos demandes (médiane)')}</small></div>
-        <div className="carte-l18 kpi-po"><span>{t('Demandes réglées')}</span><b>{I.reglees_h == null ? '—' : t('{n} h', { n: I.reglees_h })}</b><small>{t('en moyenne · promesse 48 h')}</small>
-          {I.reglees_h != null && <span className="jauge large"><i style={{ width: `${Math.min(100, (100 * I.reglees_h) / 48)}%` }} /></span>}</div>
-      </div>
-
-      {D.loyers.length > 0 && <section className="carte-l18" aria-label={t('Mon loyer')}>
-        <h2 className="titre-carte" style={{ margin: 0 }}>{t('Mon loyer depuis {annee}', { annee: new Date(D.loyers[0].debut).getFullYear() })}</h2>
-        <p className="gris texte-13" style={{ margin: '4px 0 16px' }}>{D.marche ? t('Comparé au marché · {logement}', { logement: D.logement ?? '' }) : t('Historique de vos baux')}</p>
-        <Escalier loyers={D.loyers} marche={D.marche} fin={bail?.fin ?? null} maintenant={auj.getTime()} />
-        {D.marche && bail && <p className="puce" style={{ marginTop: 16 }}>{bail.loyer <= D.marche ? t('{ecart} par mois sous le marché ({marche})', { ecart: argent(D.marche - bail.loyer), marche: argent(D.marche) }) : t('{ecart} par mois au-dessus du marché ({marche})', { ecart: argent(bail.loyer - D.marche), marche: argent(D.marche) })}</p>}
-      </section>}
+    <div className={`acc acc-${variante}`}>
+      {variante === 'a' ? <AccueilA v={v} erreur={bandeau} /> : variante === 'b' ? <AccueilB v={v} erreur={bandeau} /> : <AccueilC v={v} erreur={bandeau} />}
       {toast && <div className="toast" role="status"><Icone nom="check" taille={18} couleur="#fff" />{toast}</div>}
-    </>
-  );
-}
-
-// Loyer en marches depuis le premier bail, marché en ligne de repère, « Aujourd’hui » en pointillé.
-function Escalier({ loyers, marche, fin, maintenant }: { loyers: { debut: string; loyer: number }[]; marche: number | null; fin: string | null; maintenant: number }) {
-  const { t, locale } = useT(), argent = (n: number) => argentL(Math.round(n), locale);
-  const W = 1000, H = 150, t0 = new Date(loyers[0].debut).getTime(), t1 = new Date(fin ?? maintenant + 180 * 864e5).getTime();
-  const vals = [...loyers.map((l) => l.loyer), ...(marche ? [marche] : [])], lo = Math.min(...vals) * 0.97, hi = Math.max(...vals) * 1.02;
-  const x = (t: number) => (W * (t - t0)) / Math.max(1, t1 - t0), y = (v: number) => H - (H * (v - lo)) / Math.max(1, hi - lo);
-  const pts = loyers.map((l, i) => { const a = x(new Date(l.debut).getTime()), b = i + 1 < loyers.length ? x(new Date(loyers[i + 1].debut).getTime()) : W; return `M${a} ${y(l.loyer)}H${b}`; }).join('')
-    + loyers.slice(1).map((l, i) => `M${x(new Date(l.debut).getTime())} ${y(loyers[i].loyer)}V${y(l.loyer)}`).join('');
-  return (
-    <svg className="lo-escalier" viewBox={`0 -20 ${W} ${H + 40}`} preserveAspectRatio="none" role="img" aria-label={t('Loyer comparé au marché')}>
-      {marche && <><line x1="0" x2={W} y1={y(marche)} y2={y(marche)} stroke="#8A99AB" strokeWidth="2" vectorEffect="non-scaling-stroke" /><text x={W} y={y(marche) - 6} textAnchor="end" className="lo-esc-txt">{t('Marché : {montant}', { montant: argent(marche) })}</text></>}
-      <path d={pts} stroke="#4581CB" strokeWidth="2.5" fill="none" vectorEffect="non-scaling-stroke" />
-      {loyers.map((l) => <circle key={l.debut} cx={x(new Date(l.debut).getTime())} cy={y(l.loyer)} r="4" fill="#4581CB" />)}
-      <text x={W} y={y(loyers[loyers.length - 1].loyer) + 18} textAnchor="end" className="lo-esc-txt fort">{argent(loyers[loyers.length - 1].loyer)}</text>
-      <line x1={x(maintenant)} x2={x(maintenant)} y1="-10" y2={H + 10} stroke="#58697F" strokeDasharray="3 4" vectorEffect="non-scaling-stroke" />
-    </svg>
+    </div>
   );
 }

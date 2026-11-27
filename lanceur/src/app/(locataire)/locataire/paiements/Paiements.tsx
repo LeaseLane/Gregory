@@ -78,17 +78,17 @@ export function Paiements({ donnees: D, recu, rl31, erreurRecu, mode, maintenant
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       <div className="lo-grille trois lo-remonte">
         <section className="carte-l18 e2 lo-kpi" aria-label={t('Prochain loyer')}>
-          {P?.en_retard ? <><span className="texte-13 fort">{P.echec ? t('Prélèvement refusé') : t('Loyer en retard')}</span><b className="rouge">{argent(P.montant)}</b>
+          {P?.en_retard ? <><header className="tete-action lo-kpi-tete"><span className="texte-13 fort">{P.echec ? t('Prélèvement refusé') : t('Loyer en retard')}</span></header><b className="rouge">{argent(P.montant)}</b>
               <small>{P.echec ? t('Le prélèvement du {date} n’a pas abouti. Un nouvel essai est prévu; vous pouvez aussi payer par virement Interac.', { date: dateCourte(P.echeance) }) : `${P.jours > 1 ? t('dû depuis le {date} ({n} jours)', { date: dateCourte(P.echeance), n: P.jours }) : t('dû depuis le {date} ({n} jour)', { date: dateCourte(P.echeance), n: P.jours })}${pad ? '' : D.interac ? t(' · par Interac à {x}', { x: D.interac }) : t(' · payable au propriétaire')}`}</small>
               {boutonCarte}
               <Link className="lien ligne-ic" href="/locataire/messages?nouveau=1&sujet=Entente%20de%20paiement">{t('Proposer une entente de paiement')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></Link></>
-            : <><span className="texte-13 fort">{pad ? t('Prochain prélèvement') : t('Prochain loyer')}</span><b>{P ? dateCourte(P.echeance, true) : '—'}</b>
+            : <><header className="tete-action lo-kpi-tete"><span className="texte-13 fort">{pad ? t('Prochain prélèvement') : t('Prochain loyer')}</span></header><b>{P ? dateCourte(P.echeance, true) : '—'}</b>
               <small>{P ? `${argent(P.montant)}${pad ? ` · ${D.mode.compte ? t('compte {c}', { c: D.mode.compte.replace(/^.*?(·+ ?\d+)$/, '$1') }) : t('prélèvement automatique')}` : D.interac ? t(' · par Interac à {x}', { x: D.interac }) : t(' · à payer au propriétaire')}` : t('Aucun loyer à venir')}</small>
               {boutonCarte || <button className="lien ligne-ic" onClick={() => setFenetreMode(true)}>{t('Changer de mode de paiement')}<Icone nom="arrow" taille={16} couleur="#2E5788" /></button>}</>}
         </section>
-        <section className="carte-l18 e2 lo-kpi" aria-label={t('Payé en {annee}', { annee })}><span className="texte-13 fort">{t('Payé en {annee}', { annee })}</span><b>{argent(D.annee.paye)}</b>
+        <section className="carte-l18 e2 lo-kpi" aria-label={t('Payé en {annee}', { annee })}><header className="tete-action lo-kpi-tete"><span className="texte-13 fort">{t('Payé en {annee}', { annee })}</span></header><b>{argent(D.annee.paye)}</b>
           <small>{D.annee.loyers > 1 ? t('{n} loyers sur 12', { n: D.annee.loyers }) : t('{n} loyer sur 12', { n: D.annee.loyers })}{D.annee.loyers === D.annee.prevus ? t(' · tous reçus') : ''}</small><span className="jauge large"><i style={{ width: `${Math.min(100, (100 * D.annee.loyers) / 12)}%` }} /></span></section>
-        <section className="carte-l18 e2 lo-kpi" aria-label={t('Retards')}><header className="tete-action"><span className="texte-13 fort">{t('Retards')}</span><span className={`puce ${D.en_retard > 0 ? 'todo' : 'ok'}`}>{D.en_retard > 0 ? t('En retard') : t('À jour')}</span></header>
+        <section className="carte-l18 e2 lo-kpi" aria-label={t('Retards')}><header className="tete-action lo-kpi-tete"><span className="texte-13 fort">{t('Retards')}</span><span className={`puce ${D.en_retard > 0 ? 'todo' : 'ok'}`}>{D.en_retard > 0 ? t('En retard') : t('À jour')}</span></header>
           <b>{D.retards}</b><small>{t('depuis le début du bail')}</small></section>
       </div>
 

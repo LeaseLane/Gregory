@@ -62,9 +62,9 @@ export function Profil({ donnees: D, onglet, maintenant, erreur }: { donnees: Pr
           <Link key={k} href={`/locataire/profil${k === 'infos' ? '' : `?t=${k}`}`} className={onglet === k ? 'actif' : ''} aria-current={onglet === k ? 'page' : undefined}>{t(l)}</Link>)}
           <form action="/deconnexion?p=locataire" method="post" style={{ marginLeft: 'auto', alignSelf: 'center' }}><button className="lien ligne-ic lo-sortir"><Icone nom="arrow" taille={14} couleur="#2E5788" />{t('Me déconnecter')}</button></form></nav>
 
-        {onglet === 'infos' && <form className="lo-profil-corps" onSubmit={(e) => { e.preventDefault(); enregistrerInfos(); }}>
-          <h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Coordonnées')}</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>{t('Ces informations servent à vous joindre au sujet de votre logement.')}</p>
-          <div className="lo-champs deux">
+        {onglet === 'infos' && <form className="lo-profil-corps lo-coord" aria-labelledby="lo-coord-titre" onSubmit={(e) => { e.preventDefault(); enregistrerInfos(); }}>
+          <header className="lo-coord-tete"><h2 id="lo-coord-titre" className="titre-carte">{t('Coordonnées')}</h2><p className="gris texte-13">{t('Ces informations servent à vous joindre au sujet de votre logement.')}</p></header>
+          <div className="lo-champs deux lo-coord-grille">
             <label className="champ"><span>{t('Prénom')}</span><input value={f.prenom} onChange={(e) => setF({ ...f, prenom: e.target.value })} autoComplete="given-name" /></label>
             <label className="champ"><span>{t('Nom')}</span><input value={f.nom} onChange={(e) => setF({ ...f, nom: e.target.value })} autoComplete="family-name" /></label>
             <label className="champ"><span>{t('Courriel')}</span><input type="email" value={f.courriel} onChange={(e) => setF({ ...f, courriel: e.target.value })} autoComplete="email" /></label>
@@ -72,15 +72,15 @@ export function Profil({ donnees: D, onglet, maintenant, erreur }: { donnees: Pr
             <label className="champ"><span>{t('Langue de communication')}</span><select value={f.langue} onChange={(e) => setF({ ...f, langue: e.target.value })}><option value="fr">Français</option><option value="en">English</option></select></label>
           </div>
           <hr className="lo-sep-h" />
-          <h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Mon logement')}</h2><p className="gris texte-13" style={{ margin: '0 0 16px' }}>{t('Ces renseignements viennent de votre bail. Pour une correction,')} <Link className="lien" href="/locataire/messages?nouveau=1&sujet=Correction%20de%20mes%20renseignements">{t('écrivez à {gest}', { gest })}</Link>.</p>
-          <div className="lo-champs deux">
+          <header className="lo-coord-tete"><h2 className="titre-carte">{t('Mon logement')}</h2><p className="gris texte-13">{t('Ces renseignements viennent de votre bail. Pour une correction,')} <Link className="lien" href="/locataire/messages?nouveau=1&sujet=Correction%20de%20mes%20renseignements">{t('écrivez à {gest}', { gest })}</Link>.</p></header>
+          <div className="lo-champs deux lo-coord-grille">
             <label className="champ"><span>{t('Adresse')}</span><span className="lo-verrou">{D.logement?.replace(/, Québec(?= —)/, '') ?? '—'}<Icone nom="lock" taille={16} couleur="#58697F" /></span></label>
             <label className="champ"><span>{t('Bail')}</span><span className="lo-verrou">{D.bail.debut ? t('{debut} au {fin}', { debut: dateLongueL(D.bail.debut, locale), fin: D.bail.fin ? dateLongueL(D.bail.fin, locale) : t('durée indéterminée') }) : '—'}<Icone nom="lock" taille={16} couleur="#58697F" /></span></label>
           </div>
-          <div className="a-faire-actions" style={{ justifyContent: 'flex-end', marginTop: 24 }}>
-            {enregistre === 'infos' && !modifie && <span className="lo-enregistre-ok"><Icone nom="check" taille={16} couleur="#12694F" />{t('Modifications enregistrées')}</span>}
-            <button type="button" className="bouton bouton-contour" disabled={!modifie} onClick={() => setF({ prenom: D.prenom, nom: D.nom ?? '', courriel: D.courriel ?? '', telephone: D.telephone ?? '', langue: D.langue })}>{t('Annuler')}</button>
-            <button className="bouton bouton-principal" disabled={!modifie || envoi}>{t('Enregistrer les modifications')}</button></div>
+          <div className="lo-coord-pied">
+            <p className="lo-coord-etat" role="status">{modifie ? t('Vos changements ne sont pas enregistrés') : enregistre === 'infos' && <span className="lo-enregistre-ok"><Icone nom="check" taille={16} couleur="#12694F" />{t('Modifications enregistrées')}</span>}</p>
+            <div className="lo-coord-boutons"><button type="button" className="bouton bouton-contour" disabled={!modifie} onClick={() => setF({ prenom: D.prenom, nom: D.nom ?? '', courriel: D.courriel ?? '', telephone: D.telephone ?? '', langue: D.langue })}>{t('Annuler')}</button>
+            <button className="bouton bouton-principal" disabled={!modifie || envoi}>{t('Enregistrer les modifications')}</button></div></div>
         </form>}
 
         {onglet === 'notifications' && <div className="lo-profil-corps">

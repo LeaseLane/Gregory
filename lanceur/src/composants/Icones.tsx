@@ -2,6 +2,7 @@
 const P: Record<string, React.ReactNode> = {
   chevron: <path d="m9 6 6 6-6 6" />,
   chevD: <path d="m6 9 6 6 6-6" />,
+  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   search: <><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></>,
   send: <><path d="M4 12 20 4l-6 16-3-7z" /><path d="m11 13 9-9" /></>,
   info: <><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5.5M12 7.8v.1" /></>,

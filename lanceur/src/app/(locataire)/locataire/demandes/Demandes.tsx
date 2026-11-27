@@ -105,15 +105,20 @@ export function Demandes({ lignes, detail: D, filtre, autre, maintenant, erreur 
                 <div className="lo-interv-actions"><button className="bouton bouton-contour" onClick={() => setProbleme(null)}>{t('Annuler')}</button>
                   <button className="bouton bouton-principal" disabled={envoi || probleme.trim().length < 3} onClick={() => reparation(false)}>{t('Envoyer à l’équipe')}</button></div></div>}
             </div>}
-            {D.intervention && <div className="lo-interv">
-              <header className="tete-action"><p className="surtitre">{t('Intervention planifiée')}</p>
-                {D.intervention.presence ? <span className="puce ok">{D.intervention.presence === 'present' ? t('Présence confirmée') : D.intervention.presence === 'acces' ? t('Accès autorisé') : t('Autre moment proposé')}</span> : <span className="puce action">{t('À confirmer')}</span>}</header>
-              <strong>{D.intervention.qui ?? t('Le fournisseur')} — {new Date(D.intervention.quand).toLocaleDateString(locale, { weekday: 'long', timeZone: 'America/Toronto' })} {jourQc(D.intervention.quand, 'long')}, {heureQc(D.intervention.quand)}</strong>
-              {!D.intervention.presence && <div className="lo-interv-actions">
-                <button className="bouton bouton-principal" disabled={envoi} onClick={() => presence('present')}>{t('Je serai présent')}</button>
-                <button className="bouton bouton-contour" disabled={envoi} onClick={() => presence('acces')}>{t('Autoriser l’accès en mon absence')}</button>
-                <button className="lien" onClick={() => setFenetreAutre(true)}>{t('Proposer un autre moment')}</button></div>}
-            </div>}
+            {D.intervention && (() => { const I = D.intervention, quand = new Date(I.quand), tz = 'America/Toronto', choix = I.presence;
+              return <section className="lo-interv lo-rdv" aria-labelledby="rdv-t">
+                <div className="lo-rdv-tete">
+                  <span className="lo-rdv-date" aria-hidden="true"><b>{quand.toLocaleDateString(locale, { day: 'numeric', timeZone: tz })}</b><small>{quand.toLocaleDateString(locale, { month: 'short', timeZone: tz })}</small></span>
+                  <div className="lo-rdv-texte"><h3 id="rdv-t" className="lo-rdv-titre">{t('Intervention planifiée')}</h3>
+                    <p className="lo-rdv-quand"><strong>{I.qui ?? t('Le fournisseur')}</strong><span>{quand.toLocaleDateString(locale, { weekday: 'long', timeZone: tz })} {jourQc(I.quand, 'long')}, {heureQc(I.quand)}</span></p></div>
+                  {choix ? <span className="puce ok">{choix === 'present' ? t('Présence confirmée') : choix === 'acces' ? t('Accès autorisé') : t('Autre moment proposé')}</span> : <span className="puce action">{t('À confirmer')}</span>}
+                </div>
+                {choix ? <p className="lo-rdv-choix"><Icone nom="check" taille={16} couleur="#1F6B45" />{choix === 'present' ? t('Vous serez présent pour l’intervention.') : choix === 'acces' ? t('Vous autorisez l’accès au logement en votre absence.') : t('Votre proposition est transmise à {prenom}.', { prenom })}</p>
+                : <div className="lo-interv-actions lo-rdv-actions" role="group" aria-label={t('Serez-vous présent?')}>
+                  <button className="bouton bouton-principal" disabled={envoi} onClick={() => presence('present')}>{t('Je serai présent')}</button>
+                  <button className="bouton bouton-contour" disabled={envoi} onClick={() => presence('acces')}>{t('Autoriser l’accès en mon absence')}</button>
+                  <button className="bouton bouton-contour bouton-filet-marine" onClick={() => setFenetreAutre(true)}>{t('Proposer un autre moment')}</button></div>}
+              </section>; })()}
 
             <div className="lo-detail-bas">
               <div><p className="surtitre">{t('Suivi')}</p><ol className="lo-suivi">{D.suivi.map((s) => { const fait = !!s.le, attente = !fait && (s.en_attente ?? false);
