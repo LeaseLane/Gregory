@@ -20,6 +20,7 @@ export function Portee({ options, choix }: { options: OptionsPortee; choix: stri
   const [idClient, idImmeuble = ''] = (choix ?? '').split(':');
   const p = options.proprietaires.find((x) => x.id === idClient) ?? null, immeuble = p?.immeubles.some((x) => x.id === idImmeuble) ? idImmeuble : '';
   const etat = etatPortee(chemin);
+  if (etat === 'sans') return null;   // page qui ne dépend pas du client : pas de sélecteur (rien n'y est filtré)
   const choisir = (proprietaire: string, im = '') => {
     choisirPortee(proprietaire, im);
     transition(() => router.refresh());
@@ -27,11 +28,9 @@ export function Portee({ options, choix }: { options: OptionsPortee; choix: stri
   // Ce que le choix change sur CETTE page : dit en clair, pour ne jamais annoncer un filtre qui n'agit pas.
   const message = !p ? t('Tous les clients sont affichés ensemble.')
     : etat === 'fiche' ? t('Cette fiche s’affiche en entier, quel que soit le client choisi.')
-    : etat === 'sans' ? t('Cette page ne dépend pas du client choisi : elle montre tout.')
-    : etat === 'ventes' ? (immeuble ? t('Vous voyez ce qui se rattache à cet immeuble; les prospects et les mandats sans client restent affichés.') : t('Vous voyez ce qui se rattache à ce client; les prospects et les mandats sans client restent affichés.'))
     : (immeuble ? t('Vous voyez seulement cet immeuble.') : t('Vous voyez seulement ce client.'));
   return (
-    <section className={'portee' + (p && (etat === 'active' || etat === 'ventes') ? ' active' : '')} aria-label={t('Client et immeuble affichés')} aria-busy={attente}>
+    <section className={'portee' + (p && etat === 'active' ? ' active' : '')} aria-label={t('Client et immeuble affichés')} aria-busy={attente}>
       <label htmlFor="portee-client">{t('Client')}</label>
       <select id="portee-client" className="e70-raison" value={p?.id ?? ''} onChange={(e) => choisir(e.target.value)}>
         <option value="">{t('Tous les clients')}</option>
