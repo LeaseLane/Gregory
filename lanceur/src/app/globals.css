@@ -2279,3 +2279,7 @@ html[lang^="en"] .tableau thead th { white-space: normal; height: auto; min-heig
 .kpis.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .kpis.trois .kpi { min-height: 0; }
 .marche-aide { max-width: 72ch; }
+
+/* Ventes · modifier un contact de lead (27 nov. 2026) : petit formulaire sous le nom, dans « Contacts et rôles ». */
+.contact-edition { display: grid; gap: 4px; margin-top: 8px; padding: 12px; border-radius: 12px; background: #F4F7FB; }
+.contact-edition input { width: 100%; }

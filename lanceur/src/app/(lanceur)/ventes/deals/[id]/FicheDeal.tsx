@@ -8,6 +8,7 @@ import { Perdu } from '@/composants/ventes/Perdu';
 import { argent, initiales } from '@/lib/ventes';
 import { useT } from '@/composants/Langue';
 import type { T } from '@/lib/i18n/langue';
+import { ModifierContact } from './ModifierContact';
 
 type Etape = { id: string; name: string; category: string; target_days: number | null; jours: number | null; depuis: string | null };
 export type DonneesDeal = {
@@ -141,7 +142,8 @@ export function FicheDeal({ donnees, erreurLecture, historique = null, prospecte
           <section className="carte-l18" aria-label={t('Contacts et rôles')}>
             <header className="carte-tete sans-marge"><h2>{t('Contacts et rôles')}</h2><p>{t('Une personne peut jouer un rôle différent sur un autre deal')}</p></header>
             <ul className="contacts-deal">{donnees.contacts.map((c) => <li key={c.id}><span className="ini" style={{ width: 36, height: 36, fontSize: 12 }}>{initiales(c.nom)}</span>
-              <div><strong>{c.nom}</strong><span>{[c.role ? t(c.role) : c.role, c.phones[0]?.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, '$1 $2-$3'), c.emails[0]].filter(Boolean).join(' · ')}</span></div></li>)}</ul>
+              <div style={{ flex: 1, minWidth: 0 }}><strong>{c.nom}</strong><span>{[c.role ? t(c.role) : c.role, c.phones[0]?.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, '$1 $2-$3'), c.emails[0]].filter(Boolean).join(' · ')}</span>
+                {donnees.peut_ecrire && <ModifierContact deal={d.id} c={c} fini={setToast} />}</div></li>)}</ul>
           </section>
           {!prospecteur && <><section className="carte-l18" aria-label={t('Tâches du deal')}>
             <header className="carte-tete sans-marge"><h2>{t('Tâches')}</h2><p>{donnees.taches.length ? t(donnees.taches.length > 1 ? '{n} ouvertes' : '{n} ouverte', { n: donnees.taches.length }) : t('Aucune tâche ouverte')}</p></header>

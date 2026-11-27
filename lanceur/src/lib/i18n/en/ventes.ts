@@ -794,5 +794,8 @@ const dico: Record<string, string> = {
   'Le SMS n’atteint que {n} % des contacts': 'SMS only reaches {n}% of contacts',
   'Le courriel n’atteint que {n} % des contacts': 'Email only reaches {n}% of contacts',
   'Gestionnaire externe non trouvé': 'No external manager found',
+  "Rien à modifier.": "Nothing to change.",
+  "Coordonnées enregistrées.": "Contact details saved.",
+  "Coordonnées enregistrées. Attention : {nom} a déjà ce courriel ou ce téléphone.": "Contact details saved. Note: {nom} already has this email or phone number.",
 };
 export default dico;
