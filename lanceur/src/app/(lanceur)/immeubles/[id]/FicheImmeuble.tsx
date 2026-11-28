@@ -10,6 +10,7 @@ import { LogementTiroir, type LogementEdit } from '../LogementTiroir';
 import { piece } from '@/lib/format';
 import { Photos, urlPhoto } from '../Photos';
 import { useT } from '@/composants/Langue';
+import { ProgressBar } from '@/composants/dataviz';
 
 /* e27 · Fiche immeuble : identité, chiffres clés, logements en deux demi-tableaux, historique d'entretien (en cours d'abord), documents, revenu des loyers sur 12 mois.
    Le retard se dit en mots; le rouge reste à l'urgence. */
@@ -64,7 +65,7 @@ export function FicheImmeuble({ donnees: D, erreurLecture }: { donnees: DonneesI
               <p className="gris texte-13" style={{ margin: 0 }}>{[D.quartier, L.length > 1 ? t('{n} logements', { n: L.length }) : t('{n} logement', { n: L.length }), D.annee && t('construit en {a}', { a: D.annee })].filter(Boolean).join(' · ')}
                 {D.proprietaire && <> · {t('propriétaire')} <Link href={`/clients/proprietaires/${D.proprietaire.id}`}>{D.proprietaire.nom}</Link></>}</p>
               <div className="imm-chiffres">
-                <div><p className="surtitre">{t('Occupation')}</p><span className="ligne-ic"><b>{L.length ? Math.round((100 * occ) / L.length) : 0} %</b><span className="jauge" style={{ width: 72, flex: 'none' }}><i style={{ width: `${L.length ? (100 * occ) / L.length : 0}%` }} /></span></span></div>
+                <div><p className="surtitre">{t('Occupation')}</p><span className="ligne-ic"><b>{L.length ? Math.round((100 * occ) / L.length) : 0} %</b><ProgressBar value={L.length ? (100 * occ) / L.length : 0} width={72} /></span></div>
                 <div><p className="surtitre">{t('Loyers')}</p><b>{ag(loyers)}</b> <span className="gris texte-13">{t('par mois')}</span></div>
                 <div><p className="surtitre">{t('Responsable')}</p>{D.responsable ? <span className="ligne-ic"><span className="ini" style={{ width: 28, height: 28, fontSize: 11 }}>{D.responsable.initiales}</span><b style={{ fontSize: 14 }}>{D.responsable.nom}</b></span> : <span className="gris">—</span>}</div>
               </div></div>

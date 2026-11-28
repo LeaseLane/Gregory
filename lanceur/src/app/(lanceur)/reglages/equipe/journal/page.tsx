@@ -11,7 +11,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ r
   const sp = await searchParams;
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_journal_acces', { p: { resultat: sp.resultat ?? 'tous', jours: sp.jours ?? '30' } });
   return (
-    <CadreEspace icone="chart" nom="Rapports et réglages" sous={SOUS_REG} actif={2} onglets={ONGLETS_REG}>
+    <CadreEspace icone="chart" nom="Réglages" sous={SOUS_REG} actif={2} onglets={ONGLETS_REG}>
       <SousOnglets actif="/reglages/equipe/journal" />
       <JournalAcces donnees={(data as DonneesJournal | null) ?? null} filtres={sp} erreurLecture={error ? (error.code === 'PT403' ? error.message : t('Le journal n’a pas pu être lu.')) : null} />
     </CadreEspace>

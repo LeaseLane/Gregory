@@ -8,6 +8,7 @@ import { initiales } from '@/lib/ventes';
 import { jourCourt, argentL } from '@/lib/format';
 import { useT } from '@/composants/Langue';
 import { ModulesClient } from './ModulesClient';
+import { ProgressBar, Sparkline } from '@/composants/dataviz';
 
 /* e20 · Fiche propriétaire : loyers payés chez lui (6 mois, jamais « versé »), occupation, dépenses, demandes; logements par immeuble avec retards;
    relevés mensuels émis le 5; approbation en attente (relance); préférences de communication (LCAP); documents; journal récent. */
@@ -59,9 +60,9 @@ export function FicheProprietaire({ donnees: D, propositions = [], erreurLecture
       </section>
       <div className="kpis" style={{ margin: '24px 0' }}>
         <div className="kpi"><span>{t('Loyers payés · {mois}', { mois: moisLib(dernier?.mois ?? new Date().toISOString(), { month: 'long' }) })}</span><b>{argent(dernier?.montant ?? 0)}</b>
-          <span className="mini-barres" aria-label={t('Loyers payés, 6 derniers mois')}>{I.loyers_6.map((m, k) => <i key={m.mois} className={k === I.loyers_6.length - 1 ? 'accent' : ''} style={{ height: `${Math.max(6, (100 * m.montant) / max)}%` }} title={`${moisLib(m.mois)} : ${argent(m.montant)}`} />)}</span></div>
+          <Sparkline kind="bars" height={36} values={I.loyers_6.map((m) => m.montant)} labels={I.loyers_6.map((m) => moisLib(m.mois))} format={(n) => argent(n)} label={t('Loyers payés, 6 derniers mois')} /></div>
         <div className="kpi"><span>{t('Occupation')}</span><b>{I.occupes} / {I.logements}</b><span>{I.logements - I.occupes ? (I.logements - I.occupes > 1 ? t('{n} logements libres', { n: I.logements - I.occupes }) : t('{n} logement libre', { n: I.logements - I.occupes })) : t('Tout est loué')}</span>
-          <span className="jauge"><i style={{ width: `${(100 * I.occupes) / Math.max(1, I.logements)}%` }} /></span></div>
+          <ProgressBar value={(100 * I.occupes) / Math.max(1, I.logements)} /></div>
         <div className="kpi"><span>{t('Dépenses · 12 mois')}</span><b>{argent(I.depenses_12)}</b><span>{I.loyers_12 ? t('{n} % des loyers payés', { n: Math.round((100 * I.depenses_12) / I.loyers_12) }) : '—'}</span></div>
         <div className="kpi"><span>{t('Demandes ouvertes')}</span><b>{I.demandes}</b><span>{I.demande ?? t('Aucune')}</span></div>
       </div>

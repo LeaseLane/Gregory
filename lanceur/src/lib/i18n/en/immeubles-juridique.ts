@@ -416,6 +416,8 @@ const dico: Record<string, string> = {
   'Fermer le dossier (entente, jugement…)': 'Close the case (agreement, judgment…)',
   'Raison : entente de paiement signée…': 'Reason: signed payment agreement…',
   'Raison': 'Reason',
+  'Raison de l’exception': 'Reason for the exception',
+  'réclamés au TAL, plus intérêts et frais': 'claimed at the TAL, plus interest and fees',
   'Dossier fermé.': 'Case closed.',
   'ferme': 'closed',
   'regle': 'settled',
@@ -632,5 +634,7 @@ const dico: Record<string, string> = {
   'Ouvrir le dossier': 'Open the case',
   '{c} amène {n}\u00a0% des demandes': '{c} brings {n}\u00a0% of requests',
   '{c} amène {n}\u00a0% des vues': '{c} brings {n}\u00a0% of views',
+  // dv-diag (diagrammes d'étapes, 27 nov.)
+  "Plus faible passage": "Weakest step",
 };
 export default dico;

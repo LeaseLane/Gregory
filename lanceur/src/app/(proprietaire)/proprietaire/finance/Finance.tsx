@@ -8,6 +8,7 @@ import { useT } from '@/composants/Langue';
 import { argent as argentFmt, libelleEcriture } from '@/composants/portail/format';
 import { jourCourt } from '@/lib/format';
 import type { T } from '@/lib/i18n/langue';
+import { BarChart, ProgressBar } from '@/composants/dataviz';
 
 /* Propriétaire · 10 Finance (décisions du 13 oct.) : les loyers sont payés directement chez vous et suivis par Lease Lane; Lease Lane
    facture le 5 ses honoraires et, pour une facture de travaux de 1 000 $ ou plus, 10 % de coordination. Aucun « net », aucun « versé ».
@@ -29,6 +30,7 @@ export function Finance({ rl31, donnees, erreur }: { rl31: DonneesRL31 | null; d
   const pos = (n: number) => (Math.abs(n) < 0.005 ? 0 : n);
   const loyers = somme((e) => e.montant > 0), honoraires = pos(-somme((e) => e.categorie === 'Honoraires')), travaux = pos(-somme((e) => e.categorie === 'Entretien')), coord = pos(-somme((e) => e.categorie === 'Coordination'));
   const facture = (honoraires + coord) * 1.14975, mois = D.mois.slice(0, 7);
+  const couts = honoraires + travaux + coord, part = loyers ? Math.round((100 * couts) / loyers) : 0;
   function csv() {
     const lignes = [[t('Date'), t('Écriture'), t('Catégorie'), t('Montant')], ...E.map((e) => [e.le, libelleEcriture(e.libelle, t, locale), t(e.categorie), e.montant.toFixed(2)])].map((l) => l.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + lignes], { type: 'text/csv' })); a.download = `grand-livre-${mois}.csv`; a.click();
@@ -36,8 +38,8 @@ export function Finance({ rl31, donnees, erreur }: { rl31: DonneesRL31 | null; d
   return (
     <>
       <div><h1 className="po-titre">{t('Finance')}</h1><p className="po-sous" style={{ margin: '4px 0 0' }}>{t('Loyers suivis, honoraires, travaux et relevés')} · {moisNom(mois, locale)}</p></div>
-      <div className="po-kpis">
-        <div className="carte-l18 kpi-po"><span>{t('Loyers payés chez vous')}<Icone nom="dollar" taille={18} couleur="#58697F" /></span><b>{argent(loyers)}</b><small>{ecart(loyers, D.precedent.loyers, locale)} · {moisNom(mois, locale).toLowerCase()} · {t('suivis par Lease Lane')}</small></div>
+      <div className="po-kpis dv-bande">
+        <div className="carte-l18 kpi-po dv-bande-hero"><span>{t('Loyers payés chez vous')}<Icone nom="dollar" taille={18} couleur="#58697F" /></span><b>{argent(loyers)}</b><small>{ecart(loyers, D.precedent.loyers, locale)} · {moisNom(mois, locale).toLowerCase()} · {t('suivis par Lease Lane')}</small></div>
         <div className="carte-l18 kpi-po"><span>{t('Honoraires {taux} %', { taux: String(D.taux).replace('.', locale.startsWith('en') ? '.' : ',') })}<Icone nom="card" taille={18} couleur="#58697F" /></span><b>{argent(honoraires)}</b><small>{t('logements occupés seulement')}</small></div>
         <div className="carte-l18 kpi-po"><span>{t('Travaux')}<Icone nom="wrench" taille={18} couleur="#58697F" /></span><b>{argent(travaux)}</b><small>{ecart(travaux, D.precedent.travaux, locale)} · {t('factures remises telles quelles')}</small></div>
         <div className="carte-l18 kpi-po"><span>{t('Facture du 5')}<Icone nom="receipt" taille={18} couleur="#58697F" /></span><b>{argent(facture)}</b><small>{coord ? t('honoraires et coordination, taxes incluses') : t('honoraires, taxes incluses')}</small></div>
@@ -57,9 +59,12 @@ export function Finance({ rl31, donnees, erreur }: { rl31: DonneesRL31 | null; d
         <div className="colonne-l18">
           <section className="carte-l18" aria-label={t('Répartition')}>
             <h2 className="titre-carte" style={{ margin: 0 }}>{t('Répartition')}</h2><p className="gris texte-13" style={{ margin: '4px 0 16px' }}>{moisNom(mois, locale)} · {t('ce que vous coûtent la gestion et les travaux')}</p>
-            <p className="po-grand">{pct(loyers ? Math.round((100 * (honoraires + travaux + coord)) / loyers) : 0, locale)}</p><p className="gris texte-13" style={{ margin: '4px 0 12px' }}>{t('des loyers payés')}</p>
-            <span className="jauge large"><i style={{ width: `${loyers ? Math.min(100, (100 * (honoraires + travaux + coord)) / loyers) : 0}%` }} /></span>
-            <dl className="po-liste">{[['Loyers payés chez vous', loyers], ['Honoraires', honoraires], ['Travaux', travaux], ['Coordination', coord]].map(([lib, v]) => <div key={lib as string}><dt>{t(lib as string)}</dt><dd>{argent(v as number)}</dd></div>)}</dl>
+            <p className="po-grand dv-chiffre">{pct(part, locale)}</p><p className="gris texte-13" style={{ margin: '4px 0 12px' }}>{t('des loyers payés')} · {argent(couts)}</p>
+            <ProgressBar size="md" value={Math.min(100, part)} label={t('Répartition')} valueText={pct(part, locale)} />
+            {/* Les trois postes comparés entre eux (barres classées, gris de contexte); la jauge ci-dessus porte seule l'accent marine. */}
+            <BarChart className="dv-postes" orientation="horizontal" rank emphasis={-1} label={t('Ce que vous coûtent la gestion et les travaux')} labels={[t('Honoraires'), t('Travaux'), t('Coordination')]}
+              series={[{ id: 'cout', name: t('Montant'), values: [honoraires, travaux, coord] }]} format={argent} labelWidth={104} />
+            <dl className="po-liste dv-liste"><div><dt>{t('Loyers payés chez vous')}</dt><dd>{argent(loyers)}</dd></div></dl>
           </section>
           <section className="carte-l18" aria-label={t('Relevés')}>
             <h2 className="titre-carte" style={{ margin: 0 }}>{t('Relevés')}</h2><p className="gris texte-13" style={{ margin: '4px 0 12px' }}>{t('Un par mois, imprimable')}</p>

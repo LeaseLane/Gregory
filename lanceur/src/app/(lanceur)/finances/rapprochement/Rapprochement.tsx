@@ -8,6 +8,7 @@ import { BarresClassees } from '@/composants/Graphes';
 import { argent, jour } from '../onglets';
 import { adresse } from '@/lib/format';
 import { useT } from '@/composants/Langue';
+import { ProgressBar } from '@/composants/dataviz';
 
 /* e42 · Rapprochement : la banque à gauche, la proposition de Cléo au centre (confiance en chiffres), la décision à droite. Sous 95 % de confiance, une personne décide;
    aujourd'hui toutes les décisions passent par une personne. Le relevé du compte en fidéicommis (BMO) arrive par import CSV; aucune connexion bancaire (retirée le 2026-11-04). */
@@ -38,7 +39,7 @@ export function Rapprochement({ donnees: D, erreurLecture }: { donnees: DonneesR
             <h2 className="releve-titre" style={{ margin: '4px 0' }}>{a ? (a > 1 ? t('{n} opérations à rapprocher', { n: a }) : t('{n} opération à rapprocher', { n: a })) : t('Tout est rapproché.')}</h2>
             <p className="gris texte-13" style={{ margin: 0 }}>{D.dernier_import ? t('Dernier relevé importé le {date}', { date: jour(D.dernier_import, locale) }) : t('Aucun relevé importé pour l’instant : relevé CSV du compte en fidéicommis (BMO)')}{a ? ` · ${t('Cléo propose une correspondance pour chacune')}` : ''}</p></div>
             <div style={{ width: 260 }}><p className="surtitre gris" style={{ margin: 0 }}>{t('Rapprochées ce mois-ci')}</p><b style={{ fontSize: 24 }}>{t('{a} sur {b}', { a: M.rapprochees, b: M.total })}</b>
-              <span className="jauge" style={{ display: 'block', margin: '8px 0 4px' }}><i style={{ width: `${M.total ? (100 * M.rapprochees) / M.total : 0}%` }} /></span>
+              <ProgressBar value={M.total ? (100 * M.rapprochees) / M.total : 0} style={{ display: 'block', margin: '8px 0 4px' }} />
               <span className="gris texte-12">{M.total ? t('{pct} %', { pct: String(Math.round((1000 * M.rapprochees) / M.total) / 10).replace('.', locale.startsWith('en') ? '.' : ',') }) : '—'} · {a > 1 ? t('{n} attendent votre décision', { n: a }) : t('{n} attend votre décision', { n: a })}</span></div></div>
           <ul className="ops">{D.operations.map((o) => { const s = o.suggestion, p = s?.paiement;
             return <li key={o.id}><div><p className="surtitre gris" style={{ margin: 0 }}>{jour(o.date, locale)} · {t('opération bancaire')}</p><b className="montant">{o.montant > 0 ? '+' : '−'}{argent(Math.abs(o.montant), true, locale)}</b>

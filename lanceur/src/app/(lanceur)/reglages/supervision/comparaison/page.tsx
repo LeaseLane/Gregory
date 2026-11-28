@@ -7,7 +7,7 @@ import { Comparaison, type DonneesComparaison } from './Comparaison';
 export default async function Page() {
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_comparaison');
   return (
-    <CadreEspace icone="chart" nom="Rapports et réglages" sous={SOUS_REG} actif={6} onglets={ONGLETS_REG}>
+    <CadreEspace icone="chart" nom="Réglages" sous={SOUS_REG} actif={6} onglets={ONGLETS_REG}>
       <Comparaison donnees={(data as DonneesComparaison | null) ?? null} erreurLecture={error?.message ?? null} />
     </CadreEspace>
   );

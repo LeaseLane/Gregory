@@ -10,7 +10,7 @@ export default async function Page() {
   const { t } = await tServeur();
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_comptes');
   return (
-    <CadreEspace icone="chart" nom="Rapports et réglages" sous={SOUS_REG} actif={2} onglets={ONGLETS_REG}>
+    <CadreEspace icone="chart" nom="Réglages" sous={SOUS_REG} actif={2} onglets={ONGLETS_REG}>
       <SousOnglets actif="/reglages/equipe/comptes" />
       <Comptes donnees={(data as DonneesComptes | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : t('Les comptes n’ont pas pu être lus.')) : null} />
     </CadreEspace>

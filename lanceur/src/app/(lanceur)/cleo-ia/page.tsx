@@ -33,7 +33,7 @@ export default async function Page() {
             <p className="gris texte-13" style={{ margin: '0 0 24px' }}>{t('30 derniers jours · SMS, portails et courriel')}</p>
             <div className="cleo-deux">
               <div><p className="surtitre">{t('Conversations')}</p><p className="cleo-gros"><b>{C.total}</b> {t('en 30 jours')}</p>
-                <span className="cleo-split" aria-hidden="true"><i style={{ width: `${pct(C.seule, C.total)}%` }} /><i /></span>
+                <span className="dg-sur10" aria-hidden="true">{Array.from({ length: 10 }, (_, k) => <i key={k} className={k < Math.round(pct(C.seule, C.total) / 10) ? 'on' : ''} />)}</span>
                 <p className="ligne-entre texte-13"><b>{t('{n} % réglées sans intervention', { n: pct(C.seule, C.total) })}</b><span className="gris">{t('{n} % passées à l’équipe', { n: 100 - pct(C.seule, C.total) })}</span></p>
                 {C.precedent.total > 0 && <p className="gris texte-13">{t('En {mois} : {n} % réglées sans intervention', { mois, n: pct(C.precedent.seule, C.precedent.total) })}</p>}</div>
               <div><p className="surtitre">{t('Pourquoi Cléo passe la main')} · {C.raisons.reduce((s, r) => s + r.n, 0)}</p>
@@ -47,7 +47,7 @@ export default async function Page() {
               ['home', t('Portails'), `${t('Locataires et propriétaires')} · ${nc(C.canaux.portail)}`],
               ['mail', t('Courriel'), `info@leaselane.ca · ${nc(C.canaux.courriel)}`]].map(([ic, ti, s]) =>
               <li key={ti}><span className="a-faire-ic"><Icone nom={ic} taille={18} couleur="#0C2147" /></span><div><strong>{ti}</strong><span className="gris texte-13">{s}</span></div>
-                <span className={'interrupteur' + (coupe ? '' : ' on')} role="img" aria-label={coupe ? t('Envois suspendus') : t('Envois actifs')} /></li>)}</ul>
+                <span className={'dg-etat' + (coupe ? ' off' : '')} title={coupe ? t('Envois suspendus') : t('Envois actifs')}><i aria-hidden="true" />{coupe ? t('Suspendu') : t('Actif')}</span></li>)}</ul>
             {coupe && <p className="ligne-ic texte-13 rouge-txt"><Icone nom="pause" taille={16} couleur="#9B2E28" />{t('Tous les envois sont suspendus')} · <Link href="/cleo-ia/automatisations">{t('voir')}</Link></p>}
           </section>
         </div>
@@ -70,7 +70,7 @@ export default async function Page() {
           </section>
           <section className="carte-l18" aria-label={t('Ton et signature')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Ton et signature')}</h2>
             <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{t('Les mêmes pour tous les canaux')}</p>
-            <div className="ligne-entre"><div><strong>{t('Vouvoiement')}</strong><span className="gris texte-13" style={{ display: 'block' }}>{t('Avec tous les clients et partenaires')}</span></div><span className="interrupteur on" role="img" aria-label={t('Toujours')} /></div>
+            <div className="ligne-entre"><div><strong>{t('Vouvoiement')}</strong><span className="gris texte-13" style={{ display: 'block' }}>{t('Avec tous les clients et partenaires')}</span></div><span className="dg-etat neutre"><i aria-hidden="true" />{t('Toujours')}</span></div>
             <p className="fenetre-lib" style={{ marginTop: 16 }}>{t('Signature')}</p><p className="e70-raison cleo-signature">{t('Cléo, assistante de Lease Lane')}</p>
             <p className="surtitre" style={{ marginTop: 8 }}>{t('Aperçu d’une réponse')}</p>
             <p className="cleo-apercu">{t('Bonjour Madame Ménard, votre demande est bien reçue. Julie N. vous répond d’ici 16 h. — Cléo, assistante de Lease Lane')}</p>

@@ -6,6 +6,7 @@ import { Icone } from '@/composants/Icones';
 import { Courbe } from '@/composants/Graphes';
 import { adresse } from '@/lib/format';
 import { useT } from '@/composants/Langue';
+import { ProgressBar, Sparkline } from '@/composants/dataviz';
 
 /* e26 · Immeubles : le parc d'un coup d'œil. Occupation = jauge par immeuble; carte de chaleur à 5 classes avec légende; le rouge réservé à l'urgence. */
 type Imm = { id: string; adresse: string; quartier: string | null; proprietaire: string | null; owner_id: string | null; logements: number; occupes: number; demandes: number; urgentes: number };
@@ -30,9 +31,9 @@ export function Immeubles({ donnees: D, q: q0, erreurLecture }: { donnees: Donne
       <div className="kpis" style={{ marginBottom: 24 }}>
         <div className="kpi"><span>{t('Immeubles')}</span><b>{I.immeubles}</b><span>{t('{p} propriétaires · {q} quartiers', { p: I.proprietaires, q: I.quartiers })}</span></div>
         <div className="kpi"><span>{t('Logements')}</span><b>{I.logements}</b><span>{I.depuis_janvier ? t('+{n} depuis janvier', { n: I.depuis_janvier }) : t('Aucun ajout depuis janvier')}</span><Courbe valeurs={D.serie.map((s) => s.logements)} /></div>
-        <div className="kpi"><span>{t('Taux d’occupation')}</span><b>{occ} %</b><span>{t('{n} logements loués sur {m}', { n: I.loues, m: I.logements })}</span><span className="jauge"><i style={{ width: `${occ}%` }} /></span></div>
+        <div className="kpi"><span>{t('Taux d’occupation')}</span><b>{occ} %</b><span>{t('{n} logements loués sur {m}', { n: I.loues, m: I.logements })}</span><ProgressBar value={occ} /></div>
         <div className="kpi"><span>{t('Logements vacants')}</span><b>{I.vacants}</b><span>{t('{n} annoncés · {m} à annoncer', { n: I.annonces, m: I.vacants - I.annonces })}</span>
-          <span className="mini-barres">{D.serie.map((s, k) => <i key={s.mois} className={k === D.serie.length - 1 ? 'accent' : ''} style={{ height: `${Math.max(6, (100 * (s.logements - s.occupes)) / Math.max(1, ...D.serie.map((x) => x.logements - x.occupes)))}%` }} title={`${mois(s.mois, locale, 'long')} : ${s.logements - s.occupes}`} />)}</span></div>
+          <Sparkline kind="bars" height={36} values={D.serie.map((s) => s.logements - s.occupes)} labels={D.serie.map((s) => mois(s.mois, locale, 'long'))} /></div>
       </div>
       <div className="grille-2-1">
         <section className="carte-l18" aria-label={t('Immeubles')}>
@@ -44,7 +45,7 @@ export function Immeubles({ donnees: D, q: q0, erreurLecture }: { donnees: Donne
             <tbody>{L.map((b) => { const tx = b.logements ? b.occupes / b.logements : 0;
               return <tr key={b.id} className="ligne-lien" onClick={() => router.push(`/immeubles/${b.id}`)}>
                 <td><Link className="fort" href={`/immeubles/${b.id}`} onClick={(e) => e.stopPropagation()}>{adresse(b.adresse)}</Link></td><td>{b.quartier ?? '—'}</td><td className="droite">{b.logements}</td>
-                <td><span className="ligne-ic" style={{ whiteSpace: 'nowrap' }}><span className="jauge" style={{ width: 88, flex: 'none' }}><i style={{ width: `${tx * 100}%` }} /></span>{Math.round(tx * 100)} %</span></td>
+                <td><span className="ligne-ic" style={{ whiteSpace: 'nowrap' }}><ProgressBar value={tx * 100} width={88} />{Math.round(tx * 100)} %</span></td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.owner_id ? <Link className="lien-texte" href={`/clients/proprietaires/${b.owner_id}`} onClick={(e) => e.stopPropagation()}>{b.proprietaire}</Link> : '—'}</td>
                 <td className="droite">{b.urgentes ? <span className="urgent">{b.urgentes > 1 ? t('{n} urgentes', { n: b.urgentes }) : t('{n} urgente', { n: b.urgentes })}</span> : <span className={b.demandes ? 'fort' : 'gris'}>{b.demandes}</span>}</td></tr>; })}
               {!D.immeubles.length && <tr><td colSpan={6} className="gris">{t('Aucun immeuble.')}</td></tr>}</tbody></table>

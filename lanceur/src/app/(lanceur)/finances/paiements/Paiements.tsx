@@ -9,6 +9,7 @@ import { initiales } from '@/lib/ventes';
 import { argent as argentBase, jour as jourBase, moisLong as moisLongBase } from '../onglets';
 import { useT } from '@/composants/Langue';
 import { adresse, montantSaisi } from '@/lib/format';
+import { LineChart, ProgressBar } from '@/composants/dataviz';
 
 /* l15 · Paiements : les loyers sont payés directement aux propriétaires; Lease Lane les suit et relance (jamais « encaissés »).
    Graphique : 2 séries de même unité sur un axe (mois en accent, précédent en gris), base 80 % étiquetée, survol jour par jour. */
@@ -21,28 +22,13 @@ export type DonneesPaiements = { mois: string; indicateurs: { attendu: number; p
 
 const dec = (v: unknown, locale: string) => (locale.startsWith('en') ? String(v) : String(v).replace('.', ','));
 
+/* Loyers payés cumulés (en % de l'attendu) par jour du mois, ce mois contre le précédent : deux courbes du kit, le mois affiché en bleu, le précédent en gris de contexte. */
 function Rythme({ mois, precedent, libM, libP }: { mois: (number | null)[]; precedent: (number | null)[]; libM: string; libP: string }) {
-  const { t, locale } = useT(), [survol, setSurvol] = useState<number | null>(null);
-  const W = 760, H = 300, g = 44, d = 136, lo = Math.min(80, ...[...mois, ...precedent].filter((v): v is number => v != null).map((v) => Math.floor(v / 5) * 5)), hi = 100;
-  const x = (i: number) => g + (i * (W - g - d)) / 30, y = (v: number) => 12 + (H - 40) * (1 - (v - lo) / (hi - lo));
-  const ligne = (s: (number | null)[]) => s.map((v, i) => (v == null ? null : `${x(i)},${y(v)}`)).filter(Boolean).join(' ');
-  const fin = (s: (number | null)[]) => { for (let i = s.length - 1; i >= 0; i--) if (s[i] != null) return i; return -1; };
-  const iM = fin(mois), iP = fin(precedent), ticks = Array.from({ length: (hi - lo) / 5 + 1 }, (_, k) => lo + k * 5);
-  return <svg className="rythme" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('Loyers payés cumulés, {mois} contre {precedent}', { mois: libM, precedent: libP })}
-    onMouseMove={(e) => { const r = (e.currentTarget as SVGSVGElement).getBoundingClientRect(), px = ((e.clientX - r.left) / r.width) * W; const i = Math.round(((px - g) * 30) / (W - g - d)); setSurvol(i >= 0 && i <= 30 ? i : null); }} onMouseLeave={() => setSurvol(null)}>
-    {ticks.map((t) => <g key={t}><line x1={g} x2={W - d} y1={y(t)} y2={y(t)} stroke={t === lo ? '#A6B1BE' : '#E1E6EC'} /><text x={g - 8} y={y(t) + 4} textAnchor="end" className="ax">{t} %</text></g>)}
-    {[1, 5, 10, 15, 20, 25, 31].map((j) => <text key={j} x={x(j - 1)} y={H - 6} textAnchor="middle" className="ax">{j}</text>)}
-    <polyline points={ligne(precedent)} fill="none" stroke="#A6B1BE" strokeWidth="2.5" /><polyline points={ligne(mois)} fill="none" stroke="#4581CB" strokeWidth="3" />
-    {iP >= 0 && <><circle cx={x(iP)} cy={y(precedent[iP]!)} r="4" fill="#A6B1BE" stroke="#fff" strokeWidth="2" /><text x={x(iP) + 10} y={y(precedent[iP]!) + 4} className="et">{libP} · {dec(precedent[iP], locale)} %</text></>}
-    {iM >= 0 && <><circle cx={x(iM)} cy={y(mois[iM]!)} r="5" fill="#4581CB" stroke="#fff" strokeWidth="2" /><text x={x(iM) + 10} y={y(mois[iM]!) + 18} className="et accent">{libM} · {dec(mois[iM], locale)} %</text></>}
-    {survol != null && <g><line x1={x(survol)} x2={x(survol)} y1={12} y2={H - 28} stroke="#0C2147" strokeOpacity=".35" />
-      {precedent[survol] != null && <circle cx={x(survol)} cy={y(precedent[survol]!)} r="4" fill="#A6B1BE" stroke="#fff" strokeWidth="2" />}
-      {mois[survol] != null && <circle cx={x(survol)} cy={y(mois[survol]!)} r="4" fill="#4581CB" stroke="#fff" strokeWidth="2" />}
-      <g transform={`translate(${Math.min(x(survol) + 12, W - 200)}, ${y(lo + (hi - lo) / 2)})`}><rect width="180" height="64" rx="8" fill="#fff" stroke="#E1E6EC" />
-        <text x="12" y="20" className="ax">{t('Jour {n}', { n: survol + 1 })}</text>
-        <text x="12" y="38" className="et accent">{mois[survol] != null ? `${dec(mois[survol], locale)} %` : '—'} · {libM}</text>
-        <text x="12" y="56" className="et">{precedent[survol] != null ? `${dec(precedent[survol], locale)} %` : '—'} · {libP}</text></g></g>}
-  </svg>;
+  const { t, locale } = useT();
+  const n = Math.max(mois.length, precedent.length), lo = Math.min(80, ...[...mois, ...precedent].filter((v): v is number => v != null).map((v) => Math.floor(v / 5) * 5));
+  return <LineChart height={300} min={lo} max={100} labels={Array.from({ length: n }, (_, i) => String(i + 1))} titles={Array.from({ length: n }, (_, i) => t('Jour {n}', { n: i + 1 }))} tableColumn={t('Jour')}
+    format={(v) => `${dec(v, locale)} %`} tickFormat={(v) => `${v} %`} label={t('Loyers payés cumulés, {mois} contre {precedent}', { mois: libM, precedent: libP })}
+    series={[{ id: 'm', name: libM, values: mois, slot: 0 }, { id: 'p', name: libP, values: precedent, color: 'var(--dv-ctx)' }]} />;
 }
 
 export function Paiements({ donnees: D, filtres, erreurLecture }: { donnees: DonneesPaiements | null; filtres: Record<string, string | undefined>; erreurLecture: string | null }) {
@@ -70,7 +56,7 @@ export function Paiements({ donnees: D, filtres, erreurLecture }: { donnees: Don
         <span className="ligne-ic gris texte-13" style={{ marginLeft: 'auto' }}><i className="point-etat" />QuickBooks {t(D.branchements.quickbooks)} · Optimal Paiement {t(D.branchements.optimal)}</span>
       </div>
       <div className="kpis" style={{ marginBottom: 24 }}>
-        <div className="kpi"><span>{t('Loyers payés en {mois}', { mois: libM })}</span><b>{argent(I.paye)}</b><span>{t('{pct} % de {attendu} · payés aux propriétaires', { pct, attendu: argent(I.attendu) })}</span><span className="jauge"><i style={{ width: `${Math.min(100, pct)}%` }} /></span></div>
+        <div className="kpi"><span>{t('Loyers payés en {mois}', { mois: libM })}</span><b>{argent(I.paye)}</b><span>{t('{pct} % de {attendu} · payés aux propriétaires', { pct, attendu: argent(I.attendu) })}</span><ProgressBar value={Math.min(100, pct)} /></div>
         <div className="kpi"><span>{t('À recevoir')}</span><b>{argent(I.a_recevoir.montant)}</b><span>{I.a_recevoir.n > 1 ? t('{n} loyers', { n: I.a_recevoir.n }) : t('{n} loyer', { n: I.a_recevoir.n })}{I.a_recevoir.prochain ? ` · ${t('échéance le {date}', { date: jour(I.a_recevoir.prochain) })}` : ''}</span></div>
         <div className="kpi"><span>{t('En retard')}</span><b style={I.en_retard.n ? { color: '#9B2E28' } : undefined}>{argent(I.en_retard.montant)}</b><span>{I.en_retard.n > 1 ? t('{n} loyers', { n: I.en_retard.n }) : t('{n} loyer', { n: I.en_retard.n })}{I.en_retard.jours ? ` · ${t('jusqu’à {n} jours', { n: I.en_retard.jours })}` : ''}</span></div>
         <div className="kpi"><span>{t('Revenu de gestion')}</span><b>{argent(I.revenu_gestion)}</b><span>{t('honoraires du mois : 6 % des loyers, travaux dès 1 000 $')}</span><Courbe valeurs={I.revenu_serie.map(Number)} /></div>
@@ -80,8 +66,7 @@ export function Paiements({ donnees: D, filtres, erreurLecture }: { donnees: Don
           <section className="carte-l18" aria-label={t('Loyers payés cumulés')}>
             <h2 className="titre-carte" style={{ marginBottom: 2 }}>{dernierM != null ? t('{mois} : {pct} % des loyers payés', { mois: libM.replace(/^./, (c) => c.toUpperCase()), pct: dec(dernierM, locale) }) : t('Loyers payés cumulés')}</h2>
             <p className="gris texte-13" style={{ margin: '0 0 8px' }}>{t('Loyers payés cumulés, en % de l’attendu · par jour du mois')}</p>
-            <p className="legende" style={{ margin: '0 0 8px' }}><span className="ligne-ic texte-12"><i className="cle gris-c" />{libP}</span><span className="ligne-ic texte-12"><i className="cle bleu-c" />{libM}</span></p>
-            <Rythme mois={cM} precedent={cP} libM={libM} libP={libP} />
+                        <Rythme mois={cM} precedent={cP} libM={libM} libP={libP} />
           </section>
           <section className="carte-l18" aria-label={t('Loyers à venir')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Loyers à venir · 30 jours')}</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>{t('Inscrivez un loyer payé chez le propriétaire dès sa confirmation')}</p>
             <table className="tableau tab-fixe"><colgroup><col style={{ width: '28%' }} /><col style={{ width: '34%' }} /><col style={{ width: '12%' }} /><col style={{ width: '12%' }} /><col /></colgroup>

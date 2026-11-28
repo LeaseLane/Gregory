@@ -91,14 +91,17 @@ export function FicheDeal({ donnees, erreurLecture, historique = null, prospecte
                   </li>
                 ))}
               </ol>
+            </div>
+            {actuelle?.category === 'lost' && <p className="bandeau info">{t('Perdu')} · {d.loss_reason ? t(d.loss_reason) : d.loss_reason}{d.loss_note ? ` : ${d.loss_note}` : ''}</p>}
+            {/* Sous la barre d'étapes (Steven, 28 nov. 2026) : le cadrage à gauche, Convertir et Marquer comme perdu à droite, sur une seule rangée. */}
+            {(!prospecteur || (donnees.peut_ecrire && !ferme)) && <div className="deal-pied">
+              {!prospecteur && <div className="cadrage"><span className="appel-ic"><Icone nom="layers" taille={20} couleur="#0C2147" /></span>
+                <div><strong>{t('Cadrage du mandat')}</strong><span>{t('Pas encore commencé')}</span></div>
+                <button className="bouton bouton-contour" disabled title={t('L’outil de cadrage arrive avec QuickProject (T9)')}>{t('Ouvrir le cadrage')}<Icone nom="arrow" taille={18} /></button></div>}
               {donnees.peut_ecrire && !ferme && <div className="deal-actions">
                 {donnees.pipeline.code === 'mandats' && !prospecteur && <button className="bouton bouton-principal" onClick={() => setConvertir(true)}><Icone nom="check" taille={20} couleur="#fff" />{t('Convertir')}</button>}
                 <button className="bouton bouton-contour" onClick={() => setPerdu(true)}>{t('Marquer comme perdu')}</button></div>}
-            </div>
-            {actuelle?.category === 'lost' && <p className="bandeau info">{t('Perdu')} · {d.loss_reason ? t(d.loss_reason) : d.loss_reason}{d.loss_note ? ` : ${d.loss_note}` : ''}</p>}
-            {!prospecteur && <div className="cadrage"><span className="appel-ic"><Icone nom="layers" taille={22} couleur="#0C2147" /></span>
-              <div><strong>{t('Cadrage du mandat')}</strong><span>{t('Pas encore commencé')}</span></div>
-              <button className="bouton bouton-contour" disabled title={t('L’outil de cadrage arrive avec QuickProject (T9)')}>{t('Ouvrir le cadrage')}<Icone nom="arrow" taille={20} /></button></div>}
+            </div>}
           </section>
 
           <section className="studio-liste" aria-label={t('Fil chronologique')}>

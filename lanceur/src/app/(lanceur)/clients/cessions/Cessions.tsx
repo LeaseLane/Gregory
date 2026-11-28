@@ -7,6 +7,7 @@ import { initiales } from '@/lib/ventes';
 import { adresse, argentL } from '@/lib/format';
 import { useT } from '@/composants/Langue';
 import type { T } from '@/lib/i18n/langue';
+import { ProgressBar } from '@/composants/dataviz';
 
 type Demande = { id: string; numero: string; kind: string; statut: string; logement: string; loyer: number; fin_bail: string | null; locataire: string | null; personne: string;
   courriel: string | null; telephone: string | null; emploi: string | null; revenu: string | null; debut: string; fin: string | null; pieces: string[]; source: string;
@@ -68,7 +69,7 @@ export function Cessions({ donnees, erreurLecture }: { donnees: DonneesCessions 
           <ul className="liste-demandes">{L.map((y) => { const [et, v] = etat(y, t); return (
             <li key={y.id}><button className={y.id === sel ? 'sel' : ''} onClick={() => setSel(y.id)}>
               <span className={`puce ${y.id === sel ? 'action' : 'neutral'}`}>{t(TYPES[y.kind])}</span><strong>{adresse(y.logement)}</strong><span className="gris">{phrase(y, t, dLong)}</span>
-              {v === 'meter' ? <span className="ligne-jauge"><span className="jauge"><i style={{ width: `${(100 * (J - restants(y))) / J}%` }} /></span><b>{et}</b></span>
+              {v === 'meter' ? <span className="ligne-jauge"><ProgressBar value={(100 * (J - restants(y))) / J} /><b>{et}</b></span>
                 : <span className="ligne-ic"><Icone nom={v === 'fin' ? 'check' : 'clock'} taille={16} couleur="#58697F" />{et}</span>}</button></li>); })}
             {!L.length && <li className="gris">{t('Aucune demande. Elles arriveront du portail locataire; en attendant, saisissez-les avec +.')}</li>}</ul>
         </section>
@@ -80,7 +81,7 @@ export function Cessions({ donnees, erreurLecture }: { donnees: DonneesCessions 
                 <h2>{x.kind === 'cession' ? t('{a} cède son bail à {b}', { a: x.locataire ?? t('Le locataire'), b: x.personne }) : t('{a} sous-loue à {b}', { a: x.locataire ?? t('Le locataire'), b: x.personne })}</h2>
                 <p className="gris">{t('{m} par mois', { m: argent(x.loyer, locale) })} · {x.fin_bail ? t('bail jusqu’au {d}', { d: dLong(x.fin_bail) }) : t('bail sans date de fin')} · {adresse(x.logement)}</p></div>
               <div className="delai"><p className="surtitre gris">{t('Réponse due le {d}', { d: d(x.limite) })}</p>
-                {ouverte ? <><b>{restants(x) > 1 ? t('{n} jours', { n: restants(x) }) : t('{n} jour', { n: restants(x) })}</b><span className="jauge large"><i style={{ width: `${(100 * jour) / J}%` }} /></span>
+                {ouverte ? <><b>{restants(x) > 1 ? t('{n} jours', { n: restants(x) }) : t('{n} jour', { n: restants(x) })}</b><ProgressBar value={(100 * jour) / J} size="md" />
                   <span className="gris">{t('Jour {j} sur {n} · sans réponse, la demande est réputée acceptée', { j: jour, n: J })}</span></> : <b className="petit">{etat(x, t)[0]}</b>}</div>
             </div>
             <ol className="stepper petit">{etapes.map(([e, s], i) => <li key={e} className={(i < etape ? 'fait ' : '') + (i === etape ? 'actuel' : '')}><button disabled><i>{i < etape && <Icone nom="check" taille={14} couleur="#fff" trait={2.6} />}</i><strong>{e}</strong><span>{s}</span></button></li>)}</ol>

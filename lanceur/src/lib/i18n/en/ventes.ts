@@ -496,6 +496,7 @@ const dico: Record<string, string> = {
   'personne': 'nobody',
   'Toujours {nom}': 'Always {nom}',
   'Activer la règle': 'Turn the rule on',
+  'Règle : {nom}': 'Rule: {nom}',
   'Règle désactivée.': 'Rule turned off.',
   'Règle activée.': 'Rule turned on.',
   'Arrive avec les territoires (Immeubles)': 'Coming with territories (Buildings)',
@@ -797,5 +798,8 @@ const dico: Record<string, string> = {
   "Rien à modifier.": "Nothing to change.",
   "Coordonnées enregistrées.": "Contact details saved.",
   "Coordonnées enregistrées. Attention : {nom} a déjà ce courriel ou ce téléphone.": "Contact details saved. Note: {nom} already has this email or phone number.",
+  // dv-diag (diagrammes d'étapes, 27 nov.)
+  "Étapes du pipeline": "Pipeline stages",
+  "Goulot": "Bottleneck",
 };
 export default dico;

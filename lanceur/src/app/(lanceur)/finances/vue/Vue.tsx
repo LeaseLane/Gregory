@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
+import { BarChart } from '@/composants/dataviz';
 import { choisirPortee } from '@/composants/Portee';
 import { argent as argentBase } from '../onglets';
 import { useT } from '@/composants/Langue';
@@ -26,17 +27,12 @@ const REVENU: Record<string, string> = { stationnement: 'Stationnement', buander
 const moisNom = (iso: string, court = false, locale = 'fr-CA') => new Date(`${iso.slice(0, 7)}-15T12:00:00`).toLocaleDateString(locale, court ? { month: 'short' } : { month: 'long', year: 'numeric' });
 const decaler = (iso: string, n: number) => { const d = new Date(`${iso.slice(0, 7)}-15T12:00:00`); d.setMonth(d.getMonth() + n); return d.toISOString().slice(0, 7); };
 
-/* Flux de trésorerie des 6 derniers mois : revenus perçus et dépenses côte à côte, le mois affiché en accent. */
+/* Flux de trésorerie des 6 derniers mois : revenus perçus et dépenses côte à côte (kit dataviz : barres groupées, légende, infobulle par mois, tableau). */
 function Flux({ serie }: { serie: DonneesVue['serie'] }) {
   const { t, locale } = useT(), argent = (n: number) => argentBase(n, false, locale);
-  const W = 520, H = 168, bas = 28, max = Math.max(1, ...serie.flatMap((s) => [s.revenus, s.depenses])), pas = W / serie.length, h = (v: number) => (v / max) * (H - bas - 12);
-  return <svg viewBox={`0 0 ${W} ${H}`} className="graphe-rythme" role="img" aria-label={t('Revenus perçus et dépenses par mois : {liste}', { liste: serie.map((s) => t('{mois} {revenus} de revenus, {depenses} de dépenses', { mois: moisNom(s.mois, true, locale), revenus: argent(s.revenus), depenses: argent(s.depenses) })).join('; ') })}>
-    <line x1="0" x2={W} y1={H - bas} y2={H - bas} stroke="#A6B1BE" />
-    {serie.map((s, i) => { const x = i * pas + pas / 2, dernier = i === serie.length - 1; return <g key={s.mois}>
-      <rect x={x - 22} y={H - bas - h(s.revenus)} width="20" height={h(s.revenus)} rx="3" fill={dernier ? '#4581CB' : '#A9C4E6'}><title>{t('{mois} · revenus perçus {montant}', { mois: moisNom(s.mois, false, locale), montant: argent(s.revenus) })}</title></rect>
-      <rect x={x + 2} y={H - bas - h(s.depenses)} width="20" height={Math.max(h(s.depenses), s.depenses ? 2 : 0)} rx="3" fill={dernier ? '#0C2147' : '#A6B1BE'}><title>{t('{mois} · dépenses {montant}', { mois: moisNom(s.mois, false, locale), montant: argent(s.depenses) })}</title></rect>
-      <text x={x} y={H - 8} textAnchor="middle" className="ax">{moisNom(s.mois, true, locale)}</text></g>; })}
-  </svg>;
+  return <BarChart labels={serie.map((s) => moisNom(s.mois, true, locale))} titles={serie.map((s) => moisNom(s.mois, false, locale))} height={220} format={argent}
+    label={t('Revenus perçus et dépenses par mois : {liste}', { liste: serie.map((s) => t('{mois} {revenus} de revenus, {depenses} de dépenses', { mois: moisNom(s.mois, true, locale), revenus: argent(s.revenus), depenses: argent(s.depenses) })).join('; ') })}
+    series={[{ id: 'rev', name: t('Revenus perçus'), values: serie.map((s) => s.revenus), slot: 0 }, { id: 'dep', name: t('Dépenses'), values: serie.map((s) => s.depenses), slot: 1 }]} tableColumn={t('Mois')} />;
 }
 
 export function Vue({ donnees: D, erreurLecture }: { donnees: DonneesVue | null; erreurLecture: string | null }) {
@@ -94,7 +90,7 @@ export function Vue({ donnees: D, erreurLecture }: { donnees: DonneesVue | null;
         </section>
         <section className="carte-l18" aria-label={t('Flux de trésorerie')}>
           <h2 className="titre-carte" style={{ margin: 0 }}>{t('Flux de trésorerie')}</h2>
-          <p className="gris texte-13" style={{ margin: '4px 0 12px' }}><span style={{ color: '#4581CB' }}>■</span> {t('Revenus perçus')} · <span style={{ color: '#0C2147' }}>■</span> {t('Dépenses, 6 derniers mois')}</p>
+          <p className="gris texte-13" style={{ margin: '4px 0 12px' }}>{t('6 derniers mois')}</p>
           <Flux serie={D.serie} />
         </section>
       </div>

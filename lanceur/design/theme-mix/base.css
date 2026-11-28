@@ -1,0 +1,607 @@
+/* ==========================================================================================================================
+   « Mix Vercel » — BASE PARTAGÉE (tous les portails). Direction 50 % Vercel / 50 % Lease Lane (SPEC.md, révision du 2026-11-27).
+
+   VERCEL (50 %) : la palette neutre (#F4F7FB / blanc, #0D233B / #3E4A59 / #666), Geist pour l'interface, Geist Mono pour les étiquettes techniques, « l'ombre en guise de
+                   bordure » et les filets, composants (tableaux, onglets, champs, segments, puces teintées), densité, mouvement.
+   LEASE LANE (50 %) : le menu et la barre du bas marine plats, la bande d'en-tête marine (locataire), les titres en Poppins 600 marine, le logo, Cléo, l'accent marine
+                   (actions principales, liens, focus, progression, courbes), les couleurs d'état.
+
+   Portée : TOUT est sous  html[data-mix="vercel"]  (sauf les @font-face, qui ne déclarent que des familles nouvelles). Retirer l'attribut (ou le laisser à « »)
+   redonne exactement le design actuel. Aucune classe ni structure du DOM n'est changée : CSS seulement.
+
+   Ce fichier ne cible que des classes PARTAGÉES (.carte-l18, .bouton*, .puce*, .tableau, .surtitre, .jauge, .kpi*, .toast, .bandeau, .tiroir, .fenetre, .voile,
+   .cloche-panneau, .cleo-*, .palette, .menu, champs…). Le menu, la bande d'en-tête et les écrans propres à un portail vont dans locataire.css / proprietaire.css / admin.css.
+   Réglages : tout ce qui se règle est dans « 1. Variables ». Les !important sont rares et commentés.
+
+   Piège de spécificité : n'écrire AUCUNE règle de couleur ou de taille sur un élément nu (a, p…) sous le préfixe (elle écraserait les règles de classe de globals.css), et ne mettre
+   dans un :is(…) que des membres de même poids (le groupe prend la spécificité de son membre le plus lourd). `node lint.mjs` liste les groupes risqués.
+   ========================================================================================================================== */
+
+/* ---- 0. Polices : Geist (variable) et Geist Mono, fichiers locaux (theme-vercel/fonts, copiés dans dist/fonts par chaque build.mjs). La plage de graisse
+        s'arrête à 600 : 700/800 s'affichent en 600 sans gras synthétique (Vercel n'utilise jamais 700 dans l'interface). ---- */
+@font-face { font-family: 'Geist'; font-style: normal; font-weight: 100 900; font-display: swap; src: url(fonts/geist-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Geist Mono'; font-style: normal; font-weight: 100 900; font-display: swap; src: url(fonts/geist-latin.woff2) format('woff2'); } /* JAMAIS de monospace (Steven, 27 nov. 2026) : « Geist Mono » est servie par Geist */
+
+/* ---- 1. Variables (réglages d'intensité) ---- */
+html[data-mix="vercel"] {
+  /* Polices */
+  --mix-font-ui: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mix-font-mono: var(--mix-font-ui);  /* jamais de monospace (Steven) */
+  --mix-font-title: 'Poppins', 'Geist', ui-sans-serif, system-ui, sans-serif;   /* titres seulement (h1, h2, titres de carte et de section) : Poppins 600, voix de Lease Lane */
+  --mix-title-color: #0C2147;     /* titres sur surface claire (blanc sur la bande marine) */
+  /* Suivi : titres Poppins -0.02em (h1) / -0.01em (h2), grands chiffres Geist -0.04em */
+  --mix-track-hero: -0.04em;      /* grands chiffres (KPI 32 px) */
+  --mix-track-title: -0.02em;     /* h1, titre de page, salutation */
+  --mix-track-section: -0.01em;   /* h2, titre de section */
+  --mix-track-card: -0.01em;      /* titre de carte */
+  --mix-track-mono: 0.04em;       /* étiquettes techniques */
+  /* Neutres */
+  --mix-bg: #F4F7FB;
+  --mix-surface: #FFFFFF;
+  --mix-surface-2: #EEF1F5;       /* survol, piste des segments, zones en creux */
+  --mix-text: #0D233B;
+  --mix-text-2: #3E4A59;
+  --mix-text-3: #58697F;
+  --mix-placeholder: #7A8799;
+  --mix-border: #E1E6EC;
+  --mix-border-strong: #C8CDD4;
+  /* Marque (35 %) : marine seulement là où la marque parle */
+  --mix-marine: #0C2147;
+  --mix-marine-hover: #1A3463;
+  --mix-link: #2E5788;
+  --mix-tint: #EEF2F8;            /* ligne choisie, fond d'info */
+  --mix-focus: #3767A2;
+  /* Menu et barres marine (Lease Lane) */
+  --mix-rail-text: #DCE7F5;
+  --mix-rail-hover: rgba(255, 255, 255, .08);
+  --mix-rail-active: rgba(255, 255, 255, .12);
+  --mix-rail-indicator: #91B5E0;   /* trait de 2 px de l'élément actif et anneau de focus sur le marine */
+  --mix-on-marine-2: #C8DAF0;      /* sous-titres, surtitres et icônes sur la bande marine */
+  --mix-badge: #3767A2;            /* pastilles de compte : blanc sur #3767A2 */
+  --mix-success-light: #2E9E6E;    /* point « en ligne » de Cléo sur le marine */
+  /* États (fond / texte, AA) */
+  --mix-success-bg: #E9F5EF;  --mix-success: #0F5A43;
+  --mix-warning-bg: #FFF4E5;  --mix-warning: #8A4B00;
+  --mix-error-bg: #FDECEB;    --mix-error: #9B2E28;
+  --mix-info-bg: #EEF2F8;     --mix-info: #0C2147;
+  --mix-neutral-bg: #EEF1F5;  --mix-neutral: #3E4A59;
+  /* Élévation : l'ombre EST la bordure */
+  --mix-ring: 0 0 0 1px rgba(0, 0, 0, .08);
+  --mix-ring-hover: 0 0 0 1px var(--mix-border-strong);
+  --mix-ring-input: 0 0 0 1px var(--mix-placeholder);               /* champs : 3,3:1 sur blanc (WCAG 1.4.11). Mettre var(--mix-ring) pour le filet Vercel pur (1,2:1) */
+  --mix-ring-input-hover: 0 0 0 1px var(--mix-text-3);
+  --mix-shadow-card: 0 0 0 1px rgba(0, 0, 0, .08), 0 2px 2px rgba(0, 0, 0, .04), 0 8px 8px -8px rgba(0, 0, 0, .04);
+  --mix-shadow-popover: 0 0 0 1px rgba(0, 0, 0, .08), 0 4px 8px -4px rgba(0, 0, 0, .04), 0 16px 24px -8px rgba(0, 0, 0, .06);
+  --mix-overlay: rgba(0, 0, 0, .32);
+  /* Rayons : carte 12 · fenêtre / menu / tiroir 12 · contrôle 8 · pastille ronde */
+  --mix-radius-card: 6px;
+  --mix-radius-popover: 6px;
+  --mix-radius-control: 4px;
+  --mix-radius-pill: 3px;   /* coins adoucis, pas de pilules rondes (Steven, 27 nov. 2026); ronds réservés aux avatars et au bouton de Cléo */
+  /* Tailles */
+  --mix-control-h: 36px;          /* bureau */
+  --mix-control-h-touch: 44px;    /* téléphone (≤ 760 px) */
+  --mix-pad-card: 24px;           /* 16 px au téléphone */
+  --mix-gutter: 32px;             /* marge de page : 16 px au téléphone */
+  /* Mouvement */
+  --mix-ease: cubic-bezier(.4, 0, .2, 1);
+  --mix-dur: 150ms;
+  --mix-dur-menu: 200ms;
+
+  /* Jetons de l'app redirigés : tout ce qui lit var(--ll-…) suit. */
+  --ll-police: var(--mix-font-ui);
+  --ll-fond: var(--mix-bg);
+  --ll-r-carte: var(--mix-radius-card);
+  --ll-r-bouton: var(--mix-radius-control);
+  --ll-r-segment: var(--mix-radius-control);
+}
+
+/* ---- 2. Base : canevas, texte, focus ---- */
+html[data-mix="vercel"] body { background: var(--mix-bg); color: var(--mix-text); font-size: 14px; line-height: 20px; font-feature-settings: "liga" 1, "calt" 1; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+html[data-mix="vercel"] :is(.lo, .po, .coquille) { background: var(--mix-bg); }
+html[data-mix="vercel"] ::selection { background: #D6E4F4; color: var(--mix-marine); }
+html[data-mix="vercel"] ::placeholder { color: var(--mix-placeholder); opacity: 1; }
+:where(html[data-mix="vercel"]) :where(button, input, select, textarea) { font-family: inherit; }  /* spécificité 0 : ne bat aucune règle de classe */
+/* Focus : contour 2 px, décalage 2 px (le fond fait l'écart blanc), visible sur tout élément interactif. #3767A2 plein (5,6:1 sur blanc) plutôt que l'alpha .6 du SPEC (2,4:1). */
+html[data-mix="vercel"] :focus-visible { outline: 2px solid var(--mix-focus); outline-offset: 2px; }
+html[data-mix="vercel"] :is(.lo-cherche, .lo-recherche, .cleo-champ, .palette-champ):has(input:focus-visible) { outline: 2px solid var(--mix-focus); outline-offset: 2px; }
+html[data-mix="vercel"] :is(.lo-cherche, .lo-recherche, .cleo-champ, .palette-champ) input:focus-visible { outline: none; }
+
+/* ---- 3. Typographie ---- */
+/* Titres : Poppins 600 (h1, h2, titres de page, de section et de carte), -0.02em (h1) / -0.01em (h2), marine sur surface claire. Le reste du texte reste en Geist.
+   Règle sur h1/h2 nus : ne fixe que la police, la graisse et le suivi (jamais la couleur ni la taille), pour ne rien écraser; les couleurs et tailles passent par des classes. */
+html[data-mix="vercel"] :is(h1, h2) { font-family: var(--mix-font-title); font-weight: 600; letter-spacing: var(--mix-track-section); }
+html[data-mix="vercel"] h1 { letter-spacing: var(--mix-track-title); }
+html[data-mix="vercel"] :is(.titre-carte, .carte-tete h2, .fil-tete h2, .conf-sous, .lo-apercu-titre) { font-family: var(--mix-font-title); color: var(--mix-title-color); font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: var(--mix-track-card); }
+html[data-mix="vercel"] :is(.po-section h2, .lo-detail-titre, .fenetre-tete h2, .tiroir-tete h2, .etat-erreur h1, .releve h2, .lo-fiche-corps h2) { color: var(--mix-title-color); font-weight: 600; letter-spacing: var(--mix-track-section); line-height: 1.3; }
+html[data-mix="vercel"] .po-section h2 { font-size: 20px; line-height: 28px; }
+html[data-mix="vercel"] :is(.po-titre, .espace-tete h1, .accueil-tete h1) { color: var(--mix-title-color); line-height: 1.2; font-weight: 600; letter-spacing: var(--mix-track-title); }
+html[data-mix="vercel"] .espace h2 { color: var(--mix-title-color); font-weight: 600; letter-spacing: var(--mix-track-card); }
+html[data-mix="vercel"] :is(.modale, .fenetre, .tiroir, .carte-l18, .carte-vide, .releve) :is(h1, h2) { color: var(--mix-title-color); }
+
+/* Texte courant : #0D233B / #3E4A59 / #666 au lieu des bleus-gris (groupes à membres de même poids) */
+html[data-mix="vercel"] :is(.gris, .po-dem-tete, .kpi-po small, .cleo-date, .cleo-regle, .cleo-voix small, .fenetre-aide, .fenetre-lib span, .po-depot span, .colonne-vide, .po-section p, .carte-tete p, .espace-lib, .notif-heure, .notif-texte span, .notif-vide, .po-suivi div span) { color: var(--mix-text-3); }
+html[data-mix="vercel"] :is(.texte-13, .ligne-ic, .consigne, .fenetre-texte, .cleo-gros, .po-dem-desc p, .po-seuil, .cleo-lecture) { color: var(--mix-text-2); }
+html[data-mix="vercel"] :is(.gris.texte-13, p.gris) { color: var(--mix-text-3); }
+
+/* Étiquettes techniques : Geist Mono 12 px / 500, capitales, suivi .04em (surtitres, numéros, en-têtes de tableau, touches). Les dates des lignes méta restent en
+   minuscules (« 1er nov. » en capitales donnerait « 1ER NOV. »). */
+html[data-mix="vercel"] :is(.surtitre, .po-dem-tete, .touche, .cleo-date, .notif-heure) { font-family: var(--mix-font-mono); font-size: 12px; font-weight: 500; line-height: 16px; }
+/* Dates et heures jamais en monospace (Steven, 27 nov. 2026) : Geist à chiffres tabulaires. */
+html[data-mix="vercel"] :is(.cleo-date, .notif-heure) { font-family: var(--mix-font-ui); font-feature-settings: "tnum" 1; }
+html[data-mix="vercel"] :is(.surtitre, .po-dem-tete, .touche) { letter-spacing: var(--mix-track-mono); text-transform: uppercase; }
+html[data-mix="vercel"] :is(.cleo-date, .notif-heure) { letter-spacing: 0; text-transform: none; }
+html[data-mix="vercel"] .surtitre { color: var(--mix-text-3); }
+html[data-mix="vercel"] .surtitre.rouge { color: var(--mix-error); }
+html[data-mix="vercel"] .touche { background: var(--mix-surface-2); color: var(--mix-text-2); border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring); }
+html[data-mix="vercel"] .touche.blanche { background: var(--mix-surface); border: 0; }
+
+/* Chiffres : Geist 600, tabulaires, suivi serré (KPI 32/36 sur bureau) */
+html[data-mix="vercel"] :is(.kpi-po b, .kpi b, .espace-val, .po-grand, .cleo-gros b) { color: var(--mix-text); font-weight: 600; letter-spacing: var(--mix-track-hero); line-height: 36px; font-feature-settings: "liga" 1, "tnum" 1; font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] :is(.kpi-po b, .espace-val, .po-grand) { font-size: 32px; }
+html[data-mix="vercel"] :is(.tableau td, .po-liste dd) { font-feature-settings: "liga" 1, "tnum" 1; }
+html[data-mix="vercel"] .po-totaux dd { color: var(--mix-text); font-weight: 600; font-feature-settings: "liga" 1, "tnum" 1; letter-spacing: var(--mix-track-card); }
+
+/* ---- 4. Surfaces : fond blanc + anneau (plus de bordures, plus de grandes ombres), rayon 8 ---- */
+html[data-mix="vercel"] :is(.carte-l18, .carte-l18.e2, .carte-vide, .kpi, .espace, .brief, .recents-vide, .reserve-principal, .carte-deal, .e2-carte, .releve) {
+  background: var(--mix-surface); border-color: transparent; border-radius: var(--mix-radius-card); box-shadow: var(--mix-shadow-card); }
+html[data-mix="vercel"] .astuce { border-radius: var(--mix-radius-card); background: var(--mix-tint); color: var(--mix-text); }
+/* Cartes imbriquées et blocs neutres : anneau plat, rayon de contrôle */
+html[data-mix="vercel"] :is(.cleo-fait, .cleo-carte, .po-piece, .po-dep-cartes > div, .qr, .motif) { border-color: transparent; border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring); background: var(--mix-surface); }
+@media (hover: hover) { html[data-mix="vercel"] a.cleo-carte:hover { box-shadow: var(--mix-ring-hover); background: var(--mix-bg); } }
+html[data-mix="vercel"] :is(.po-seuil, .po-dem-desc, .e11-ecart, .vocal) { background: var(--mix-bg); box-shadow: var(--mix-ring); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] :is(.cleo-reco, .cleo-lecture, .cleo-suggere, .cleo-note, .po-lien-dossier, .po-estim, .po-depot.ligne) { background: var(--mix-tint); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .po-depot { border-color: var(--mix-border-strong); background: var(--mix-bg); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .sq { border-radius: var(--mix-radius-card); background: linear-gradient(90deg, var(--mix-surface-2), var(--mix-bg), var(--mix-surface-2)); background-size: 200% 100%; } /* squelette de chargement : seul dégradé conservé (animé) */
+html[data-mix="vercel"] :is(.ini.vide) { background: var(--mix-surface-2); }
+/* Filets : #E1E6EC / #EEF1F5 → #E1E6EC (épaisseur et style inchangés) */
+html[data-mix="vercel"] :is(.a-faire li, .po-liste div, .po-stockage, .po-totaux, .po-msg-items li + li, .po-msg-tete, .po-msg-saisie, .po-dem-items li + li, .po-dem-filtres, .po-aide, .fil-tete, .releve > header,
+  .cloche-panneau header, .cloche-panneau footer, .cloche-panneau li + li, .tiroir-tete, .tiroir-pied, .cleo-saisie, .palette-champ, .po-onglets, .fil-onglets, .notif-liste li + li, .cleo-carte, .tableau td) { border-color: var(--mix-border); }
+html[data-mix="vercel"] .a-faire-ic, html[data-mix="vercel"] .espace-ic, html[data-mix="vercel"] .recent-ic, html[data-mix="vercel"] .notif-ic { border-radius: var(--mix-radius-control); background: var(--mix-surface-2); }
+html[data-mix="vercel"] :is(.a-faire-ic.rouge, .notif.urgente .notif-ic) { background: var(--mix-error-bg); }
+html[data-mix="vercel"] .ini { background: var(--mix-marine); font-weight: 600; letter-spacing: 0; }
+html[data-mix="vercel"] .ini.clair { background: var(--mix-surface); color: var(--mix-marine); border-color: transparent; box-shadow: 0 0 0 1px var(--mix-border-strong); }
+html[data-mix="vercel"] .avatar-cleo, html[data-mix="vercel"] .brief-av img { background: var(--mix-surface-2); }  /* l'avatar de Cléo est conservé (35 % Lease Lane) */
+html[data-mix="vercel"] :is(.okdot, .cleo-fait .okdot) { background: var(--mix-success); }
+html[data-mix="vercel"] .cleo-enligne { background: var(--mix-success); }
+
+/* ---- 5. Boutons ---- */
+html[data-mix="vercel"] .bouton { height: var(--mix-control-h); padding: 0 14px; border-radius: var(--mix-radius-control); font-size: 14px; font-weight: 500; letter-spacing: 0; gap: 8px; border: 0; line-height: 1; }
+html[data-mix="vercel"] .bouton-principal { background: var(--mix-marine); color: #fff; box-shadow: none; }
+@media (hover: hover) { html[data-mix="vercel"] .bouton-principal:hover { background: var(--mix-marine-hover); } }
+html[data-mix="vercel"] .bouton-principal:disabled { opacity: .5; }
+html[data-mix="vercel"] :is(.bouton-contour, .bouton-secondaire) { background: var(--mix-surface); color: var(--mix-text); box-shadow: var(--mix-ring); border-color: transparent; }
+@media (hover: hover) { html[data-mix="vercel"] :is(.bouton-contour, .bouton-secondaire):hover { background: var(--mix-surface-2); box-shadow: var(--mix-ring-hover); } }
+html[data-mix="vercel"] :is(.bouton-contour, .bouton-secondaire):disabled { opacity: .5; }
+html[data-mix="vercel"] .lien { font-weight: 500; font-size: 13px; color: var(--mix-link); }
+html[data-mix="vercel"] :is(.haut-ibtn, .fermer) { border-color: transparent; border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring); background: var(--mix-surface); }
+@media (hover: hover) { html[data-mix="vercel"] .haut-ibtn:hover { box-shadow: var(--mix-ring-hover); background: var(--mix-surface-2); } }
+html[data-mix="vercel"] .fermer { background: var(--mix-surface-2); box-shadow: none; }
+
+/* Segments, filtres, jetons : piste #EEF1F5, actif = blanc avec anneau */
+html[data-mix="vercel"] :is(.bascule, .segment) { background: var(--mix-surface-2); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] :is(.bascule button, .bascule a, .segment button, .segment a) { border-radius: 3px; font-weight: 500; color: var(--mix-text-3); }
+html[data-mix="vercel"] :is(.bascule button.actif, .bascule a.actif, .segment button.actif, .segment a.actif) { background: var(--mix-surface); color: var(--mix-text); font-weight: 500; border-color: transparent; box-shadow: var(--mix-ring), 0 1px 2px rgba(0, 0, 0, .04); }
+@media (hover: hover) { html[data-mix="vercel"] :is(.bascule button:not(.actif), .segment button:not(.actif)):hover { color: var(--mix-text); } }
+html[data-mix="vercel"] .segment.vue { background: var(--mix-surface-2); border: 0; }
+html[data-mix="vercel"] .notif-filtres button { border-color: transparent; box-shadow: var(--mix-ring); border-radius: var(--mix-radius-pill); font-weight: 500; color: var(--mix-text); }
+@media (hover: hover) { html[data-mix="vercel"] .notif-filtres button:hover { box-shadow: var(--mix-ring-hover); background: var(--mix-surface-2); } }
+html[data-mix="vercel"] .notif-filtres button.actif { background: var(--mix-marine); box-shadow: none; color: #fff; }
+
+/* Onglets : soulignement; actif #0D233B / 500 avec 2 px de marine */
+html[data-mix="vercel"] .po-onglets a { font-weight: 400; font-size: 14px; color: var(--mix-text-3); border-bottom-width: 2px; }
+@media (hover: hover) { html[data-mix="vercel"] .po-onglets a:hover { color: var(--mix-text); } }
+html[data-mix="vercel"] .po-onglets a.actif { color: var(--mix-text); font-weight: 500; border-bottom-color: var(--mix-marine); }
+html[data-mix="vercel"] .fil-onglets > button { border-radius: var(--mix-radius-control); font-weight: 500; color: var(--mix-text-3); }
+html[data-mix="vercel"] .fil-onglets > button.actif { background: var(--mix-surface-2); color: var(--mix-text); }
+
+/* ---- 6. Champs : anneau 1 px, rayon 6, hauteur 36 (44 au téléphone), survol = bordure plus marquée, focus = contour 2 px ---- */
+html[data-mix="vercel"] :is(.saisie input, .precision, .champ-map, .filtres-menu select, .po-depot select, .fil-statut, .fil-resp, .filtre) {
+  border-color: transparent; border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring-input); background: var(--mix-surface); color: var(--mix-text); font-size: 14px; }
+@media (hover: hover) { html[data-mix="vercel"] :is(.saisie input, .precision, .champ-map):hover { box-shadow: var(--mix-ring-input-hover); } }
+html[data-mix="vercel"] :is(.saisie input, .precision):focus { border-color: transparent; box-shadow: var(--mix-ring-input); }
+html[data-mix="vercel"] .saisie input { height: var(--mix-control-h); }
+html[data-mix="vercel"] .champ label { font-weight: 500; font-size: 13px; color: var(--mix-text); }
+html[data-mix="vercel"] :is(.filtre select, .fil-statut select, .fil-resp select) { font-weight: 500; }
+html[data-mix="vercel"] .cleo-champ { border-color: transparent; border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring-input); background: var(--mix-surface); height: 44px; }
+@media (hover: hover) { html[data-mix="vercel"] .cleo-champ:hover { box-shadow: var(--mix-ring-input-hover); } }
+html[data-mix="vercel"] .cleo-champ button { border-radius: var(--mix-radius-control); background: var(--mix-marine); }
+html[data-mix="vercel"] .cleo-champ .cleo-micro { background: var(--mix-surface); box-shadow: var(--mix-ring); border: 0; }
+html[data-mix="vercel"] .cleo-champ .cleo-micro.actif { background: var(--mix-error-bg); box-shadow: 0 0 0 1px var(--mix-error); }
+html[data-mix="vercel"] :is(.cleo-champ input, .palette-champ input) { outline: none; box-shadow: none; }
+html[data-mix="vercel"] .erreur { border-radius: var(--mix-radius-control); background: var(--mix-error-bg); color: var(--mix-error); }
+html[data-mix="vercel"] .bandeau { border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .bandeau.erreur { background: var(--mix-error-bg); color: var(--mix-error); border-color: transparent; box-shadow: 0 0 0 1px rgba(155, 46, 40, .16); }
+html[data-mix="vercel"] .bandeau.info { background: var(--mix-info-bg); color: var(--mix-info); border-color: transparent; box-shadow: var(--mix-ring); }
+
+/* ---- 7. Étiquettes (puces) : pastille teintée, 12 px / 500, ronde, jamais de fond foncé plein ---- */
+html[data-mix="vercel"] .puce { height: 22px; padding: 0 8px; border-radius: var(--mix-radius-pill); font-size: 12px; font-weight: 500; letter-spacing: 0; background: var(--mix-info-bg); color: var(--mix-info); }
+html[data-mix="vercel"] .puce:not(:has(svg, button, i, span)) { line-height: 22px; }
+html[data-mix="vercel"] .puce.info { background: var(--mix-info-bg); color: var(--mix-info); }
+html[data-mix="vercel"] .puce.neutral { background: var(--mix-neutral-bg); color: var(--mix-neutral); }
+html[data-mix="vercel"] .puce.action { background: var(--mix-info-bg); color: var(--mix-info); box-shadow: inset 0 0 0 1px rgba(12, 33, 71, .20); font-weight: 600; }
+html[data-mix="vercel"] :is(.puce.ok, .puce.final) { background: var(--mix-success-bg); color: var(--mix-success); }
+html[data-mix="vercel"] .puce.todo { background: var(--mix-error-bg); color: var(--mix-error); }
+html[data-mix="vercel"] .puce.attention { background: var(--mix-warning-bg); color: var(--mix-warning); }
+html[data-mix="vercel"] .puce.inactive { background: var(--mix-surface); border-color: transparent; box-shadow: 0 0 0 1px var(--mix-border-strong); color: var(--mix-text-3); }
+html[data-mix="vercel"] .puce.contour { background: var(--mix-surface); border-color: transparent; box-shadow: 0 0 0 1px var(--mix-focus); color: var(--mix-info); }
+
+/* ---- 8. Tableaux et listes : filets #E1E6EC, en-têtes Geist Mono capitales #666, rangées de 48, survol #F4F7FB, sélection #EEF2F8 + 2 px marine ---- */
+html[data-mix="vercel"] .tableau thead th { background: transparent; color: var(--mix-text-3); font-family: var(--mix-font-mono); font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: var(--mix-track-mono); text-transform: uppercase; border-bottom: 1px solid var(--mix-border); border-radius: 0; height: 40px; }
+html[data-mix="vercel"] .tableau td { color: var(--mix-text-2); border-top-color: var(--mix-border); height: 48px; }
+html[data-mix="vercel"] .tableau .fort { color: var(--mix-text); font-weight: 500; }
+@media (hover: hover) { html[data-mix="vercel"] .tableau tbody tr:hover td { background: var(--mix-bg); } }
+html[data-mix="vercel"] .tableau tr.sel td { background: var(--mix-tint); }
+html[data-mix="vercel"] .tableau tr.sel td:first-child { border-radius: 0; }
+html[data-mix="vercel"] .tableau tr.sel td:first-child::before { background: var(--mix-marine); width: 2px; }
+html[data-mix="vercel"] .po-dem-items a, html[data-mix="vercel"] .po-msg-items a { border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] :is(.po-dem-items a.sel, .po-msg-items a.sel) { background: var(--mix-tint); }
+html[data-mix="vercel"] .po-dem-items a.sel::before { width: 2px; background: var(--mix-marine); }
+html[data-mix="vercel"] .notif-liste li.non-lue { background: var(--mix-tint); }
+@media (hover: hover) { html[data-mix="vercel"] .notif-liste button:hover { background: var(--mix-bg); } }
+html[data-mix="vercel"] .po-point, html[data-mix="vercel"] .notif > i { background: var(--mix-marine); }
+
+/* ---- 9. Progression et graphiques : barres de 4 px, piste #E1E6EC, remplissage marine ---- */
+html[data-mix="vercel"] .jauge { height: 4px; border-radius: var(--mix-radius-pill); background: var(--mix-border); }
+html[data-mix="vercel"] .jauge i { border-radius: var(--mix-radius-pill); background: var(--mix-marine); }
+html[data-mix="vercel"] .barres i { height: 4px; border-radius: var(--mix-radius-pill); background: var(--mix-marine); }
+html[data-mix="vercel"] .col-chart i { background: var(--mix-marine); border-radius: 1px; }
+html[data-mix="vercel"] .unites i { background: var(--mix-border); }
+html[data-mix="vercel"] .vocal-onde i { background: var(--mix-border-strong); }
+html[data-mix="vercel"] .vocal-onde i.lu, html[data-mix="vercel"] .vocal-jouer { background: var(--mix-marine); }
+
+/* ---- 10. Panneaux flottants : menus, cloche, tiroirs (Cléo), fenêtres, palette (rayon 12, ombre popover), toast (rayon 8, #0D233B) ---- */
+html[data-mix="vercel"] :is(.cloche-panneau, .tiroir, .fenetre, .modale, .menu, .palette) { border-radius: var(--mix-radius-popover); box-shadow: var(--mix-shadow-popover); border-color: transparent; background: var(--mix-surface); }
+html[data-mix="vercel"] .menu button { font-weight: 500; border-radius: var(--mix-radius-control); color: var(--mix-text); }
+@media (hover: hover) { html[data-mix="vercel"] .menu button:hover { background: var(--mix-surface-2); } }
+html[data-mix="vercel"] .voile, html[data-mix="vercel"] .palette-fond { background: var(--mix-overlay); }
+html[data-mix="vercel"] .toast { background: var(--mix-text); color: #fff; border-radius: var(--mix-radius-control); box-shadow: var(--mix-shadow-popover); font-weight: 500; }
+html[data-mix="vercel"] :is(.tiroir-pied, .tiroir-tete) { border-color: var(--mix-border); }
+html[data-mix="vercel"] .cloche-panneau li button { color: var(--mix-text); }
+html[data-mix="vercel"] .notif-liste button { color: var(--mix-text); }
+@media (hover: hover) { html[data-mix="vercel"] .cloche-panneau li button:hover { background: var(--mix-surface-2); } }
+html[data-mix="vercel"] .cloche-panneau li.non-lue button { background: var(--mix-tint); }
+@media (hover: hover) { html[data-mix="vercel"] .cloche-panneau li.non-lue button:hover { background: var(--mix-surface-2); } }
+html[data-mix="vercel"] .motif.choisi { background: var(--mix-tint); box-shadow: 0 0 0 2px var(--mix-marine); border-color: transparent; }
+
+/* Cléo : tiroir blanc, avatar conservé; question = gris #EEF1F5, réponse = blanc + anneau, envoi = bouton principal */
+html[data-mix="vercel"] .cleo-q { background: var(--mix-surface-2); color: var(--mix-text); border-radius: var(--mix-radius-popover) var(--mix-radius-popover) 2px var(--mix-radius-popover); }
+html[data-mix="vercel"] .cleo-r > div > p:first-child { background: var(--mix-surface); box-shadow: var(--mix-ring); border-radius: var(--mix-radius-popover); padding: 10px 14px; margin: 0 0 10px; color: var(--mix-text); }
+html[data-mix="vercel"] .cleo-r > div > p.gris:first-child, html[data-mix="vercel"] .cleo-r > p.gris { background: none; box-shadow: none; padding: 0; color: var(--mix-text-3); }
+html[data-mix="vercel"] .cleo-action { background: var(--mix-surface); box-shadow: var(--mix-ring), 0 2px 2px rgba(0, 0, 0, .04); border-radius: var(--mix-radius-card); }
+html[data-mix="vercel"] .cleo-apercu { background: var(--mix-surface-2); }
+html[data-mix="vercel"] .cleo-suggestions button { border-color: transparent; border-radius: var(--mix-radius-pill); box-shadow: var(--mix-ring); font-weight: 500; color: var(--mix-text); }
+@media (hover: hover) { html[data-mix="vercel"] .cleo-suggestions button:hover { box-shadow: var(--mix-ring-hover); background: var(--mix-surface-2); } }
+html[data-mix="vercel"] .cleo-sources a { border-radius: var(--mix-radius-control); background: var(--mix-surface-2); font-weight: 500; color: var(--mix-text-2); }
+html[data-mix="vercel"] .cleo-choix .bouton { height: 32px; padding: 0 12px; font-size: 13px; }
+
+/* Cléo toujours à portée (bouton rond flottant, tous les portails) : avatar conservé, anneau + ombre popover, pas de soulèvement au survol */
+html[data-mix="vercel"] .cleo-flottant { background: var(--mix-surface); box-shadow: var(--mix-shadow-popover); transition: box-shadow var(--mix-dur) var(--mix-ease); }
+@media (hover: hover) { html[data-mix="vercel"] .cleo-flottant:hover { transform: none; box-shadow: 0 0 0 1px var(--mix-border-strong), 0 4px 8px -4px rgba(0, 0, 0, .04), 0 16px 24px -8px rgba(0, 0, 0, .06); } }
+html[data-mix="vercel"] .cleo-flottant i { background: var(--mix-success); box-shadow: 0 0 0 2px var(--mix-surface); }
+
+/* Icônes dont le trait est posé en attribut (Icone couleur="#…") : bleus-gris → gris neutres, verts → vert d'état, bleu vif → bleu de marque (le CSS prime sur l'attribut) */
+html[data-mix="vercel"] svg:is([stroke="#3E4A59"], [stroke="#58697F"], [stroke="#5B6B7F"], [stroke="#64748A"]) { stroke: var(--mix-text-3); }
+html[data-mix="vercel"] svg:is([stroke="#8A99AB"], [stroke="#A6B1BE"]) { stroke: var(--mix-placeholder); }
+html[data-mix="vercel"] svg:is([stroke="#4581CB"], [stroke="#3767A2"]) { stroke: var(--mix-focus); }
+html[data-mix="vercel"] svg:is([stroke="#12694F"], [stroke="#1E7A4F"], [stroke="#2E9E6E"]) { stroke: var(--mix-success); }
+
+/* ---- 11. Cibles tactiles (≤ 760 px) ---- */
+@media (max-width: 760px) {
+  html[data-mix="vercel"] .bouton { height: var(--mix-control-h-touch); min-height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .saisie input { height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .cleo-choix .bouton { min-height: var(--mix-control-h-touch); }
+}
+
+/* ---- 12. Mouvement : 150 ms, courbe Material standard, sur ombre / fond / couleur seulement ; aucun mouvement si l'utilisateur le demande ---- */
+html[data-mix="vercel"] :is(a, button, input, select, textarea, summary, .carte-l18, .puce, .jauge i, .notif, .tableau td, .bouton) {
+  transition: box-shadow var(--mix-dur) var(--mix-ease), background-color var(--mix-dur) var(--mix-ease), color var(--mix-dur) var(--mix-ease), border-color var(--mix-dur) var(--mix-ease); }
+@media (prefers-reduced-motion: reduce) {
+  /* !important voulu : l'utilisateur prime sur toute transition ou animation de l'app et du thème */
+  html[data-mix="vercel"] *, html[data-mix="vercel"] *::before, html[data-mix="vercel"] *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}
+
+/* Date en surtitre du bandeau (accueil) : Geist, pas de monospace (Steven). */
+html[data-mix="vercel"] .lo-bandeau .surtitre { font-family: var(--mix-font-ui); font-feature-settings: "tnum" 1; }
+
+/* ── Aucun cercle : carrés aux coins adoucis, dans tous les portails (Steven, 27 nov. 2026 : « no circle only square soften
+   corners »). min(8px, 25 %) : 2 px sur un point de 8 px, 8 px sur un avatar de 32 à 56 px. Restent ronds, par convention
+   d'usage : boutons radio, interrupteurs et indicateurs de chargement (un radio carré se lit comme une case à cocher). */
+html[data-mix="vercel"] :is(.ini, .haut-moi, .po-ini, .lo-profil b, .mega-compte,
+  .inbox-av i, .ini-etat > i, .av-en-ligne i,
+  .okdot, .pulse, .point, .point-etat, .point-rouge, .po-point, .pastille-bleue, .pastille-rouge, .pastille-c > i,
+  .tab-ameliorations .pastille-ic, .espace-pastille, .chrono-ic, .po-cal-pastille, .po-cal-case.auj b, .lo-cal-case span.auj, .mois-grille a i,
+  .legende-cat .pt, .ga-pt, .fourchette .pt, .lo-legende b, .lo-legende i, .lo-evt b, .activite i, .deal-etat i, .e11-legende i, .etat-service i,
+  .notif > i, .variables i, .non-couvert, .stepper i, .etapes-bt i, .etapes-points i, .etapes-proc i, .etapes-rappel i, .chronologie li > i,
+  .cloture i, .echec-etapes i, .lo-suivi i, .po-suivi i, .lo-venir i, .po-etapes-prop b, .pieces-coches i.vide, .criteres i.vide,
+  .consent i.vide, .sync i.vide, .e11-champ label i, .lo-enregistre i, .mm-vignettes button, .po-vignettes button, .vocal-jouer,
+  .reserve-cadenas, .reserve-etape > span, .rond-attente, .etat-vide-ic, .at-vide-ic, .vide-c,
+  [style*="border-radius: 50%"], [style*="border-radius:50%"], [style*="border-radius: 999"], [style*="border-radius: 9999"]) { border-radius: min(4px, 25%); }
+html[data-mix="vercel"] .urgent::before, html[data-mix="vercel"] .mega-b-ligne.ici strong::after { border-radius: 1px; }
+
+/* Seule Cléo reste ronde (Steven, 27 nov. 2026 : « seulement Cléo a le droit d'être en rond »): sa photo, son point « en ligne » et le bouton flottant
+   (+ 20 % : 67 px, 62 px sur téléphone). Tout le reste est carré aux coins adoucis. */
+html[data-mix="vercel"] :is(.avatar-cleo, .av-cleo, .brief-av img, .po-cleo-av img, .po-cleo-av, .cleo-flottant, .cleo-flottant img, .cleo-panneau img, .cleo-r > img, .cleo-flottant i, .brief-av i, .po-cleo-av i, .cleo-enligne) { border-radius: 50%; }
+html[data-mix="vercel"] .cleo-flottant { width: 67px; height: 67px; }
+@media (max-width: 760px) { html[data-mix="vercel"] .cleo-flottant { width: 62px; height: 62px; } }
+html[data-mix="vercel"] .cleo-flottant i { width: 16px; height: 16px; }
+/* Fenêtre du chat de Cléo : 30 % plus petite (392 px de large, 70 % de la hauteur), en bas à droite; le téléphone garde sa taille. */
+@media (min-width: 761px) { html[data-mix="vercel"] .tiroir.cleo-panneau { top: auto; right: 24px; bottom: 24px; width: min(392px, calc(100vw - 48px)); height: calc((100vh - 48px) * .7); min-height: 440px; } }
+
+/* Bascule FR | EN (ToggleLangue) : coins adoucis, couleurs du système. */
+html[data-mix="vercel"] .toggle-langue { border-radius: var(--mix-radius-control); } html[data-mix="vercel"] .toggle-langue button { border-radius: 3px; font-family: var(--mix-font-ui); }
+html[data-mix="vercel"] .toggle-langue button { color: var(--mix-text-2); background: transparent; box-shadow: none; height: 26px; min-height: 0; min-width: 32px; padding: 0 6px; font-size: 12px; font-weight: 520; }
+html[data-mix="vercel"] .toggle-langue button.actif { background: var(--mix-marine); color: #fff; }
+html[data-mix="vercel"] :is(.lo-rail, .po-rail, .lo-rail-pr) .toggle-langue button { color: var(--mix-rail-text); }
+html[data-mix="vercel"] :is(.lo-rail, .po-rail, .lo-rail-pr) .toggle-langue button.actif { background: #fff; color: var(--mix-marine); }
+html[data-mix="vercel"] :is(.lo-plus, .po-plus) .toggle-langue button { height: 44px; }
+
+/* Correctifs vus par le portail propriétaire (mix) : le rouge des KPI en retard, les liens de 13 px et le focus des champs de date. */
+html[data-mix="vercel"] .kpi-po b.rouge { color: var(--mix-error-text, #9B2E28); }
+html[data-mix="vercel"] .lien.texte-13 { color: var(--mix-link); }
+html[data-mix="vercel"] input[type="date"]:focus-within { outline: 2px solid var(--mix-focus); outline-offset: 2px; }
+
+/* ==========================================================================================================================
+   Fenêtre de Cléo : TROIS OPTIONS, habillage « mix » (TEMPORAIRE : garder l'option choisie, supprimer le reste avec le sélecteur .cleo-bascule).
+   La structure (positions, lignes, cartes) est dans globals.css, même bloc. Ici : surfaces, filets, rayons (12 / 8 / 6), ombres, Geist, marine.
+   Seule Cléo est ronde : sa photo et son point « en ligne ». Tout le reste (bulles, étiquettes, boutons, sélecteur) est un carré aux coins adoucis.
+   ========================================================================================================================== */
+html[data-mix="vercel"] .tiroir.cleo-panneau { font-family: var(--mix-font-ui); }
+html[data-mix="vercel"] .cleo-bascule { background: var(--mix-surface-2); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .cleo-bascule span { color: var(--mix-text-3); font-weight: 500; }
+html[data-mix="vercel"] .cleo-bascule button { border-radius: var(--mix-radius-pill); color: var(--mix-text); font-weight: 600; }
+@media (hover: hover) { html[data-mix="vercel"] .cleo-bascule button:hover { background: var(--mix-border); } }
+html[data-mix="vercel"] .cleo-bascule button[aria-pressed="true"] { background: var(--mix-marine); color: #fff; }
+html[data-mix="vercel"] .tiroir.cleo-panneau .cleo-tete .haut-ibtn { border-radius: var(--mix-radius-control); color: var(--mix-marine); }
+html[data-mix="vercel"] .cleo-champ button[type="submit"] { color: #fff; }
+
+/* A : fenêtre flottante — anneau + ombre popover, barre de titre marine (titre Poppins blanc), fil blanc, bulles marine / #EEF1F5, envoi = carré marine */
+@media (min-width: 761px) { html[data-mix="vercel"] .tiroir-voile:has(.cleo-panneau) { background: transparent; } }
+html[data-mix="vercel"] .tiroir.cleo-fenetre-a { background: var(--mix-surface); }
+html[data-mix="vercel"] .tiroir.cleo-fenetre-a > .cleo-tete { background: var(--mix-marine); border-color: transparent; }
+html[data-mix="vercel"] .tiroir.cleo-fenetre-a > .cleo-tete h2 { color: #fff; font-weight: 600; letter-spacing: var(--mix-track-section); }
+html[data-mix="vercel"] .cleo-fenetre-a .cleo-enligne { background: var(--mix-success-light); }
+html[data-mix="vercel"] .cleo-fenetre-a .cleo-bascule { background: rgba(255, 255, 255, .12); }
+html[data-mix="vercel"] .cleo-fenetre-a .cleo-bascule span { color: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .cleo-fenetre-a .cleo-bascule button { color: var(--mix-rail-text); }
+@media (hover: hover) { html[data-mix="vercel"] .cleo-fenetre-a .cleo-bascule button:hover { background: var(--mix-rail-hover); } }
+html[data-mix="vercel"] .cleo-fenetre-a .cleo-bascule button[aria-pressed="true"] { background: #fff; color: var(--mix-marine); }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-tete .haut-ibtn { background: transparent; box-shadow: none; color: #fff; }
+@media (hover: hover) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-tete .haut-ibtn:hover { background: var(--mix-rail-hover); } }
+html[data-mix="vercel"] .cleo-fenetre-a .cleo-tete :focus-visible { outline-color: var(--mix-rail-indicator); }
+html[data-mix="vercel"] .cleo-fenetre-a .cleo-q { background: var(--mix-marine); color: #fff; border-radius: var(--mix-radius-popover) var(--mix-radius-popover) 2px var(--mix-radius-popover); }
+html[data-mix="vercel"] .cleo-fenetre-a .cleo-r > div > p:first-child { background: var(--mix-surface-2); box-shadow: none; border-radius: var(--mix-radius-popover) var(--mix-radius-popover) var(--mix-radius-popover) 2px; }
+html[data-mix="vercel"] .cleo-fenetre-a .cleo-saisie { background: var(--mix-surface); }
+
+/* B : tiroir latéral — bord droit carré, un seul filet à gauche, aucune ombre; messages en lignes (Cléo sur blanc, « Vous » sur teinte), suggestions empilées */
+html[data-mix="vercel"] .tiroir.cleo-fenetre-b { background: var(--mix-surface); border-radius: 0; }
+@media (min-width: 761px) { html[data-mix="vercel"] .tiroir.cleo-fenetre-b { box-shadow: -1px 0 0 var(--mix-border-strong); } }
+html[data-mix="vercel"] .cleo-fenetre-b .cleo-fil > :is(.cleo-q, .cleo-voix, .cleo-r) { border-bottom-color: var(--mix-border); }
+html[data-mix="vercel"] .cleo-fenetre-b .cleo-q, html[data-mix="vercel"] .cleo-fenetre-b .cleo-voix { background: var(--mix-tint); color: var(--mix-text); border-radius: 0; }
+html[data-mix="vercel"] .cleo-fenetre-b .cleo-voix .cleo-q { background: none; }
+html[data-mix="vercel"] .cleo-fenetre-b :is(.cleo-q[data-qui], .cleo-voix[data-qui], .cleo-r[data-qui])::before { color: var(--mix-text-3); }
+html[data-mix="vercel"] .cleo-fenetre-b .cleo-r > div > p:first-child { background: none; box-shadow: none; padding: 0; border-radius: 0; margin: 0 0 12px; }
+html[data-mix="vercel"] .cleo-fenetre-b .cleo-suggestions { border-top-color: var(--mix-border); }
+html[data-mix="vercel"] .cleo-fenetre-b .cleo-suggestions button { border-radius: 0; box-shadow: none; background: var(--mix-surface); border-bottom: 1px solid var(--mix-border); font-weight: 500; }
+@media (hover: hover) { html[data-mix="vercel"] .cleo-fenetre-b .cleo-suggestions button:hover { background: var(--mix-surface-2); box-shadow: none; } }
+html[data-mix="vercel"] .cleo-fenetre-b .cleo-champ { height: 48px; }
+html[data-mix="vercel"] .cleo-fenetre-b .cleo-champ button[type="submit"] { background: transparent; color: var(--mix-marine); }
+@media (hover: hover) { html[data-mix="vercel"] .cleo-fenetre-b .cleo-champ button[type="submit"]:hover:not(:disabled) { background: var(--mix-surface-2); } }
+html[data-mix="vercel"] .cleo-fenetre-b .cleo-saisie { background: var(--mix-surface); border-top-color: var(--mix-border); }
+@media (max-width: 760px) { html[data-mix="vercel"] .tiroir.cleo-fenetre-b { box-shadow: var(--mix-shadow-popover); } }
+
+/* C : barre de commande — la barre de saisie est l'élément principal; Cléo répond en cartes blanches à anneau, l'utilisateur en petites étiquettes marine */
+html[data-mix="vercel"] .cleo-fenetre-c .cleo-q { background: var(--mix-marine); color: #fff; border-radius: var(--mix-radius-pill); }
+html[data-mix="vercel"] .cleo-fenetre-c .cleo-voix .cleo-q { background: var(--mix-marine); }
+html[data-mix="vercel"] .cleo-fenetre-c .cleo-r { border-color: transparent; border-radius: var(--mix-radius-popover); background: var(--mix-surface); box-shadow: var(--mix-shadow-card); }
+html[data-mix="vercel"] .cleo-fenetre-c .cleo-r > div > p:first-child { background: none; box-shadow: none; padding: 0; border-radius: 0; margin: 0 0 10px; }
+html[data-mix="vercel"] .cleo-fenetre-c .cleo-carte { background: var(--mix-surface-2); box-shadow: none; border-radius: var(--mix-radius-control); }
+@media (hover: hover) { html[data-mix="vercel"] a.cleo-fenetre-c .cleo-carte:hover, html[data-mix="vercel"] .cleo-fenetre-c a.cleo-carte:hover { background: var(--mix-border); box-shadow: none; } }
+html[data-mix="vercel"] .cleo-fenetre-c .cleo-champ { height: 52px; border-radius: var(--mix-radius-popover); box-shadow: var(--mix-ring-input); }
+html[data-mix="vercel"] .cleo-fenetre-c .cleo-champ::before { background: var(--mix-marine); }
+html[data-mix="vercel"] .cleo-fenetre-c .cleo-date, html[data-mix="vercel"] .cleo-fenetre-c .cleo-regle { background: var(--mix-surface); }
+@media (min-width: 761px) {
+  html[data-mix="vercel"] .tiroir.cleo-fenetre-c { background: transparent; box-shadow: none; }
+  html[data-mix="vercel"] .tiroir.cleo-fenetre-c > .cleo-tete { background: var(--mix-surface); border-color: transparent; border-radius: var(--mix-radius-popover); box-shadow: var(--mix-shadow-card); }
+  html[data-mix="vercel"] .cleo-fenetre-c .cleo-champ { box-shadow: var(--mix-ring-input), 0 8px 16px -8px rgba(0, 0, 0, .12); }
+  html[data-mix="vercel"] .cleo-fenetre-c .cleo-regle { box-shadow: var(--mix-ring); border-radius: var(--mix-radius-control); }
+  html[data-mix="vercel"] .cleo-fenetre-c .cleo-suggestions button { background: var(--mix-surface); box-shadow: var(--mix-ring); }
+}
+@media (max-width: 760px) {
+  html[data-mix="vercel"] .tiroir.cleo-panneau { border-radius: var(--mix-radius-popover) var(--mix-radius-popover) 0 0; box-shadow: var(--mix-shadow-popover); }
+  html[data-mix="vercel"] .cleo-champ { height: 52px; }
+  html[data-mix="vercel"] .cleo-champ button { width: 44px; height: 44px; }
+  html[data-mix="vercel"] .cleo-suggestions button { min-height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .cleo-sources a { min-height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .cleo-fenetre-c .cleo-r { box-shadow: var(--mix-ring); }
+}
+/* Placement (bureau) : plus spécifique que la règle générale « .tiroir.cleo-panneau » du mix (30 % plus petit, bas à droite) */
+@media (min-width: 761px) {
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a { top: auto; right: 24px; bottom: 103px; width: min(392px, calc(100vw - 48px)); height: calc((100vh - 48px) * .7); min-height: 440px; max-height: calc(100vh - 127px); }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a.cleo-reduit { height: auto; min-height: 0; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-b { top: 0; right: 0; bottom: 0; width: min(392px, 100vw); height: auto; min-height: 0; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-c { top: auto; right: 24px; bottom: 24px; width: min(392px, calc(100vw - 48px)); height: auto; min-height: 0; max-height: calc((100vh - 48px) * .7); }
+}
+/* ===== fin « Fenêtre de Cléo : trois options » ===== */
+
+/* ===== Passe « Emil design engineering » (2026-11-27) : anneau de focus unique, cibles 44 px, champs 16 px au téléphone, chiffres tabulaires ===== */
+/* Focus : un seul anneau qui touche l'élément (2 px plein, décalage 0), jamais d'anneau double ni décalé autour des boutons pleins.
+   Couleur : #2B5C9E sur les surfaces claires, #91B5E0 (--mix-rail-indicator) sur le marine : les règles de couleur existantes restent, on ne force que l'épaisseur et le décalage. */
+html[data-mix="vercel"] :focus-visible,
+html[data-mix="vercel"] :focus-visible + i,
+html[data-mix="vercel"] :is(:focus-within, :focus) { outline-offset: 0 !important; }
+html[data-mix="vercel"] :focus-visible { outline-width: 2px !important; }
+html[data-mix="vercel"] .lo-contenu form.lo-coord .champ :is(input:not([type=checkbox]):not([type=radio]), select):focus-visible { outline: 2px solid var(--mix-focus) !important; outline-offset: 0 !important; }
+/* Chiffres qui changent (compteurs, montants, jours restants) : chasse tabulaire, pas de saut de mise en page */
+html[data-mix="vercel"] :is(dd, td, b, small, strong, time, data, .compte) { font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) {
+  /* iOS : pas de zoom à la saisie */
+  html[data-mix="vercel"] :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]), select, textarea) { font-size: 16px !important; }
+  /* Cibles 44 px au téléphone (décision : cibles 44 px) */
+  html[data-mix="vercel"] .lo-cherche input { align-self: stretch; }
+  html[data-mix="vercel"] :is(.lo-segments > button, .lo-fil .po-piece, .tete-action .bascule > button, .haut-logo-lien) { min-height: 44px; }
+  html[data-mix="vercel"] :is(button.lo-nom, button.dv-toggle) { position: relative; }
+  html[data-mix="vercel"] :is(button.lo-nom, button.dv-toggle)::after { content: ""; position: absolute; inset: -12px -4px; }
+}
+/* ===== fin « Passe Emil » ===== */
+/* ===== Passe Emil (suite) : zones de toucher des liens texte portées de 37-38 px à 44 px au téléphone ===== */
+@media (max-width: 760px) {
+  html[data-mix="vercel"] :is(.lien:not(p .lien), a.fort:not(p a), .tableau a:not(p a))::after { inset: -13px -6px; }
+  html[data-mix="vercel"] .lo-recherche input { align-self: stretch; }
+}
+/* ===== fin Passe Emil (suite) ===== */
+
+/* ===== Fenêtre de Cléo, option A « Fenêtre flottante » : refonte (27 nov. 2026) — même bloc que la fin de src/app/globals.css, préfixé pour passer
+   devant les règles « mix » plus haut (bulles grises, puces en pilule, champ encadré). Couleurs = jetons du mix écrits en clair. ===== */
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a { border-radius: 8px; background: #F4F7FB; overflow: hidden; box-shadow: 0 0 0 1px rgba(12,33,71,.10), 0 4px 8px -4px rgba(12,33,71,.06), 0 16px 32px -8px rgba(12,33,71,.16); font-family: var(--mix-font-ui, 'Geist', var(--ll-police, system-ui), sans-serif); animation: cleo-ouvre 180ms ease-out; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a :focus-visible { outline: 2px solid #2B5C9E; outline-offset: 0; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a > .cleo-tete { height: 60px; min-height: 60px; gap: 12px; padding: 0 8px 0 14px; border: 0; border-radius: 0; background: #0C2147; color: #fff; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a > .cleo-tete :focus-visible { outline-color: #91B5E0; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-photo-cadre { position: relative; flex: none; width: 32px; height: 32px; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-photo-cadre .cleo-photo { display: block; width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #EEF1F5; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-photo-cadre .cleo-enligne { position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; margin: 0; border-radius: 50%; background: #2E9E6E; box-shadow: 0 0 0 2px #0C2147; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-titre { display: grid; gap: 0; min-width: 0; margin-right: auto; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-titre h2 { margin: 0; font-family: var(--ll-police-titre, 'Poppins', sans-serif); font-size: 15px; font-weight: 600; line-height: 20px; letter-spacing: 0; color: #fff; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-tete .cleo-sous { position: static; width: auto; height: auto; margin: 0; overflow: hidden; clip: auto; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 16px; color: #DCE7F5; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-tete .haut-ibtn { display: grid; place-items: center; width: 36px; height: 36px; margin: 0; padding: 0; flex: none; border: 0; border-radius: 6px; background: transparent; box-shadow: none; color: #fff; }
+@media (hover: hover) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-tete .haut-ibtn:hover { background: rgba(255,255,255,.10); } }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a.cleo-reduit { border-radius: 8px; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-fil { padding: 16px 16px 20px; gap: 12px; align-content: start; background: #F4F7FB; scrollbar-width: thin; scrollbar-color: #C8CDD4 transparent; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-fil:has(> .cleo-accueil) { align-content: center; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-fil > :is(.cleo-q, .cleo-r, .cleo-voix) { animation: cleo-msg 150ms ease-out; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-date { justify-self: center; margin: 0 0 4px; font-family: inherit; font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: 0; text-transform: none; color: #58697F; font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-accueil { display: grid; justify-items: start; gap: 4px; padding: 8px 4px; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-accueil > img { display: block; width: 40px; height: 40px; margin: 0 0 8px; border-radius: 50%; background: #EEF1F5; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-accueil-titre { margin: 0; font-family: var(--ll-police-titre, 'Poppins', sans-serif); font-size: 16px; font-weight: 600; line-height: 24px; color: #0C2147; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-accueil-texte { margin: 0 0 12px; font-size: 13px; line-height: 20px; color: #3E4A59; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-exemples { display: grid; gap: 8px; width: 100%; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-exemples button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 8px 12px; border: 0; border-radius: 6px; background: #fff; box-shadow: 0 0 0 1px #E1E6EC; font: inherit; font-size: 13px; font-weight: 500; line-height: 18px; color: #0D233B; text-align: left; cursor: pointer; }
+@media (hover: hover) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-exemples button:hover { box-shadow: 0 0 0 1px #C8CDD4; background: #FAFBFD; } }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-exemples button svg { flex: none; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-q { justify-self: end; max-width: 82%; margin: 0; padding: 8px 12px; border-radius: 8px; background: #0C2147; color: #fff; font-size: 14px; line-height: 20px; overflow-wrap: anywhere; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-voix { justify-items: end; gap: 4px; } html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-voix .cleo-q { display: inline-flex; gap: 8px; } html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-voix small { font-size: 12px; line-height: 16px; color: #58697F; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-r { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; align-items: start; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-r > img { display: block; width: 24px; height: 24px; margin-top: 2px; border-radius: 50%; background: #EEF1F5; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-r > div { min-width: 0; padding: 12px 14px; border: 0; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px #E1E6EC; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-r > div > p:first-child, html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-r > div > p.gris:first-child { margin: 0; padding: 0; border-radius: 0; background: none; box-shadow: none; font-size: 14px; line-height: 21px; color: #0D233B; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-r > div > p.rouge:first-child { color: #9B2E28; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-r > div > p:first-child:empty { display: none; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-r > p.gris { margin: 4px 0 0; padding: 0; font-size: 13px; line-height: 20px; color: #58697F; background: none; box-shadow: none; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-cartes { display: grid; margin: 12px 0 0; border-radius: 6px; box-shadow: 0 0 0 1px #E1E6EC; overflow: hidden; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-cartes > p:first-child + * { margin-top: 0; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-carte { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: start; margin: 0; padding: 10px 12px; border: 0; border-radius: 0; background: #fff; box-shadow: none; color: inherit; text-decoration: none; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-carte + .cleo-carte { border-top: 1px solid #E1E6EC; }
+@media (hover: hover) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a a.cleo-carte:hover { background: #F4F7FB; box-shadow: none; } }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-carte .ini { display: none; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-carte > div { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; min-width: 0; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-carte strong { font-size: 13px; font-weight: 600; line-height: 20px; color: #0D233B; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-carte .gris { flex-basis: 100%; order: 3; font-size: 12px; line-height: 16px; color: #58697F; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-carte .puce { order: 2; height: 20px; margin: 0; padding: 0 6px; border-radius: 3px; font-size: 12px; line-height: 20px; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-carte > b { font-size: 14px; font-weight: 600; line-height: 20px; color: #0C2147; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-sources { display: grid; gap: 0; margin: 12px 0 0 !important; padding: 8px 0 0; border-top: 1px solid #EEF1F5; font-size: 13px; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-sources b { margin: 0 0 2px; font-size: 12px; font-weight: 500; line-height: 16px; color: #58697F; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-sources a { display: flex; align-items: center; gap: 8px; height: 28px; min-height: 0; margin: 0 -6px; padding: 0 6px; border-radius: 6px; background: none; font-weight: 500; line-height: 18px; color: #1B4378; text-decoration: none; }
+@media (hover: hover) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-sources a:hover { background: #F4F7FB; text-decoration: underline; text-underline-offset: 2px; } }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-sources a svg { flex: none; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-action { display: grid; gap: 4px; margin: 12px 0 0; padding: 12px; border-radius: 6px; background: #F4F7FB; box-shadow: 0 0 0 1px #E1E6EC; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-action .surtitre { margin: 0; font-family: inherit; font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: 0; text-transform: none; color: #58697F; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-action > strong { font-size: 14px; font-weight: 600; line-height: 20px; color: #0D233B; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-action > p { margin: 0; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-action .ligne-ic { display: flex; align-items: flex-start; gap: 6px; margin: 2px 0 0; font-size: 12px; line-height: 16px; color: #58697F; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-action .ligne-ic svg { flex: none; margin-top: 1px; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-apercu { margin: 4px 0 0; padding: 10px 12px; border-radius: 6px; background: #fff; box-shadow: 0 0 0 1px #E1E6EC; font-size: 13px; line-height: 19px; color: #3E4A59; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a :is(.cleo-action .deal-actions, .cleo-choix) { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 8px 0 0; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a :is(.cleo-action, .cleo-choix) .bouton { width: auto; height: 36px; min-height: 36px; padding: 0 14px; border-radius: 6px; font-size: 13px; font-weight: 600; line-height: 1; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a :is(.cleo-action, .cleo-choix) .bouton-principal { background: #0C2147; color: #fff; border: 0; box-shadow: none; }
+@media (hover: hover) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a :is(.cleo-action, .cleo-choix) .bouton-principal:hover { background: #1A3463; } }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a :is(.cleo-action, .cleo-choix) .bouton-contour { background: #fff; color: #0C2147; border: 0; box-shadow: 0 0 0 1px #C8CDD4; }
+@media (hover: hover) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a :is(.cleo-action, .cleo-choix) .bouton-contour:hover { box-shadow: 0 0 0 1px #0C2147; } }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-action .lien, html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-fait .lien { font-size: 13px; font-weight: 500; color: #1B4378; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-action .okdot, html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-fait .okdot { border-radius: 3px; background: #0F5A43; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-action .deal-actions > .ligne-ic { margin: 0; font-size: 13px; font-weight: 500; color: #0F5A43; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-fait { display: grid; gap: 4px; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-fait strong { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; line-height: 20px; color: #0D233B; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-fait .gris { font-size: 12px; line-height: 16px; color: #58697F; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-fait p { margin: 4px 0; font-size: 13px; line-height: 20px; color: #3E4A59; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-saisie { display: grid; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid #E1E6EC; background: #fff; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-suggestions { display: flex; flex-wrap: nowrap; gap: 6px; margin: 0 -12px; padding: 2px 12px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 28px), transparent 100%); mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 28px), transparent 100%); }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-suggestions::-webkit-scrollbar { display: none; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-suggestions button { display: inline-flex; flex: none; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: #fff; box-shadow: 0 0 0 1px #E1E6EC; font: inherit; font-size: 13px; font-weight: 500; color: #0D233B; white-space: nowrap; cursor: pointer; }
+@media (hover: hover) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-suggestions button:hover { box-shadow: 0 0 0 1px #C8CDD4; background: #F4F7FB; } }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-suggestions button:disabled { opacity: .55; cursor: default; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-suggestions button:focus-visible { outline-offset: 0; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ { display: flex; align-items: center; gap: 4px; height: 44px; margin: 0; padding: 0 4px 0 12px; border: 0; border-radius: 6px; background: #fff; box-shadow: 0 0 0 1px #7A8799; outline: none; }
+@media (hover: hover) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ:hover { box-shadow: 0 0 0 1px #58697F; } }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ:has(input:focus-visible) { outline: 2px solid #2B5C9E; outline-offset: 0; box-shadow: none; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ input { flex: 1; min-width: 0; height: 40px; padding: 0; border: 0; outline: none; box-shadow: none; background: transparent; font: inherit; font-size: 14px; color: #0D233B; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ input::placeholder { color: #7A8799; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ input:focus-visible { outline: none; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ button { display: grid; place-items: center; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 6px; box-shadow: none; background: #0C2147; color: #fff; cursor: pointer; }
+@media (hover: hover) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ button[type="submit"]:hover:not(:disabled) { background: #1A3463; } }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ button:disabled { opacity: 1; background: #EEF1F5; color: #7A8799; cursor: default; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ .cleo-micro { background: transparent; border: 0; box-shadow: none; }
+@media (hover: hover) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ .cleo-micro:hover:not(:disabled) { background: #EEF1F5; } }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ .cleo-micro:disabled { background: transparent; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ .cleo-micro.actif { background: #FDECEB; box-shadow: 0 0 0 1px #9B2E28; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ:has(.cleo-micro) { gap: 2px; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-regle { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; padding: 0; background: none; box-shadow: none; font-size: 12px; line-height: 16px; color: #58697F; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-regle.loc { justify-content: space-between; gap: 12px; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-regle .lien { font-size: 12px; font-weight: 500; color: #1B4378; white-space: nowrap; }
+@media (max-width: 760px) {
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a, html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a.cleo-reduit { border-radius: 8px 8px 0 0; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a > .cleo-tete { height: 60px; min-height: 60px; padding: 0 6px 0 16px; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-tete .haut-ibtn { width: 44px; height: 44px; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-fil { padding: 16px; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-exemples button { min-height: 44px; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-suggestions button { height: 44px; min-height: 44px; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-sources a { height: 44px; min-height: 44px; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a :is(.cleo-action, .cleo-choix) .bouton { height: 44px; min-height: 44px; padding: 0 16px; font-size: 14px; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-saisie { padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ { height: 52px; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ input { height: 44px; font-size: 16px; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-champ button { width: 44px; height: 44px; }
+  html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-regle .lien { display: inline-flex; align-items: center; min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a, html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-fil > * { animation: none; } }
+/* ===== fin « Fenêtre de Cléo, option A : refonte » ===== */
+/* Fenêtre de Cléo A : correctifs après relecture (note sur une ligne, règle alignée à gauche, pas de « Réduire » au téléphone) */
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-action .ligne-ic { flex-wrap: nowrap; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-regle:not(.loc) { justify-content: flex-start; align-items: flex-start; }
+html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-regle svg { flex: none; margin-top: 1px; }
+@media (max-width: 760px) { html[data-mix="vercel"] .tiroir.cleo-panneau.cleo-fenetre-a .cleo-tete .cleo-reduire { display: none; } }
+/* fin correctifs Fenêtre de Cléo A */
+
+/* ==== Cloche : notification non lue 50 % moins bleue (Steven, 27 nov. 2026 23:23) — #E4ECF7 → #F2F6FB, à mi-chemin du blanc ==== */
+html[data-mix="vercel"] .cloche-panneau li.non-lue button { background: #F2F6FB; }
+@media (hover: hover) { html[data-mix="vercel"] .cloche-panneau li.non-lue button:hover { background: var(--mix-surface-2); } }
+/* ==== fin ==== */
+
+/* ==== Passe « make-interfaces-feel-better » : propriétaire et locataire (Steven, 27 nov. 2026 23:28) ==== */
+/* Lissage : Firefox sur macOS aussi (WebKit l'avait déjà) */
+html[data-mix="vercel"] body { -moz-osx-font-smoothing: grayscale; }
+/* Titres équilibrés, paragraphes sans veuve */
+html[data-mix="vercel"] :is(.lo, .po) :is(h1, h2, h3, h4) { text-wrap: balance; }
+html[data-mix="vercel"] :is(.lo, .po) p { text-wrap: pretty; }
+/* Chiffres à chasse fixe partout dans les deux portails (dates, montants, compteurs, heures) : plus de saut quand un nombre change */
+html[data-mix="vercel"] :is(.lo, .po) { font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] :is(.lo, .po) th { font-variant-numeric: tabular-nums; }
+/* Images de contenu : un filet intérieur de 1 px à faible opacité, pour une profondeur égale sur fond clair (logos du rail exclus) */
+html[data-mix="vercel"] :is(.lo, .po) :is(.po-photo img, .lo-fiche-photo img, .po-contenu a > img, .lo-contenu a > img, .po-cherche .avatar-cleo, .carte-l18 .avatar-cleo) { outline: 1px solid rgba(13, 35, 59, 0.1); outline-offset: -1px; }
+/* Rayons concentriques : bascule FR / EN, rayon extérieur 4 = intérieur 2 + marge 2 */
+html[data-mix="vercel"] :is(.lo, .po) .toggle-langue button { border-radius: 2px; }
+/* Alignement optique : un bouton avec icône en tête ou en queue perd 2 px de marge de ce côté (l'icône a de l'air intégré) */
+html[data-mix="vercel"] :is(.lo, .po) .bouton:has(> svg:first-child:not(:only-child)) { padding-left: 12px; }
+html[data-mix="vercel"] :is(.lo, .po) .bouton:has(> svg:last-child:not(:only-child)) { padding-right: 12px; }
+/* Pression : léger retour tactile sur les boutons, interruptible (transition, pas d'animation), coupé si mouvement réduit */
+html[data-mix="vercel"] :is(.lo, .po) :is(.bouton, .bouton-carre) { transition-property: transform, background-color, box-shadow, filter; transition-duration: 120ms; transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
+html[data-mix="vercel"] :is(.lo, .po) :is(.bouton, .bouton-carre):active:not(:disabled) { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) { html[data-mix="vercel"] :is(.lo, .po) :is(.bouton, .bouton-carre) { transition: none; } html[data-mix="vercel"] :is(.lo, .po) :is(.bouton, .bouton-carre):active { transform: none; } }
+/* Zones de clic d'au moins 40 × 40 à l'ordinateur, sans changer l'aspect : la zone déborde jusqu'à 40 px (le téléphone a déjà ses 44 px) */
+@media (min-width: 761px) {
+  html[data-mix="vercel"] :is(.lo, .po) :is(.lien:not(p .lien), .tableau a:not(p a), button.lo-nom, button.dv-toggle, .toggle-langue button, .bouton-carre, .po-actions button, .bascule > a, .bascule > button, .po-compte-lien, .haut-ibtn, .lo-cloche, .lo-ibtn) { position: relative; }
+  html[data-mix="vercel"] :is(.lo, .po) :is(.lien:not(p .lien), .tableau a:not(p a), button.lo-nom, button.dv-toggle, .po-actions button, .bascule > a, .bascule > button, .po-compte-lien, .haut-ibtn, .lo-cloche, .lo-ibtn)::after { content: ""; position: absolute; inset: min(0px, calc((100% - 40px) / 2)); }
+  /* voisins collés : la zone ne grandit qu'en hauteur, pour ne jamais chevaucher le bouton d'à côté */
+  html[data-mix="vercel"] :is(.lo, .po) :is(.toggle-langue button, .bouton-carre)::after { content: ""; position: absolute; inset: min(0px, calc((100% - 40px) / 2)) 0; }
+}
+/* ==== fin ==== */

@@ -6,12 +6,14 @@ import { Notifications } from '@/composants/Notifications';
 import { Palette } from '@/composants/Palette';
 import type { Droits } from '@/lib/espaces';
 import { Cleo } from '@/composants/Cleo';
+import { BoutonCleo } from '@/composants/BoutonCleo';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { ChoixLangue, useT } from '@/composants/Langue';
+import { MegaMenu } from '@/composants/MegaMenu';
 
-/* Barre du haut (maquette l00) : logo · Accueil · « Demandez à Cléo ou cherchez… » ⌘K · cloche · profil.
+/* Barre du haut (maquette l00) : logo · Menu · Accueil · « Demandez à Cléo ou cherchez… » ⌘K · cloche · profil.
    ⌘K ouvre la palette (e02 : actions, fiches, pages); « Demander à Cléo » ouvre la conversation (e03). */
-const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/ventes', 'Ventes'], ['/maintenance', 'Maintenance'], ['/clients', 'Clients'], ['/juridique', 'Juridique'], ['/studio', 'Studio'], ['/cleo-ia', 'Cléo et IA'], ['/finances', 'Finances'], ['/immeubles', 'Immeubles'], ['/reglages', 'Rapports et réglages']];
+const ESPACES_FIL: [string, string][] = [['/operations', 'Opérations'], ['/ventes', 'Ventes'], ['/maintenance', 'Maintenance'], ['/clients', 'Clients'], ['/juridique', 'Juridique'], ['/studio', 'Studio'], ['/cleo-ia', 'Cléo et IA'], ['/finances', 'Finances'], ['/immeubles', 'Immeubles'], ['/reglages', 'Réglages']];
 
 export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, moi, droits }: { initiales: string; courriel: string; nom: string; role: string; nonLues: number; moi: string; droits?: Droits | null }) {
   const { t } = useT();
@@ -42,10 +44,13 @@ export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, mo
   const [palette, setPalette] = useState(false);
   const [cleo, setCleo] = useState<string | null>(null);
   const [menu, setMenu] = useState(false);
+  // Menu des espaces : un seul panneau à la fois (menu des espaces, profil, cloche).
+  const [mega, setMega] = useState(false);
+  const ouvrirMega = (v: boolean) => { setMega(v); if (v) { setMenu(false); setTiroir(false); } };
 
   useEffect(() => {
     const touche = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette(true); }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setMega(false); setPalette(true); }
       if (e.key === 'Escape') { setPalette(false); setMenu(false); setCleo(null); }
     };
     window.addEventListener('keydown', touche);
@@ -57,6 +62,8 @@ export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, mo
       <header className="haut">
         <a href="/" className="haut-logo-lien" aria-label={t('Lease Lane : accueil')}><img className="haut-logo logo-clair" src="/img/logo-sur-blanc.svg" alt="" /><img className="haut-logo logo-sombre" src="/img/logo-sur-marine.svg" alt="" aria-hidden="true" /></a>
         <span className="haut-filet" aria-hidden="true" />
+        {/* Menu des espaces (méga-menu) : bouton « Menu » juste après le logo, avant le fil d'Ariane. Hors équipe (droits nuls) : rien. */}
+        {droits && <MegaMenu droits={droits} ouvert={mega} setOuvert={ouvrirMega} ouvrirCleo={() => setCleo('')} />}
         {espace ? (
           <nav className="haut-fil" aria-label={t('Fil d’Ariane')}>
             <a href="/"><Icone nom="home" taille={20} couleur="#58697F" />{t('Accueil')}</a>
@@ -66,19 +73,23 @@ export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, mo
         ) : (
           <a className="haut-lieu" href="/"><Icone nom="home" taille={20} couleur="#0C2147" />{t('Accueil')}</a>
         )}
-        <button type="button" className="haut-cherche" aria-label={t('Demandez à Cléo ou cherchez une page')} onClick={() => setPalette(true)}>
-          <img src="/img/cleo.png" alt="" className="avatar-cleo" />
-          <span>{t('Demandez à Cléo ou cherchez…')}</span><span className="haut-cherche-court" aria-hidden="true">{t('Chercher')}</span>
-          <kbd className="touche"><Icone nom="command" taille={12} couleur="#3E4A59" trait={2} />K</kbd>
-        </button>
         <span className="haut-espace" />
-        <button type="button" className={'haut-ibtn' + (tiroir ? ' ouvert' : '')} onClick={() => setTiroir(true)} aria-expanded={tiroir}
+        {/* Recherche et Cléo à droite, à côté de la cloche (27 nov. 2026, Steven). Pas sur l'accueil : le briefing de Cléo y est
+            déjà, et le bouton rond de Cléo et Ctrl+K restent disponibles. */}
+        {chemin !== '/' && (
+          <button type="button" className="haut-cherche" aria-label={t('Demandez à Cléo ou cherchez une page')} onClick={() => setPalette(true)}>
+            <img src="/img/cleo.png" alt="" className="avatar-cleo" />
+            <span>{t('Demandez à Cléo ou cherchez…')}</span><span className="haut-cherche-court" aria-hidden="true">{t('Chercher')}</span>
+            <kbd className="touche"><Icone nom="command" taille={12} couleur="#3E4A59" trait={2} />K</kbd>
+          </button>
+        )}
+        <button type="button" className={'haut-ibtn' + (tiroir ? ' ouvert' : '')} onClick={() => { setMega(false); setTiroir(true); }} aria-expanded={tiroir}
           aria-label={nonLues ? (nonLues > 1 ? t('Notifications : {n} non lues', { n: nonLues }) : t('Notifications : {n} non lue', { n: nonLues })) : t('Notifications')} title={t('Notifications')}>
           <Icone nom="bell" taille={20} couleur="#0C2147" />
           {nonLues > 0 && <i className="pastille-rouge" aria-hidden="true" />}
         </button>
         <div className="haut-profil">
-          <button type="button" className="haut-moi" onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label={t('Mon compte')}>{initiales}</button>
+          <button type="button" className="haut-moi" onClick={() => { setMega(false); setMenu(!menu); }} aria-expanded={menu} aria-label={t('Mon compte')}>{initiales}</button>
           {menu && (
             // e04 : menu du profil (360 px) — qui, préférences, sécurité, raccourcis, aide.
             <div className="menu menu-profil" role="menu">
@@ -107,6 +118,7 @@ export function BarreHaut({ initiales, courriel, nom, role, nonLues: initial, mo
       )}
       {tiroir && <Notifications fermer={() => setTiroir(false)} surLecture={setNonLues} />}
       {palette && <Palette droits={droits ?? null} fermer={() => setPalette(false)} demanderCleo={(q) => { setPalette(false); setCleo(q); }} />}
+      <BoutonCleo ouvrir={() => setCleo('')} cache={cleo !== null || palette} haut={!!appel} />
       {cleo !== null && <Cleo question={cleo} fermer={() => setCleo(null)} />}
     </>
   );

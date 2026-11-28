@@ -47,7 +47,7 @@ export function Photos({ dossier, chemins, enregistrer, titre, aide }: { dossier
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))', gap: 8, marginTop: 8 }}>
         {liste.map((c) => <div key={c} style={{ position: 'relative' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={urlPhoto(c)} alt="" style={{ width: '100%', aspectRatio: '4 / 3', objectFit: 'cover', borderRadius: 8, display: 'block' }} />
+          <img src={urlPhoto(c)} alt="" style={{ width: '100%', aspectRatio: '4 / 3', objectFit: 'cover', borderRadius: 4, display: 'block' }} />
           <button type="button" className="haut-ibtn" disabled={envoi} onClick={() => retirer(c)} aria-label={t('Retirer la photo')} title={t('Retirer')}
             style={{ position: 'absolute', top: 4, right: 4, width: 28, height: 28, background: 'rgba(255,255,255,.92)' }}><Icone nom="close" taille={14} couleur="#9B2E28" /></button></div>)}
         {!liste.length && <p className="gris texte-13" style={{ gridColumn: '1 / -1', margin: 0 }}>{t('Aucune photo.')}</p>}

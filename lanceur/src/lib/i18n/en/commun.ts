@@ -33,7 +33,7 @@ const dico: Record<string, string> = {
   'Juridique': 'Legal',
   'Studio': 'Studio',
   'Cléo et IA': 'Cléo and AI',
-  'Rapports et réglages': 'Reports and settings',
+  'Réglages': 'Settings',
   'Espaces de l’admin': 'Admin spaces',
   'Accueil': 'Home',
   'Plus': 'More',
@@ -201,7 +201,7 @@ const dico: Record<string, string> = {
   'Pages de {nom}': 'Pages in {nom}',
   'Arrive avec sa tranche': 'Coming soon',
   'Cette page ne fait pas partie de votre rôle': 'This page is not part of your role',
-  'Votre rôle ({role}) ne donne pas accès à cette page. Un administrateur peut changer votre rôle dans Rapports et réglages › Équipe et permissions.': 'Your role ({role}) does not give access to this page. An administrator can change your role in Reports and settings › Team and permissions.',
+  'Votre rôle ({role}) ne donne pas accès à cette page. Un administrateur peut changer votre rôle dans Réglages › Équipe et permissions.': 'Your role ({role}) does not give access to this page. An administrator can change your role in Settings › Team and permissions.',
   'Nouvelle demande': 'New request',
   'Nouveau lead': 'New lead',
   'Importer un CSV': 'Import a CSV',
@@ -519,5 +519,6 @@ const dico: Record<string, string> = {
   'Autre': 'Other',
   'Fichier Excel illisible.': 'Unreadable Excel file.',
   'Aucune feuille dans ce fichier Excel.': 'No sheet in this Excel file.',
+  'occasions ouvertes': 'open opportunities',
 };
 export default dico;

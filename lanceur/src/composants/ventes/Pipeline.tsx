@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
@@ -86,6 +86,7 @@ export function Pipeline({ donnees, raisons, erreurLecture }: { donnees: Donnees
         <strong className="pipeline-total">{t(tot.n > 1 ? '{n} deals ouverts' : '{n} deal ouvert', { n: tot.n })} {tot.portes > 0 && <> · {portes(tot.portes)}</>} · {t('{montant} par mois', { montant: argent(tot.v, locale) })}</strong>
       </div>
       {bandeau && <div className="bandeau info" role="status">{bandeau}</div>}
+      {/* Bande « Étapes du pipeline » retirée (Steven, 27 nov. 2026) : le kanban montre déjà chaque étape. */}
 
       {vue === 'kanban' ? (
         <div className="kanban">

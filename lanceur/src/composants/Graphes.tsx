@@ -1,20 +1,19 @@
-/* Petits graphiques des maquettes (dataviz) : micro-courbe, barres classées, jauge à seuil. Une seule teinte, l'accent sur la valeur mise en avant. */
+'use client';
+import { BarChart, ProgressBar, Sparkline } from '@/composants/dataviz';
+
+/* Petits graphiques des maquettes (dataviz) : micro-courbe, barres classées, jauge à seuil, mini-colonnes.
+   Mêmes exports et mêmes propriétés qu'avant : les écrans appellent ces fonctions, le dessin vient du kit src/composants/dataviz. */
 export function Courbe({ valeurs, largeur = 160, hauteur = 36 }: { valeurs: number[]; largeur?: number; hauteur?: number }) {
   if (valeurs.length < 2) return null;
-  const min = Math.min(...valeurs), max = Math.max(...valeurs), e = max - min || 1;
-  const pts = valeurs.map((v, i) => [(i * largeur) / (valeurs.length - 1), hauteur - 4 - ((v - min) / e) * (hauteur - 8)]);
-  const [x, y] = pts[pts.length - 1];
-  return <svg className="courbe" width={largeur} height={hauteur} viewBox={`0 0 ${largeur} ${hauteur}`} aria-hidden="true">
-    <polyline points={pts.map((p) => p.join(',')).join(' ')} fill="none" stroke="#A6B1BE" strokeWidth="2" strokeLinejoin="round" /><circle cx={x} cy={y} r="3.5" fill="#0C2147" /></svg>;
+  return <Sparkline values={valeurs} width={largeur} height={hauteur} className="courbe" />;
 }
 export function BarresClassees({ lignes, accent = 0 }: { lignes: { libelle: string; valeur: number; texte: string }[]; accent?: number }) {
-  const max = Math.max(1, ...lignes.map((l) => l.valeur));
-  return <ul className="barres-classees">{lignes.map((l, i) => <li key={l.libelle}><span className="lib">{l.libelle}</span>
-    <span className="piste"><i className={i === accent ? 'accent' : ''} style={{ width: `${Math.max(2, (100 * l.valeur) / max)}%` }} /></span><b>{l.texte}</b></li>)}</ul>;
+  return <BarChart orientation="horizontal" label={lignes.map((l) => `${l.libelle} ${l.texte}`).join('; ')} labels={lignes.map((l) => l.libelle)}
+    series={[{ id: 'v', name: '', values: lignes.map((l) => l.valeur) }]} valueText={lignes.map((l) => l.texte)} format={(n) => String(n)} emphasis={accent >= 0 ? accent : undefined} />;
 }
 /* Jauge à seuil : la valeur part de zéro, le trait d'encre marque la cible (objectif, médiane). */
 export function JaugeSeuil({ valeur, cible, max, largeur = 96 }: { valeur: number; cible: number; max: number; largeur?: number }) {
-  return <span className="jauge-seuil" style={{ width: largeur }} aria-hidden="true"><i style={{ width: `${Math.min(100, (100 * valeur) / max)}%` }} /><b style={{ left: `${Math.min(100, (100 * cible) / max)}%` }} /></span>;
+  return <ProgressBar value={valeur} target={cible} max={max} width={largeur} />;
 }
 /* Mini-colonnes d'un indicateur : la dernière période en accent. */
-export function Colonnes({ v }: { v: number[] }) { const m = Math.max(1, ...v); return <span className="mini-colonnes" aria-hidden="true">{v.map((x, i) => <i key={i} className={i === v.length - 1 ? 'accent' : ''} style={{ height: `${Math.max(3, (24 * x) / m)}px` }} />)}</span>; }
+export function Colonnes({ v }: { v: number[] }) { return <Sparkline values={v} kind="bars" width={Math.max(10, v.length * 10 - 3)} height={24} />; }

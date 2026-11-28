@@ -47,7 +47,7 @@ export function Securite({ donnees: D, revue: R, erreurLecture }: { donnees: Don
             {f.exceptions.map((x, i) => <div key={i} className="ec-ligne" style={{ gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.4fr) 150px 36px' }}>
               <select className="e70-raison" value={x.user_id} onChange={(e) => setF({ ...f, exceptions: f.exceptions.map((y, j) => j === i ? { ...y, user_id: e.target.value } : y) })} aria-label={t('Personne')}>
                 <option value="">{t('Personne')}</option>{D.membres.map((m) => <option key={m.user_id} value={m.user_id}>{m.nom}</option>)}</select>
-              <input className="e70-raison" placeholder={t('Raison')} value={x.raison} onChange={(e) => setF({ ...f, exceptions: f.exceptions.map((y, j) => j === i ? { ...y, raison: e.target.value } : y) })} />
+              <input className="e70-raison" placeholder={t('Raison')} aria-label={t('Raison de l’exception')} value={x.raison} onChange={(e) => setF({ ...f, exceptions: f.exceptions.map((y, j) => j === i ? { ...y, raison: e.target.value } : y) })} />
               <input className="e70-raison" type="date" value={x.jusqu} onChange={(e) => setF({ ...f, exceptions: f.exceptions.map((y, j) => j === i ? { ...y, jusqu: e.target.value } : y) })} aria-label={t('Jusqu’au')} />
               <button type="button" className="haut-ibtn" aria-label={t('Retirer')} onClick={() => setF({ ...f, exceptions: f.exceptions.filter((_, j) => j !== i) })}><Icone nom="close" taille={14} couleur="#3E4A59" /></button></div>)}
             <button type="button" className="lien ligne-ic" onClick={() => setF({ ...f, exceptions: [...f.exceptions, { user_id: '', raison: '', jusqu: '' }] })}><Icone nom="plus" taille={16} couleur="#2E5788" />{t('Ajouter une exception')}</button></>}

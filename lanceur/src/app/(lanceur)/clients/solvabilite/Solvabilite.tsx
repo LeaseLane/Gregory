@@ -8,6 +8,7 @@ import { argentL } from '@/lib/format';
 import { useT } from '@/composants/Langue';
 import type { T } from '@/lib/i18n/langue';
 import { resumePaiements, type Rapport } from '@partage/solvabilite';
+import { ProgressBar } from '@/composants/dataviz';
 
 type Enquete = { id: string; nom: string; logement: string | null; motif: string; statut: string; resultat: string | null; avis: string | null; cote: number | null; cout: number | null;
   consentement: string | null; consentement_expire: string | null; moyen: string | null; demande: string | null; simule: boolean; recu: string | null; purge: boolean;
@@ -121,7 +122,7 @@ export function Solvabilite({ donnees, erreurLecture }: { donnees: DonneesSolva 
           <section className="carte-l18" aria-label={t('Budget des enquêtes')}>
             <header className="carte-tete sans-marge"><h2>{t('Budget des enquêtes')}</h2><p>{MOIS.charAt(0).toUpperCase() + MOIS.slice(1)} · {B.payees > 1 ? t('{n} enquêtes payées', { n: B.payees }) : t('{n} enquête payée', { n: B.payees })}</p></header>
             <p className="montant-budget"><b>{argent(B.paye)}</b> {t('sur')} {argent(B.mensuel).replace(/[.,]00(?!\d)/, '')}</p>
-            <span className="jauge large"><i style={{ width: `${Math.min(100, (100 * B.paye) / B.mensuel)}%` }} /></span>
+            <ProgressBar value={Math.min(100, (100 * B.paye) / B.mensuel)} size="md" />
           </section>
           <section className="carte-l18" aria-label={t('Conservation des rapports')}>
             <h2 className="titre-carte">{t('Conservation des rapports')}</h2>
@@ -140,7 +141,7 @@ export function Solvabilite({ donnees, erreurLecture }: { donnees: DonneesSolva 
               <div><span>{t('Données')}</span><b className="ok"><span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span>{t('courriel et logement')}</b></div>
               <div><span>{t('Coût')}</span><b>{argent(B.cout_unitaire)}</b></div>
               <div><span>{t('Budget après paiement')}</span><b>{argent(apres)} {t('sur')} {argent(B.mensuel).replace(/[.,]00(?!\d)/, '')}</b></div>
-              <span className="jauge large"><i style={{ width: `${Math.min(100, (100 * apres) / B.mensuel)}%` }} /></span>
+              <ProgressBar value={Math.min(100, (100 * apres) / B.mensuel)} size="md" />
             </div>
             <div className="fenetre-actions"><button className="bouton bouton-principal" disabled={envoi} onClick={() => payer(aApprouver.id)}>{envoi ? t('Enquête en cours…') : t('Approuver et payer {m}', { m: argent(B.cout_unitaire) })}</button>
               <button className="bouton bouton-contour" disabled={envoi} onClick={() => setConfirmer(false)}>{t('Annuler')}</button></div>

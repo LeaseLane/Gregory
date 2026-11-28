@@ -3,10 +3,11 @@
    4 indicateurs qui choisissent la série du graphique, période 7 / 30 / 90 jours, graphique par jour (courbe, barres
    ou cumul) avec la période précédente en pointillé, survol, clavier (flèches, Début, Fin) et résumé pour lecteurs d'écran.
    Source réelle aujourd'hui : les demandes des formulaires du site; visites, clics et conversion attendent Google Analytics 4. */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { Icone } from '@/composants/Icones';
+import { BarChart, LineChart, ProgressBar, Sparkline } from '@/composants/dataviz';
 import { useT } from '@/composants/Langue';
 import type { DonneesSite } from './Commun';
 import { qc } from '@/lib/format';
@@ -24,76 +25,18 @@ const METRIQUES: { id: Metrique; nom: string; serie: string; icone: string; ga4:
 const jfL = (d: string, locale: string) => new Date(d + 'T12:00').toLocaleDateString(locale, { day: 'numeric', month: 'short' });
 const nbL = (v: number, locale: string) => v.toLocaleString(locale, { maximumFractionDigits: 1 });
 const PC = (locale: string) => (locale.startsWith('en') ? '%' : ' %');
-/* Graduations rondes (1, 2, 2,5, 5, 10 × 10ⁿ), comme le prototype. */
-const pas = (x: number) => { if (!(x > 0)) return 1; const p = Math.pow(10, Math.floor(Math.log10(x))), n = x / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; };
 const cumul = (L: Point[]) => { let s = 0; return L.map((p) => ({ d: p.d, v: (s += p.v) })); };
 
-function useLargeur(): [React.RefObject<HTMLDivElement | null>, number] {
-  const ref = useRef<HTMLDivElement>(null);
-  const [w, setW] = useState(0);
-  useEffect(() => {
-    if (!ref.current) return;
-    const o = new ResizeObserver(([e]) => setW(e.contentRect.width));
-    o.observe(ref.current);
-    return () => o.disconnect();
-  }, []);
-  return [ref, w];
-}
-
-function Sparkline({ points }: { points: Point[] }) {
-  if (points.length < 2) return null;
-  const mx = Math.max(1, ...points.map((p) => p.v));
-  const d = points.map((p, k) => `${k ? 'L' : 'M'}${(k / (points.length - 1)) * 100},${30 - (p.v / mx) * 26}`).join(' ');
-  return <svg className="ga-spark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"><path d={d} vectorEffect="non-scaling-stroke" /></svg>;
-}
-
-function Graphique({ points, prec, titre, type, hauteur = 300 }: { points: Point[]; prec: Point[]; titre: string; type: 'ligne' | 'barres' | 'cumul'; hauteur?: number }) {
+/* Graphique par jour du kit dataviz : courbe (ou aire sans période précédente), barres ou cumul; période précédente en gris de contexte;
+   repère, infobulle, flèches du clavier, légende et tableau viennent du kit. */
+function Graphique({ points, prec, titre, type, unite, hauteur = 300 }: { points: Point[]; prec: Point[]; titre: string; type: 'ligne' | 'barres' | 'cumul'; unite: string; hauteur?: number }) {
   const { t, locale } = useT();
-  const nb = (v: number) => nbL(v, locale), jf = (d: string) => jfL(d, locale);
-  const bar = type === 'barres';
-  const P = type === 'cumul' ? cumul(points) : points, Q = type === 'cumul' ? cumul(prec) : prec;
-  const [i, setI] = useState<number | null>(null);
-  const [ref, w] = useLargeur();
-  const n = P.length;
-  const hi = Math.max(0, ...P.map((p) => p.v), ...Q.map((p) => p.v)), st = pas((hi || 1) * 1.06 / 4), mx = st * 4, T = [0, 1, 2, 3, 4].map((k) => k * st);
-  const X = (k: number) => (bar ? ((k + 0.5) / n) * 1000 : n > 1 ? (k / (n - 1)) * 1000 : 500), bw = Math.max(2, (1000 / n) * 0.62), Y = (v: number) => 1000 - (v / mx) * 1000;
-  const chemin = (L: Point[]) => L.map((p, k) => (k ? 'L' : 'M') + X(k) + ',' + Y(p.v)).join(' ');
-  const lc = chemin(P), lp = Q.length === n ? chemin(Q) : null;
-  const nbx = Math.max(2, Math.min(n, Math.floor((w || 640) / 104))), xs = [...new Set(Array.from({ length: nbx }, (_, k) => Math.round((k * (n - 1)) / (nbx - 1))))];
-  const pos = (e: React.PointerEvent<HTMLDivElement>) => { const r = e.currentTarget.getBoundingClientRect(), f = (e.clientX - r.left) / r.width; setI(Math.max(0, Math.min(n - 1, bar ? Math.floor(f * n) : Math.round(f * (n - 1))))); };
-  const touche = (e: React.KeyboardEvent) => {
-    const m: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1 };
-    if (e.key in m) { e.preventDefault(); setI((x) => Math.max(0, Math.min(n - 1, (x == null ? n - 1 : x) + m[e.key]))); }
-    else if (e.key === 'Home') { e.preventDefault(); setI(0); }
-    else if (e.key === 'End') { e.preventDefault(); setI(n - 1); }
-    else if (e.key === 'Escape') setI(null);
-  };
-  const p = i != null ? P[i] : null, q = p && lp ? Q[i!] : null, pk = P.reduce((a, b) => (b.v > a.v ? b : a), P[0]);
-  const resume = t('{titre}, {n} jours, {detail}; flèches gauche et droite pour parcourir les jours.', { titre, n, detail: pk.v ? t('sommet {v} le {date}', { v: nb(pk.v), date: jf(pk.d) }) : t('aucune donnée') });
-  const yw = Math.max(28, Math.ceil(Math.max(...T.map((t) => nb(t).length)) * 7.4));
-  return (
-    <div className="ga" style={{ '--ga-h': hauteur + 'px', '--ga-yw': yw + 'px' } as React.CSSProperties}>
-      <div className="ga-y" aria-hidden="true">{T.map((t) => <span key={t} style={{ top: Y(t) / 10 + '%' }}>{nb(t)}</span>)}</div>
-      <div ref={ref} className="ga-z" tabIndex={0} role="group" aria-roledescription={t('graphique')} aria-label={resume}
-        onPointerMove={pos} onPointerDown={pos} onPointerLeave={() => setI(null)} onKeyDown={touche} onBlur={() => setI(null)}>
-        <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
-          {T.map((t) => <line key={t} x1="0" x2="1000" y1={Y(t)} y2={Y(t)} className={t ? 'ga-gl' : 'ga-gl0'} vectorEffect="non-scaling-stroke" />)}
-          {bar ? P.map((r, k) => <rect key={k} className={k === i ? 'ga-b ga-b-on' : 'ga-b'} x={X(k) - bw / 2} y={Y(r.v)} width={bw} height={Math.max(0, 1000 - Y(r.v))} />)
-            : <path className="ga-a" d={'M0,1000 ' + lc.replace(/^M/, 'L') + ' L1000,1000 Z'} />}
-          {lp && <path className="ga-p" d={lp} vectorEffect="non-scaling-stroke" />}
-          {!bar && <path className="ga-l" d={lc} vectorEffect="non-scaling-stroke" />}
-          {p && <line className="ga-h" x1={X(i!)} x2={X(i!)} y1="0" y2="1000" vectorEffect="non-scaling-stroke" />}
-        </svg>
-        {q && <span className="ga-pt" data-p="1" style={{ left: X(i!) / 10 + '%', top: Y(q.v) / 10 + '%' }} />}
-        {p && <span className="ga-pt" style={{ left: X(i!) / 10 + '%', top: Y(p.v) / 10 + '%' }} />}
-        {p && <div className="ga-tip" data-d={i! > n / 2 ? 1 : 0} style={{ left: X(i!) / 10 + '%' }} aria-hidden="true">
-          <strong>{jf(p.d)}</strong><span><i className="ga-k" />{nb(p.v)} {titre.toLowerCase()}</span>
-          {q && <span><i className="ga-k" data-p="1" />{t('{v} · période précédente ({date})', { v: nb(q.v), date: jf(q.d) })}</span>}</div>}
-      </div>
-      <div className="ga-x" aria-hidden="true">{xs.map((k) => <span key={k} style={{ left: X(k) / 10 + '%' }} data-b={k === 0 ? 'd' : k === n - 1 ? 'f' : ''}>{jf(P[k].d)}</span>)}</div>
-      <p className="sr" aria-live="polite">{p ? `${jf(p.d)} : ${nb(p.v)}${q ? `. ${t('Période précédente : {v}.', { v: nb(q.v) })}` : ''}` : ''}</p>
-    </div>
-  );
+  const nb = (v: number) => nbL(v, locale) + unite, jf = (d: string) => jfL(d, locale);
+  const P = type === 'cumul' ? cumul(points) : points, Q = type === 'cumul' ? cumul(prec) : prec, avecPrec = Q.length === P.length;
+  const labels = P.map((p) => jf(p.d)), n = P.length;
+  if (type === 'barres') return <BarChart labels={labels} series={[{ id: 'cur', name: titre, values: P.map((p) => p.v) }]} height={hauteur} format={nb} valueLabels="max" label={t('{titre}, {n} jours', { titre, n })} tableColumn={t('Jour')} />;
+  return <LineChart labels={labels} height={hauteur} format={nb} kind={avecPrec ? 'line' : 'area'} label={t('{titre}, {n} jours', { titre, n })} tableColumn={t('Jour')}
+    series={[{ id: 'cur', name: t('{n} derniers jours', { n }), values: P.map((p) => p.v), slot: 0 }, ...(avecPrec ? [{ id: 'prec', name: t('{n} jours précédents', { n }), values: Q.map((p) => p.v), color: 'var(--dv-ctx)' }] : [])]} />;
 }
 
 /* demo.leaselane.ca seulement : séries d'exemple pour les indicateurs GA4, stables d'un affichage à l'autre (tirées de la date).
@@ -147,7 +90,7 @@ export function ActiviteSite({ initial, demo = false, site }: { initial: Activit
               <b>{S ? nb(tc) + unite(m.id) : !A && !m.ga4 ? '…' : '—'}</b>
               <span className="ga-kpi-pied">
                 <span>{S ? (delta == null ? (tc > 0 ? <span className="ga-hausse">{t('nouveau')}</span> : t('0 les {n} jours précédents', { n: jours })) : <><span className={delta >= 0 ? 'ga-hausse' : 'ga-baisse'}>{(delta >= 0 ? '+' : '') + nb(delta)}{pcs}</span> {t('vs {n} jours précédents', { n: jours })}</>) : m.ga4 ? t('Google Analytics 4 à brancher') : ''}</span>
-                {S && <Sparkline points={S.courant} />}
+                {S && <Sparkline values={S.courant.map((p) => p.v)} width={72} height={28} label={t('Tendance')} />}
               </span>
             </button>
           );
@@ -157,10 +100,9 @@ export function ActiviteSite({ initial, demo = false, site }: { initial: Activit
         <div className="ga-graph-tete">
           <div><h3 className="ga-graph-titre">{t('{serie} par jour', { serie: t(M.serie) })}</h3>
             <span className="gris texte-13">{!SM ? (M.ga4 && A ? t('Données disponibles quand Google Analytics 4 sera branché.') : t('Chargement…')) : pk && pk.v ? (M.id === 'conversion' ? t('Sur la période {moy}{u} · Sommet {pk}{u} le {date}', { moy: nb(moy), u: unite(M.id), pk: nb(pk.v), date: jf(pk.d) }) : t('Moyenne {moy}{u} par jour · Sommet {pk}{u} le {date}', { moy: nb(moy), u: unite(M.id), pk: nb(pk.v), date: jf(pk.d) })) : t('Aucune donnée sur les {n} derniers jours', { n: jours })}</span></div>
-          <div className="ga-legende" aria-hidden="true"><span><i className="ga-k-l" />{t('{n} derniers jours', { n: jours })}</span><span><i className="ga-k-p" />{t('{n} jours précédents', { n: jours })}</span></div>
-          <div className="ga-periode" role="group" aria-label={t('Type de graphique')}>{([['ligne', 'Courbe'], ['barres', 'Barres'], ['cumul', 'Cumul']] as const).map(([tp, l]) => <button key={tp} type="button" aria-pressed={type === tp} onClick={() => setType(tp)}>{t(l)}</button>)}</div>
+                    <div className="ga-periode" role="group" aria-label={t('Type de graphique')}>{([['ligne', 'Courbe'], ['barres', 'Barres'], ['cumul', 'Cumul']] as const).map(([tp, l]) => <button key={tp} type="button" aria-pressed={type === tp} onClick={() => setType(tp)}>{t(l)}</button>)}</div>
         </div>
-        {SM ? <Graphique points={SM.courant} prec={SM.precedent} titre={t(M.serie)} type={type} />
+        {SM ? <Graphique points={SM.courant} prec={SM.precedent} titre={t(M.serie)} type={type} unite={unite(M.id)} />
           : M.ga4 && A ? <div className="ga-vide"><Icone nom="chart" taille={22} couleur="#2E5788" /><p><b>{t('{nom} : pas encore de données.', { nom: t(M.nom) })}</b><br />{t('Cet indicateur se remplira dès que Google Analytics 4 sera branché au site (avec le consentement « Mesure d’audience » des visiteurs).')}</p></div>
           : <p className="gris texte-13">{t('Chargement…')}</p>}
       </div>
@@ -270,7 +212,7 @@ function Blocs({ A, site, demo }: { A: Activite; site: DonneesSite; demo: boolea
       <Bloc ic="spark" id="vd-i" t={t('IA et crédits')} href="/studio/site/articles" lib={t('Rédiger avec Cléo')}
         gauche={<><div className="vd-cout"><div className="vd-cout-v"><span>{t('Coût estimé, {n} jours', { n: P })}</span><b>{usd(cout)}</b></div>
             <div className="vd-bud"><span className="vd-bud-h"><span>{t('Budget du mois')}</span><span><b>{usd(mois)}</b> {t('sur {montant}', { montant: usd(BUDGET) })}</span></span>
-              <span className="vd-bud-b" data-w={bud > 0.8 ? 1 : 0} role="progressbar" aria-label={t('Budget du mois utilisé')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(bud * 100)}><i style={{ width: bud * 100 + '%' }} /></span></div></div>
+              <ProgressBar size="md" tone={bud > 0.8 ? 'warn' : 'accent'} value={bud * 100} label={t('Budget du mois utilisé')} valueText={`${Math.round(bud * 100)} %`} /></div></div>
           <Mesures cols={3} items={[[t('Appels à Cléo'), nf(appels), null], [t('Jetons'), nf(jet / 1000) + ' k', null], [t('Coût par appel'), usd(appels ? cout / appels : 0), null]]} /></>}
         droite={<div className="vd-sub"><h4>{t('Coût par étape du parcours')}</h4><Barres lab={t('Coût par étape du parcours')} rows={ia} fmt={(r) => usd(r.v) + ' · ' + pl(ia.find((x) => x.n === r.n)!.c, '{n} appel', '{n} appels')} /></div>}
         pied={<><span>{t('{appels} sur {n} jours', { appels: pl(appels, '{n} appel', '{n} appels'), n: P })}{autres.length ? t(' (dont {n} hors parcours)', { n: nf(somme(autres, (x) => x.appels)) }) : ''}</span><span className="gris">{t('Tarif estimé : 3 $ US par million de jetons en entrée, 15 $ US en sortie.')}</span></>} />

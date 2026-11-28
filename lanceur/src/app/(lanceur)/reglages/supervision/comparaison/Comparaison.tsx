@@ -6,6 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { useT } from '@/composants/Langue';
 import { argentL } from '@/lib/format';
+import { ProgressBar } from '@/composants/dataviz';
 
 type Ecart = { page: string; navigateur: string; pixels: number; titre: string; texte: string };
 export type DonneesComparaison = { id: string; espace: string; version: string; reference: string; deploye_le: string; captures: number; identiques: number; pages: string[]; navigateurs: string[];
@@ -66,7 +67,7 @@ export function Comparaison({ donnees: D, erreurLecture }: { donnees: DonneesCom
           <h2 className="titre-carte" style={{ margin: '4px 0 16px' }}>{E ? (D.interrupteur ? t('L’écart vient de la nouveauté « {nom} »', { nom: D.interrupteur }) : t('L’écart vient de la version {version}', { version: D.version })) : t('Rien à décider')}</h2>
           {D.interrupteur && <div className="carte-case" style={{ display: 'grid', gap: 8 }}><span className="ligne-ic"><span className={'interrupteur' + (D.decision === 'retiree' ? '' : ' on')} role="img" aria-label={D.decision === 'retiree' ? t('Retirée') : t('Active')} />
             <span className="deux-lignes"><strong>{D.interrupteur} ({D.version})</strong><span className="gris texte-12">{t('Interrupteur')}{D.interrupteur_par ? ` · ${D.interrupteur_par}` : ''} · {heure(D.deploye_le)}</span></span></span>
-            {D.interrupteur_pct !== null && <span className="ligne-entre texte-12"><span className="jauge" style={{ flex: 1 }}><i style={{ width: `${D.interrupteur_pct}%` }} /></span><b>{t('{pct} des locataires', { pct: locale.startsWith('en') ? `${D.interrupteur_pct}%` : `${D.interrupteur_pct} %` })}</b></span>}</div>}
+            {D.interrupteur_pct !== null && <span className="ligne-entre texte-12"><ProgressBar value={D.interrupteur_pct} style={{ flex: 1 }} /><b>{t('{pct} des locataires', { pct: locale.startsWith('en') ? `${D.interrupteur_pct}%` : `${D.interrupteur_pct} %` })}</b></span>}</div>}
           {D.decision ? <p className="cleo-note texte-13">{D.decision === 'retiree' ? t('Nouveauté retirée') : D.decision === 'signalee' ? t('Défaut signalé') : t('Acceptée comme référence')}{D.decide_par_nom ? ` ${t('par {nom}', { nom: D.decide_par_nom })}` : ''}{D.decide_le ? ` ${t('à {heure}', { heure: heure(D.decide_le) })}` : ''}.</p>
             : E && D.peut_decider ? <div style={{ display: 'grid', gap: 12, marginTop: 16 }}>
               <p className="texte-13" style={{ margin: 0 }}>{t('Désactiver l’interrupteur retire la nouveauté sans redéployer : ces locataires retrouvent l’écran de la version {ref}.', { ref: D.reference })}</p>

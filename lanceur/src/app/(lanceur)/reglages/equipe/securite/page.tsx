@@ -11,7 +11,7 @@ export default async function Page() {
   const sb = await supabaseServeur();
   const [{ data, error }, { data: revue }] = await Promise.all([sb.rpc('lanceur_securite'), sb.rpc('lanceur_revue_acces')]);
   return (
-    <CadreEspace icone="chart" nom="Rapports et réglages" sous={SOUS_REG} actif={2} onglets={ONGLETS_REG}>
+    <CadreEspace icone="chart" nom="Réglages" sous={SOUS_REG} actif={2} onglets={ONGLETS_REG}>
       <SousOnglets actif="/reglages/equipe/securite" />
       <Securite donnees={(data as DonneesSecurite | null) ?? null} revue={(revue as DonneesRevue | null) ?? null} erreurLecture={error ? (error.code === 'PT403' ? error.message : t('Les réglages n’ont pas pu être lus.')) : null} />
     </CadreEspace>

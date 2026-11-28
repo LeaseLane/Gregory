@@ -6,6 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { useT } from '@/composants/Langue';
 import type { T } from '@/lib/i18n/langue';
+import { ProgressBar } from '@/composants/dataviz';
 
 /* Loi 25 : un registre commun aux portails (une demande faite par un locataire ou un propriétaire apparaît ici avec 30 jours), traitement par étapes,
    décision motivée avec recours, copie approuvée par le responsable; conservation (le journal n'est jamais purgé), témoins, documents et EFVP, hors Québec, incidents. */
@@ -76,7 +77,7 @@ export function Loi25({ onglet, choisie, donnees: D, maintenant, erreurLecture }
         <div className="kpis" style={{ marginBottom: 24 }}>
           <Link className="kpi" href="/reglages/loi-25/demandes"><span>{t('Demandes en cours')}</span><b>{enCours.length}</b><span>{enCours.filter((x) => x.jours_restants < 0).length ? <span className="rouge-txt">{t('{n} en retard', { n: enCours.filter((x) => x.jours_restants < 0).length })}</span> : t('Aucune en retard')}</span></Link>
           <Link className="kpi" href="/reglages/loi-25/demandes"><span>{t('Prochaine échéance')}</span><b>{prochaine ? d(prochaine.echeance) : '—'}</b><span>{prochaine ? `${prochaine.demandeur} · ${t('{n} j', { n: prochaine.jours_restants })}` : t('Aucune demande ouverte')}</span></Link>
-          <Link className="kpi" href="/reglages/loi-25/documents"><span>{t('Documents en règle')}</span><b>{t('{n} sur {total}', { n: docsOk, total: D.documents.length })}</b><span className="jauge"><i style={{ width: `${(100 * docsOk) / Math.max(1, D.documents.length)}%` }} /></span></Link>
+          <Link className="kpi" href="/reglages/loi-25/documents"><span>{t('Documents en règle')}</span><b>{t('{n} sur {total}', { n: docsOk, total: D.documents.length })}</b><ProgressBar value={(100 * docsOk) / Math.max(1, D.documents.length)} /></Link>
           <Link className="kpi" href="/reglages/loi-25/incidents"><span>{t('Incidents de l’année')}</span><b>{incAn.length}</b><span>{t('{n} à risque de préjudice sérieux', { n: incAn.filter((i) => i.risk_of_serious_harm).length })}</span></Link>
         </div>
         <div className="grille-2-1">
@@ -89,8 +90,8 @@ export function Loi25({ onglet, choisie, donnees: D, maintenant, erreurLecture }
                 {D.transferts.filter((tr) => tr.etat !== 'conforme').length > 0 && <li className="texte-13"><Icone nom="globe" taille={16} couleur="#0C2147" /><div><strong>{D.transferts.filter((tr) => tr.etat !== 'conforme').length > 1 ? t('{n} communications hors Québec à évaluer', { n: D.transferts.filter((tr) => tr.etat !== 'conforme').length }) : t('{n} communication hors Québec à évaluer', { n: D.transferts.filter((tr) => tr.etat !== 'conforme').length })}</strong><Link href="/reglages/loi-25/documents" className="lien">{t('Évaluer')}</Link></div></li>}</ul></section>
             <section className="carte-l18" aria-label={t('Programme de conformité')}><h2 className="titre-carte">{t('Programme de conformité')}</h2>
               {[...new Set(D.documents.map((x) => x.groupe))].map((g) => { const l = D.documents.filter((x) => x.groupe === g), o = l.filter((x) => ['publie', 'valide'].includes(x.statut)).length;
-                return <div key={g} style={{ marginBottom: 12 }}><span className="tete-action texte-13"><span>{t(g)}</span><b>{t('{n} sur {total} en règle', { n: o, total: l.length })}</b></span><span className="jauge"><i style={{ width: `${(100 * o) / l.length}%` }} /></span></div>; })}
-              <div><span className="tete-action texte-13"><span>{t('Communications hors Québec')}</span><b>{t('{n} sur {total}', { n: trOk, total: D.transferts.length })}</b></span><span className="jauge"><i style={{ width: `${(100 * trOk) / Math.max(1, D.transferts.length)}%` }} /></span></div>
+                return <div key={g} style={{ marginBottom: 12 }}><span className="tete-action texte-13"><span>{t(g)}</span><b>{t('{n} sur {total} en règle', { n: o, total: l.length })}</b></span><ProgressBar value={(100 * o) / l.length} /></div>; })}
+              <div><span className="tete-action texte-13"><span>{t('Communications hors Québec')}</span><b>{t('{n} sur {total}', { n: trOk, total: D.transferts.length })}</b></span><ProgressBar value={(100 * trOk) / Math.max(1, D.transferts.length)} /></div>
               <p className="gris texte-12" style={{ marginTop: 12 }}>{t('Responsable :')} {D.responsable ? `${D.responsable.nom} · ${D.responsable.courriel}` : t('à désigner')}</p></section>
           </div>
         </div></>}

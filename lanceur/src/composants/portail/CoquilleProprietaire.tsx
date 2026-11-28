@@ -6,7 +6,8 @@ import { Icone } from '@/composants/Icones';
 import type { MoiPortail } from './Moi';
 import { Cloche } from './Cloche';
 import { Cleo } from '@/composants/Cleo';
-import { BoutonLangue, useT } from '@/composants/Langue';
+import { BoutonCleo } from '@/composants/BoutonCleo';
+import { ToggleLangue, useT } from '@/composants/Langue';
 
 /* Coquille du propriétaire (maquette 01) : rail à gauche avec libellés, Cléo, carte du compte; recherche « Demandez à Cléo » et cloche.
    Une rubrique sans page n'est pas un lien. Pastille marine; rouge seulement pour une urgence (D4). La comptabilité (lecture seulement) ne voit
@@ -42,14 +43,13 @@ export function CoquilleProprietaire({ moi, comptes, children }: { moi: MoiPorta
             : <span key={l} className={'inactif' + sec} aria-disabled="true" title={t('Arrive bientôt')}>{corps}</span>;
         })}
           {secondaires.length > 0 && <button type="button" className={'po-plus-bouton' + (plus || secondaires.some(([, , h]) => !!h && (h === '/proprietaire' ? chemin === h : chemin.startsWith(h))) ? ' actif' : '')} aria-expanded={plus} aria-haspopup="true" onClick={() => setPlus((v) => !v)}><Icone nom="list" taille={18} couleur="currentColor" /><span>{t('Plus')}</span></button>}</nav>
-        {plus && <><div className="po-plus-fond" onClick={() => setPlus(false)} /><div className="po-plus" role="menu" aria-label={t('Plus de rubriques')}>{secondaires.map(([ic, l, href]) => href && <Link key={l} href={href} role="menuitem" onClick={() => setPlus(false)} className={chemin.startsWith(href) ? 'actif' : ''}><Icone nom={ic} taille={18} couleur="currentColor" /><span>{t(l)}</span></Link>)}<BoutonLangue className="lien" style={{ padding: '10px 16px', textAlign: 'left' }} /></div></>}
+        {plus && <><div className="po-plus-fond" onClick={() => setPlus(false)} /><div className="po-plus" role="menu" aria-label={t('Plus de rubriques')}>{secondaires.map(([ic, l, href]) => href && <Link key={l} href={href} role="menuitem" onClick={() => setPlus(false)} className={chemin.startsWith(href) ? 'actif' : ''}><Icone nom={ic} taille={18} couleur="currentColor" /><span>{t(l)}</span></Link>)}<ToggleLangue /></div></>}
         <div className="po-bas">
-          <button type="button" className="po-cleo" onClick={() => setCleo('')}><span className="po-cleo-av"><img src="/img/cleo.png" alt="" /><i /></span><div><strong>Cléo</strong><span>{t('Assistante · en ligne')}</span></div></button>
-          <div className="po-compte"><Link href="/proprietaire/profil" className="po-compte-lien" aria-label={t('{nom} · mon profil', { nom: moi.nom })}><span className="po-ini">{moi.initiales}</span><div><strong>{moi.nom}</strong>
-            <span>{moi.pour ? `${moi.acces === 'comptable' ? t('Comptabilité') : t('Copropriétaire')} · ${moi.pour}` : `${moi.portes > 1 ? t('{n} logements', { n: moi.portes }) : t('{n} logement', { n: moi.portes })} · ${moi.immeubles > 1 ? t('{n} immeubles', { n: moi.immeubles }) : t('{n} immeuble', { n: moi.immeubles })}`}</span></div></Link>
+          {/* Plus d'entrée Cléo dans le menu (Steven, 27 nov. 2026) : le bouton flottant et la recherche « Demandez à Cléo » suffisent. */}
+          <div className="po-compte"><Link href="/proprietaire/profil" className="po-compte-lien" aria-label={t('{nom} · mon profil', { nom: moi.nom })}><span className="po-ini">{moi.initiales}</span><div><strong>{moi.nom}</strong></div></Link>
 </div>
           <form action="/deconnexion?p=proprietaire" method="post"><button className="po-sortir" title={t('Me déconnecter')}><Icone nom="sortir" taille={18} couleur="#C8DAF0" /><span>{t('Me déconnecter')}</span></button></form>
-          <BoutonLangue className="po-sortir" style={{ justifyContent: 'center', width: '100%', padding: 0, fontSize: 13 }} />
+          {/* Bascule FR / EN retirée du bas du menu (Steven, 27 nov. 2026); elle reste dans « Plus » sur téléphone. */}
         </div>
       </aside>
       <div className="po-principal">
@@ -59,6 +59,7 @@ export function CoquilleProprietaire({ moi, comptes, children }: { moi: MoiPorta
         </header>
         <main className="po-contenu">{children}</main>
       </div>
+      <BoutonCleo ouvrir={() => { setPlus(false); setCleo(''); }} cache={cleo !== null || plus} />
       {cleo !== null && <Cleo question={cleo} fermer={() => setCleo(null)} />}
     </div>
   );

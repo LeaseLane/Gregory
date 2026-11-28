@@ -6,6 +6,7 @@ import { Courbe } from '@/composants/Graphes';
 import { ETAPES, heureCourte, dec } from '../onglets';
 import { adresse, argentL } from '@/lib/format';
 import { useT } from '@/composants/Langue';
+import { ProgressBar, Sparkline } from '@/composants/dataviz';
 
 /* e32 · Bons de travail : bons ouverts = micro-colonnes (12 mois), délai = micro-courbe, coût du mois = jauge contre le budget; l'urgence seule en rouge, toujours étiquetée.
    Une carte = un bon : fournisseur, moment, responsable. Assurance échue avec travaux planifiés : seul autre cas rouge. */
@@ -37,10 +38,10 @@ export function Bons({ donnees: D, filtres, maintenant, erreurLecture }: { donne
     <>
       <div className="kpis" style={{ marginBottom: 24 }}>
         <div className="kpi"><span>{t('Bons ouverts')}</span><b>{I.ouverts}</b><span>{t('{n} au tableau', { n: I.ouverts - I.en_soumissions })}{I.en_soumissions ? ` · ${t('{n} en soumissions', { n: I.en_soumissions })}` : ''}</span>
-          <span className="mini-barres">{I.serie.map((n, k) => <i key={k} className={k === I.serie.length - 1 ? 'accent' : ''} style={{ height: `${Math.max(6, (100 * n) / maxS)}%` }} />)}</span></div>
+          <Sparkline kind="bars" height={36} values={I.serie} /></div>
         <div className="kpi"><span>{t('Délai moyen')}</span><b>{I.delai != null ? t('{n} j', { n: dec(I.delai, locale) }) : '—'}</b><span>{t('de la demande au bon de travail')}</span><Courbe valeurs={I.delai_serie.filter((x): x is number => x != null).map(Number)} /></div>
         <div className="kpi"><span>{t('Coût du mois')}</span><b>{argent(I.cout_mois)}</b>
-          {I.budget ? <><span>{t('{p} % du budget de {m}', { p: Math.round((100 * I.cout_mois) / I.budget), m: argent(I.budget) })}</span><span className="jauge"><i style={{ width: `${Math.min(100, (100 * I.cout_mois) / I.budget)}%` }} /></span></> : <span>{t('Aucun budget mensuel fixé')}</span>}</div>
+          {I.budget ? <><span>{t('{p} % du budget de {m}', { p: Math.round((100 * I.cout_mois) / I.budget), m: argent(I.budget) })}</span><ProgressBar value={Math.min(100, (100 * I.cout_mois) / I.budget)} /></> : <span>{t('Aucun budget mensuel fixé')}</span>}</div>
         <div className="kpi"><span>{t('Urgence en cours')}</span><b style={u ? { color: '#9B2E28' } : undefined}>{I.urgences.length}</b><span>{u ? <Link href={`/maintenance/bons/${u.id}`}>{u.titre} · {adresse(u.logement)}</Link> : t('Aucune')}</span></div>
       </div>
       {filtres.immeuble && <p className="ligne-ic texte-13">{t('Immeuble :')} <b>{D.immeubles.find((b) => b.id === filtres.immeuble)?.adresse}</b><button className="lien" onClick={() => router.push('/maintenance/bons')}>{t('Tout afficher')}</button></p>}

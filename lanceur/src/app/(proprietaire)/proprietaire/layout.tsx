@@ -1,3 +1,4 @@
+import '../../theme-mix/proprietaire.css';   // thème « Mix » de Steven, après base.css
 import { moiPortail } from '@/composants/portail/Moi';
 import { CoquilleProprietaire } from '@/composants/portail/CoquilleProprietaire';
 import { tServeur } from '@/lib/i18n/serveur';

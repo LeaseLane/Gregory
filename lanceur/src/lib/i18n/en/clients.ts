@@ -806,5 +806,7 @@ const dico: Record<string, string> = {
   'modifiable': 'editable',
   'Préparation de la copie modifiable… (environ 1 minute)': 'Preparing the editable copy… (about 1 minute)',
   'Télécharger une copie modifiable (Word)': 'Download an editable copy (Word)',
+  // dv-diag (diagrammes d'étapes, 27 nov.)
+  "Le plus de dossiers": "Most files",
 };
 export default dico;

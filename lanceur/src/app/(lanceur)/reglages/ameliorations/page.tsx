@@ -11,7 +11,7 @@ export default async function Page() {
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_ameliorations');
   const d = data as { liste: Amelioration[]; peut_ecrire: boolean } | null;
   return (
-    <CadreEspace icone="chart" nom="Rapports et réglages" sous={SOUS_REG} actif={7} onglets={ONGLETS_REG}>
+    <CadreEspace icone="chart" nom="Réglages" sous={SOUS_REG} actif={7} onglets={ONGLETS_REG}>
       {d ? <Ameliorations liste={d.liste} peutEcrire={d.peut_ecrire} /> : <div className="bandeau erreur" role="alert">{error?.message ?? t('Les demandes n’ont pas pu être lues.')}</div>}
     </CadreEspace>
   );

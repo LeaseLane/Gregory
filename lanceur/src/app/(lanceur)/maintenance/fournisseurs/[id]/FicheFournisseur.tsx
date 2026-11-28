@@ -12,6 +12,7 @@ import { useT } from '@/composants/Langue';
 import { FournisseurTiroir, type FournEdit } from '../FournisseurTiroir';
 import { etatAssurance } from '../Fournisseurs';
 import { ACCEPTE, deposer, ouvrir, retirer } from '../../pieces';
+import { ProgressBar, Sparkline } from '@/composants/dataviz';
 
 /* e35 · Fiche fournisseur : qui il est, ce qu'il a fait pour nous en 12 mois, ses documents vérifiés, ce qu'en disent les locataires.
    Travaux par mois = micro-colonnes; délai de réponse = micro-courbe; note = jauge sur 5. Une assurance échue avec des travaux prévus est en rouge. */
@@ -60,10 +61,10 @@ export function FicheFournisseur({ donnees: D, erreurLecture }: { donnees: Donne
           </section>
           <div className="kpis kpis-serres">
             <div className="kpi"><span>{t('Travaux en 12 mois')}</span><b>{I.travaux_12}</b><span>{I.urgences_12 > 1 ? t('{n} urgences', { n: I.urgences_12 }) : t('{n} urgence', { n: I.urgences_12 })} · {t('{n} planifiés', { n: I.travaux_12 - I.urgences_12 })}</span>
-              <span className="mini-barres">{I.serie.map((n, k) => <i key={k} className={k === I.serie.length - 1 ? 'accent' : ''} style={{ height: `${Math.max(6, (100 * n) / maxS)}%` }} />)}</span></div>
+              <Sparkline kind="bars" height={36} values={I.serie} /></div>
             <div className="kpi"><span>{t('Première réponse')}</span><b>{I.reponse != null ? `${dec(I.reponse, locale)} h` : '—'}</b><span>{t('médiane · 90 jours')}</span><Courbe valeurs={I.reponse_serie.filter((x): x is number => x != null).map(Number)} largeur={120} /></div>
             <div className="kpi"><span>{t('Coût moyen')}</span><b>{I.cout_moyen != null ? argent(I.cout_moyen) : '—'}</b><span>{I.ecart_catalogue != null ? t(I.ecart_catalogue < 0 ? '{n} % sous le catalogue' : '{n} % au-dessus du catalogue', { n: Math.abs(I.ecart_catalogue) }) : t('sans référence du catalogue')}</span></div>
-            <div className="kpi"><span>{t('Note des locataires')}</span><b>{I.note != null ? dec(I.note, locale) : '—'}</b><span>{t('{a} avis · {b} ce trimestre', { a: I.avis, b: I.avis_trimestre })}</span>{I.note != null && <span className="jauge"><i style={{ width: `${(100 * I.note) / 5}%` }} /></span>}</div>
+            <div className="kpi"><span>{t('Note des locataires')}</span><b>{I.note != null ? dec(I.note, locale) : '—'}</b><span>{t('{a} avis · {b} ce trimestre', { a: I.avis, b: I.avis_trimestre })}</span>{I.note != null && <ProgressBar value={(100 * I.note) / 5} />}</div>
           </div>
           <section className="carte-l18" aria-label={t('Historique des travaux')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Historique des travaux')}</h2>
             <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{t('{n} travaux en 12 mois', { n: I.travaux_12 })} · {argent(D.total_12)}</p>

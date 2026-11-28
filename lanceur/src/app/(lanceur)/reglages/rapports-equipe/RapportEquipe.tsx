@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { BarresClassees } from '@/composants/Graphes';
 import { useT } from '@/composants/Langue';
 import type { T } from '@/lib/i18n/langue';
+import { Sparkline } from '@/composants/dataviz';
 
 /* e59 · Rapports d'équipe : actions inscrites au journal (micro-colonnes par jour), tâches faites et en retard, décisions, deals déplacés, connexions.
    Le rythme sert à répartir la charge, pas à surveiller : les lectures de dossiers ne comptent pas. */
@@ -37,7 +38,7 @@ export function RapportEquipe({ donnees: D, semaines, erreurLecture }: { donnees
       <section className="carte-l18" aria-label={t('Tâches par semaine')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{(Math.round(recent) > 1 ? t('L’équipe fait {n} tâches par semaine', { n: Math.round(recent) }) : t('L’équipe fait {n} tâche par semaine', { n: Math.round(recent) }))}{avant > 0 ? `, ${recent >= avant ? t('{pct} % de plus qu’en {mois}', { pct: Math.round((100 * (recent - avant)) / avant), mois: mois(0) }) : t('{pct} % de moins qu’en {mois}', { pct: Math.round((100 * (avant - recent)) / avant), mois: mois(0) })}` : ''}</h2>
         <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{top.length > 1 ? t('Tâches faites par semaine · 12 semaines · même échelle pour les {n} personnes', { n: top.length }) : t('Tâches faites par semaine · 12 semaines · même échelle pour la personne', { n: top.length })}</p>
         {top.length ? <div className="petits-multiples">{top.map((p) => <div key={p.user_id}><p className="ligne-entre texte-13"><b>{court(p.nom)}</b><b>{p.sem[11] ?? 0}</b></p>
-          <span className="mini-barres" style={{ height: 40 }}>{p.sem.map((n, i) => <i key={i} className={i === 11 ? 'accent' : ''} style={{ height: `${Math.max(4, (100 * n) / maxSem)}%` }} />)}</span>
+          <Sparkline kind="bars" height={40} values={p.sem} />
           <p className="ligne-entre gris texte-12"><span>{mois(0)}</span><b style={{ color: '#0C2147' }}>{mois(11)}</b></p></div>)}</div>
           : <p className="gris texte-13">{t('Aucune tâche faite ces 12 dernières semaines.')}</p>}
       </section>
@@ -67,7 +68,7 @@ export function RapportEquipe({ donnees: D, semaines, erreurLecture }: { donnees
         <thead><tr><th>{t('Personne')}</th><th>{t('Actions par jour')}</th><th className="droite">{t('Actions')}</th><th>{t('Charge (tâches ouvertes)')}</th><th className="droite">{t('Faites')}</th><th className="droite">{t('Décisions')}</th><th className="droite">{t('Connexions')}</th></tr></thead>
         <tbody>{D.personnes.map((p) => { const m = Math.max(1, ...(p.serie ?? [0]));
           return <tr key={p.user_id}><td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 11 }}>{p.initiales}</span><span><b>{p.nom}</b><span className="sous gris">{t(p.role)}</span></span></span></td>
-            <td><span className="mini-barres" style={{ height: 28, marginTop: 0 }}>{(p.serie ?? []).map((n, i) => <i key={i} className={i === (p.serie?.length ?? 0) - 1 ? 'accent' : ''} style={{ height: `${Math.max(4, (100 * n) / m)}%` }} />)}</span></td>
+            <td><Sparkline kind="bars" height={28} values={p.serie ?? []} /></td>
             <td className="droite fort">{p.actions}</td>
             <td><span className="ligne-ic"><span className="piste-h" style={{ width: 90 }}><i style={{ width: `${(100 * p.taches_ouvertes) / charge}%` }} /></span>{p.taches_ouvertes}{p.taches_en_retard ? <span className="rouge-txt texte-12">· {t('{n} en retard', { n: p.taches_en_retard })}</span> : null}</span></td>
             <td className="droite">{p.taches_faites}</td><td className="droite">{p.propositions_decidees + p.deals_deplaces}</td><td className="droite">{p.connexions}</td></tr>; })}

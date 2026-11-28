@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icone } from '@/composants/Icones';
-import { Cleo } from '@/composants/portail/CleoLocataire';
+import { Cleo } from '@/composants/Cleo';
 import { BoutonCleo } from '@/composants/BoutonCleo';
 import { Cloche } from './Cloche';
 import type { MoiPortail } from './Moi';
@@ -68,15 +68,12 @@ export function CoquilleLocataire({ moi, pastilles, children }: { moi: MoiPortai
             {vueBas === 'b' ? <>
               <Link href="/locataire/profil" className={`lo-bg-ligne lo-bg-compte ${actif('/locataire/profil') ? 'actif' : ''}`} aria-current={actif('/locataire/profil') ? 'page' : undefined} aria-label={t('{nom} · mon profil', { nom: moi.nom })}>
                 <span className="lo-bg-vis"><b className="lo-bg-ini">{moi.initiales}</b></span><span className="lo-bg-lib lo-bg-deux"><strong>{moi.nom}</strong><small>{t('Profil')}</small></span></Link>
-              <button type="button" className={`lo-bg-ligne lo-bg-cleo lo-cleo ${cleo !== null ? 'actif' : ''}`} onClick={() => setCleo('')}>
-                <span className="lo-bg-vis"><span className="po-cleo-av"><img src="/img/cleo.png" alt="" /><i /></span></span><span className="lo-bg-lib">Cléo<span className="lo-bg-etat"> · {t('en ligne')}</span></span></button>
               <div className="lo-bg-pied">
                 <ToggleLangue />
                 <form action="/deconnexion?p=locataire" method="post" className="lo-bg-sortir-f"><button className="lo-bg-sortir-ic" aria-label={t('Déconnexion')} title={t('Déconnexion')}><Icone nom="sortir" taille={18} couleur="currentColor" /></button></form>
               </div>
             </> : <>
-              <button type="button" className={`lo-bg-ligne lo-bg-cleo lo-cleo ${cleo !== null ? 'actif' : ''}`} onClick={() => setCleo('')}>
-                <span className="lo-bg-vis"><span className="po-cleo-av"><img src="/img/cleo.png" alt="" /><i /></span></span><span className="lo-bg-lib">Cléo</span></button>
+              {/* Plus d'entrée Cléo dans les menus (Steven, 27 nov. 2026) : le bouton flottant suffit. */}
               <Link href="/locataire/profil" className={`lo-bg-ligne lo-bg-profil ${actif('/locataire/profil') ? 'actif' : ''}`} aria-current={actif('/locataire/profil') ? 'page' : undefined} aria-label={t('{nom} · mon profil', { nom: moi.nom })}>
                 <span className="lo-bg-vis"><b className="lo-bg-ini">{moi.initiales}</b></span><span className="lo-bg-lib">{t('Profil')}</span></Link>
               {vueBas === 'a' ? <>
@@ -92,7 +89,6 @@ export function CoquilleLocataire({ moi, pastilles, children }: { moi: MoiPortai
         </nav>
         {plus && <><div className="lo-plus-fond" onClick={() => setPlus(false)} /><div className="lo-plus" role="menu" aria-label={t('Plus de rubriques')}>
           {secondaires.map(([ic, l, href]) => <Link key={l} href={href} role="menuitem" onClick={() => setPlus(false)} className={actif(href) ? 'actif' : ''}><Icone nom={ic} taille={20} couleur="currentColor" /><span>{t(l)}</span>{l === 'Messages' && !!pastilles?.messages && <b>{pastilles.messages}</b>}</Link>)}
-          <button type="button" role="menuitem" className="lo-plus-cleo" onClick={() => { setPlus(false); setCleo(''); }}><span className="po-cleo-av"><img src="/img/cleo.png" alt="" /><i /></span><span>Cléo</span></button>
           <Link href="/locataire/profil" role="menuitem" onClick={() => setPlus(false)} className={'lo-plus-profil' + (actif('/locataire/profil') ? ' actif' : '')}><b className="lo-bg-ini">{moi.initiales}</b><span>{t('Profil')}</span></Link>
           <ToggleLangue />
         </div></>}

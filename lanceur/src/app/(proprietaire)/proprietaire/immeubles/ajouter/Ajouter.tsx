@@ -69,7 +69,7 @@ export function Ajouter() {
         </div>
         <section className="carte-l18 e2 po-apercu" aria-label={t('Aperçu')}>
           <p className="surtitre gris">{t('Aperçu')}</p>
-          <div className="po-photo" style={{ height: 150, borderRadius: 12 }}>{photos[0] ? <img src={photos[0].apercu} alt="" /> : <Icone nom="building" taille={28} couleur="#8A99AB" />}</div>
+          <div className="po-photo" style={{ height: 150, borderRadius: 6 }}>{photos[0] ? <img src={photos[0].apercu} alt="" /> : <Icone nom="building" taille={28} couleur="#8A99AB" />}</div>
           <strong className="po-apercu-titre">{f.adresse || t('Adresse de l’immeuble')}</strong><span className="gris texte-13">{f.secteur} · Québec</span>
           <div className="po-carte-pied"><span className="texte-13">{t('{n} logements', { n: f.logements || '—' })} · {t('{n} étages', { n: f.etages || '—' })}</span><b>{Number((f.loyers ?? '').replace(/\s/g, '')) ? argent(Number(f.loyers.replace(/\s/g, ''))) : '— $'} {t('/ mois')}</b></div>
           {erreur && <div className="bandeau erreur" role="alert" style={{ margin: '12px 0 0' }}>{erreur}</div>}

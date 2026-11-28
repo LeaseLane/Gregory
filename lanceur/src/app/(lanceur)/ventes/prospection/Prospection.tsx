@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { useT } from '@/composants/Langue';
+import { ProgressBar } from '@/composants/dataviz';
 
 type Suggestion = { id: string; nom: string; entreprise: string | null; ville: string | null; portes: number | null; immeubles: number | null; courriel: string | null; telephone: string | null;
   source_url: string; extrait: string | null; raison: string | null; pertinence: number | null; created_at: string };
@@ -49,7 +50,7 @@ export function Prospection({ donnees, erreurLecture }: { donnees: DonneesProspe
           <div className="kpis">
             <div className="kpi"><span>{t('Propriétaires trouvés')}</span><b>{d.trouves_mois}</b><span>{t('12 semaines · ce mois')}</span><Barres v={d.trouves_semaines} /></div>
             <div className="kpi"><span>{t('À réviser')}</span><b>{d.a_reviser}</b><span>{t('avant tout contact')}</span></div>
-            <div className="kpi"><span>{t('En séquence')}</span><b>{d.en_sequence}</b><span>{t('sur {n} trouvés', { n: d.trouves_total })}</span><span className="jauge"><i style={{ width: `${d.trouves_total ? (100 * d.en_sequence) / d.trouves_total : 0}%` }} /></span></div>
+            <div className="kpi"><span>{t('En séquence')}</span><b>{d.en_sequence}</b><span>{t('sur {n} trouvés', { n: d.trouves_total })}</span><ProgressBar value={d.trouves_total ? (100 * d.en_sequence) / d.trouves_total : 0} /></div>
             <div className="kpi"><span>{t('Rendez-vous')}</span><b>{d.rendez_vous}</b><span>{t('pris ce mois')}</span><Barres v={d.rendez_vous_semaines} /></div>
           </div>
           <section className="studio-liste e2-carte" aria-label={t('À réviser avant contact')}>

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Courbe } from '@/composants/Graphes';
 import { useT } from '@/composants/Langue';
 import { argentL } from '@/lib/format';
+import { ProgressBar } from '@/composants/dataviz';
 
 /* l20 · Tableau de bord : les chiffres de l'entreprise, puis l'entonnoir du pipeline (conversion d'une étape à la suivante, temps moyen par étape contre la cible). */
 export type DonneesTdb = { portes: number; occupees: number; loyers: { attendu: number; paye: number }; revenu_gestion: number; revenu_serie: number[]; bons_ouverts: number; urgences: number;
@@ -24,7 +25,7 @@ export function TableauDeBord({ donnees: D, pipeline: P, filtres, erreurLecture 
   return (
     <>
       <div className="kpis" style={{ marginBottom: 24 }}>
-        <div className="kpi"><span>{t('Portes gérées')}</span><b>{D.portes}</b><span>{t('{n} % occupées', { n: occ })}</span><span className="jauge"><i style={{ width: `${occ}%` }} /></span></div>
+        <div className="kpi"><span>{t('Portes gérées')}</span><b>{D.portes}</b><span>{t('{n} % occupées', { n: occ })}</span><ProgressBar value={occ} /></div>
         <div className="kpi"><span>{t('Loyers payés ce mois-ci')}</span><b>{pc(pct)}</b><span>{t('{paye} sur {attendu} · payés aux propriétaires', { paye: argent(D.loyers.paye), attendu: argent(D.loyers.attendu) })}</span></div>
         <div className="kpi"><span>{t('Revenu de gestion · mois dernier')}</span><b>{argent(D.revenu_gestion)}</b><span>{t('honoraires facturés le 5')}</span><Courbe valeurs={D.revenu_serie.map(Number)} /></div>
         <div className="kpi"><span>{t('Mandats')}</span><b>{D.mandats.gagnes}</b><span>{t('gagnés en 90 jours · {n} en cours', { n: D.mandats.actifs })}</span></div>

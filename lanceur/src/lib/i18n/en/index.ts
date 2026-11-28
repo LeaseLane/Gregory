@@ -12,6 +12,7 @@ import d_studio from './studio';
 import d_proprietaire from './proprietaire';
 import d_locataire from './locataire';
 import d_motifs from './motifs';
+import d_mega_menu from './mega-menu';
 import d_arbitrage from './arbitrage';
 import d_dataviz from './dataviz';
 import d_cleo_fenetre from './cleo-fenetre';
@@ -29,8 +30,9 @@ export const DICO_EN: Record<string, string> = {
   ...d_studio,
   ...d_proprietaire,
   ...d_locataire,
+  ...d_motifs,
   ...d_dataviz,
   ...d_cleo_fenetre,
-  ...d_motifs,
+  ...d_mega_menu,
   ...d_arbitrage,   // en dernier : tranche les mots traduits différemment selon la section
 };

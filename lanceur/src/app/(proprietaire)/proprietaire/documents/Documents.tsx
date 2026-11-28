@@ -6,6 +6,7 @@ import { Icone } from '@/composants/Icones';
 import { ouvrirFichier, televerser } from '@/composants/portail/fichiers';
 import { jourQc } from '@/composants/portail/dates';
 import { useT } from '@/composants/Langue';
+import { ProgressBar } from '@/composants/dataviz';
 
 /* Propriétaire · 12 Documents : dossiers (immeubles, relevés et finances, mandat), récents, tous les fichiers avec leur partage,
    téléversement (immeuble et partage choisis), espace utilisé. Colonnes sans chevauchement (D12). Aucune suppression (D14). */
@@ -41,7 +42,7 @@ export function Documents({ donnees, erreur, lectureSeule = false }: { donnees: 
         <section className="carte-l18 po-dossiers" aria-label={t('Dossiers')}>
           <h2 className="titre-carte">{t('Dossiers')}</h2>
           <nav className="po-dem-filtres">{dossiers.map(([k, l, ic]) => <button key={k} className={dossier === k ? 'actif' : ''} onClick={() => setDossier(k)}><Icone nom={ic} taille={16} couleur="#0C2147" /><span>{l}</span><b>{compte(k)}</b></button>)}</nav>
-          <div className="po-stockage"><p><strong>{t('Espace utilisé')}</strong><span className="gris">{t('{utilise} sur 50 Go', { utilise: Go(donnees.espace, locale.startsWith('en')) })}</span></p><span className="jauge large"><i style={{ width: `${Math.max(1, (100 * donnees.espace) / 50e9)}%` }} /></span>
+          <div className="po-stockage"><p><strong>{t('Espace utilisé')}</strong><span className="gris">{t('{utilise} sur 50 Go', { utilise: Go(donnees.espace, locale.startsWith('en')) })}</span></p><ProgressBar size="md" value={Math.max(1, (100 * donnees.espace) / 50e9)} />
             <span className="gris texte-13">{t('Chiffré au repos · accès journalisés (Loi 25)')}</span></div>
         </section>
         <div className="colonne-l18">

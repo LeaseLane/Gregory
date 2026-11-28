@@ -1,0 +1,761 @@
+/* ==========================================================================================================================
+   « Mix Vercel » — PORTAIL PROPRIÉTAIRE (CoquilleProprietaire + écrans /proprietaire/**). S'ajoute APRÈS globals.css et base.css (voir SPEC.md,
+   révision 50 % Vercel / 50 % Lease Lane du 2026-11-27).
+   Vercel : structure et métier — Geist / Geist Mono, neutres, canevas #F4F7FB + cartes blanches à anneau, tableaux, onglets, champs, segments, densité.
+   Lease Lane : l'identité — menu MARINE plat (structure Vercel : icône + libellé sur une ligne, 240 px, panneau flottant rayon 12), barre du bas
+   marine flottante au téléphone, titres en Poppins 600 marine (règle partagée de base.css), actions principales, liens, progression, états, Cléo.
+   Pas de bandeau de couleur sur les pages du propriétaire : son en-tête (recherche « Demandez à Cléo » + cloche) reste sur le canevas.
+
+   Portée : tout est sous html[data-mix="vercel"]; sans l'attribut, le portail garde exactement son design actuel. CSS seulement (aucune classe ajoutée).
+   Les classes partagées que base.css ne couvre pas encore (.studio-liste, .e70-raison, .fenetre-lib, .planifier…) sont stylées ici SOUS .po
+   (contexte propriétaire seulement) : candidates à remonter dans base.css.
+   Jetons : ceux de base.css (--mix-*). Les rares !important battent un style en ligne du composant (commentés un par un).
+   ========================================================================================================================== */
+
+html[data-mix="vercel"] {
+  /* Menu : 20 % plus étroit (240 → 192 px, bureau) et texte 30 % plus épais (400 → 520, actif et barre du bas 500 → 650), comme le locataire
+     (Steven, 27 nov., confirmé pour le propriétaire). Pour revenir à aujourd'hui : 240px / 400 / 500. */
+  --po-rail-l: 192px;
+  --po-menu-poids: 520;
+  --po-menu-poids-actif: 650;
+  --po-bas: 64px;                /* barre du bas flottante (téléphone), hors zone sûre */
+  --po-indic: 2px;               /* indicateur de l'élément actif */
+}
+
+/* ---- 1. Coquille : canevas, menu marine plat, en-tête sur le canevas ---- */
+html[data-mix="vercel"] .po { background: var(--mix-bg); }
+html[data-mix="vercel"] .po-rail { border-radius: var(--mix-radius-popover); background: var(--mix-marine); color: #fff; }  /* aplat : plus de dégradé */
+html[data-mix="vercel"] .po-espace { font-family: var(--mix-font-mono); font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: var(--mix-track-mono); color: var(--mix-rail-indicator); }
+html[data-mix="vercel"] :is(.po-menu a, .po-menu span.inactif) { border-radius: var(--mix-radius-control); color: var(--mix-rail-text); font-size: 14px; font-weight: var(--po-menu-poids); }
+@media (hover: hover) { html[data-mix="vercel"] .po-menu a:hover { background: var(--mix-rail-hover); color: #fff; } }
+html[data-mix="vercel"] .po-menu a.actif { background: var(--mix-rail-active); color: #fff; font-weight: var(--po-menu-poids-actif); box-shadow: none; }
+html[data-mix="vercel"] .po-menu b { min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--mix-radius-pill); background: var(--mix-badge); color: #fff; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .po-menu b.rouge { background: var(--mix-error); }
+html[data-mix="vercel"] .po-bas { border-top-color: var(--mix-rail-active); }
+html[data-mix="vercel"] :is(.po-cleo, .po-compte) { background: none; border-radius: var(--mix-radius-control); color: #fff; }
+@media (hover: hover) { html[data-mix="vercel"] .po-cleo:hover, html[data-mix="vercel"] .po-compte:hover { background: var(--mix-rail-hover); } }
+html[data-mix="vercel"] :is(.po-cleo strong, .po-compte strong) { font-size: 14px; font-weight: 500; color: #fff; }
+html[data-mix="vercel"] :is(.po-cleo span:not(.po-cleo-av), .po-compte div span) { color: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .po-cleo-av i { background: var(--mix-success-light); border-color: var(--mix-marine); }
+html[data-mix="vercel"] .po-ini { width: 32px; height: 32px; background: #fff; color: var(--mix-marine); font-size: 12px; font-weight: 600; }
+html[data-mix="vercel"] .po-sortir { border-radius: var(--mix-radius-control); color: var(--mix-on-marine-2); }
+@media (hover: hover) { html[data-mix="vercel"] .po-sortir:hover { background: var(--mix-rail-hover); color: #fff; } }
+html[data-mix="vercel"] .po-sortir svg { stroke: currentColor; }
+html[data-mix="vercel"] .po-rail :focus-visible { outline-color: var(--mix-rail-indicator); }  /* le bleu de focus (#3767A2) ne se voit pas sur le marine */
+html[data-mix="vercel"] .po-rail .po-plus :focus-visible { outline-color: var(--mix-focus); }
+
+/* En-tête : recherche « Demandez à Cléo » (champ à anneau, pleine largeur comme aujourd'hui) et cloche, sur le canevas */
+html[data-mix="vercel"] .po-haut { align-items: center; gap: 8px; }
+html[data-mix="vercel"] .po-cherche { border: 0; border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring-input); background: var(--mix-surface); color: var(--mix-text-3); font-size: 14px; gap: 8px; min-width: 0; }
+@media (hover: hover) { html[data-mix="vercel"] .po-cherche:hover { box-shadow: var(--mix-ring-input-hover); } }
+html[data-mix="vercel"] .po-cherche span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-mix="vercel"] .po-cherche .avatar-cleo { width: 24px; height: 24px; flex: none; }
+html[data-mix="vercel"] .po-haut .haut-ibtn svg { stroke: var(--mix-text-2); }
+html[data-mix="vercel"] .po-haut .pastille-bleue { right: 7px; top: 7px; background: var(--mix-marine); box-shadow: 0 0 0 2px var(--mix-surface); }
+
+/* ---- 2. En-tête de page : sur le canevas, séparé par l'espace ---- */
+html[data-mix="vercel"] .po-sous { color: var(--mix-text-3); font-size: 14px; line-height: 20px; }
+html[data-mix="vercel"] .po-retour { margin-bottom: 8px; color: var(--mix-text-3); font-size: 13px; font-weight: 500; }
+@media (hover: hover) { html[data-mix="vercel"] .po-retour:hover { color: var(--mix-text); text-decoration: none; } }
+html[data-mix="vercel"] .po-retour svg { stroke: currentColor; }
+html[data-mix="vercel"] .po-section { margin-top: 16px; }
+html[data-mix="vercel"] .po-entete { align-items: flex-end; }
+
+/* ---- 3. Composants partagés, contexte propriétaire (non couverts par base.css) ---- */
+/* Sections à tableau : même carte que .carte-l18 */
+html[data-mix="vercel"] .po .studio-liste { background: var(--mix-surface); border-color: transparent; border-radius: var(--mix-radius-card); box-shadow: var(--mix-shadow-card); }
+html[data-mix="vercel"] .po .carte-tete { padding: 20px 24px 12px; }
+/* Tableaux d'une section : bord à bord, première et dernière colonnes alignées sur le rembourrage de la carte (24 px), indicateur de sélection au bord */
+html[data-mix="vercel"] .po :is(.studio-liste, .po-docs) > .tableau { width: 100%; margin: 0 0 8px; }
+html[data-mix="vercel"] .po :is(.studio-liste, .po-docs) > .tableau > * > tr > :first-child { padding-left: 24px; }
+html[data-mix="vercel"] .po :is(.studio-liste, .po-docs) > .tableau > * > tr > :last-child { padding-right: 24px; }
+html[data-mix="vercel"] .po .tableau tr.sel td:first-child::before { left: 0; top: 0; bottom: 0; border-radius: 0; }
+html[data-mix="vercel"] .po .tableau td.rouge { color: var(--mix-error); }
+html[data-mix="vercel"] .po .tableau .fort { font-weight: 500; }
+html[data-mix="vercel"] .po .tableau .droite { font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .po .cellule-doc > .ligne-ic { display: block; }
+html[data-mix="vercel"] .po .cellule-doc > .ligne-ic svg { display: inline-block; margin-right: 8px; vertical-align: -3px; }
+html[data-mix="vercel"] .po .cellule-doc .gris { font-size: 13px; color: var(--mix-text-3); }
+html[data-mix="vercel"] .po .tableau .sous { color: var(--mix-text-3); }
+
+/* Champs (.e70-raison : champ, liste et zone de texte du portail) : anneau 1 px, rayon 6, 36 px (44 au téléphone), focus = contour de base.css */
+html[data-mix="vercel"] .po .e70-raison { height: var(--mix-control-h); padding: 0 12px; border: 1px solid transparent; border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring-input); background-color: var(--mix-surface); color: var(--mix-text); font-size: 14px; }
+@media (hover: hover) { html[data-mix="vercel"] .po .e70-raison:hover { box-shadow: var(--mix-ring-input-hover); } }
+html[data-mix="vercel"] .po .e70-raison:focus { border: 1px solid transparent; padding: 0 12px; }
+html[data-mix="vercel"] .po input[type="date"].e70-raison:focus-within { outline: 2px solid var(--mix-focus); outline-offset: 2px; }  /* champ date : le focus passe dans ses segments puis sur l'icône du calendrier (seul :focus-within suit); globals.css lui retirait tout contour */
+html[data-mix="vercel"] .po select.e70-raison { padding-right: 36px; background: var(--mix-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center; }
+html[data-mix="vercel"] .po textarea.e70-raison { height: auto; min-height: 88px; padding: 8px 12px; line-height: 20px; }
+html[data-mix="vercel"] .po :is(.po-filtres, .po-docs-outils, .po-depot, .po-msg-saisie) .e70-raison { margin: 0; }  /* barres d'outils : la marge de formulaire (24 px) décalait la liste */
+html[data-mix="vercel"] .po .e70-raison:disabled { background-color: var(--mix-bg); color: var(--mix-text-3); box-shadow: var(--mix-ring); }
+html[data-mix="vercel"] .po :is(.fenetre-lib, .po-deux dt.fenetre-lib) { font-size: 13px; font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .po .fenetre-lib span { color: var(--mix-text-3); }
+html[data-mix="vercel"] .po .case { font-weight: 400; color: var(--mix-text-2); }
+html[data-mix="vercel"] .po .durees label { color: var(--mix-text); }
+html[data-mix="vercel"] .po .durees label.choisi { font-weight: 500; }
+html[data-mix="vercel"] .po .fenetre-tete h2 { font-size: 20px; line-height: 28px; }
+html[data-mix="vercel"] .po .fenetre-tete h2 + p { color: var(--mix-text-3); }
+html[data-mix="vercel"] .po .fenetre .fermer svg { stroke: var(--mix-text-2); }
+html[data-mix="vercel"] .po .cleo-apercu { color: var(--mix-text-2); }  /* base.css : l'aperçu restait en marine */
+html[data-mix="vercel"] .po .cleo-sources b { color: var(--mix-text-3); font-weight: 500; }  /* base.css : « Sources » restait #58697F */
+
+/* Segments (Grille/Liste, 6/12 mois, Reçus/Envoyés/Archives, langue) : piste de 36 px comme les champs et les boutons */
+html[data-mix="vercel"] .po :is(.bascule, .lo-segments) { gap: 2px; padding: 2px; }
+html[data-mix="vercel"] .po :is(.bascule button, .bascule a, .lo-segments > *) { height: 32px; }
+
+/* Recherche des listes (Immeubles, Locataires, Documents) */
+html[data-mix="vercel"] .po-recherche { height: var(--mix-control-h); width: 320px; gap: 8px; padding: 0 10px; border: 0; border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring-input); background: var(--mix-surface); }
+@media (hover: hover) { html[data-mix="vercel"] .po-recherche:hover { box-shadow: var(--mix-ring-input-hover); } }
+html[data-mix="vercel"] .po-recherche:has(input:focus-visible) { outline: 2px solid var(--mix-focus); outline-offset: 2px; }
+html[data-mix="vercel"] .po-recherche input { outline: none; background: none; color: var(--mix-text); }
+html[data-mix="vercel"] .po-select { width: 220px; }
+html[data-mix="vercel"] .po-filtres { gap: 12px; }
+
+/* Listes simples, lignes à icône, personnes, notes, boutons-icônes */
+html[data-mix="vercel"] .po .planifier li { border-top-color: var(--mix-border); }
+html[data-mix="vercel"] .po .planifier strong { font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .po .planifier span:not(.puce) { color: var(--mix-text-3); }
+html[data-mix="vercel"] .po .personne-ligne strong { font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .po .ligne-ic strong { color: var(--mix-text); }
+html[data-mix="vercel"] .po .point { background: var(--mix-placeholder); }
+html[data-mix="vercel"] .po-note { padding: 12px 14px; border-radius: var(--mix-radius-control); background: var(--mix-bg); box-shadow: var(--mix-ring); font-size: 13px; line-height: 18px; color: var(--mix-text-2); }
+html[data-mix="vercel"] .po-actions button { border-radius: var(--mix-radius-control); }
+@media (hover: hover) { html[data-mix="vercel"] .po-actions button:hover { background: var(--mix-surface-2); } }
+html[data-mix="vercel"] .po .bouton.pleine { height: auto; min-height: var(--mix-control-h); padding-top: 8px; padding-bottom: 8px; line-height: 20px; text-align: center; text-wrap: balance; }
+html[data-mix="vercel"] .po .titre-carte { margin-bottom: 16px; }
+html[data-mix="vercel"] .po .med-titre { margin: 8px 0 4px; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: var(--mix-track-section); color: var(--mix-title-color); }
+html[data-mix="vercel"] .po .okdot { background: var(--mix-success); }
+html[data-mix="vercel"] .po .rouge.fort { color: var(--mix-error); font-weight: 500; }
+
+/* Onglets du propriétaire : des <button> (base.css stylise les <a> du Profil) — soulignement de 2 px marine, posé sur le filet */
+html[data-mix="vercel"] .po-onglets { gap: 24px; }
+html[data-mix="vercel"] .po-onglets > button { height: 48px; margin-bottom: -1px; padding: 0 2px; color: var(--mix-text-3); font-weight: 400; border-bottom-width: 2px; }
+@media (hover: hover) { html[data-mix="vercel"] .po-onglets > button:hover { color: var(--mix-text); } }
+html[data-mix="vercel"] .po-onglets > button.actif { color: var(--mix-text); font-weight: 500; border-bottom-color: var(--mix-marine); }
+html[data-mix="vercel"] .po-onglets > a { height: 48px; margin-bottom: -1px; padding: 0 2px; }
+html[data-mix="vercel"] .tete-onglets { align-items: center; }
+html[data-mix="vercel"] .tete-onglets .a-faire-actions { gap: 8px; }
+html[data-mix="vercel"] .po-onglets .lo-sortir { display: inline-flex; flex-direction: row; align-items: center; gap: 6px; width: auto; padding: 0 4px; color: var(--mix-link); font-size: 13px; font-weight: 500; white-space: nowrap; }
+html[data-mix="vercel"] .po-onglets .lo-sortir span { font-size: 13px; }
+@media (hover: hover) { html[data-mix="vercel"] .po-onglets .lo-sortir:hover { background: none; color: var(--mix-link); } }
+
+/* KPI : libellé 14 / 500 #3E4A59, chiffre 32 (base.css), état rouge conservé (base.css écrase .kpi-po b.rouge de globals.css) */
+html[data-mix="vercel"] .kpi-po { gap: 6px; align-content: start; }  /* la carte la plus haute ne décale plus le chiffre des autres */
+html[data-mix="vercel"] .kpi-po > span { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--mix-text-2); }
+html[data-mix="vercel"] .kpi-po b.rouge { color: var(--mix-error); }
+html[data-mix="vercel"] .kpi-po small { font-size: 13px; line-height: 18px; }
+/* Carte vedette marine (une par page, SPEC 50/50 règle 5) : « Loyers payés chez vous » du tableau de bord, le chiffre que le propriétaire vient voir */
+html[data-mix="vercel"] .po-section + .po-kpis > .kpi-po:first-child { background: var(--mix-marine); box-shadow: none; }
+html[data-mix="vercel"] .po-section + .po-kpis > .kpi-po:first-child > span { color: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .po-section + .po-kpis > .kpi-po:first-child b { color: #fff; }
+html[data-mix="vercel"] .po-section + .po-kpis > .kpi-po:first-child small { color: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .po-section + .po-kpis > .kpi-po:first-child svg { stroke: var(--mix-rail-indicator); }
+
+/* ---- 4. Tableau de bord ---- */
+html[data-mix="vercel"] .a-faire li { gap: 16px; padding: 16px 0; }
+html[data-mix="vercel"] .a-faire li:first-child { padding-top: 0; }
+html[data-mix="vercel"] .a-faire-ic { width: 40px; height: 40px; }
+html[data-mix="vercel"] .a-faire strong { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .a-faire .gris { font-size: 13px; line-height: 18px; }
+html[data-mix="vercel"] .a-faire-actions { gap: 8px; }
+html[data-mix="vercel"] .a-faire li.vide { color: var(--mix-text-2); }
+/* Approuver / Refuser en carrés d'état (vert / rouge, icône blanche) : rayon de contrôle, 36 px (44 au téléphone), sans ombre */
+html[data-mix="vercel"] .bouton-carre { width: var(--mix-control-h); height: var(--mix-control-h); border-radius: var(--mix-radius-control); box-shadow: none; }
+html[data-mix="vercel"] .bouton-carre.approuver { background: var(--mix-success); }
+html[data-mix="vercel"] .bouton-carre.refuser { background: var(--mix-error); }
+html[data-mix="vercel"] .po-liste dt { color: var(--mix-text); }
+html[data-mix="vercel"] .po-liste dt span { color: var(--mix-text-3); }
+html[data-mix="vercel"] .po-liste dd { font-weight: 600; color: var(--mix-text); }
+html[data-mix="vercel"] .po-liste dd.rouge { color: var(--mix-error); }
+html[data-mix="vercel"] .po-grand { margin: 0; }
+/* Graphique des loyers : barres marine (mois en cours plein, mois passés à 16 %), grille #E1E6EC, axe en Geist Mono */
+html[data-mix="vercel"] .col-chart.po-barres { border-bottom-color: var(--mix-border); gap: 16px; }
+html[data-mix="vercel"] .col-chart.po-barres i { max-width: 40px; border-radius: 2px 2px 0 0; background: rgba(12, 33, 71, .16); }
+html[data-mix="vercel"] .col-chart.po-barres .em i { background: var(--mix-marine); }
+html[data-mix="vercel"] .col-chart.po-barres b { font-size: 12px; font-weight: 500; color: var(--mix-text-3); font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .col-chart.po-barres .em b { color: var(--mix-text); }
+html[data-mix="vercel"] .col-chart.po-barres span { font-size: 12px; color: var(--mix-text-3); }
+html[data-mix="vercel"] .col-chart.po-barres .em span { color: var(--mix-text); font-weight: 500; }
+html[data-mix="vercel"] .po-totaux dt { font-size: 13px; color: var(--mix-text-3); }
+html[data-mix="vercel"] .secteurs li { font-size: 14px; color: var(--mix-text); }
+html[data-mix="vercel"] .secteurs b { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ---- 5. Immeubles (grille et liste), fiche d'immeuble ---- */
+html[data-mix="vercel"] .po-cartes { gap: 16px; }
+html[data-mix="vercel"] .po-carte-imm { border-color: transparent; border-radius: var(--mix-radius-card); box-shadow: var(--mix-shadow-card); }
+@media (hover: hover) { html[data-mix="vercel"] :is(.po-carte-imm, .po-carte-loc):hover { box-shadow: 0 0 0 1px var(--mix-border-strong), 0 2px 2px rgba(0, 0, 0, .04), 0 8px 8px -8px rgba(0, 0, 0, .04); } }
+html[data-mix="vercel"] .po-carte-imm.attente { opacity: 1; }  /* l'étiquette « En validation » suffit; l'opacité faisait tomber le texte sous 4,5:1 */
+@media (hover: hover) { html[data-mix="vercel"] .po-carte-imm.attente:hover { box-shadow: var(--mix-shadow-card); } }
+html[data-mix="vercel"] .po-photo { background: var(--mix-surface-2); box-shadow: inset 0 -1px 0 var(--mix-border); }
+html[data-mix="vercel"] .po-badge { top: 12px; left: 12px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .06); }
+html[data-mix="vercel"] .po-carte-corps { padding: 16px 20px 20px; }
+html[data-mix="vercel"] .po-carte-corps strong { font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: var(--mix-track-card); color: var(--mix-text); }
+html[data-mix="vercel"] .po-carte-pied { border-top-color: var(--mix-border); }
+html[data-mix="vercel"] .po-carte-pied b { font-size: 14px; font-weight: 600; color: var(--mix-text); font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .po-carte-pied dt { font-size: 13px; color: var(--mix-text-3); }
+html[data-mix="vercel"] .po-carte-pied dd { font-weight: 600; color: var(--mix-text); font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .po-arriere { color: var(--mix-error); font-weight: 500; }
+html[data-mix="vercel"] .po-fiche-imm .po-badge { top: 16px; left: 16px; }
+html[data-mix="vercel"] .po-fiche-corps strong { font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: var(--mix-track-section); color: var(--mix-text); }
+html[data-mix="vercel"] .po-fiche-corps b { font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: var(--mix-track-section); font-variant-numeric: tabular-nums; color: var(--mix-text); }
+html[data-mix="vercel"] .po-puces span { padding: 2px 10px; border-radius: var(--mix-radius-control); background: var(--mix-surface-2); font-size: 13px; line-height: 20px; color: var(--mix-text-2); }
+html[data-mix="vercel"] .po-filtres + .studio-liste > .tableau th:first-child { width: 26%; }  /* vue Liste : l'adresse tient sur une ligne */
+html[data-mix="vercel"] .po-liste-simple { padding: 12px 24px 20px; }
+
+/* ---- 6. Locataires, fiche du locataire ---- */
+html[data-mix="vercel"] .po-carte-loc { gap: 14px; }
+html[data-mix="vercel"] .po-fiche-loc .personne-ligne strong { letter-spacing: var(--mix-track-card); }
+html[data-mix="vercel"] .po-fiche-loc .ligne-ic { color: var(--mix-text-2); }
+html[data-mix="vercel"] .po-depot.ligne { margin: 20px 24px 0; padding: 14px 16px; background: var(--mix-bg); border-color: var(--mix-border-strong); }
+html[data-mix="vercel"] .po-depot.ligne select { width: 200px; }
+
+/* ---- 7. Demandes et travaux, autorisation de dépense ---- */
+html[data-mix="vercel"] .po-seuil { font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .po-seuil b { font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Filtres (Demandes) et dossiers (Documents) : comme le menu — gris, survol #EEF1F5, actif #EEF1F5 + #0D233B 500 + 2 px marine */
+html[data-mix="vercel"] .po-dem-filtres :is(a, button) { position: relative; height: 36px; padding: 0 10px; gap: 10px; border-radius: var(--mix-radius-control); color: var(--mix-text-2); font-size: 14px; font-weight: 400; box-shadow: none; }
+@media (hover: hover) { html[data-mix="vercel"] .po-dem-filtres :is(a, button):hover { background: var(--mix-surface-2); color: var(--mix-text); } }
+html[data-mix="vercel"] .po-dem-filtres :is(a, button).actif { background: var(--mix-surface-2); color: var(--mix-text); font-weight: 500; box-shadow: none; }
+html[data-mix="vercel"] :is(.po-menu a.actif, .po-dem-filtres a.actif, .po-dem-filtres button.actif)::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: var(--po-indic); border-radius: 0 1px 1px 0; background: var(--mix-marine); }
+html[data-mix="vercel"] .po-menu a.actif::before { background: var(--mix-rail-indicator); }
+html[data-mix="vercel"] .po-dem-filtres b { font-size: 12px; font-weight: 500; color: var(--mix-text-3); font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .po-dem-filtres b.rouge { color: var(--mix-error); }
+html[data-mix="vercel"] .po-dem-items a { padding: 12px; gap: 4px; }
+@media (hover: hover) { html[data-mix="vercel"] .po-dem-items a:hover { background: var(--mix-bg); } }
+@media (hover: hover) { html[data-mix="vercel"] .po-dem-items a.sel:hover { background: var(--mix-tint); } }
+html[data-mix="vercel"] .po-dem-items a.sel::before { left: 0; top: 12px; bottom: 12px; }
+html[data-mix="vercel"] .po-dem-items strong { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .po-dem-items .puce { margin-top: 4px; }
+html[data-mix="vercel"] .po-dem-tete > span + span { font-family: var(--mix-font-ui); font-feature-settings: "tnum" 1; text-transform: none; letter-spacing: 0; }  /* la date : Geist en minuscules (« 24 nov. »), jamais en monospace */
+html[data-mix="vercel"] .po-dem-detail { gap: 16px; }
+html[data-mix="vercel"] .po-dem-desc p { font-size: 14px; line-height: 20px; }
+html[data-mix="vercel"] .po-vignettes img, html[data-mix="vercel"] .po-vignettes figure { border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .po-vignettes figcaption { border-radius: 2px; background: var(--mix-text); }
+html[data-mix="vercel"] .po-vignettes button { background: rgba(0, 0, 0, .64); }
+html[data-mix="vercel"] .po-estim { gap: 8px; padding: 20px; }
+html[data-mix="vercel"] .po-estim.faite { background: var(--mix-bg); box-shadow: var(--mix-ring); }
+html[data-mix="vercel"] .po-estim .texte-13 { color: var(--mix-text-2); }
+html[data-mix="vercel"] .po-soum li { border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring); font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .po-soum li.choisie { box-shadow: var(--mix-ring), inset var(--po-indic) 0 0 var(--mix-marine); font-weight: 500; }
+html[data-mix="vercel"] .po-suivi li::before { width: 1px; left: 7.5px; background: var(--mix-border-strong); }
+html[data-mix="vercel"] .po-suivi li.fait::before { background: var(--mix-marine); }
+html[data-mix="vercel"] .po-suivi i { border-width: 1.5px; border-color: var(--mix-border-strong); background: var(--mix-surface); }
+html[data-mix="vercel"] .po-suivi li.fait i { background: var(--mix-marine); border-color: var(--mix-marine); }
+html[data-mix="vercel"] .po-suivi li.attente i { border: 2px solid var(--mix-error); }
+html[data-mix="vercel"] .po-suivi strong { font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .po-suivi li:not(.fait):not(.attente) strong { color: var(--mix-text-3); }
+html[data-mix="vercel"] .po-suivi .texte-13 { color: var(--mix-text-2); font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .po-suivi .rouge.texte-13 { color: var(--mix-error); font-weight: 500; }
+html[data-mix="vercel"] .po-aide { border-left-color: var(--mix-border); }
+html[data-mix="vercel"] .po-dep-cartes strong { font-weight: 500; }
+html[data-mix="vercel"] .po-dep-cartes .po-grand { font-weight: 600; }
+
+/* ---- 8. Messages ---- */
+html[data-mix="vercel"] .po-msg-liste { gap: 12px; }
+html[data-mix="vercel"] .po-msg-items a { padding: 12px; }
+@media (hover: hover) { html[data-mix="vercel"] .po-msg-items a:hover { background: var(--mix-bg); } }
+@media (hover: hover) { html[data-mix="vercel"] .po-msg-items a.sel:hover { background: var(--mix-tint); } }
+html[data-mix="vercel"] .po-msg-items .po-dem-tete { font-family: inherit; font-size: 14px; line-height: 20px; text-transform: none; letter-spacing: 0; color: var(--mix-text); }  /* nom de l'interlocuteur : pas d'étiquette technique */
+html[data-mix="vercel"] .po-msg-items .po-dem-tete { gap: 8px; }
+html[data-mix="vercel"] .po-msg-items .po-dem-tete strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+html[data-mix="vercel"] .po-msg-items .po-dem-tete .gris { flex: none; font-size: 12px; font-feature-settings: "tnum" 1; white-space: nowrap; }
+html[data-mix="vercel"] .po-msg-items .fort { color: var(--mix-text); font-weight: 500; }
+html[data-mix="vercel"] .po-msg-tete strong { font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .po-msg-corps article.moi { border-left: 2px solid var(--mix-border-strong); }
+html[data-mix="vercel"] .po-msg-texte { color: var(--mix-text); line-height: 22px; }
+html[data-mix="vercel"] .po-lien-dossier { color: var(--mix-text); }
+html[data-mix="vercel"] .po-msg-saisie { border-top-color: var(--mix-border); }
+html[data-mix="vercel"] .po-msg-actions .lien svg { stroke: currentColor; }
+
+
+/* ---- 9. Finance, ventilation, Relevés 31, relevé mensuel ---- */
+html[data-mix="vercel"] .po .studio-liste > .po-note { margin: 0 24px 24px; }
+/* Détail par locataire (tableau imbriqué) : styles en ligne du composant, d'où les !important ci-dessous */
+html[data-mix="vercel"] .po .tableau td[colspan="6"] { background: var(--mix-bg) !important; }  /* style en ligne : background #F7F9FC */
+html[data-mix="vercel"] .po .tableau td table thead tr { color: var(--mix-text-3) !important; }  /* style en ligne : color #58697F */
+html[data-mix="vercel"] .po .tableau td table tbody tr { border-top-color: var(--mix-border) !important; }  /* style en ligne : borderTop #E6EBF2 */
+html[data-mix="vercel"] .po .tableau td table th { font-family: var(--mix-font-mono); font-size: 12px; letter-spacing: var(--mix-track-mono); text-transform: uppercase; }
+html[data-mix="vercel"] .po .tableau td table td { color: var(--mix-text-2); font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .po .tableau .lien strong { font-weight: 500; }
+html[data-mix="vercel"] .po .lien.texte-13 { color: var(--mix-link); }
+html[data-mix="vercel"] .po .carte-tete h2.ligne-ic { align-items: baseline; gap: 12px; }
+html[data-mix="vercel"] .po .studio-liste > .bandeau { margin: 0 24px 12px; }
+html[data-mix="vercel"] .releve { padding: 40px; border-radius: var(--mix-radius-popover); }
+html[data-mix="vercel"] .releve > header { border-bottom-color: var(--mix-border); }
+html[data-mix="vercel"] .releve > header img { height: 32px; }
+html[data-mix="vercel"] .releve > header p { color: var(--mix-text-3); font-feature-settings: "tnum" 1; }
+html[data-mix="vercel"] .releve-parties > div { color: var(--mix-text-2); }
+html[data-mix="vercel"] .releve-parties strong { font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .releve .tableau td { font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .releve .tableau th:first-child { width: 52%; }  /* libellés longs (« Loyers payés chez vous (suivis) ») sans coupure */
+html[data-mix="vercel"] .releve-total { border-top: 1px solid var(--mix-text); font-size: 16px; line-height: 24px; letter-spacing: 0; font-weight: 500; }
+html[data-mix="vercel"] .releve-total b { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: var(--mix-track-title); font-variant-numeric: tabular-nums; color: var(--mix-text); }
+
+/* ---- 10. Documents ---- */
+html[data-mix="vercel"] .po-stockage p strong { font-weight: 500; }
+html[data-mix="vercel"] .po-docs-outils { gap: 8px; }
+html[data-mix="vercel"] .po-docs-outils select { width: auto; }  /* à la largeur du libellé (« Vous et Lease Lane » était coupé) */
+html[data-mix="vercel"] .po-docs-outils .po-recherche input { width: 100%; min-width: 0; }  /* la recherche cède la place : « Téléverser » reste sur la rangée */
+html[data-mix="vercel"] .po-recents { gap: 12px; }
+html[data-mix="vercel"] .po-recents button { padding: 14px; border: 0; border-radius: var(--mix-radius-card); box-shadow: var(--mix-ring); background: var(--mix-surface); color: var(--mix-text); }
+@media (hover: hover) { html[data-mix="vercel"] .po-recents button:hover:not(:disabled) { box-shadow: var(--mix-ring-hover); background: var(--mix-bg); } }
+html[data-mix="vercel"] .po-recents .a-faire-ic { width: 32px; height: 32px; }
+html[data-mix="vercel"] .po-recents strong { font-weight: 500; }
+
+/* ---- 11. Calendrier : catégories par une barre de couleur sur une puce neutre ---- */
+html[data-mix="vercel"] .po .tete-action .haut-ibtn { width: var(--mix-control-h); height: var(--mix-control-h); }
+html[data-mix="vercel"] .po .tete-action .a-faire-actions { align-items: center; }
+html[data-mix="vercel"] .po-cal { border-color: var(--mix-border); }
+html[data-mix="vercel"] .po-cal-tete { font-size: 12px; font-weight: 500; letter-spacing: var(--mix-track-mono); text-transform: uppercase; color: var(--mix-text-3); }
+html[data-mix="vercel"] .po-cal-case { border-color: var(--mix-border); color: var(--mix-text); }
+@media (hover: hover) { html[data-mix="vercel"] .po-cal-case:hover { background: var(--mix-bg); } }
+html[data-mix="vercel"] .po-cal-case b { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .po-cal-case.hors { background: var(--mix-bg); color: var(--mix-text-3); }
+html[data-mix="vercel"] .po-cal-case.hors b { font-weight: 400; }
+html[data-mix="vercel"] .po-cal-case.choisi { border-radius: 0; background: var(--mix-tint); box-shadow: inset 0 0 0 2px var(--mix-marine); }
+html[data-mix="vercel"] .po-cal-case.auj b { background: var(--mix-marine); color: #fff; font-weight: 600; }
+html[data-mix="vercel"] .po-cal-ev { display: block; padding: 2px 6px; line-height: 18px; border-left-width: 2px; border-left-color: var(--mix-success); border-radius: 2px; background: var(--mix-surface-2); color: var(--mix-text); font-weight: 500; }
+html[data-mix="vercel"] .po-cal-ev.demande { border-left-color: var(--mix-focus); }
+html[data-mix="vercel"] .po-cal-ev.visite { border-left-color: var(--mix-marine); }
+html[data-mix="vercel"] .po-cal-ev.rapport { border-left-color: var(--mix-placeholder); background: var(--mix-surface-2); }
+html[data-mix="vercel"] .po-cal-ev.urgence { border-left-color: var(--mix-error); background: var(--mix-error-bg); color: var(--mix-error); }
+html[data-mix="vercel"] .po-cal-case > .gris { font-size: 12px; font-feature-settings: "tnum" 1; }
+html[data-mix="vercel"] .po-cal-jour li { border-left-width: 2px; border-left-color: var(--mix-success); }
+html[data-mix="vercel"] .po-cal-jour li.demande { border-left-color: var(--mix-focus); }
+html[data-mix="vercel"] .po-cal-jour li.visite { border-left-color: var(--mix-marine); }
+html[data-mix="vercel"] .po-cal-jour li.rapport { border-left-color: var(--mix-placeholder); }
+html[data-mix="vercel"] .po-cal-jour li.urgence { border-left-color: var(--mix-error); }
+html[data-mix="vercel"] .po-cal-jour strong { font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .po-legende li { color: var(--mix-text-2); }
+html[data-mix="vercel"] .po-cal-pastille { width: 8px; height: 8px; margin: 0 2px; background: var(--mix-success); }
+html[data-mix="vercel"] .po-cal-pastille.demande { background: var(--mix-focus); }
+html[data-mix="vercel"] .po-cal-pastille.visite { background: var(--mix-marine); }
+html[data-mix="vercel"] .po-cal-pastille.rapport { background: var(--mix-placeholder); }
+html[data-mix="vercel"] .po-cal-pastille.urgence { background: var(--mix-error); }
+
+/* ---- 12. Accès, Loi 25, Profil, Aide, Notifications ---- */
+html[data-mix="vercel"] .po .garde-fous li { color: var(--mix-text-2); }
+html[data-mix="vercel"] .po-faq li + li { border-top-color: var(--mix-border); }
+html[data-mix="vercel"] .po-faq button { color: var(--mix-text); }
+html[data-mix="vercel"] .po-faq strong { font-weight: 500; }
+html[data-mix="vercel"] .po-faq p { color: var(--mix-text-2); line-height: 22px; }
+html[data-mix="vercel"] .po-faq button svg { stroke: var(--mix-text-3); }
+html[data-mix="vercel"] .po .lo-profil-corps { padding: 24px; }
+html[data-mix="vercel"] .po .lo-verrou { min-height: var(--mix-control-h); padding: 0 12px; border: 0; border-radius: var(--mix-radius-control); background: var(--mix-bg); box-shadow: var(--mix-ring); color: var(--mix-text-2); }
+html[data-mix="vercel"] .po .lo-grille-avis th { font-family: var(--mix-font-mono); font-weight: 500; letter-spacing: var(--mix-track-mono); text-transform: uppercase; color: var(--mix-text-3); border-bottom-color: var(--mix-border); }
+html[data-mix="vercel"] .po .lo-grille-avis td { border-bottom-color: var(--mix-border); }
+html[data-mix="vercel"] .po .lo-grille-avis td strong { font-weight: 500; }
+html[data-mix="vercel"] .po .lo-grille-avis td span { color: var(--mix-text-3); }
+html[data-mix="vercel"] .po .lo-bascule > i { background: var(--mix-placeholder); }
+html[data-mix="vercel"] .po .lo-bascule input:checked + i { background: var(--mix-marine); }
+html[data-mix="vercel"] .po .lo-bascule input:focus-visible + i { outline: 2px solid var(--mix-focus); outline-offset: 2px; }
+html[data-mix="vercel"] .po .lo-bascule strong { font-weight: 500; }
+html[data-mix="vercel"] .po .lo-profil-corps .po-deux + .gris { margin-top: 20px; }
+html[data-mix="vercel"] .po .lo-sep-h { border-top-color: var(--mix-border); }
+html[data-mix="vercel"] .po .lo-enregistre-ok { color: var(--mix-success); font-weight: 500; }
+html[data-mix="vercel"] .po .lo-segments { background: var(--mix-surface-2); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .po .lo-segments > * { border-radius: 3px; color: var(--mix-text-3); font-weight: 500; }
+html[data-mix="vercel"] .po .lo-segments > .actif { background: var(--mix-surface); color: var(--mix-text); box-shadow: var(--mix-ring), 0 1px 2px rgba(0, 0, 0, .04); }
+html[data-mix="vercel"] .po .conf-choix button { border-color: transparent; border-radius: var(--mix-radius-card); box-shadow: var(--mix-ring); color: var(--mix-text); }
+@media (hover: hover) { html[data-mix="vercel"] .po .conf-choix button:hover { box-shadow: var(--mix-ring-hover); background: var(--mix-bg); } }
+html[data-mix="vercel"] .po .conf-choix strong { font-weight: 500; }
+html[data-mix="vercel"] .po .conf-choix span, html[data-mix="vercel"] .po .conf span { color: var(--mix-text-3); }
+html[data-mix="vercel"] .po .notif-liste button { color: var(--mix-text); }
+html[data-mix="vercel"] .po .notif-liste strong { font-weight: 500; }
+html[data-mix="vercel"] .po .notif-liste li + li { border-top-color: var(--mix-border); }
+html[data-mix="vercel"] .po .notif-filtres button small { opacity: 1; color: inherit; }
+
+/* ---- 13. Ajouter un immeuble, proposer un locataire ---- */
+html[data-mix="vercel"] .po-depot { border-width: 1px; }
+html[data-mix="vercel"] .po-depot strong { font-weight: 500; color: var(--mix-text); }
+@media (hover: hover) { html[data-mix="vercel"] .po-depot:hover { border-color: var(--mix-text-3); } }
+html[data-mix="vercel"] .po-form .deux { gap: 16px; }
+html[data-mix="vercel"] .po-regles li { border-top-color: var(--mix-border); }
+html[data-mix="vercel"] .po-regles strong { font-weight: 500; }
+html[data-mix="vercel"] .interrupteur { background: var(--mix-placeholder); }
+html[data-mix="vercel"] .interrupteur.actif { background: var(--mix-marine); }
+html[data-mix="vercel"] .po-apercu .po-photo { border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .po-apercu-titre { font-weight: 600; letter-spacing: var(--mix-track-card); }
+html[data-mix="vercel"] .po-etapes-prop li { color: var(--mix-text-2); }
+html[data-mix="vercel"] .po-etapes-prop b { background: var(--mix-surface-2); color: var(--mix-text); font-weight: 500; box-shadow: var(--mix-ring); font-variant-numeric: tabular-nums; }
+
+/* ---- 14. Icônes dont le trait est posé en attribut (Icone couleur="#…") : bleus-gris → gris neutres; marine des icônes de contenu → #0D233B ---- */
+html[data-mix="vercel"] .po svg[stroke="#58697F"] { stroke: var(--mix-text-3); }
+html[data-mix="vercel"] .po svg[stroke="#3E4A59"] { stroke: var(--mix-text-2); }
+html[data-mix="vercel"] .po svg[stroke="#8A99AB"] { stroke: var(--mix-placeholder); }
+html[data-mix="vercel"] .po svg[stroke="#0C2147"] { stroke: var(--mix-text); }
+html[data-mix="vercel"] .po svg[stroke="#12694F"] { stroke: var(--mix-success); }
+html[data-mix="vercel"] .po svg[stroke="#2E5788"] { stroke: var(--mix-link); }
+
+/* ---- 15. Bureau (≥ 761 px) : géométrie d'aujourd'hui (panneau flottant de 240 px), menu à la Vercel ---- */
+@media (min-width: 1181px) {
+  html[data-mix="vercel"] .po { grid-template-columns: var(--po-rail-l) minmax(0, 1fr); }
+}
+@media (min-width: 761px) {
+  html[data-mix="vercel"] .po-rail { padding: 20px 12px 12px; }
+  html[data-mix="vercel"] .po-logo { height: 30px; margin: 0 10px 24px; }
+  html[data-mix="vercel"] .po-espace { margin: 0 10px 8px; }
+  html[data-mix="vercel"] .po-menu { gap: 2px; }
+  html[data-mix="vercel"] :is(.po-menu a, .po-menu span.inactif) { position: relative; height: auto; min-height: 36px; padding: 8px; gap: 8px; line-height: 20px; }  /* à 192 px, « Utilisateurs et accès » passe proprement sur deux lignes */
+  html[data-mix="vercel"] .po-bas { gap: 4px; padding-top: 12px; }
+  html[data-mix="vercel"] :is(.po-cleo, .po-compte) { gap: 6px; padding: 6px 4px; }  /* à 192 px, « Marie-Josée Bérubé » tient sur une ligne */
+  html[data-mix="vercel"] .po-compte-lien { gap: 6px; }
+  html[data-mix="vercel"] .po-cleo-av img, html[data-mix="vercel"] .po-ini { width: 28px; height: 28px; }
+  html[data-mix="vercel"] :is(.po-cleo strong, .po-compte strong) { font-size: 13px; line-height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  html[data-mix="vercel"] .po-sortir { height: 36px; padding: 0 10px; font-size: 14px; }
+  html[data-mix="vercel"] .po-cherche { height: var(--mix-control-h); padding: 0 10px 0 6px; }
+  html[data-mix="vercel"] .po-haut .haut-ibtn { width: var(--mix-control-h); height: var(--mix-control-h); }
+  html[data-mix="vercel"] .po-haut .cloche-panneau { top: 44px; }
+  html[data-mix="vercel"] .po-section { margin-top: 16px; }
+}
+/* Tablette (761–1180 px) : menu en icônes de 72 px (pictogramme du logo seulement, comme aujourd'hui) */
+@media (min-width: 761px) and (max-width: 1180px) {
+  html[data-mix="vercel"] .po-rail { padding: 16px 12px 12px; }
+  /* pictogramme seul : logo-icone-blanc.svg peint en fond (le recadrage de logo-sur-marine laissait voir le début du « L ») */
+  html[data-mix="vercel"] .po-logo { width: 30px; height: 30px; margin: 0 0 16px; object-position: -9999px 0; background: url(img/logo-icone-blanc.svg) center / contain no-repeat; }
+  html[data-mix="vercel"] :is(.po-menu a, .po-menu span.inactif) { width: 44px; height: 40px; padding: 0; }  /* 11 rubriques + compte tiennent dans 768 px de haut */
+  html[data-mix="vercel"] .po-bas { gap: 2px; padding-top: 8px; }
+  html[data-mix="vercel"] .po-menu a.actif::before { left: -6px; }  /* l'indicateur longe la tuile d'icône */
+  html[data-mix="vercel"] :is(.po-cleo, .po-compte) { padding: 4px; }
+  html[data-mix="vercel"] .po-sortir { width: 44px; padding: 0; }
+}
+
+/* ---- 16. Téléphone (≤ 760 px) : barre du bas marine plate, flottante (rayon 12, 8 px des bords + zone sûre); « Plus » reste un menu blanc ---- */
+@media (max-width: 760px) {
+  html[data-mix="vercel"] .po { gap: 16px; padding: 16px 16px calc(var(--po-bas) + 32px + env(safe-area-inset-bottom, 0px)); }
+  html[data-mix="vercel"] .po-contenu { gap: 16px; }
+  html[data-mix="vercel"] .po-haut { flex-wrap: nowrap; margin-bottom: 20px; }
+  html[data-mix="vercel"] .po-cherche { flex: 1 1 auto; height: var(--mix-control-h-touch); padding: 0 10px 0 8px; }
+  html[data-mix="vercel"] .po-haut .haut-ibtn { width: var(--mix-control-h-touch); height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .po-haut .cloche-panneau { position: fixed; top: 68px; left: 8px; right: 8px; width: auto; }
+  html[data-mix="vercel"] .po-rail { left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); padding: 6px; border-radius: var(--mix-radius-popover); box-shadow: none; }
+  html[data-mix="vercel"] :is(.po-menu a, .po-menu span.inactif, .po-plus-bouton) { height: 52px; gap: 4px; padding: 4px 0; border-radius: var(--mix-radius-control); background: none; color: var(--mix-rail-text); font-size: 12px; font-weight: var(--po-menu-poids); letter-spacing: -0.01em; }  /* « Immeubles » en 650 tient dans 65 px (360 px de large) */
+  html[data-mix="vercel"] :is(.po-menu a.actif, .po-plus-bouton.actif) { background: var(--mix-rail-active); color: #fff; font-weight: var(--po-menu-poids-actif); }
+  html[data-mix="vercel"] .po-menu a.actif::before { display: none; }
+  html[data-mix="vercel"] .po-menu a > span { flex: none; }
+  html[data-mix="vercel"] .po-plus-bouton { line-height: 20px; }  /* libellé sous l'icône, à la même hauteur que « Plus » (flex: 1 l'étirait) */
+  html[data-mix="vercel"] .po-menu a:active, html[data-mix="vercel"] .po-plus-bouton:active { background: var(--mix-rail-hover); }
+  html[data-mix="vercel"] .po-plus-fond { background: rgba(0, 0, 0, .16); }
+  html[data-mix="vercel"] .po-plus { left: 8px; right: 8px; bottom: calc(var(--po-bas) + 16px + env(safe-area-inset-bottom, 0px)); gap: 2px; padding: 6px; border-radius: var(--mix-radius-popover); background: var(--mix-surface); box-shadow: var(--mix-shadow-popover); }
+  html[data-mix="vercel"] .po-plus a { height: 44px; gap: 12px; padding: 0 12px; border-radius: var(--mix-radius-control); font-size: 14px; color: var(--mix-text); }
+  html[data-mix="vercel"] .po-plus a svg { stroke: var(--mix-text-3); }
+  @media (hover: hover) { html[data-mix="vercel"] .po-plus a:hover { background: var(--mix-surface-2); } }
+  html[data-mix="vercel"] .po-plus a.actif { background: var(--mix-tint); color: var(--mix-marine); font-weight: 500; }
+  html[data-mix="vercel"] .po-plus a.actif svg { stroke: var(--mix-marine); }
+  /* Bascule FR | EN du menu « Plus » : globals.css la masque avec « .po-rail .toggle-langue » (téléphone), mais « Plus » vit DANS .po-rail —
+     sans ceci, aucune bascule de langue au téléphone (le défaut existe aussi en Actuel : à corriger dans globals.css, « .po-bas .toggle-langue »). */
+  html[data-mix="vercel"] .po-plus .toggle-langue { display: flex; background: var(--mix-surface-2); }
+  /* … et, « Plus » étant dans .po-rail, les couleurs « sur marine » de globals.css (texte #DCE7F5, actif blanc) s'y appliquaient sur fond blanc */
+  html[data-mix="vercel"] .po-plus .toggle-langue button { color: var(--mix-text-2); }
+  html[data-mix="vercel"] .po-plus .toggle-langue button.actif { background: var(--mix-marine); color: #fff; }
+  html[data-mix="vercel"] .po-plus .toggle-langue button:focus-visible { outline-color: var(--mix-focus); }
+  /* Cartes : rembourrage 16 px; champs et contrôles à 44 px */
+  html[data-mix="vercel"] .po :is(.carte-l18, .releve) { padding: 16px; }
+  html[data-mix="vercel"] .po .carte-tete { padding: 16px 16px 12px; }
+  html[data-mix="vercel"] .po :is(.studio-liste, .po-docs) > .tableau > * > tr > :first-child { padding-left: 16px; }
+  html[data-mix="vercel"] .po :is(.studio-liste, .po-docs) > .tableau > * > tr > :last-child { padding-right: 16px; }
+  html[data-mix="vercel"] .po .e70-raison, html[data-mix="vercel"] .po-recherche { height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .po textarea.e70-raison { height: auto; }
+  html[data-mix="vercel"] .po-recherche { width: auto; }
+  html[data-mix="vercel"] .po .studio-liste > .po-note { margin: 0 16px 16px; }
+  html[data-mix="vercel"] .po-liste-simple { padding: 12px 16px 16px; }
+  html[data-mix="vercel"] .po-onglets { gap: 20px; padding: 0 16px; }
+  html[data-mix="vercel"] .po-depot.ligne { flex-wrap: wrap; margin: 16px 16px 0; }  /* le texte passait un mot par ligne à côté de la liste */
+  html[data-mix="vercel"] .po-depot.ligne > div { flex: 1 1 200px; }
+  html[data-mix="vercel"] .po-depot.ligne select { width: 100%; }
+  html[data-mix="vercel"] .po-fiche-corps { flex-direction: column; gap: 12px; }  /* adresse puis loyers, au lieu de deux colonnes écrasées */
+  html[data-mix="vercel"] .po-fiche-corps .droite { text-align: left; }
+  html[data-mix="vercel"] .po .lo-profil-corps { padding: 16px; }
+  html[data-mix="vercel"] .kpi-po b { font-size: 24px; line-height: 32px; }
+  html[data-mix="vercel"] .po .bouton.pleine, html[data-mix="vercel"] .po .lo-verrou { min-height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .po :is(.bascule button, .bascule a, .lo-segments > *) { height: 40px; }  /* piste de 44 px : cible tactile */
+  html[data-mix="vercel"] .po .tete-action .haut-ibtn { width: var(--mix-control-h-touch); height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .bouton-carre { width: var(--mix-control-h-touch); height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .po-entete { flex-wrap: wrap; align-items: flex-start; gap: 12px 16px; }  /* « Ajouter un immeuble » ne se coupe plus en deux lignes */
+  html[data-mix="vercel"] .po-entete .po-bouton { flex: none; }
+}
+/* Petit téléphone : les puces du calendrier (« L… ») deviennent des barres de couleur (bordure de 4 px); le libellé reste lisible par les lecteurs
+   d'écran mais sort de la boîte; le détail est dans le jour choisi, dessous */
+@media (max-width: 560px) {
+  html[data-mix="vercel"] .po-cal-ev { height: 0; padding: 0; overflow: hidden; border: 0; border-top: 4px solid var(--mix-success); border-radius: 1px; background: none; text-indent: 100%; white-space: nowrap; }
+  html[data-mix="vercel"] .po-cal-ev.demande { border-top-color: var(--mix-focus); }
+  html[data-mix="vercel"] .po-cal-ev.visite { border-top-color: var(--mix-marine); }
+  html[data-mix="vercel"] .po-cal-ev.rapport { border-top-color: var(--mix-placeholder); }
+  html[data-mix="vercel"] .po-cal-ev.urgence { border-top-color: var(--mix-error); background: none; }
+  html[data-mix="vercel"] .po-cal-case { min-height: 64px; padding: 6px; }
+}
+
+/* ==== CONTRASTE DU BLEU (Steven, 27 nov. 2026 : « un meilleur contraste avec le bleu en général ») ====
+   Les paires texte/fond passaient déjà AA; ce bloc renforce ce qui se voyait mal : survol marine (1,3:1 → 2,0:1), anneau de focus sur le marine (2,7:1 → 7,5:1),
+   fonds bleutés (1,12:1 → 1,19:1 + filet), pistes de jauge (1,4:1 + filet), pastilles de compte sur le marine (blanc sur marine 15,9:1), liens (7,4:1 → 9,9:1). */
+html[data-mix="vercel"] {
+  --mix-marine-hover: #28508F;      /* blanc dessus 8,0:1; 2,0:1 contre le marine, le survol se voit */
+  --mix-link: #1B4378;              /* 9,9:1 sur blanc */
+  --mix-tint: #E4ECF7;              /* ligne choisie, fond d'info : marine dessus 12,2:1 */
+  --mix-info-bg: #E4ECF7;
+  --mix-focus: #2B5C9E;             /* 6,7:1 sur blanc; sur le marine on prend --mix-rail-indicator (7,5:1) */
+  --mix-on-marine-2: #DCE7F5;       /* 12,7:1 sur le marine (avant 11,1:1) */
+}
+html[data-mix="vercel"] :is(.puce, .puce.info, .bandeau.info) { box-shadow: inset 0 0 0 1px rgba(12, 33, 71, .16); }
+html[data-mix="vercel"] :is(.lo-ic b, .lo-plus b, .po-menu b, .po-bas b, .po-rail b) { background: #fff; color: var(--mix-marine); box-shadow: none; }
+html[data-mix="vercel"] :is(.lo-bandeau, .po-bandeau, .lo-rail, .po-rail, .lo-rail-pr, .po-menu) :focus-visible { outline-color: var(--mix-rail-indicator); }
+html[data-mix="vercel"] :is(.lo-cherche, .lo-cloche) { background: rgba(255, 255, 255, .10); box-shadow: 0 0 0 1px rgba(255, 255, 255, .32); }
+html[data-mix="vercel"] .dv-meter { background: #D3DFF0; box-shadow: inset 0 0 0 1px rgba(12, 33, 71, .16); }
+html[data-mix="vercel"] .dv-meter-f { background: var(--mix-marine); }
+html[data-mix="vercel"] .dmd-segs i { background: #BCCBE0; box-shadow: none; }
+html[data-mix="vercel"] .dmd-segs .fait i { background: var(--mix-focus); }
+html[data-mix="vercel"] .dmd-segs .actuel i { background: var(--mix-marine); }
+@media (hover: hover) { html[data-mix="vercel"] .bouton-principal:hover { background: var(--mix-marine-hover); } }
+/* ==== fin CONTRASTE DU BLEU ==== */
+
+/* ==== LEASE LANE +25 % (Steven, 27 nov. 2026 : « Lease Lane 25 % plus dominant sur l'effet Vercel », 3 portails) ====
+   Proportion : 50/50 → environ 62/38 en faveur de Lease Lane (+25 % relatif, comme les autres pourcentages demandés).
+   Gardé de Vercel : Geist, filets fins, densité, hiérarchie serrée. Renforcé côté Lease Lane : fond bleuté #F4F7FB, encres bleu-gris du design Actuel (#0D233B, #3E4A59, #58697F),
+   filets bleutés, coins un cran plus doux (cartes 14, champs et boutons 10; étiquettes 6), ombre douce teintée marine, titres Poppins marine jusqu'au h3, chiffres moins serrés. Aucun cercle, aucune police à chasse fixe. */
+html[data-mix="vercel"] {
+  --mix-bg: #F4F7FB;
+  --mix-surface-2: #EEF1F5;
+  --mix-text: #0D233B;              /* 14,8:1 sur le fond */
+  --mix-text-2: #3E4A59;            /* 8,4:1 */
+  --mix-text-3: #58697F;            /* 5,6:1 sur blanc, 4,7:1 sur le fond bleuté des étiquettes */
+  --mix-placeholder: #7A8799;       /* 3,7:1 sur blanc : contour des champs (WCAG 1.4.11) */
+  --mix-border: #E1E6EC;
+  --mix-border-strong: #C8CDD4;
+  --mix-neutral-bg: #EEF1F5;  --mix-neutral: #3E4A59;
+  --mix-ring: 0 0 0 1px rgba(13, 35, 59, .10);
+  --mix-ring-hover: 0 0 0 1px #C8CDD4;
+  --mix-shadow-card: 0 0 0 1px rgba(13, 35, 59, .09), 0 1px 3px rgba(13, 35, 59, .07), 0 6px 12px -6px rgba(13, 35, 59, .06);
+  --mix-shadow-popover: 0 0 0 1px rgba(13, 35, 59, .10), 0 6px 12px -4px rgba(13, 35, 59, .08), 0 18px 28px -8px rgba(13, 35, 59, .10);
+  --mix-overlay: rgba(13, 35, 59, .40);
+  --mix-radius-card: 7px;  --mix-radius-popover: 7px;  --mix-radius-control: 5px;
+  --mix-track-hero: -0.025em;  --mix-track-title: -0.012em;  --mix-track-section: -0.005em;  --mix-track-card: 0em;
+}
+html[data-mix="vercel"] h3 { font-family: var(--mix-font-title); color: var(--mix-title-color); font-weight: 600; letter-spacing: var(--mix-track-card); }
+/* ==== fin LEASE LANE +25 % ==== */
+
+/* ==== Correctifs de l'audit après « Lease Lane +25 % » ==== */
+html[data-mix="vercel"] { --mix-shadow-popover: 0 0 0 1px rgba(13, 35, 59, .10), 0 6px 12px -4px rgba(13, 35, 59, .08), 0 16px 24px -8px rgba(13, 35, 59, .10); }  /* flou ≤ 24 px (règle « ombre ») */
+html[data-mix="vercel"] .cleo-fenetre-a .cleo-tete :is(.gris, .cleo-sous, p, small) { color: var(--mix-on-marine-2); }  /* sous-titre sur la barre marine : 12,7:1 */
+/* ==== fin correctifs ==== */
+
+/* ==== LEASE LANE 65 / VERCEL 35 (Steven, 27 nov. 2026) ====
+   Plus de Lease Lane que la révision +25 % : coins du design Lease Lane (cartes 16, champs et boutons 12, étiquettes 6), Poppins marine aussi pour les grands chiffres,
+   titres de carte un cran plus grands, ombre douce teintée marine plus présente. Gardé de Vercel : Geist pour le texte, filets fins, densité. Aucun cercle (sauf Cléo), aucune chasse fixe. */
+html[data-mix="vercel"] {
+  --mix-radius-card: 8px;  --mix-radius-popover: 8px;  --mix-radius-control: 6px;
+  --mix-track-hero: -0.015em;  --mix-track-title: -0.01em;
+  --mix-shadow-card: 0 0 0 1px rgba(13, 35, 59, .08), 0 1px 3px rgba(13, 35, 59, .08), 0 8px 16px -8px rgba(13, 35, 59, .10);
+}
+html[data-mix="vercel"] :is(.kpi b, .kpi-po b, .acc-val, .acc-montant, .dv-stat-v, .po-kpi b) { font-family: var(--mix-font-title); font-weight: 600; }
+html[data-mix="vercel"] :is(.titre-carte, .carte-tete h2, .fil-tete h2) { font-size: 17px; }
+/* ==== fin LEASE LANE 65 / VERCEL 35 ==== */
+
+/* toggle-langue 65/35 : 30 px de haut, rayon 8 (sinon presque une pilule) */
+html[data-mix="vercel"] .toggle-langue { border-radius: 4px; } html[data-mix="vercel"] .toggle-langue button { border-radius: 3px; }
+html[data-mix="vercel"] :is(.lo-rail, .po-bas, .lo-rail-pr, .po-rail, .po-menu, .lo-plus) .toggle-langue, html[data-mix="vercel"] .lo-rail > .toggle-langue { border-radius: 4px; }
+html[data-mix="vercel"] :is(.lo-rail, .po-bas, .lo-rail-pr, .po-rail, .po-menu, .lo-plus) .toggle-langue button { border-radius: 3px; }
+
+/* ==== Passe Impeccable (tableau de bord propriétaire) : surtitres en capitales → étiquettes en ligne (rayon 6) ==== */
+html[data-mix="vercel"] .po-espace { text-transform: none; letter-spacing: 0; font-family: var(--mix-font-ui); font-size: 13px; line-height: 18px; font-weight: 500; color: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .a-faire .surtitre { display: block; width: fit-content; align-self: flex-start; margin: 0 0 6px; padding: 2px 6px; border-radius: 3px; text-transform: none; letter-spacing: 0; font-family: var(--mix-font-ui); font-size: 12px; line-height: 16px; font-weight: 500; color: var(--mix-marine); background: #E8EEF6; }
+html[data-mix="vercel"] .a-faire .surtitre.rouge { color: var(--mix-error); background: #FBEAE8; }
+html[data-mix="vercel"] .a-faire li > div > strong { display: block; }
+/* ==== fin Passe Impeccable ==== */
+
+/* ==== Arriérés en noir (Steven, 27 nov. 2026 21:36 : « black ») : le montant passe à l encre la plus foncée; le rouge reste sur le carré et l icône d alerte. ==== */
+html[data-mix="vercel"] .kpi-po b.rouge { color: var(--mix-text); }
+/* Étiquette « Urgence prise en charge » (puce.todo) : texte en noir (Steven, 21:36 « text black »); le fond rouge pâle garde le signal. */
+html[data-mix="vercel"] .puce.todo { color: var(--mix-text); }
+
+/* ===== dv-own · dataviz éditorial propriétaire (27 nov. 2026) — début ===== */
+html[data-mix="vercel"] .po-kpis.dv-bande { background: #fff; border-color: var(--mix-border); box-shadow: none; }
+html[data-mix="vercel"] .po-kpis.dv-bande > .kpi-po, html[data-mix="vercel"] .po-section + .po-kpis.dv-bande > .kpi-po:first-child { background: transparent; border: 0; border-left: 1px solid var(--mix-border); border-radius: 0; box-shadow: none; }
+html[data-mix="vercel"] .po-kpis.dv-bande > .kpi-po:first-child { border-left: 0; }
+html[data-mix="vercel"] .po-section + .po-kpis.dv-bande > .kpi-po:first-child > span, html[data-mix="vercel"] .po-section + .po-kpis.dv-bande > .kpi-po:first-child small { color: var(--mix-text-2); }
+html[data-mix="vercel"] .po-section + .po-kpis.dv-bande > .kpi-po:first-child svg { stroke: var(--mix-text-3); }
+html[data-mix="vercel"] :is(.dv-bande .kpi-po b, .dv-cles b, .po-grand.dv-chiffre) { font-family: var(--mix-font-title); font-weight: 600; color: var(--mix-marine); font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .dv-bande .kpi-po b.dv-encre { color: var(--mix-text); }   /* « Arriérés » en encre noire (décision de Steven); le rouge reste sur le carré et l'icône */
+html[data-mix="vercel"] .dv-cles span { color: var(--mix-text-3); }
+@media (max-width: 1100px) { html[data-mix="vercel"] .po-kpis.dv-bande > .kpi-po:nth-child(3) { border-left: 0; } html[data-mix="vercel"] .po-kpis.dv-bande > .kpi-po:nth-child(n+3) { border-top: 1px solid var(--mix-border); } }
+/* ===== dv-own — fin ===== */
+
+/* ==== Approuver / Refuser : 25 % plus petits sur ordinateur (Steven, 27 nov. 2026 22:39) ==== 36 → 27 px, icône 20 → 15 px; au téléphone ils restent à 44 px (cible tactile minimale). */
+@media (min-width: 761px) {
+  html[data-mix="vercel"] .a-faire-actions .bouton-carre { width: 27px; height: 27px; min-width: 27px; min-height: 27px; }
+  html[data-mix="vercel"] .a-faire-actions .bouton-carre svg { width: 15px; height: 15px; }
+}
+/* ==== fin ==== */
+
+/* ==== Critique à froid · propriétaire (27 nov. 2026) — début ==== */
+/* #2 Cléo (bouton flottant) ne cache plus rien : réserve en bas du contenu */
+html[data-mix="vercel"] body .po-contenu { padding-bottom: 100px; }
+/* #7 Échelle des titres partagée avec le locataire : H1 28 / 22, titres de section et de carte 17 px Poppins 600, cartes 20 / 16 */
+html[data-mix="vercel"] body .po-titre { font-size: 28px; line-height: 36px; }
+html[data-mix="vercel"] body .po :is(.titre-carte, .carte-tete h2, .po-section h2) { font-size: 17px; line-height: 24px; font-weight: 600; }
+html[data-mix="vercel"] body .po-contenu :is(.carte-l18, .po-kpis.dv-bande > .kpi-po) { padding: 20px; }
+/* #10 Occupation et Par secteur : même hauteur que la carte de gauche (Steven, 27 nov. 2026 23:13); le dernier bloc descend au pied de la carte */
+html[data-mix="vercel"] body .po-grille-haut > .carte-l18:nth-child(2) { align-self: stretch; display: flex; flex-direction: column; }
+html[data-mix="vercel"] body .po-grille-haut > .carte-l18:nth-child(2) > :last-child { margin-top: auto; }
+/* #1 Cession : bouton secondaire « Examiner » dans la colonne des carrés ✓ / ✕ */
+html[data-mix="vercel"] body .a-faire-actions .a-faire-examiner { height: 32px; padding: 0 12px; font-size: 13px; line-height: 20px; white-space: nowrap; }
+/* #16 En-têtes de tableau en casse normale, 13 px, encre #58697F */
+html[data-mix="vercel"] body .po .tableau th { text-transform: none; letter-spacing: 0; font-size: 13px; color: #58697F; }
+/* #5 Locataire repris dans la 2e ligne seulement au téléphone */
+html[data-mix="vercel"] body .po-demandes .po-dem-loc { display: none; }
+@media (max-width: 760px) {
+  html[data-mix="vercel"] body .po-contenu { padding-bottom: 150px; }
+  html[data-mix="vercel"] body .po-titre { font-size: 22px; line-height: 28px; }
+  html[data-mix="vercel"] body .po-contenu :is(.carte-l18, .po-kpis.dv-bande > .kpi-po) { padding: 16px; }
+  /* #11 Rangées « À faire » : un seul bord gauche (40 px + 1fr); actions et étiquette dans la colonne 2 */
+  html[data-mix="vercel"] body .a-faire li:not(.vide) { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; row-gap: 12px; align-items: start; }
+  html[data-mix="vercel"] body .a-faire li > .a-faire-ic { align-self: start; width: 40px; height: 40px; }
+  html[data-mix="vercel"] body .a-faire li > :is(.a-faire-actions, .puce) { grid-column: 2; justify-self: start; width: auto; margin: 0; }
+  html[data-mix="vercel"] body .a-faire-actions .a-faire-examiner { height: 44px; padding: 0 16px; font-size: 14px; }
+  /* #13 Cibles de 44 px sans changer l'allure */
+  html[data-mix="vercel"] body .po .dv-toggle { display: inline-flex; align-items: center; min-height: 44px; padding-block: 12px; margin-block: -8px; }
+  html[data-mix="vercel"] body .po .bascule { padding: 0; }
+  html[data-mix="vercel"] body .po .bascule :is(button, a) { height: 44px; }
+}
+/* #5 « Demandes en cours » au téléphone : rangées empilées (titre · n° · adresse · locataire · état à gauche, coût à droite) */
+@media (max-width: 639px) {
+  html[data-mix="vercel"] body .po-demandes .tableau, html[data-mix="vercel"] body .po-demandes .tableau tbody { display: block; width: 100%; }
+  html[data-mix="vercel"] body .po-demandes .tableau :is(colgroup, thead) { display: none; }
+  html[data-mix="vercel"] body .po-demandes .tableau tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; row-gap: 8px; padding: 14px 16px; border-top: 1px solid #EEF1F5; }
+  html[data-mix="vercel"] body .po-demandes .tableau tbody tr:first-child { border-top: 0; }
+  html[data-mix="vercel"] body .po-demandes .tableau tbody td { display: block; width: auto; height: auto; padding: 0; border: 0; white-space: normal; overflow: visible; }
+  html[data-mix="vercel"] body .po-demandes .tableau tbody td:first-child { grid-column: 1 / -1; }
+  html[data-mix="vercel"] body .po-demandes .cellule-doc { display: grid; gap: 4px; }
+  html[data-mix="vercel"] body .po-demandes .cellule-doc strong { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: normal; }
+  html[data-mix="vercel"] body .po-demandes .cellule-doc .gris { white-space: normal; }
+  html[data-mix="vercel"] body .po-demandes .po-dem-loc { display: inline; }
+  html[data-mix="vercel"] body .po-demandes :is(.po-dem-col-loc, .po-dem-recue) { display: none; }
+  html[data-mix="vercel"] body .po-demandes .po-dem-etat { grid-column: 1; justify-self: start; min-width: 0; }
+  html[data-mix="vercel"] body .po-demandes .po-dem-cout { grid-column: 2; text-align: right; }
+}
+/* ==== Critique à froid · propriétaire — fin ==== */
+/* ==== Critique à froid · propriétaire · suite — début ==== */
+@media (max-width: 639px) {
+  html[data-mix="vercel"] body .po-demandes.po-demandes .tableau { min-width: 0; table-layout: auto; }
+  html[data-mix="vercel"] body .po-demandes.po-demandes .tableau tbody tr { width: auto; }
+  html[data-mix="vercel"] body .po-demandes.po-demandes .tableau tbody tr > td { padding: 0; }
+  html[data-mix="vercel"] body .po-demandes.po-demandes .tableau tbody tr > td:is(.po-dem-col-loc, .po-dem-recue) { display: none; }
+}
+/* ==== Critique à froid · propriétaire · suite — fin ==== */
+/* ==== Critique à froid · propriétaire · suite 2 : la 1re et la dernière cellule n’ont plus de retrait au téléphone ==== */
+@media (max-width: 639px) { html[data-mix="vercel"] body .po-demandes.po-demandes .tableau tbody tr > td:is(:first-child, :last-child) { padding: 0; } }
+/* ==== fin suite 2 ==== */
+
+/* ==== +30 % d'espace vertical (Steven, 27 nov. 2026 23:15, « vertically ») : carte « Loyers payés chez vous » et tableau « Demandes en cours » ==== */
+html[data-mix="vercel"] body .po-grille-haut > .carte-l18:first-child > .tete-action > div > p { margin-top: 5px !important; }          /* 4 → 5 */
+html[data-mix="vercel"] body .po-grille-haut > .carte-l18:first-child > .tete-action + .dv-cles { margin-top: 16px; }         /* 0 → 16 (collé au sous-titre) */
+html[data-mix="vercel"] body .po-grille-haut > .carte-l18:first-child > .dv-cles { margin-bottom: 16px; }                     /* 12 → 16 */
+html[data-mix="vercel"] body .po-grille-haut > .carte-l18:first-child .dv-foot { margin-top: 10px; }                          /* 8 → 10 */
+html[data-mix="vercel"] body .po-demandes > header { padding-top: 26px !important; padding-bottom: 16px !important; }                              /* 20 / 12 → 26 / 16 */
+html[data-mix="vercel"] body .po-demandes > header p { margin-top: 5px; }                                                    /* 4 → 5 */
+@media (min-width: 640px) {
+  html[data-mix="vercel"] body .po-demandes .tableau thead th { height: 47px; }                                             /* 40 → 47 (air 24 → 31) */
+  html[data-mix="vercel"] body .po-demandes .tableau tbody td { height: 52px; }                                             /* 48 → 52 (air 13 → 17) */
+}
+@media (max-width: 639px) {
+  html[data-mix="vercel"] body .po-demandes .tableau tbody tr { padding-top: 18px; padding-bottom: 18px; row-gap: 10px; }    /* 14 → 18, 8 → 10 */
+}
+/* ==== fin ==== */
+
+/* ==== +25 % d'espace vertical (Steven, 27 nov. 2026 23:16–23:17, « vertically ») : pages Demandes et Messages, carte « Relevés 31 » de Finance — généré par spc.cjs à partir des valeurs mesurées ×1,25 ==== */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) p.po-sous { margin-top: 5px !important; }   /* 4/0/0/0/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) div.po-fiche { row-gap: 30px !important; }   /* 0/0/0/0/24 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) section.po-dem-liste { padding-top: 25px !important; padding-bottom: 25px !important; }   /* 0/0/20/20/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) p.po-seuil { margin-bottom: 15px !important; padding-top: 18px !important; padding-bottom: 18px !important; }   /* 0/12/14/14/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) nav.po-dem-filtres { padding-bottom: 15px !important; row-gap: 3px !important; }   /* 0/0/0/12/2 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) ul.po-dem-items { margin-top: 15px !important; }   /* 12/0/0/0/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) ul.po-dem-items > li > a { padding-top: 15px !important; padding-bottom: 15px !important; row-gap: 5px !important; }   /* 0/0/12/12/4 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) a.sel { padding-top: 15px !important; padding-bottom: 15px !important; row-gap: 5px !important; }   /* 0/0/12/12/4 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) section.po-dem-detail { padding-top: 25px !important; padding-bottom: 25px !important; row-gap: 20px !important; }   /* 0/0/20/20/16 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) h2.med-titre { margin-top: 10px !important; margin-bottom: 5px !important; }   /* 8/4/0/0/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) div.po-dem-desc { padding-top: 20px !important; padding-bottom: 20px !important; }   /* 0/0/16/16/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) div.po-vignettes { margin-top: 20px !important; }   /* 16/0/0/0/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) div.po-estim { padding-top: 25px !important; padding-bottom: 25px !important; row-gap: 10px !important; }   /* 0/0/20/20/8 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) ul.po-soum { margin-top: 5px !important; margin-bottom: 5px !important; row-gap: 5px !important; }   /* 4/4/0/0/4 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) li.choisie { padding-top: 10px !important; padding-bottom: 10px !important; row-gap: 15px !important; }   /* 0/0/8/8/12 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) ul.po-soum > li { padding-top: 10px !important; padding-bottom: 10px !important; row-gap: 15px !important; }   /* 0/0/8/8/12 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) div.po-dem-bas { padding-top: 10px !important; row-gap: 30px !important; }   /* 0/0/8/0/24 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) p.surtitre { margin-bottom: 15px !important; }   /* 0/12/0/0/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) li.fait { padding-top: 13px !important; padding-bottom: 13px !important; row-gap: 15px !important; }   /* 0/0/10/10/12 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) li.fait > div { row-gap: 3px !important; }   /* 0/0/0/0/2 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) li.attente { padding-top: 13px !important; padding-bottom: 13px !important; row-gap: 15px !important; }   /* 0/0/10/10/12 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) li.attente > div { row-gap: 3px !important; }   /* 0/0/0/0/2 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) ol.po-suivi > li { padding-top: 13px !important; padding-bottom: 13px !important; row-gap: 15px !important; }   /* 0/0/10/10/12 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) ol.po-suivi > li > div { row-gap: 3px !important; }   /* 0/0/0/0/2 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) div.po-aide { row-gap: 15px !important; }   /* 0/0/0/0/12 */
+html[data-mix="vercel"] body .po-contenu:has(.po-dem-liste) p.po-note { padding-top: 15px !important; padding-bottom: 15px !important; }   /* 0/0/12/12/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) p.po-sous { margin-top: 5px !important; }   /* 4/0/0/0/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) div.po-fiche { row-gap: 30px !important; }   /* 0/0/0/0/24 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) section.po-msg-liste { padding-top: 25px !important; padding-bottom: 25px !important; row-gap: 15px !important; }   /* 0/0/20/20/12 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) a.sel { padding-top: 15px !important; padding-bottom: 15px !important; }   /* 0/0/12/12/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) a.sel > div { row-gap: 5px !important; }   /* 0/0/0/0/4 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) ul.po-msg-items > li > a { padding-top: 15px !important; padding-bottom: 15px !important; }   /* 0/0/12/12/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) ul.po-msg-items > li > a > div { row-gap: 5px !important; }   /* 0/0/0/0/4 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) section.po-msg-fil { padding-top: 25px !important; padding-bottom: 25px !important; row-gap: 20px !important; }   /* 0/0/20/20/16 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) header.po-msg-tete { padding-bottom: 20px !important; }   /* 0/0/0/16/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) header.po-msg-tete > div { row-gap: 3px !important; }   /* 0/0/0/0/2 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) h2.med-titre { margin-top: 10px !important; margin-bottom: 5px !important; }   /* 8/4/0/0/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) div.po-msg-corps { row-gap: 25px !important; }   /* 0/0/0/0/20 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) p.po-lien-dossier { padding-top: 18px !important; padding-bottom: 18px !important; }   /* 0/0/14/14/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-msg-liste) div.po-msg-saisie { padding-top: 20px !important; row-gap: 15px !important; }   /* 0/0/16/0/12 */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(> .po-note) header.carte-tete.tete-action { padding-top: 25px !important; padding-bottom: 15px !important; }   /* 0/0/20/12/0 */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(> .po-note) header.carte-tete.tete-action > div > p { margin-top: 5px !important; }   /* 4/0/0/0/0 */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(> .po-note) p.po-note { padding-top: 15px !important; padding-bottom: 15px !important; }   /* 0/0/12/12/0 */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(> .po-note) table.tableau { margin-bottom: 10px !important; }   /* 0/8/0/0/0 */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(> .po-note) .tableau thead th { height: 46px; }   /* 40 → 46 (air 24 → 30) */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(> .po-note) .tableau tbody td { height: 56px; }   /* 48 → 56 (air 31 → 39) */
+/* ==== fin ==== */
+
+/* ==== Rail : bascule FR / EN, deux moitiés égales sur toute la largeur (Steven, 27 nov. 2026 23:19) ==== */
+html[data-mix="vercel"] body .po-bas .toggle-langue button { flex: 1 1 0; width: auto; min-width: 0; }
+/* ==== fin ==== */
+
+/* ==== Utilisateurs et accès (Steven, 27 nov. 2026 23:19–23:20, « vertically ») : tableau « Accès » +40 %, « Décisions automatisées récentes » +30 % ==== */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(.po-acces) table.tableau.po-acces { margin-bottom: 11px !important; }   /* 0/8/0/0/0 */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(.po-acces) span.cellule-doc { row-gap: 3px !important; }   /* 0/0/0/0/2 */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(.po-acces) .tableau thead th { height: 50px; }   /* 40 → 50 (air 24 → 34) */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(.po-acces) .tableau tbody td { height: 54px; }   /* 48 → 54 (air 12 → 17, contenu 36 px) */
+html[data-mix="vercel"] body .po-contenu:has(.po-acces) > section.carte-l18:has(> ul.planifier) { padding-top: 26px !important; padding-bottom: 26px !important; }   /* 20 → 26 */
+html[data-mix="vercel"] body .po-contenu:has(.po-acces) > section.carte-l18:has(> ul.planifier) p { margin-top: 5px !important; margin-bottom: 16px !important; }   /* 4/12/0/0/0 */
+html[data-mix="vercel"] body .po-contenu:has(.po-acces) > section.carte-l18:has(> ul.planifier) ul.planifier > li > div { row-gap: 3px !important; }   /* 0/0/0/0/2 */
+html[data-mix="vercel"] body .po-contenu:has(.po-acces) > section.carte-l18:has(> ul.planifier) ul.planifier > li { padding-bottom: 16px !important; }   /* 12 → 16 */
+html[data-mix="vercel"] body .po-contenu:has(.po-acces) > section.carte-l18:has(> ul.planifier) ul.planifier > li + li { padding-top: 16px !important; }   /* 12 → 16 */
+/* ==== fin ==== */
+
+/* ==== Accès : encore +50 % d'espace vertical (Steven, 27 nov. 2026 23:25) ==== */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(.po-acces) .tableau thead th { height: 67px; }   /* 50 → 67 (air 34 → 51) */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(.po-acces) .tableau tbody td { height: 62px; }   /* 54 → 62 (air 17 → 26) */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(.po-acces) table.tableau.po-acces { margin-bottom: 17px !important; }   /* 11 → 17 */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(.po-acces) span.cellule-doc { row-gap: 5px !important; }   /* 3 → 5 */
+/* ==== fin ==== */
+
+/* ==== Accès : +20 % d'espace vertical dans les rangées (Steven, 27 nov. 2026 23:26) ==== */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(.po-acces) .tableau tbody td { height: 66px; }   /* 62 → 66 (air autour du rôle 19 → 23) */
+html[data-mix="vercel"] body .po-contenu > section.studio-liste:has(.po-acces) span.cellule-doc { row-gap: 6px !important; }   /* 5 → 6 : nom → courriel, étiquette → portée */
+/* ==== fin ==== */
+
+/* ==== Profil › Confidentialité, « Vos droits sur vos renseignements » : tout aligné à gauche, +20 % d'espace vertical (Steven, 27 nov. 2026 23:29) ==== */
+html[data-mix="vercel"] body .po-contenu div:has(> .conf-choix) .conf-choix button { align-items: start; align-content: start; justify-items: start; padding-top: 19px; padding-bottom: 19px; row-gap: 5px; }   /* titres alignés en haut à gauche (« Corriger » descendait de 5 px); 16 → 19, 4 → 5 */
+html[data-mix="vercel"] body .po-contenu div:has(> .conf-choix) .conf-choix button > svg { align-self: center; }
+html[data-mix="vercel"] body .po-contenu div:has(> .conf-choix) .conf-choix { row-gap: 14px !important; }                                    /* 12 → 14 */
+html[data-mix="vercel"] body .po-contenu div:has(> .conf-choix) > h2.titre-carte { margin-bottom: 3px !important; }                          /* 2 → 3 */
+html[data-mix="vercel"] body .po-contenu div:has(> .conf-choix) > h2.titre-carte + p { margin-bottom: 19px !important; }                     /* 16 → 19 */
+html[data-mix="vercel"] body .po-contenu div:has(> .conf-choix) > h3.conf-sous { margin-top: 34px !important; margin-bottom: 10px !important; }   /* 28 / 8 → 34 / 10 */
+html[data-mix="vercel"] body .po-contenu div:has(> .conf-choix) > h3.conf-sous + p { margin-bottom: 10px !important; }                       /* 8 → 10 */
+html[data-mix="vercel"] body .po-contenu div:has(> .conf-choix) ul.planifier > li { padding-bottom: 14px !important; }                       /* 12 → 14 */
+html[data-mix="vercel"] body .po-contenu div:has(> .conf-choix) ul.planifier > li + li { padding-top: 14px !important; }                     /* 12 → 14 */
+html[data-mix="vercel"] body .po-contenu div:has(> .conf-choix) ul.planifier > li > div { row-gap: 3px !important; align-items: flex-start; justify-items: start; text-align: left; }   /* 2 → 3; plus rien de centré */
+html[data-mix="vercel"] body .po-contenu div:has(> .conf-choix) ul.planifier > li > div > .lien.ligne-ic { align-self: flex-start; justify-self: start; margin-top: 3px; }   /* « Télécharger ma copie » était centré */
+/* ==== fin ==== */
+
+/* ==== Occupation : les carrés des logements remplissent la carte, en grille presque carrée (Steven, 27 nov. 2026 23:38) ==== */
+html[data-mix="vercel"] body .po-parc { display: flex; flex-direction: column; margin: 16px 0 24px; }
+html[data-mix="vercel"] body .po-grille-haut > .carte-l18:nth-child(2) > .po-parc { flex: 1 1 auto; min-height: 120px; }
+html[data-mix="vercel"] body .po-parc > .dv-parc { flex: 1 1 auto; margin: 0; grid-template-rows: minmax(0, 1fr); }
+html[data-mix="vercel"] body .po-parc .dv-cells { display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); grid-auto-rows: minmax(36px, 1fr); gap: 4px; height: 100%; }
+html[data-mix="vercel"] body .po-parc .dv-cell { height: auto; border-radius: 3px; }
+html[data-mix="vercel"] body .po-parc + .dv-liste { margin-top: 0; }
+/* ==== fin ==== */

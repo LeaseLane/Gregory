@@ -8,6 +8,7 @@ import { initiales } from '@/lib/ventes';
 import { jourCourt, argentL } from '@/lib/format';
 import { useT } from '@/composants/Langue';
 import type { T } from '@/lib/i18n/langue';
+import { ProgressBar } from '@/composants/dataviz';
 const depuis = (iso: string, t: T, locale: string) => Date.now() - new Date(iso).getTime() < 365 * 864e5 ? t('depuis le {d}', { d: new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) }) : t('depuis {d}', { d: new Date(iso).getFullYear() });
 
 /* e19 · Propriétaires : décisions attendues d'abord; loyers payés chez eux ce mois-ci (suivis par Lease Lane; jamais « encaissés » ni « versés »);
@@ -64,13 +65,13 @@ export function Proprietaires({ donnees: D, filtres, maintenant, erreurLecture, 
             <ul className="lo-docs">{D.approbations.map((a) => { const total = a.echeance && a.recue ? (new Date(a.echeance).getTime() - new Date(a.recue).getTime()) / 864e5 : 0, fait = a.recue ? (new Date(maintenant).getTime() - new Date(a.recue).getTime()) / 864e5 : 0;
               return <li key={a.id}><span className="ini" style={{ width: 36, height: 36, fontSize: 12 }}>{initiales(a.proprietaire)}</span><div><span className="tete-action"><strong>{a.proprietaire}</strong><button className="lien" onClick={() => relancer(a)}>{t('Relancer')}</button></span>
                 <span className="gris texte-13">{a.quoi}</span>
-                {a.echeance ? <span className="ligne-ic gris texte-13"><span className="jauge" style={{ width: 72 }}><i style={{ width: `${Math.min(100, (100 * fait) / Math.max(1, total))}%` }} /></span>{t('Jour {j} sur {n} · réponse due le {d}', { j: Math.ceil(fait), n: Math.round(total), d: jour(a.echeance) })}</span>
+                {a.echeance ? <span className="ligne-ic gris texte-13"><ProgressBar value={Math.min(100, (100 * fait) / Math.max(1, total))} width={72} />{t('Jour {j} sur {n} · réponse due le {d}', { j: Math.ceil(fait), n: Math.round(total), d: jour(a.echeance) })}</span>
                   : a.demande_le && <span className="gris texte-13">{t('Demandée le {d}', { d: jour(a.demande_le) })}</span>}</div></li>; })}
               {!D.approbations.length && <li className="gris texte-13">{t('Aucune décision attendue.')}</li>}</ul>
             <p className="ligne-ic gris texte-12"><Icone nom="info" taille={14} couleur="#58697F" />{t('Au-delà du plafond du mandat, l’accord du propriétaire est requis.')}</p></section>
           <section className="carte-l18" aria-label={t('Relevés du mois')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Relevés de {mois}', { mois: moisLib })}</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>{t('Émis le 5 · portail et courriel')}</p>
             <p className="tete-action" style={{ margin: 0 }}><span><b style={{ fontSize: 24 }}>{D.releves.emis}</b> <span className="gris">{t('émis sur {n}', { n: D.releves.attendus })}</span></span>{!!D.releves.a_verifier.length && <b>{t('{n} à vérifier', { n: D.releves.a_verifier.length })}</b>}</p>
-            <span className="jauge large" style={{ margin: '12px 0' }}><i style={{ width: `${(100 * D.releves.emis) / Math.max(1, D.releves.attendus)}%` }} /></span>
+            <ProgressBar value={(100 * D.releves.emis) / Math.max(1, D.releves.attendus)} size="md" style={{ margin: '12px 0' }} />
             <ul className="lo-docs">{D.releves.a_verifier.slice(0, 3).map((r) => <li key={r.owner_id}><span className="a-faire-ic"><Icone nom="receipt" taille={18} couleur="#0C2147" /></span><div><strong>{r.proprietaire}</strong><span className="gris texte-13">{r.raison}</span></div></li>)}</ul>
             <Link className="bouton bouton-contour" href={`/finances/releves?m=${D.releves.mois.slice(0, 7)}`}><Icone nom="check" taille={16} couleur="#0C2147" />{t('Vérifier les relevés')}</Link></section>
         </div>

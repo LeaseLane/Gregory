@@ -31,7 +31,7 @@ export function LogementTiroir({ buildingId, adresse, logement, fermer, fait, ph
         <header className="tiroir-tete"><h2 id="lg-t">{logement?.id ? t('Logement {n}', { n: logement.numero }) : t('Ajouter un logement')}</h2><button type="button" className="haut-ibtn" onClick={fermer} aria-label={t('Fermer')}><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
         <div className="tiroir-corps">
           {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
-          {logement?.id && <div className="tete-action" style={{ padding: '12px 14px', border: '1px solid #DCE3EC', borderRadius: 12, marginBottom: 16 }}>
+          {logement?.id && <div className="tete-action" style={{ padding: '12px 14px', border: '1px solid #DCE3EC', borderRadius: 6, marginBottom: 16 }}>
             <span className="texte-13">{logement.tenant_id ? <>{t('Loué à')} <strong>{logement.locataire}</strong></> : <span className="gris">{t('Aucun locataire')}</span>}</span>
             <button type="button" className="bouton bouton-contour" style={{ width: 'auto', height: 36, padding: '0 14px', fontSize: 13 }}
               onClick={() => setBail(logement.tenant_id ? { mode: 'changer', unitId: logement.id!, libelle, ancien: logement.locataire ?? t('Le locataire'), loyer: logement.loyer }

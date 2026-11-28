@@ -37,7 +37,7 @@ const ACTIONS: Record<string, (onglet: string, ecrit: (droit: string) => boolean
   'Maintenance': (_, e, t) => <><BoutonExporter nom="maintenance" />{lien(t, '/maintenance/bons?nouveau=1', 'Nouveau bon de travail', 'plus', true, e('maintenance.ecrire'))}</>,
   'Finances': () => <BoutonExporter nom="finances" />,
   'Studio': (onglet, e, t) => onglet === 'Campagnes' ? lien(t, '/studio/campagnes?nouvelle=1', 'Nouvelle campagne', 'plus', true, e('studio.ecrire')) : null, // le bouton d'une autre page (Nouvel article…) vient de la page
-  'Rapports et réglages': () => <BoutonExporter nom="rapports" />,
+  'Réglages': () => <BoutonExporter nom="rapports" />,
 };
 
 /* Droit d'écriture d'un espace : sans lui, les boutons qu'une page fournit (Nouveau client, Déposer un document, Ajouter un immeuble…)
@@ -116,7 +116,7 @@ export async function CadreEspace({ icone, nom, sous, onglets, actif, actions, c
       {refusee ? (
         <section className="carte-vide" role="status" style={{ marginTop: 24 }}>
           <h2 className="titre-carte" style={{ margin: 0 }}>{t('Cette page ne fait pas partie de votre rôle')}</h2>
-          <p className="gris" style={{ margin: 0 }}>{t('Votre rôle ({role}) ne donne pas accès à cette page. Un administrateur peut changer votre rôle dans Rapports et réglages › Équipe et permissions.', { role: t(ROLES[droits.role] ?? droits.role) })}</p>
+          <p className="gris" style={{ margin: 0 }}>{t('Votre rôle ({role}) ne donne pas accès à cette page. Un administrateur peut changer votre rôle dans Réglages › Équipe et permissions.', { role: t(ROLES[droits.role] ?? droits.role) })}</p>
         </section>
       ) : children}
     </main>

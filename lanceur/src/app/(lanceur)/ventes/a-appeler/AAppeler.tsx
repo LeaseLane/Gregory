@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { useT } from '@/composants/Langue';
+import { ProgressBar } from '@/composants/dataviz';
 
 /* File d'appels : à gauche les 30 prochains (le meilleur d'abord), au centre la fiche du propriétaire et pourquoi l'appeler,
    à droite le guide d'appel (3 questions), les notes et l'issue. Après l'issue, le suivant s'ouvre. */
@@ -42,11 +43,11 @@ export function AAppeler({ ville, donnees: D, erreurLecture }: { ville: string; 
           <header className="tete-action"><div><h2 className="titre-carte" style={{ margin: 0 }}>{t('À appeler')}</h2>
             <p className="gris texte-13" style={{ margin: '4px 0 0' }}>{t(D.file.length > 1 ? '{n} propriétaires prêts' : '{n} propriétaire prêt', { n: D.file.length })}</p></div></header>
           <p className="texte-13" style={{ margin: '12px 0 4px' }}><b>{D.du_jour.appels}</b> / {t('{n} appels aujourd’hui · {joints} joints · {interesses} intéressés', { n: D.objectif, joints: D.du_jour.joints, interesses: D.du_jour.interesses })}</p>
-          <span className="jauge large"><i style={{ width: `${pct}%` }} /></span>
+          <ProgressBar value={pct} size="md" />
           <select className="e70-raison" style={{ margin: '12px 0' }} value={ville} onChange={(e) => router.push(`/ventes/a-appeler${e.target.value ? `?ville=${encodeURIComponent(e.target.value)}` : ''}`)} aria-label={t('Ville')}>
             <option value="">{t('Toutes les villes')}</option>{(D.villes ?? []).map((v) => <option key={v}>{v}</option>)}</select>
           <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>{D.file.map((f, k) => <li key={f.cle}>
-            <button onClick={() => { setChoix(k); setMode(''); }} style={{ width: '100%', textAlign: 'left', padding: '10px 12px', borderRadius: 10, border: 0, cursor: 'pointer', font: 'inherit',
+            <button onClick={() => { setChoix(k); setMode(''); }} style={{ width: '100%', textAlign: 'left', padding: '10px 12px', borderRadius: 5, border: 0, cursor: 'pointer', font: 'inherit',
               background: k === choix ? '#ECF2F9' : 'transparent', borderLeft: k === choix ? '3px solid #4581CB' : '3px solid transparent' }}>
               <strong style={{ display: 'block', color: '#0C2147' }}>{f.nom}</strong>
               <span className="gris texte-13">{t('{n} log.', { n: f.logements })} · {f.villes}{f.derniere_issue === 'rappeler' ? ` · ${t('rappel')}` : f.tentatives ? ` · ${t(f.tentatives > 1 ? '{n} essais' : '{n} essai', { n: f.tentatives })}` : ''}</span>

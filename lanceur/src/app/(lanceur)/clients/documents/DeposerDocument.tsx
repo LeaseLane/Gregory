@@ -66,7 +66,7 @@ export function DeposerDocument() {
             {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
             <div role="button" tabIndex={0} aria-label={t('Glisser les fichiers ici ou choisir')} onClick={() => champ.current?.click()} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && champ.current?.click()}
               onDragOver={(e) => { e.preventDefault(); setSurvol(true); }} onDragLeave={() => setSurvol(false)} onDrop={(e) => { e.preventDefault(); setSurvol(false); ajouter(e.dataTransfer.files); }}
-              style={{ border: `2px dashed ${survol ? '#2E5788' : '#C8CDD4'}`, background: survol ? '#EEF4FB' : '#F7F9FC', borderRadius: 12, padding: '28px 16px', textAlign: 'center', cursor: 'pointer' }}>
+              style={{ border: `2px dashed ${survol ? '#2E5788' : '#C8CDD4'}`, background: survol ? '#EEF4FB' : '#F7F9FC', borderRadius: 6, padding: '28px 16px', textAlign: 'center', cursor: 'pointer' }}>
               <Icone nom="upload" taille={24} couleur="#2E5788" /><p style={{ margin: '8px 0 0' }}><strong>{t('Glissez les fichiers ici')}</strong> {t('ou cliquez pour choisir')}</p>
               <input ref={champ} type="file" multiple hidden accept="application/pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => { ajouter(e.target.files); e.target.value = ''; }} /></div>
             {fichiers.map((x, k) => <div key={k} style={{ display: 'grid', gridTemplateColumns: '1fr 150px auto', gap: 8, alignItems: 'end', marginTop: 12 }}>
@@ -76,12 +76,12 @@ export function DeposerDocument() {
                 {TYPES.map(([v, l]) => <option key={v} value={v}>{t(l)}</option>)}</select>
               <button type="button" className="haut-ibtn" aria-label={t('Retirer {nom}', { nom: x.f.name })} onClick={() => setFichiers(fichiers.filter((_, j) => j !== k))}><Icone nom="close" taille={16} couleur="#3E4A59" /></button></div>)}
             <p className="fenetre-lib" style={{ marginTop: 20 }}>{t('Pour qui')}</p>
-            {cible ? <div className="tete-action" style={{ border: '1px solid #C8DAF0', borderRadius: 10, padding: '10px 12px' }}>
+            {cible ? <div className="tete-action" style={{ border: '1px solid #C8DAF0', borderRadius: 5, padding: '10px 12px' }}>
                 <div><strong>{cible.libelle}</strong><span className="gris texte-13" style={{ display: 'block' }}>{t(QUI[cible.cible])}{cible.sous ? ` · ${cible.sous}` : ''}</span></div>
                 <button type="button" className="lien" onClick={() => { setCible(null); setQ(''); }}>{t('Changer')}</button></div>
               : <>
                 <input className="e70-raison" placeholder={t('Nom du propriétaire, du locataire ou adresse de l’immeuble')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('Chercher le client')} />
-                {resultats.length > 0 && <ul role="listbox" aria-label={t('Clients trouvés')} style={{ listStyle: 'none', margin: '6px 0 0', padding: 0, border: '1px solid #E4E8EF', borderRadius: 10 }}>
+                {resultats.length > 0 && <ul role="listbox" aria-label={t('Clients trouvés')} style={{ listStyle: 'none', margin: '6px 0 0', padding: 0, border: '1px solid #E4E8EF', borderRadius: 5 }}>
                   {resultats.map((r) => <li key={`${r.cible}:${r.id}`}><button type="button" role="option" aria-selected={false} onClick={() => setCible(r)} style={{ width: '100%', textAlign: 'left', background: 'none', border: 0, padding: '10px 12px', cursor: 'pointer' }}>
                     <strong>{r.libelle}</strong><span className="gris texte-13"> · {t(QUI[r.cible])}{r.sous ? ` · ${r.sous}` : ''}</span></button></li>)}</ul>}
                 {q.trim().length >= 2 && !resultats.length && <p className="gris texte-13" style={{ marginTop: 6 }}>{t('Aucun client trouvé.')}</p>}

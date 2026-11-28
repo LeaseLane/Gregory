@@ -39,7 +39,7 @@ export default async function Page() {
       <td><span className="ligne-ic"><span className="dispo-jours" aria-hidden="true">{x.jours.map((j, k) => <i key={k} className={j === null ? '' : j ? 'ok' : 'ko'} />)}</span><b>{x.dispo !== null ? pc(x.dispo, locale) : '—'}</b></span></td>
       <td className={'droite' + (x.ms !== null && x.ms > x.cible ? ' rouge-txt fort' : '')}>{s(x.ms, t, locale)}</td><td className="droite gris">{x.source === 'aucune' ? '—' : depuis(x.derniere, t)}</td></tr>; })}</tbody></>;
   return (
-    <CadreEspace icone="chart" nom="Rapports et réglages" sous={SOUS_REG} actif={6} onglets={ONGLETS_REG}>
+    <CadreEspace icone="chart" nom="Réglages" sous={SOUS_REG} actif={6} onglets={ONGLETS_REG}>
       {!X ? <div className="bandeau erreur" role="alert">{error?.code === 'PT403' ? t(error.message) : t('La supervision n’a pas pu être lue.')}</div> : <>
         <div className="kpis graphe-droite" style={{ marginBottom: 24 }}>
           <div className="kpi"><span>{t('Disponibilité 30 jours')}</span><b>{dispo !== null ? pc(Math.round(dispo * 100) / 100, locale) : '—'}</b><span>{t('moyenne des {n} services mesurés', { n: mesures.length })}</span></div>

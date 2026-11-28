@@ -44,7 +44,7 @@ export function MonCompte({ donnees: D, sessions, erreurLecture }: { donnees: Do
   return (
     <>
       <nav className="sous-onglets" aria-label={t('Mon compte')} style={{ margin: '0 0 24px' }}>{[['profil', t('Mon profil')], ['preferences', t('Préférences et avis')], ['securite', t('Sécurité et connexion')], ['aide', t('Aide')]].map(([k, l]) =>
-        <button key={k} className={`lien ${onglet === k ? 'actif' : ''}`} style={{ padding: '8px 14px', borderRadius: 8, background: onglet === k ? '#EEF4FB' : 'none', textDecoration: 'none', fontWeight: onglet === k ? 600 : 400 }} onClick={() => setOnglet(k)} aria-current={onglet === k ? 'page' : undefined}>{l}</button>)}</nav>
+        <button key={k} className={`lien ${onglet === k ? 'actif' : ''}`} style={{ padding: '8px 14px', borderRadius: 4, background: onglet === k ? '#EEF4FB' : 'none', textDecoration: 'none', fontWeight: onglet === k ? 600 : 400 }} onClick={() => setOnglet(k)} aria-current={onglet === k ? 'page' : undefined}>{l}</button>)}</nav>
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
       {ok && <div className="bandeau info" role="status">{ok}</div>}
       {onglet === 'profil' && <form className="carte-l18" style={{ maxWidth: 720 }} onSubmit={(e) => { e.preventDefault(); rpc('lanceur_mon_compte_maj', f, t('Profil enregistré.')); }}>

@@ -9,6 +9,7 @@ import { initiales } from '@/lib/ventes';
 import { argent as argentBase, jour as jourBase } from '../onglets';
 import { useT } from '@/composants/Langue';
 import { adresse } from '@/lib/format';
+import { ProgressBar } from '@/composants/dataviz';
 
 /* e40 · Facturation et PAD : la date du prochain prélèvement d'abord; l'échec en rouge (seule urgence de la page); mandats = jauge; factures = micro-courbe 12 mois.
    Les prélèvements passent par Optimal Paiement, pas encore branché : rien ne part d'ici. Les factures d'honoraires (PORT-) se marquent payées à la main. */
@@ -35,7 +36,7 @@ export function Facturation({ donnees: D, erreurLecture }: { donnees: DonneesFac
       <div className="bandeau info" role="status" style={{ marginBottom: 16 }}>{t('Optimal Paiement {etat} : les prélèvements ci-dessous sont planifiés, aucun ne part tant que le processeur n’est pas branché.', { etat: t(D.branchements.optimal) })}</div>
       <div className="kpis" style={{ marginBottom: 24 }}>
         <div className="kpi"><span>{t('Prochain prélèvement')}</span><b>{I.prochain.le ? jour(I.prochain.le) : '—'}</b><span>{I.prochain.n > 1 ? t('{n} loyers', { n: I.prochain.n }) : t('{n} loyer', { n: I.prochain.n })} · {argent(I.prochain.montant)}</span></div>
-        <div className="kpi"><span>{t('Mandats PAD actifs')}</span><b>{I.mandats}</b><span>{t('sur {n} baux · {pct} %', { n: I.baux, pct: I.baux ? Math.round((100 * I.mandats) / I.baux) : 0 })}</span><span className="jauge"><i style={{ width: `${I.baux ? (100 * I.mandats) / I.baux : 0}%` }} /></span></div>
+        <div className="kpi"><span>{t('Mandats PAD actifs')}</span><b>{I.mandats}</b><span>{t('sur {n} baux · {pct} %', { n: I.baux, pct: I.baux ? Math.round((100 * I.mandats) / I.baux) : 0 })}</span><ProgressBar value={I.baux ? (100 * I.mandats) / I.baux : 0} /></div>
         <div className="kpi"><span>{t('Factures d’honoraires du mois')}</span><b>{argent(I.factures.total)}</b><span>{I.factures.n > 1 ? t('{n} factures', { n: I.factures.n }) : t('{n} facture', { n: I.factures.n })} · {t('émises le 5')}</span><Courbe valeurs={I.factures_serie.map(Number)} /></div>
         <div className="kpi"><span>{t('Échecs de prélèvement')}</span><b style={e ? { color: '#9B2E28' } : undefined}>{I.echecs.length}</b><span>{e ? `${e.locataire} · ${argent(e.montant)}` : t('Aucun')}</span></div>
       </div>

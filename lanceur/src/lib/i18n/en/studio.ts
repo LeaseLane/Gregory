@@ -545,7 +545,7 @@ const dico: Record<string, string> = {
   "Après approbation": "After approval",
   "Manuel": "Manual",
   "Ajout à la séquence, après révision humaine": "Added to the sequence, after human review",
-  "Amélioration livrée (Rapports et réglages › Améliorations)": "Improvement delivered (Reports and settings › Improvements)",
+  "Amélioration livrée (Réglages › Améliorations)": "Improvement delivered (Settings › Improvements)",
   "Annonce publiée (Mise en marché)": "Listing published (Marketing)",
   "Assurance qui expire dans 21 jours": "Insurance expiring in 21 days",
   "Avenant proposé (Clients › Portée du mandat)": "Amendment proposed (Clients › Mandate scope)",

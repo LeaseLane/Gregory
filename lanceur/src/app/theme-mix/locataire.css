@@ -1,0 +1,723 @@
+/* ==========================================================================================================================
+   « Mix Vercel » — PORTAIL LOCATAIRE (menu, bande d'en-tête, écrans). Vient APRÈS base.css. Tout est sous html[data-mix="vercel"].
+   Direction 50 % Vercel / 50 % Lease Lane (SPEC.md, révision du 2026-11-27). Vercel : structure du menu (icône + libellé en rangée, 240 px), écrans, composants, tableaux,
+   champs, filets. Lease Lane : menu et barre du bas marine plats, bande d'en-tête marine plate (rayon 12), titres en Poppins 600, logo, Cléo.
+   ========================================================================================================================== */
+
+/* ---- 1. Mise en page : le menu flottant fait 240 px (jamais moins de 106 px, largeur d'« Actuel »); marges, gaps et défilement restent ceux de l'app ---- */
+html[data-mix="vercel"] .lo { grid-template-columns: 192px minmax(0, 1fr);  /* 240 → 192 px : menu 20 % plus étroit (Steven) */ background: var(--mix-bg); }
+html[data-mix="vercel"] .lo-droite { grid-template-columns: minmax(0, 1fr) 192px; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) { grid-template-columns: minmax(0, 1fr); }
+html[data-mix="vercel"] .lo-remonte { margin-top: 0; }   /* plus de cartes qui chevauchent la bande : elles commencent 24 px dessous (16 px au téléphone) */
+
+/* ---- 2. Menu (rail) : marine uni et flottant (rayon 12), structure Vercel (icône 18 + libellé en rangée); éléments #DCE7F5, survol blanc 8 %, actif blanc 12 % + texte blanc 500 + trait #91B5E0 de 2 px; pastilles blanc sur #3767A2 ---- */
+html[data-mix="vercel"] .lo-rail { align-items: stretch; gap: 2px; padding: 16px 12px 12px; border-radius: var(--mix-radius-card); background: var(--mix-marine); color: var(--mix-rail-text); box-shadow: none; }
+html[data-mix="vercel"] .lo-logo { width: 132px; height: 40px; margin: 4px 0 20px 10px; align-self: flex-start; object-fit: none; object-position: -9999px 0;
+  background: url(/img/logo-sur-marine.svg) left center / contain no-repeat; }  /* le fichier d'origine (icône blanche) sort du cadre; le logo complet blanc sur marine le remplace (l'alt reste) */
+html[data-mix="vercel"] :is(.lo-rail > a, .lo-rail > .lo-cleo, .lo-rail > .lo-profil, .lo-rail .lo-sortir) {
+  display: flex; flex-direction: row; align-items: center; justify-content: flex-start; justify-items: initial; gap: 12px; width: 100%; height: 36px; padding: 0 10px; border-radius: var(--mix-radius-control);
+  font-size: 14px; line-height: 20px; font-weight: 520; letter-spacing: 0; color: var(--mix-rail-text);  /* texte du menu 30 % plus épais (400 → 520, actif 500 → 650; Steven) */ text-align: left; background: transparent; box-shadow: none; margin: 0; }
+html[data-mix="vercel"] .lo-rail > a > span:last-child, html[data-mix="vercel"] .lo-rail .lo-sortir span, html[data-mix="vercel"] .lo-rail > .lo-cleo > span:last-child { flex: 1; font-size: 14px; white-space: nowrap; }
+@media (hover: hover) { html[data-mix="vercel"] :is(.lo-rail > a, .lo-rail > .lo-cleo, .lo-rail > .lo-profil, .lo-rail .lo-sortir):hover { background: var(--mix-rail-hover); color: #fff; } }
+html[data-mix="vercel"] :is(.lo-rail > a.actif, .lo-rail > .lo-cleo.actif, .lo-rail > .lo-profil.actif) { background: var(--mix-rail-active); color: #fff; font-weight: 650; box-shadow: none; }
+html[data-mix="vercel"] .lo-rail > a.actif::before { left: -12px; top: 6px; bottom: 6px; width: 2px; border-radius: 0 1px 1px 0; background: var(--mix-rail-indicator); }
+html[data-mix="vercel"] .lo-ic { position: static; }
+html[data-mix="vercel"] .lo-ic svg { width: 18px; height: 18px; }
+html[data-mix="vercel"] .lo-ic b { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); min-width: 20px; height: 20px; padding: 0 6px; border: 0; border-radius: var(--mix-radius-pill); background: var(--mix-badge); color: #fff; font-size: 12px; font-weight: 600; line-height: 20px; display: grid; place-items: center; }
+html[data-mix="vercel"] .lo-sep { margin: auto 0 8px; width: 100%; height: 1px; background: rgba(255, 255, 255, .14); }
+html[data-mix="vercel"] .po-cleo-av img { width: 22px; height: 22px; }
+html[data-mix="vercel"] .po-cleo-av i { width: 8px; height: 8px; right: -3px; top: -3px; border: 2px solid var(--mix-marine); background: var(--mix-success-light); }
+html[data-mix="vercel"] :is(.lo-rail > .lo-cleo, .lo-rail > .lo-profil) { padding-left: 8px; gap: 10px; }  /* avatar de 22 px : le libellé retombe à la même colonne (40 px) que les autres */
+html[data-mix="vercel"] .lo-rail .lo-sortir:not(:has(svg)) { padding-left: 40px; }
+html[data-mix="vercel"] .lo-profil b { width: 22px; height: 22px; background: rgba(255, 255, 255, .16); color: #fff; font-size: 11px; font-weight: 600; }
+html[data-mix="vercel"] .lo-profil.actif b { background: #fff; color: var(--mix-marine); }
+html[data-mix="vercel"] .lo-sortir svg { width: 18px; height: 18px; }
+html[data-mix="vercel"] .lo-sortir-f { width: 100%; }
+/* Autres positions du menu (Profil › Affichage) : barre horizontale marine, en haut ou en bas */
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail { justify-content: flex-start; align-items: center; flex-wrap: nowrap; gap: 2px; padding: 8px 16px; overflow-x: auto; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail > :is(a, .lo-cleo, .lo-profil, .lo-sortir) { width: auto; flex: none; padding: 0 8px; gap: 8px; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail > :is(.lo-profil, .lo-cleo) { padding-left: 6px; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail .lo-sortir:not(:has(svg)) { padding-left: 8px; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail > a.actif::before { display: none; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-logo { width: 110px; height: 32px; margin: 0 16px 0 0; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-sep { width: 1px; height: 24px; margin: 0 8px; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-ic { display: flex; align-items: center; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-ic b { position: static; transform: none; margin-left: 6px; }
+/* Foyer de focus sur les surfaces marine : #91B5E0 (le bleu de focus ne tient que 2,7:1 sur le marine) */
+html[data-mix="vercel"] :is(.lo-rail, .lo-bandeau) :focus-visible { outline-color: var(--mix-rail-indicator); }
+html[data-mix="vercel"] .lo-bandeau .cloche-panneau :focus-visible { outline-color: var(--mix-focus); }
+html[data-mix="vercel"] .lo-bandeau .lo-cherche:has(input:focus-visible) { outline-color: var(--mix-rail-indicator); }
+
+/* ---- 3. Bande d'en-tête : marine uni (rayon 12, ni dégradé ni lueur), titre blanc en Poppins 600, commandes à anneau blanc 16 % ---- */
+html[data-mix="vercel"] .lo-bandeau { background: var(--mix-marine); color: #fff; padding: 24px 28px; border-radius: var(--mix-radius-card); box-shadow: none; overflow: visible; }  /* visible : le panneau de la cloche n'est plus coupé par la bande */
+html[data-mix="vercel"] .lo-bandeau-haut { align-items: flex-start; gap: 24px; }
+html[data-mix="vercel"] .lo-bandeau h1 { color: #fff; font-size: 28px; line-height: 1.2; }
+html[data-mix="vercel"] .lo-bandeau:has(.surtitre) h1 { font-size: 30px; }  /* la salutation de l'accueil */
+html[data-mix="vercel"] .lo-resume { color: var(--mix-on-marine-2); margin: 8px 0 0; font-size: 14px; line-height: 20px; }
+html[data-mix="vercel"] .lo-bandeau .surtitre { color: var(--mix-on-marine-2); margin: 0 0 4px; }
+html[data-mix="vercel"] .lo-retour { color: #fff; font-weight: 500; font-size: 13px; margin-bottom: 8px; }
+html[data-mix="vercel"] .lo-bandeau-actions { gap: 8px; align-items: center; }
+html[data-mix="vercel"] .lo-urgence { height: var(--mix-control-h); padding: 0 12px; border-radius: var(--mix-radius-control); background: var(--mix-error-bg); color: var(--mix-error); font-size: 14px; font-weight: 500; box-shadow: 0 0 0 1px rgba(155, 46, 40, .16); }
+@media (hover: hover) { html[data-mix="vercel"] .lo-urgence:hover { box-shadow: 0 0 0 1px rgba(155, 46, 40, .32); } }
+html[data-mix="vercel"] .lo-cherche { height: var(--mix-control-h); border: 0; border-radius: var(--mix-radius-control); background: rgba(255, 255, 255, .06); box-shadow: 0 0 0 1px rgba(255, 255, 255, .16); color: var(--mix-on-marine-2); }
+@media (hover: hover) { html[data-mix="vercel"] .lo-cherche:hover { background: rgba(255, 255, 255, .09); box-shadow: 0 0 0 1px rgba(255, 255, 255, .28); } }
+html[data-mix="vercel"] .lo-cherche:focus-within { border: 0; box-shadow: 0 0 0 1px rgba(255, 255, 255, .5); }
+html[data-mix="vercel"] .lo-cherche svg { stroke: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .lo-cherche input { color: #fff; outline: none; }
+html[data-mix="vercel"] .lo-cherche input::placeholder { color: var(--mix-on-marine-2); opacity: 1; }
+html[data-mix="vercel"] .lo-cloche { width: var(--mix-control-h); height: var(--mix-control-h); border: 0; border-radius: var(--mix-radius-control); background: rgba(255, 255, 255, .06); box-shadow: 0 0 0 1px rgba(255, 255, 255, .16); cursor: pointer; }
+@media (hover: hover) { html[data-mix="vercel"] .lo-cloche:hover { background: rgba(255, 255, 255, .09); box-shadow: 0 0 0 1px rgba(255, 255, 255, .28); } }
+html[data-mix="vercel"] .lo-bandeau .pastille-bleue { background: var(--mix-rail-indicator); box-shadow: 0 0 0 2px var(--mix-marine); right: 7px; top: 7px; }
+html[data-mix="vercel"] .pastille-rouge { background: var(--mix-error); box-shadow: 0 0 0 1.5px var(--mix-surface); }
+html[data-mix="vercel"] .lo-bandeau .cloche-panneau { color: var(--mix-text); top: 44px; }
+html[data-mix="vercel"] .lo-bandeau:not(.court) { margin-bottom: 16px; }  /* l'accueil garde un peu plus d'air sous la salutation (+40 % : ~64 px au lieu de 48 px entre le texte et les cartes) */
+
+/* ---- 4. Menu « Plus » du téléphone : popover blanc ---- */
+html[data-mix="vercel"] .lo-plus { border-radius: var(--mix-radius-popover); box-shadow: var(--mix-shadow-popover); background: var(--mix-surface); }
+html[data-mix="vercel"] :is(.lo-plus a, .lo-plus button) { font-weight: 500; font-size: 14px; border-radius: var(--mix-radius-control); color: var(--mix-text); }
+html[data-mix="vercel"] .lo-plus a.actif { background: var(--mix-surface-2); font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .lo-plus b { background: var(--mix-badge); color: #fff; font-weight: 600; border-radius: var(--mix-radius-pill); }
+html[data-mix="vercel"] .lo-plus-fond { background: var(--mix-overlay); }
+html[data-mix="vercel"] .lo-plus-bouton { color: var(--mix-rail-text); font-weight: 520; border-radius: var(--mix-radius-control); }
+
+/* ---- 5. Écrans : cartes, listes, champs ---- */
+@media (hover: hover) { html[data-mix="vercel"] .lo-raccourci:hover { border-color: transparent; box-shadow: 0 0 0 1px var(--mix-border-strong), 0 2px 2px rgba(0, 0, 0, .04), 0 8px 8px -8px rgba(0, 0, 0, .04); } }
+html[data-mix="vercel"] .lo-fiche { overflow: hidden; }
+html[data-mix="vercel"] .lo-fiche-photo { background: var(--mix-surface-2); }
+html[data-mix="vercel"] .lo-fiche-photo .puce { box-shadow: var(--mix-ring); }
+html[data-mix="vercel"] :is(.lo-mode, .lo-mode-choix, .lo-recents button, .lo-positions button, .conf-choix button, .lo-cal-grille, .lo-verrou) { border-color: transparent; border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring); background: var(--mix-surface); }
+@media (hover: hover) { html[data-mix="vercel"] :is(.lo-recents button, .lo-mode-choix, .conf-choix button, .lo-positions button):hover { box-shadow: var(--mix-ring-hover); background: var(--mix-bg); } }
+html[data-mix="vercel"] :is(.lo-mode-choix.actuel, .lo-positions button.actif) { border-color: var(--mix-marine); box-shadow: none; background: var(--mix-surface); }
+html[data-mix="vercel"] :is(.lo-desc, .lo-recu-note, .lo-dpa, .lo-verrou) { background: var(--mix-bg); box-shadow: var(--mix-ring); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] :is(.lo-interv, .lo-delai) { background: var(--mix-tint); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] :is(.lo-puces span, .lo-vignettes button, .lo-mini) { background: var(--mix-surface-2); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .lo-vignettes button { box-shadow: var(--mix-ring); }
+html[data-mix="vercel"] .lo-mini .rail { background: var(--mix-marine); }
+html[data-mix="vercel"] .lo-mini .tete { background: var(--mix-marine-hover); }
+html[data-mix="vercel"] .lo-recu { border-radius: var(--mix-radius-popover); }
+html[data-mix="vercel"] .lo-recu-table thead th { background: var(--mix-bg); }
+html[data-mix="vercel"] :is(.lo-docs li, .lo-lignes div, .lo-items li + li, .lo-faq li, .lo-detail-bas > div + div, .lo-msg-saisie, .lo-apercu-delai, .lo-espace, .lo-sep-h, .lo-grille-avis th, .lo-grille-avis td, .lo-recu-parties, .lo-carte-points, .lo-histo tr, .lo-fichiers-table tr, .lo-cal-case) { border-color: var(--mix-border); }
+html[data-mix="vercel"] .lo-cal-grille { box-shadow: var(--mix-ring); }
+
+/* Textes de l'espace locataire */
+html[data-mix="vercel"] :is(.lo-items-tete, .lo-suivi span, .lo-dossiers button small, .lo-espace p, .lo-carte-etat, .lo-grille-avis td span, .lo-apercu-delai, .conf-choix span, .lo-urgences button span) { color: var(--mix-text-3); }
+html[data-mix="vercel"] :is(.lo-lignes dt, .lo-faq p, .lo-carte-points li, .lo-bail-dates, .lo-montant span, .lo-kpi > small, .lo-etapes strong, .lo-recu-note, .lo-dpa) { color: var(--mix-text-2); }
+html[data-mix="vercel"] .lo-fil .lo-fil-texte, html[data-mix="vercel"] .lo-histo td:nth-child(2), html[data-mix="vercel"] .lo-fichiers-table td:nth-child(2), html[data-mix="vercel"] .lo-fichiers-table td:nth-child(5) { color: var(--mix-text-2); }
+/* Dates et méta : Geist, pas de monospace (Steven, 27 nov. 2026 : « je veux pas cette typographie » sur les dates du bail). */
+html[data-mix="vercel"] :is(.lo-items-tete > small, .lo-bail-dates, .lo-suivi small, .lo-cal-jour, .lo-dossiers button small) { font-family: var(--mix-font-ui); font-size: 12px; font-weight: 500; line-height: 16px; font-feature-settings: "tnum" 1; }
+html[data-mix="vercel"] .lo-cal-jour { letter-spacing: var(--mix-track-mono); text-transform: uppercase; color: var(--mix-text-3); }
+html[data-mix="vercel"] .lo-items-tete { align-items: baseline; gap: 8px; }
+html[data-mix="vercel"] .lo-items-tete > strong { font-size: 14px; color: var(--mix-text); }
+html[data-mix="vercel"] .lo-items-tete > small { white-space: nowrap; flex: none; }
+html[data-mix="vercel"] .lo-items strong.normal { font-weight: 500; }
+html[data-mix="vercel"] .lo-suivi small { color: var(--mix-text-2); }
+html[data-mix="vercel"] .lo-bandeau-resume { color: var(--mix-text-2); }
+html[data-mix="vercel"] :is(.lo-kpi > b, .lo-montant b, .lo-carte-resume b) { color: var(--mix-text); font-size: 32px; font-weight: 600; letter-spacing: var(--mix-track-hero); line-height: 36px; font-feature-settings: "liga" 1, "tnum" 1; font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .lo-recu-total { color: var(--mix-text); font-weight: 600; letter-spacing: var(--mix-track-section); font-feature-settings: "liga" 1, "tnum" 1; }
+html[data-mix="vercel"] :is(.lo-lignes dd, .lo-histo td, .lo-fichiers-table td, .lo-venir li) { font-feature-settings: "liga" 1, "tnum" 1; }
+html[data-mix="vercel"] :is(.lo-action strong, .lo-raccourci strong, .a-faire strong, .lo-interv strong) { color: var(--mix-text); font-weight: 600; letter-spacing: 0; }
+
+/* Tableaux de l'espace (historique, fichiers, reçu) : même métier que .tableau */
+html[data-mix="vercel"] :is(.lo-grille-avis th, .lo-histo thead th, .lo-fichiers-table thead th, .lo-recu-table thead th) { background: transparent; color: var(--mix-text-3); font-family: var(--mix-font-mono); font-size: 12px; font-weight: 500; letter-spacing: var(--mix-track-mono); text-transform: uppercase; }
+html[data-mix="vercel"] .lo-recu-table thead th { background: var(--mix-bg); }
+html[data-mix="vercel"] :is(.lo-histo, .lo-fichiers-table) td:first-child { color: var(--mix-text); font-weight: 500; }
+html[data-mix="vercel"] .lo-nom { font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] :is(.lo-histo, .lo-fichiers-table) :is(th, td):first-child { padding-left: 0; }  /* colonne alignée sur le titre de la carte; « Septembre 2026 » ne se coupe plus */
+/* Tableau des fichiers : colonnes rééquilibrées pour la page plus étroite (le menu fait 240 px). !important voulu : les largeurs sont posées en style en ligne par Documents.tsx. */
+html[data-mix="vercel"] .lo-fichiers-table col:nth-child(1) { width: 31% !important; }
+html[data-mix="vercel"] .lo-fichiers-table col:nth-child(2) { width: 15% !important; }
+html[data-mix="vercel"] .lo-fichiers-table col:nth-child(3) { width: 22% !important; }
+html[data-mix="vercel"] .lo-fichiers-table col:nth-child(4) { width: 15% !important; }
+html[data-mix="vercel"] .lo-fichiers-table :is(th, td):last-child { padding-right: 0; }
+@media (min-width: 761px) {  /* noms de fichier trop longs : « … » au lieu de passer sous la colonne voisine (sur téléphone la ligne se replie déjà) */
+  html[data-mix="vercel"] .lo-fichiers-table td:first-child .lo-nom { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  html[data-mix="vercel"] .lo-fichiers-table td:first-child .lo-nom svg { display: inline-block; margin-right: 8px; vertical-align: -3px; }
+}
+html[data-mix="vercel"] .po-onglets .lo-sortir { display: inline-flex; flex-direction: row; align-items: center; width: auto; gap: 6px; padding: 0 8px; min-height: var(--mix-control-h); white-space: nowrap; color: var(--mix-link); font-weight: 500; }
+
+/* Listes à sélection (demandes, messages, dossiers) : #EEF2F8 + 2 px marine */
+html[data-mix="vercel"] .lo-items a { border-radius: var(--mix-radius-control); }
+@media (hover: hover) { html[data-mix="vercel"] .lo-items a:hover { background: var(--mix-bg); } }
+html[data-mix="vercel"] .lo-items a.sel { background: var(--mix-tint); }
+html[data-mix="vercel"] .lo-items a.sel::before { width: 2px; background: var(--mix-marine); }
+html[data-mix="vercel"] .lo-dossiers button { border-radius: var(--mix-radius-control); font-weight: 500; color: var(--mix-text); }
+@media (hover: hover) { html[data-mix="vercel"] .lo-dossiers button:hover { background: var(--mix-bg); } }
+html[data-mix="vercel"] .lo-dossiers button.actif { background: var(--mix-tint); font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] .lo-dossiers button.actif::before { width: 2px; background: var(--mix-marine); }
+html[data-mix="vercel"] .lo-faq button { font-weight: 500; color: var(--mix-text); }
+html[data-mix="vercel"] :is(.lo-dossiers button, .lo-recents button, .lo-positions button, .lo-mode-choix, .lo-puces span, .lo-faq button, .lo-nom, .lo-types button, .lo-urgences button, .conf-choix button) { color: var(--mix-text); }  /* le marine n'est plus une couleur de texte courant */
+html[data-mix="vercel"] .lo-ibtn { border-color: transparent; border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring); background: var(--mix-surface); width: var(--mix-control-h); height: var(--mix-control-h); }
+@media (hover: hover) { html[data-mix="vercel"] .lo-ibtn:hover { box-shadow: var(--mix-ring-hover); background: var(--mix-surface-2); } }
+html[data-mix="vercel"] .lo-ibtn.enregistre { background: var(--mix-error-bg); box-shadow: 0 0 0 1px var(--mix-error); }
+html[data-mix="vercel"] .lo-cal-nav .haut-ibtn { width: var(--mix-control-h); height: var(--mix-control-h); }
+html[data-mix="vercel"] .lo-cal-nav .bouton { height: var(--mix-control-h); padding: 0 14px; }
+html[data-mix="vercel"] .lo-pdf { height: 32px; padding: 0 12px; font-size: 13px; }
+html[data-mix="vercel"] .lo-doc-actions .bouton, html[data-mix="vercel"] .lo-interv-actions .bouton, html[data-mix="vercel"] .lo-msg-saisie .bouton, html[data-mix="vercel"] .a-faire-actions .bouton, html[data-mix="vercel"] .lo-liste .bouton.pleine { height: var(--mix-control-h); }
+html[data-mix="vercel"] :is(.a-faire-ic, .lo-ic-carte) { background: var(--mix-surface-2); }
+html[data-mix="vercel"] .ini.vide { background: var(--mix-surface-2); }
+
+/* Segments, choix en cartes, interrupteur */
+html[data-mix="vercel"] .lo-segments { background: var(--mix-surface-2); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .lo-segments > * { border-radius: 3px; font-weight: 500; color: var(--mix-text-3); }
+html[data-mix="vercel"] .lo-segments > .actif { background: var(--mix-surface); color: var(--mix-text); font-weight: 500; box-shadow: var(--mix-ring), 0 1px 2px rgba(0, 0, 0, .04); }
+@media (hover: hover) { html[data-mix="vercel"] .lo-segments > *:not(.actif):hover { color: var(--mix-text); } }
+html[data-mix="vercel"] :is(.lo-types button, .lo-urgences button) { border-color: transparent; border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring); font-weight: 500; color: var(--mix-text); }
+@media (hover: hover) { html[data-mix="vercel"] :is(.lo-types button, .lo-urgences button):not(.actif):hover { box-shadow: var(--mix-ring-hover); background: var(--mix-bg); } }
+html[data-mix="vercel"] :is(.lo-types button.actif, .lo-urgences button.actif) { background: var(--mix-surface); color: var(--mix-text); box-shadow: 0 0 0 2px var(--mix-marine); }
+html[data-mix="vercel"] .lo-types button.actif svg { stroke: var(--mix-marine); } /* Icone passe stroke="#fff" en attribut : le CSS prime */
+html[data-mix="vercel"] :is(.lo-types button strong, .lo-urgences button strong) { font-weight: 600; }
+html[data-mix="vercel"] .lo-bascule > i { background: var(--mix-placeholder); transition: background-color var(--mix-dur) var(--mix-ease); }
+html[data-mix="vercel"] .lo-bascule input:checked + i { background: var(--mix-marine); }
+html[data-mix="vercel"] .lo-bascule input:focus-visible + i { outline: 2px solid var(--mix-focus); outline-offset: 2px; }
+html[data-mix="vercel"] .lo-bascule input:focus-visible { outline: none; }
+html[data-mix="vercel"] .lo-pos-lib .radio { border-color: var(--mix-placeholder); }
+html[data-mix="vercel"] .actif .lo-pos-lib .radio { border-color: var(--mix-marine); }
+
+/* Champs de l'espace : anneau, rayon 6, 36 px (44 au téléphone) */
+html[data-mix="vercel"] :is(.lo-contenu .champ input:not([type=checkbox]):not([type=radio]), .lo-contenu .champ select, .lo-contenu .champ textarea, .lo-modale .champ input, .lo-modale .champ select, .lo-modale .champ textarea,
+  .lo-repondre input, .lo-msg-saisie textarea, .lo-recherche) { border-color: transparent; border-radius: var(--mix-radius-control); box-shadow: var(--mix-ring-input); background: var(--mix-surface); color: var(--mix-text); font-size: 14px; }
+html[data-mix="vercel"] :is(.lo-contenu .champ input:not([type=checkbox]):not([type=radio]), .lo-contenu .champ select, .lo-modale .champ input, .lo-modale .champ select, .lo-repondre input) { min-height: var(--mix-control-h); padding-top: 6px; padding-bottom: 6px; }
+html[data-mix="vercel"] :is(.lo-contenu .champ textarea, .lo-modale .champ textarea) { padding-top: 8px; padding-bottom: 8px; }
+html[data-mix="vercel"] :is(.lo-repondre input, .lo-recherche) { height: var(--mix-control-h); }
+@media (hover: hover) { html[data-mix="vercel"] :is(.lo-contenu .champ input:not([type=checkbox]):not([type=radio]), .lo-contenu .champ select, .lo-contenu .champ textarea, .lo-modale .champ input, .lo-repondre input, .lo-msg-saisie textarea, .lo-recherche):hover { box-shadow: var(--mix-ring-input-hover); } }
+html[data-mix="vercel"] :is(.lo-contenu .champ input:not([type=checkbox]):not([type=radio]), .lo-contenu .champ select, .lo-contenu .champ textarea, .lo-repondre input, .lo-msg-saisie textarea):focus { border-color: transparent; box-shadow: var(--mix-ring-input); }
+html[data-mix="vercel"] .lo-contenu .champ > span, html[data-mix="vercel"] .lo-contenu .champ label, html[data-mix="vercel"] .lo-contenu .champ legend { font-weight: 500; font-size: 13px; color: var(--mix-text); }
+html[data-mix="vercel"] .lo-recherche input { outline: none; box-shadow: none; }
+html[data-mix="vercel"] .lo-recherche:focus-within { box-shadow: var(--mix-ring-input); }
+
+/* ---- 6. Progression, frises, graphiques ---- */
+html[data-mix="vercel"] .lo-etapes i { height: 4px; border-radius: var(--mix-radius-pill); background: var(--mix-border); }
+html[data-mix="vercel"] .lo-etapes .fait i { background: var(--mix-focus); }
+html[data-mix="vercel"] .lo-etapes .actuel i { background: var(--mix-marine); }
+html[data-mix="vercel"] .lo-etapes strong { font-weight: 500; }
+html[data-mix="vercel"] .lo-etapes :is(.actuel, .fait) strong { color: var(--mix-text); }
+html[data-mix="vercel"] .lo-ponct i { border-radius: 2px; background: var(--mix-success-bg); }
+html[data-mix="vercel"] .lo-ponct i.retard { background: var(--mix-error); }
+html[data-mix="vercel"] .lo-escalier path { stroke: var(--mix-marine); stroke-width: 2px; }
+html[data-mix="vercel"] .lo-escalier line { stroke: var(--mix-border-strong); stroke-width: 1px; }
+html[data-mix="vercel"] .lo-escalier circle { fill: var(--mix-marine); }
+html[data-mix="vercel"] .lo-esc-txt { fill: var(--mix-placeholder); font-family: var(--mix-font-ui); font-size: 12px; font-weight: 500; font-feature-settings: "tnum" 1; }
+html[data-mix="vercel"] .lo-esc-txt.fort { fill: var(--mix-text); font-weight: 600; }
+html[data-mix="vercel"] .lo-suivi li::before { background: var(--mix-border-strong); width: 1px; left: 9.5px; }
+html[data-mix="vercel"] .lo-suivi li.fait::before { background: var(--mix-marine); }
+html[data-mix="vercel"] .lo-suivi i { border-color: var(--mix-border-strong); }
+html[data-mix="vercel"] .lo-suivi .fait i { background: var(--mix-marine); border-color: var(--mix-marine); }
+html[data-mix="vercel"] .lo-suivi .actuel i { border-color: var(--mix-marine); }
+html[data-mix="vercel"] .lo-suivi strong { font-weight: 600; }
+html[data-mix="vercel"] .lo-suivi li:not(.fait):not(.actuel) strong { color: var(--mix-text-3); font-weight: 500; }
+html[data-mix="vercel"] .lo-carte-roue { border-color: var(--mix-border); border-top-color: var(--mix-marine); }
+
+/* Calendrier : filets, événements (loyer = gris, demande = bleu de marque, avis = marine) */
+html[data-mix="vercel"] .lo-cal-case { color: var(--mix-text); font-weight: 500; }
+html[data-mix="vercel"] .lo-cal-case.hors { color: var(--mix-text-3); font-weight: 400; }
+html[data-mix="vercel"] .lo-cal-case.choisi { outline-color: var(--mix-marine); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .lo-cal-case span.auj { background: var(--mix-marine); }
+html[data-mix="vercel"] .lo-evt { border-radius: 2px; font-weight: 500; }
+html[data-mix="vercel"] .lo-evt.loyer { background: var(--mix-neutral-bg); border-color: var(--mix-placeholder); }
+html[data-mix="vercel"] .lo-evt.demande { background: var(--mix-tint); border-color: var(--mix-focus); }
+html[data-mix="vercel"] .lo-evt.avis { background: var(--mix-surface-2); border-color: var(--mix-marine); }
+html[data-mix="vercel"] :is(.lo-evt b, .lo-legende b) { background: var(--mix-error); }
+html[data-mix="vercel"] :is(.lo-venir i, .lo-legende i) { background: var(--mix-placeholder); }
+html[data-mix="vercel"] :is(.lo-venir i.demande, .lo-legende i.demande) { background: var(--mix-focus); }
+html[data-mix="vercel"] :is(.lo-venir i.avis, .lo-legende i.avis) { background: var(--mix-marine); }
+html[data-mix="vercel"] .lo-jour li { border-color: var(--mix-marine); }
+html[data-mix="vercel"] .lo-jour li.demande { border-color: var(--mix-focus); }
+html[data-mix="vercel"] .lo-jour li.loyer { border-color: var(--mix-placeholder); }
+html[data-mix="vercel"] .lo-bail-dates { color: var(--mix-text-2); }
+html[data-mix="vercel"] .po-msg-corps article.moi { border-left-color: var(--mix-border-strong); }
+
+/* ---- 7. Téléphone (≤ 760 px) : barre du bas marine, plate et flottante (rayon 12, 8 px des bords + zone sûre), bande 20/16 px, cibles de 44 px ---- */
+@media (max-width: 760px) {
+  html[data-mix="vercel"] .lo, html[data-mix="vercel"] .lo-droite, html[data-mix="vercel"] .lo-haut, html[data-mix="vercel"] .lo-bas { grid-template-columns: minmax(0, 1fr); }  /* mes colonnes de bureau (240 px) ne doivent pas survivre au téléphone */
+  html[data-mix="vercel"] .lo-maitre { grid-template-columns: minmax(0, 1fr); }
+  html[data-mix="vercel"] .lo .lo-rail { bottom: calc(8px + env(safe-area-inset-bottom, 0px)); border-radius: var(--mix-radius-card); padding: 6px; background: var(--mix-marine); box-shadow: none; }
+  html[data-mix="vercel"] .lo .lo-rail > a, html[data-mix="vercel"] .lo .lo-plus-bouton { flex: 1 1 0; min-width: 0; flex-direction: column; justify-content: center; align-items: center; gap: 4px; height: 52px; padding: 4px 2px; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--mix-rail-text); background: transparent; box-shadow: none; }
+  html[data-mix="vercel"] .lo .lo-rail > a > span:last-child { flex: none; font-size: 12px; }
+  html[data-mix="vercel"] .lo .lo-rail > a.actif, html[data-mix="vercel"] .lo .lo-plus-bouton.actif { background: var(--mix-rail-active); color: #fff; font-weight: 650; box-shadow: none; }
+  html[data-mix="vercel"] .lo .lo-ic { position: relative; }
+  html[data-mix="vercel"] .lo .lo-ic b { top: -6px; right: -12px; transform: none; min-width: 18px; height: 18px; padding: 0 5px; line-height: 18px; border: 2px solid var(--mix-marine); }
+  html[data-mix="vercel"] .lo .lo-ic svg { width: 20px; height: 20px; }
+  html[data-mix="vercel"] .lo .lo-rail > .lo-sec { display: none; }  /* « Plus » les range : mon sélecteur de bureau (display: flex) ne doit pas les ressortir */
+  html[data-mix="vercel"] .lo .lo-rail > a.actif::before { display: none; }
+  html[data-mix="vercel"] .lo-bandeau { padding: 20px 16px; margin-bottom: -8px; }  /* les cartes commencent 16 px sous la bande (le gap de 24 px moins 8) */
+  html[data-mix="vercel"] .lo-bandeau:not(.court) { margin-bottom: 0; }
+  html[data-mix="vercel"] .lo-bandeau h1 { font-size: 24px; }
+  html[data-mix="vercel"] .lo-bandeau:has(.surtitre) h1 { font-size: 26px; }
+  html[data-mix="vercel"] .lo-bandeau-haut { gap: 12px; align-items: stretch; }
+  html[data-mix="vercel"] :is(.lo-urgence, .lo-cherche, .lo-cloche) { height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .lo-cloche { width: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .lo-bandeau .cloche-panneau { border-radius: var(--mix-radius-popover); }
+  html[data-mix="vercel"] :is(.lo-contenu .champ input:not([type=checkbox]):not([type=radio]), .lo-contenu .champ select, .lo-modale .champ input, .lo-repondre input, .lo-recherche) { min-height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] :is(.lo-repondre input, .lo-recherche) { height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] :is(.lo-pdf, .lo-doc-actions .bouton, .lo-interv-actions .bouton, .lo-msg-saisie .bouton, .a-faire-actions .bouton, .lo-liste .bouton.pleine, .lo-cal-nav .bouton) { height: var(--mix-control-h-touch); min-height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] :is(.lo-cal-nav .haut-ibtn, .lo-ibtn) { width: var(--mix-control-h-touch); height: var(--mix-control-h-touch); }
+  html[data-mix="vercel"] .carte-l18:not(.lo-fiche, .lo-profil-carte, .lo-liste, .lo-raccourci) { padding: 16px; }
+}
+
+/* Menu plus large dans « Actuel » (106 px, éléments de 86 px — globals.css, 27 nov. 2026) : en Mix le menu fait 240 px et ses éléments occupent toute la largeur (même poids de sélecteur que l'original pour gagner) */
+html[data-mix="vercel"] :is(.lo-gauche, .lo-droite) .lo-rail:not(.lo-rail-pr) > :is(a, span.inactif), html[data-mix="vercel"] :is(.lo-gauche, .lo-droite) .lo-rail:not(.lo-rail-pr) .lo-sortir { width: 100%; }
+html[data-mix="vercel"] :is(.lo-gauche, .lo-droite) .lo-rail:not(.lo-rail-pr) .lo-sortir span { font-size: 14px; }
+html[data-mix="vercel"] .lo-droite .cleo-flottant { right: max(232px, env(safe-area-inset-right, 0px)); }  /* menu à droite : 240 px + marges 24 + 16 (le bouton de Cléo reste dans la page) */
+@media (max-width: 760px) { html[data-mix="vercel"] .lo-droite .cleo-flottant { right: max(16px, env(safe-area-inset-right, 0px)); } }
+
+/* Téléphone : l'historique des loyers et la liste des fichiers passent en lignes empilées (globals.css); la hauteur fixe de 48 px des
+   cellules de .tableau étirait chaque loyer sur ~100 px. */
+@media (max-width: 760px) { html[data-mix="vercel"] :is(.tableau.lo-histo, .tableau.lo-fichiers-table) td { height: auto; } }
+
+/* Calendrier (téléphone) : barres d'événement de 8 px, coins adoucis plutôt qu'arrondis (aucun cercle). */
+@media (max-width: 560px) { html[data-mix="vercel"] .lo-evt { border-radius: 1px; } }
+
+/* ---- Accueil : trois options (A, B, C; TEMPORAIRE, voir globals.css « Accueil locataire : trois options »). Jetons --acc-*, typographie Geist / Poppins, anneaux. ---- */
+html[data-mix="vercel"] .acc { --acc-filet: var(--mix-border); --acc-t2: var(--mix-text-2); --acc-t3: var(--mix-text-3); --acc-marine: var(--mix-title-color); }
+html[data-mix="vercel"] .acc-tete-texte h1 { font-size: 28px; font-weight: 600; letter-spacing: var(--mix-track-title); line-height: 1.2; }
+html[data-mix="vercel"] .acc-plat .acc-tete-texte h1 { font-size: 24px; color: #fff; }
+html[data-mix="vercel"] .lo-bandeau.acc-plat { padding: 16px 20px; margin: 0; }
+html[data-mix="vercel"] .acc-plat .acc-meta { color: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .acc-libre .lo-cherche { background: var(--mix-surface); box-shadow: var(--mix-ring-input); border: 0; color: var(--mix-text-3); }
+html[data-mix="vercel"] .acc-libre .lo-cherche svg { stroke: var(--mix-text-3); }
+html[data-mix="vercel"] .acc-libre .lo-cherche input { color: var(--mix-text); } html[data-mix="vercel"] .acc-libre .lo-cherche input::placeholder { color: var(--mix-text-3); }
+@media (hover: hover) { html[data-mix="vercel"] .acc-libre .lo-cherche:hover { box-shadow: var(--mix-ring-input-hover); } }
+html[data-mix="vercel"] .acc :is(.acc-montant b, .acc-val) { font-family: var(--mix-font-ui); font-weight: 600; letter-spacing: -0.03em; font-feature-settings: "liga" 1, "tnum" 1; color: var(--mix-text); }
+html[data-mix="vercel"] .acc .acc-hero .acc-montant b { color: #fff; letter-spacing: var(--mix-track-hero); }
+html[data-mix="vercel"] .acc-hero .acc-montant span { color: var(--mix-rail-text); }
+html[data-mix="vercel"] .acc-hero .acc-detail { color: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .acc-hero .puce { background: rgba(255, 255, 255, .14); color: #fff; } html[data-mix="vercel"] .acc-hero .puce.todo { background: var(--mix-error-bg); color: var(--mix-error); }
+html[data-mix="vercel"] .acc-hero { background: var(--mix-marine); }
+html[data-mix="vercel"] .acc-bouton-clair { background: #fff; color: var(--mix-marine); box-shadow: none; } @media (hover: hover) { html[data-mix="vercel"] .acc-bouton-clair:hover { background: var(--mix-tint); } }
+html[data-mix="vercel"] .acc-ini { background: var(--mix-marine); } html[data-mix="vercel"] .acc-ok { background: var(--mix-success); }
+html[data-mix="vercel"] .acc :is(.acc-lib, .acc-titre strong, .acc-rac-texte strong, .acc-personne strong) { color: var(--mix-text); }
+html[data-mix="vercel"] .acc .acc-hero .acc-lib { color: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .acc-section-tete h2 { font-size: 20px; line-height: 28px; letter-spacing: var(--mix-track-section); }
+html[data-mix="vercel"] .acc-rac-lien { color: var(--mix-text); } @media (hover: hover) { html[data-mix="vercel"] .acc-rac-lien:hover { background: var(--mix-surface-2); } }
+html[data-mix="vercel"] :is(.acc-rac-rangee, .acc-rac-defile) .acc-rac-lien { border: 0; background: var(--mix-surface); box-shadow: var(--mix-ring); }
+@media (hover: hover) { html[data-mix="vercel"] :is(.acc-rac-rangee, .acc-rac-defile) .acc-rac-lien:hover { background: var(--mix-surface-2); box-shadow: var(--mix-ring-hover); } }
+html[data-mix="vercel"] :is(.acc-b-indic .acc-stats, .acc-c-indic .acc-stats) { border: 0; background: var(--mix-surface); box-shadow: var(--mix-shadow-card); }
+html[data-mix="vercel"] .acc-b-indic .acc-val { font-size: 20px; line-height: 28px; }
+@media (hover: hover) { html[data-mix="vercel"] .acc-pli summary:hover { background: var(--mix-bg); } }
+html[data-mix="vercel"] .acc-ecart { align-self: start; }
+
+/* Bascule FR | EN du menu : même gabarit que les lignes du menu (Steven : « reduce size … gotta fit with the others ») : alignée à gauche comme
+   leurs cases de survol, 26 px de haut (lignes de 36 px), texte 12 px dans les règles du menu (poids 520). */
+html[data-mix="vercel"] .lo-rail > .toggle-langue { align-self: flex-start; margin: 4px 0 4px 12px; padding: 2px; border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .acc-libre .pastille-bleue { background: var(--mix-focus); box-shadow: 0 0 0 2px var(--mix-surface); right: 7px; top: 7px; }
+
+/* ==========================================================================================================================
+   Vues du bloc « Demande en cours » et du bloc « Mon bail » (accueil locataire, TEMPORAIRE 27 nov. 2026, voir globals.css « Vues du bloc … »).
+   50 % Vercel / 50 % Lease Lane : anneaux fins, coins adoucis (tuiles et segments 2 à 6 px, commandes 8 px), marine, Geist partout (jamais de monospace), carrés (jamais de ronds).
+   ========================================================================================================================== */
+html[data-mix="vercel"] .acc-vue { background: var(--mix-surface-2); border-radius: var(--mix-radius-control); font-family: var(--mix-font-ui); }
+html[data-mix="vercel"] .acc-vue-lib { color: var(--mix-text-2); }
+html[data-mix="vercel"] .acc-vue button { color: var(--mix-text-2); border-radius: var(--mix-radius-pill); font-family: var(--mix-font-ui); }
+html[data-mix="vercel"] .acc-vue button[aria-pressed="true"] { background: var(--mix-surface); color: var(--mix-marine); box-shadow: var(--mix-ring); }
+html[data-mix="vercel"] :is(.dmd, .bl) { font-family: var(--mix-font-ui); }
+html[data-mix="vercel"] :is(.dmd-date, .bl-dates, .bl-resume, .bl-cases dd, .bl-kv dd) { font-family: var(--mix-font-ui); }
+html[data-mix="vercel"] :is(.dmd-sujet, .dmd-r-lib, .dmd-segs span, .dmd-ou-texte, .bl-resume, .bl-dates, .bl-cases dt, .bl-kv dt, .bl-leg) { color: var(--mix-text-2); }
+html[data-mix="vercel"] :is(.dmd-date, .dmd-tuiles .avenir) { color: var(--mix-text-3); }
+html[data-mix="vercel"] .dmd-r.fait .dmd-r-lib, html[data-mix="vercel"] .dmd-segs .actuel span, html[data-mix="vercel"] .dmd-ou-texte strong { color: var(--mix-text); }
+html[data-mix="vercel"] .dmd-m { border-radius: 2px; }
+html[data-mix="vercel"] :is(.dmd-r.fait .dmd-m, .dmd-r.fait:not(:last-child)::before) { background: var(--mix-marine); }
+html[data-mix="vercel"] .dmd-r:not(:last-child)::before { background: var(--mix-border-strong); }
+html[data-mix="vercel"] .dmd-r.actuel .dmd-m { border-color: var(--mix-marine); background: var(--mix-surface); } html[data-mix="vercel"] .dmd-r.actuel .dmd-m::after { background: var(--mix-marine); }
+html[data-mix="vercel"] .dmd-r.avenir .dmd-m { border-color: var(--mix-text-3); background: var(--mix-surface); }
+html[data-mix="vercel"] .dmd-segs i { border-radius: 1px; background: var(--mix-surface-2); box-shadow: var(--mix-ring); }
+html[data-mix="vercel"] .dmd-segs .fait i { background: var(--dv-s5); box-shadow: none; } html[data-mix="vercel"] .dmd-segs .actuel i { background: var(--mix-marine); box-shadow: none; }
+html[data-mix="vercel"] .dmd-tuiles li { border-radius: var(--mix-radius-pill); }
+html[data-mix="vercel"] .dmd-tuiles .fait { background: var(--mix-tint); box-shadow: var(--mix-ring); color: var(--mix-marine); } html[data-mix="vercel"] .dmd-tuiles .fait .dmd-m { background: var(--mix-marine); }
+html[data-mix="vercel"] .dmd-tuiles .actuel { background: var(--mix-marine); color: #fff; box-shadow: none; }
+html[data-mix="vercel"] .dmd-tuiles .avenir { background: var(--mix-surface); box-shadow: 0 0 0 1px var(--mix-border-strong); } html[data-mix="vercel"] .dmd-tuiles .avenir .dmd-m { border-color: var(--mix-text-3); }
+html[data-mix="vercel"] .bl-piste { background: var(--mix-surface-2); box-shadow: var(--mix-ring); } html[data-mix="vercel"] .bl-piste i { background: var(--mix-marine); }
+html[data-mix="vercel"] .bl-auj { background: var(--mix-marine); box-shadow: 0 0 0 1px var(--mix-marine); }
+html[data-mix="vercel"] .bl-sw.auj { background: var(--mix-marine); }
+html[data-mix="vercel"] :is(.bl-cases > div, .bl-prog) { border-radius: var(--mix-radius-control); background: var(--mix-surface-2); box-shadow: var(--mix-ring); }
+html[data-mix="vercel"] :is(.bl-cases dd, .bl-prog-texte) { color: var(--mix-text); }
+html[data-mix="vercel"] .bl-kv > div { border-top-color: var(--mix-border); } html[data-mix="vercel"] .bl-kv dd { color: var(--mix-text); }
+
+/* ==== CONTRASTE DU BLEU (Steven, 27 nov. 2026 : « un meilleur contraste avec le bleu en général ») ====
+   Les paires texte/fond passaient déjà AA; ce bloc renforce ce qui se voyait mal : survol marine (1,3:1 → 2,0:1), anneau de focus sur le marine (2,7:1 → 7,5:1),
+   fonds bleutés (1,12:1 → 1,19:1 + filet), pistes de jauge (1,4:1 + filet), pastilles de compte sur le marine (blanc sur marine 15,9:1), liens (7,4:1 → 9,9:1). */
+html[data-mix="vercel"] {
+  --mix-marine-hover: #28508F;      /* blanc dessus 8,0:1; 2,0:1 contre le marine, le survol se voit */
+  --mix-link: #1B4378;              /* 9,9:1 sur blanc */
+  --mix-tint: #E4ECF7;              /* ligne choisie, fond d'info : marine dessus 12,2:1 */
+  --mix-info-bg: #E4ECF7;
+  --mix-focus: #2B5C9E;             /* 6,7:1 sur blanc; sur le marine on prend --mix-rail-indicator (7,5:1) */
+  --mix-on-marine-2: #DCE7F5;       /* 12,7:1 sur le marine (avant 11,1:1) */
+}
+html[data-mix="vercel"] :is(.puce, .puce.info, .bandeau.info) { box-shadow: inset 0 0 0 1px rgba(12, 33, 71, .16); }
+html[data-mix="vercel"] :is(.lo-ic b, .lo-plus b, .po-menu b, .po-bas b, .po-rail b) { background: #fff; color: var(--mix-marine); box-shadow: none; }
+html[data-mix="vercel"] :is(.lo-bandeau, .po-bandeau, .lo-rail, .po-rail, .lo-rail-pr, .po-menu) :focus-visible { outline-color: var(--mix-rail-indicator); }
+html[data-mix="vercel"] :is(.lo-cherche, .lo-cloche) { background: rgba(255, 255, 255, .10); box-shadow: 0 0 0 1px rgba(255, 255, 255, .32); }
+html[data-mix="vercel"] .dv-meter { background: #D3DFF0; box-shadow: inset 0 0 0 1px rgba(12, 33, 71, .16); }
+html[data-mix="vercel"] .dv-meter-f { background: var(--mix-marine); }
+html[data-mix="vercel"] .dmd-segs i { background: #BCCBE0; box-shadow: none; }
+html[data-mix="vercel"] .dmd-segs .fait i { background: var(--mix-focus); }
+html[data-mix="vercel"] .dmd-segs .actuel i { background: var(--mix-marine); }
+@media (hover: hover) { html[data-mix="vercel"] .bouton-principal:hover { background: var(--mix-marine-hover); } }
+/* ==== fin CONTRASTE DU BLEU ==== */
+
+/* Accueil : indicateurs et en-tête, trois options chacun (TEMPORAIRE; globals.css, « Accueil locataire : indicateurs et en-tête ») */
+html[data-mix="vercel"] :is(.ind-choix, .ent-choix) { background: var(--mix-surface-2); color: var(--mix-text-2); border-radius: var(--mix-radius-pill); }
+html[data-mix="vercel"] :is(.ind-choix, .ent-choix) button { color: var(--mix-text-2); border-radius: 2px; }
+@media (hover: hover) { html[data-mix="vercel"] :is(.ind-choix, .ent-choix) button:hover { background: var(--mix-surface); } }
+html[data-mix="vercel"] :is(.ind-choix, .ent-choix) button[aria-pressed="true"] { background: var(--mix-surface); color: var(--mix-marine); box-shadow: var(--mix-ring); }
+html[data-mix="vercel"] .ent-a .ent-choix { background: rgba(255, 255, 255, .12); color: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .ent-a .ent-choix button { color: var(--mix-rail-text); } @media (hover: hover) { html[data-mix="vercel"] .ent-a .ent-choix button:hover { background: var(--mix-rail-hover); } }
+html[data-mix="vercel"] .ent-a .ent-choix button[aria-pressed="true"] { background: #fff; color: var(--mix-marine); box-shadow: none; }
+html[data-mix="vercel"] .ent-a .ent-choix button:focus-visible { outline-color: var(--mix-rail-indicator); }
+html[data-mix="vercel"] .ind-sw { border-radius: 1px; }
+html[data-mix="vercel"] .ind .acc-ecart { align-self: start; }
+html[data-mix="vercel"] .ent-b .acc-libre { border-bottom-color: var(--mix-border); }
+html[data-mix="vercel"] .acc-carte { border: 0; border-radius: var(--mix-radius-card); background: var(--mix-surface); box-shadow: var(--mix-shadow-card); }
+html[data-mix="vercel"] .acc-carte .lo-cherche { background: var(--mix-surface); box-shadow: var(--mix-ring-input); border: 0; color: var(--mix-text-3); }
+html[data-mix="vercel"] .acc-carte .lo-cherche svg { stroke: var(--mix-text-3); }
+html[data-mix="vercel"] .acc-carte .lo-cherche input { color: var(--mix-text); } html[data-mix="vercel"] .acc-carte .lo-cherche input::placeholder { color: var(--mix-text-3); }
+@media (hover: hover) { html[data-mix="vercel"] .acc-carte .lo-cherche:hover { box-shadow: var(--mix-ring-input-hover); } }
+html[data-mix="vercel"] .acc-carte .lo-urgence { background: var(--mix-tint); color: var(--mix-marine); box-shadow: 0 0 0 1px var(--mix-on-marine-2); }
+@media (hover: hover) { html[data-mix="vercel"] .acc-carte .lo-urgence:hover { box-shadow: 0 0 0 1px var(--mix-focus); } }
+html[data-mix="vercel"] .acc-carte .pastille-bleue { background: var(--mix-focus); box-shadow: 0 0 0 2px var(--mix-surface); right: 7px; top: 7px; }
+html[data-mix="vercel"] .acc-carte .acc-tete-texte h1 { font-size: 22px; }
+
+/* ==== LEASE LANE +25 % (Steven, 27 nov. 2026 : « Lease Lane 25 % plus dominant sur l'effet Vercel », 3 portails) ====
+   Proportion : 50/50 → environ 62/38 en faveur de Lease Lane (+25 % relatif, comme les autres pourcentages demandés).
+   Gardé de Vercel : Geist, filets fins, densité, hiérarchie serrée. Renforcé côté Lease Lane : fond bleuté #F4F7FB, encres bleu-gris du design Actuel (#0D233B, #3E4A59, #58697F),
+   filets bleutés, coins un cran plus doux (cartes 14, champs et boutons 10; étiquettes 6), ombre douce teintée marine, titres Poppins marine jusqu'au h3, chiffres moins serrés. Aucun cercle, aucune police à chasse fixe. */
+html[data-mix="vercel"] {
+  --mix-bg: #F4F7FB;
+  --mix-surface-2: #EEF1F5;
+  --mix-text: #0D233B;              /* 14,8:1 sur le fond */
+  --mix-text-2: #3E4A59;            /* 8,4:1 */
+  --mix-text-3: #58697F;            /* 5,6:1 sur blanc, 4,7:1 sur le fond bleuté des étiquettes */
+  --mix-placeholder: #7A8799;       /* 3,7:1 sur blanc : contour des champs (WCAG 1.4.11) */
+  --mix-border: #E1E6EC;
+  --mix-border-strong: #C8CDD4;
+  --mix-neutral-bg: #EEF1F5;  --mix-neutral: #3E4A59;
+  --mix-ring: 0 0 0 1px rgba(13, 35, 59, .10);
+  --mix-ring-hover: 0 0 0 1px #C8CDD4;
+  --mix-shadow-card: 0 0 0 1px rgba(13, 35, 59, .09), 0 1px 3px rgba(13, 35, 59, .07), 0 6px 12px -6px rgba(13, 35, 59, .06);
+  --mix-shadow-popover: 0 0 0 1px rgba(13, 35, 59, .10), 0 6px 12px -4px rgba(13, 35, 59, .08), 0 18px 28px -8px rgba(13, 35, 59, .10);
+  --mix-overlay: rgba(13, 35, 59, .40);
+  --mix-radius-card: 7px;  --mix-radius-popover: 7px;  --mix-radius-control: 5px;
+  --mix-track-hero: -0.025em;  --mix-track-title: -0.012em;  --mix-track-section: -0.005em;  --mix-track-card: 0em;
+}
+html[data-mix="vercel"] h3 { font-family: var(--mix-font-title); color: var(--mix-title-color); font-weight: 600; letter-spacing: var(--mix-track-card); }
+/* ==== fin LEASE LANE +25 % ==== */
+
+/* ==== Cléo dans le menu (Steven, 27 nov. 2026 20:44 : « pas la bonne taille, pas aligné ») ====
+   Le span de la photo était en ligne : il mesurait 22 × 27 px (interligne sous l'image). Boîte carrée de 22 px, centrée sur la colonne des icônes (centre à 47 px), comme l'avatar « SF » du profil juste dessous. */
+html[data-mix="vercel"] .lo-rail > .lo-cleo .po-cleo-av { display: block; width: 22px; height: 22px; flex: none; }
+html[data-mix="vercel"] .lo-rail > .lo-cleo .po-cleo-av img { display: block; width: 22px; height: 22px; }
+html[data-mix="vercel"] .lo-rail > .lo-profil b { display: flex; align-items: center; justify-content: center; flex: none; }
+/* ==== fin Cléo dans le menu ==== */
+
+/* ==== Correctifs de l'audit après « Lease Lane +25 % » ==== */
+html[data-mix="vercel"] { --mix-shadow-popover: 0 0 0 1px rgba(13, 35, 59, .10), 0 6px 12px -4px rgba(13, 35, 59, .08), 0 16px 24px -8px rgba(13, 35, 59, .10); }  /* flou ≤ 24 px (règle « ombre ») */
+html[data-mix="vercel"] .cleo-fenetre-a .cleo-tete :is(.gris, .cleo-sous, p, small) { color: var(--mix-on-marine-2); }  /* sous-titre sur la barre marine : 12,7:1 */
+/* ==== fin correctifs ==== */
+
+/* ==== LEASE LANE 65 / VERCEL 35 (Steven, 27 nov. 2026) ====
+   Plus de Lease Lane que la révision +25 % : coins du design Lease Lane (cartes 16, champs et boutons 12, étiquettes 6), Poppins marine aussi pour les grands chiffres,
+   titres de carte un cran plus grands, ombre douce teintée marine plus présente. Gardé de Vercel : Geist pour le texte, filets fins, densité. Aucun cercle (sauf Cléo), aucune chasse fixe. */
+html[data-mix="vercel"] {
+  --mix-radius-card: 8px;  --mix-radius-popover: 8px;  --mix-radius-control: 6px;
+  --mix-track-hero: -0.015em;  --mix-track-title: -0.01em;
+  --mix-shadow-card: 0 0 0 1px rgba(13, 35, 59, .08), 0 1px 3px rgba(13, 35, 59, .08), 0 8px 16px -8px rgba(13, 35, 59, .10);
+}
+html[data-mix="vercel"] :is(.kpi b, .kpi-po b, .acc-val, .acc-montant, .dv-stat-v, .po-kpi b) { font-family: var(--mix-font-title); font-weight: 600; }
+html[data-mix="vercel"] :is(.titre-carte, .carte-tete h2, .fil-tete h2) { font-size: 17px; }
+/* ==== fin LEASE LANE 65 / VERCEL 35 ==== */
+
+/* toggle-langue 65/35 : 30 px de haut, rayon 8 (sinon presque une pilule) */
+html[data-mix="vercel"] .toggle-langue { border-radius: 4px; } html[data-mix="vercel"] .toggle-langue button { border-radius: 3px; }
+html[data-mix="vercel"] :is(.lo-rail, .po-bas, .lo-rail-pr, .po-rail, .po-menu, .lo-plus) .toggle-langue, html[data-mix="vercel"] .lo-rail > .toggle-langue { border-radius: 4px; }
+html[data-mix="vercel"] :is(.lo-rail, .po-bas, .lo-rail-pr, .po-rail, .po-menu, .lo-plus) .toggle-langue button { border-radius: 3px; }
+
+/* ==== Passe Impeccable (accueil locataire, vue A) ==== */
+/* Bloc « Demande en cours » / « Mon bail » : remis comme avant la passe (Steven, 27 nov. 2026 21:45 : « put it back the way it was »). */
+/* Toggle de langue : rayon 8 (jamais presque-cercle), sélecteurs assez précis pour gagner partout. */
+html[data-mix="vercel"] body .toggle-langue, html[data-mix="vercel"] body :is(.lo-rail, .lo-plus, .po-bas, .po-rail) .toggle-langue { border-radius: 4px; }
+/* 390 px : les chiffres des indicateurs ne débordent plus. */
+@media (max-width: 480px) {
+  html[data-mix="vercel"] .acc :is(.acc-val, .acc-sous) { min-width: 0; overflow-wrap: anywhere; }
+}
+/* ==== fin Passe Impeccable ==== */
+/* ==== DATAVIZ ÉDITORIAL (Steven, 27 nov. 2026 : direction éditoriale épurée; globals.css, même titre) ====
+   Un seul accent marine par bloc (indicateurs; « Demande en cours » et « Mon bail » inchangés); contexte en gris --dv-ctx; chiffres clés des indicateurs en Poppins 600 marine tabulaires. */
+html[data-mix="vercel"] :is(.ind-val) { font-family: var(--mix-font-title); font-weight: 600; color: var(--mix-marine); font-variant-numeric: tabular-nums; }
+html[data-mix="vercel"] .acc .acc-val.ind-val { font-family: var(--mix-font-title); font-weight: 600; color: var(--mix-marine); font-variant-numeric: tabular-nums; }  /* plus fort que « .acc .acc-val » (Geist) : chiffres clés en Poppins 600 marine */
+/* ==== fin DATAVIZ ÉDITORIAL ==== */
+
+/* ==== Raccourcis à la hauteur de la carte de gauche (Steven, 27 nov. 2026 22:17 : « same height here as the section on the left ») ====
+   La colonne de droite (gestionnaire + raccourcis) s'étire à la hauteur de la carte « Demande en cours / Mon bail »; les trois raccourcis se partagent l'espace restant. */
+html[data-mix="vercel"] .acc-a-grille { align-items: stretch; }
+html[data-mix="vercel"] .acc-a-cote { grid-template-rows: auto 1fr; align-content: stretch; }
+html[data-mix="vercel"] .acc-a-cote > .acc-rac-liste { display: grid; grid-auto-rows: 1fr; align-content: stretch; }
+html[data-mix="vercel"] .acc-a-cote > .acc-rac-liste > a { height: 100%; box-sizing: border-box; }
+/* ==== fin raccourcis ==== */
+
+/* ==== « Mon bail » : espace sous le titre (Steven, 27 nov. 2026 22:19 : « space it below to make it proportional ») ====
+   4 px → 12 px entre le titre et les cases de chiffres, comme le rythme des autres blocs. */
+html[data-mix="vercel"] .acc-bloc-tete + .bl { margin-top: 12px; }
+/* ==== fin ==== */
+
+/* ==== « Mon loyer depuis … » : tête éditoriale (27 nov. 2026) ====
+   Grands chiffres en Poppins 600 marine, libellés en Geist gris du mélange; lien « Voir le tableau » à gauche. */
+html[data-mix="vercel"] .ind-gt-fig dt, html[data-mix="vercel"] .ind-gt-fig dd span { color: var(--mix-text-2); font-family: var(--mix-font-text, inherit); }
+html[data-mix="vercel"] .acc .acc-val.ind-gt-val { font-size: 22px; line-height: 28px; }
+html[data-mix="vercel"] .ind-gt-fig + .ind-gt-fig { border-left-color: var(--mix-border, var(--acc-filet)); }
+html[data-mix="vercel"] .ind-escalier .dv-toggle { border-radius: 6px; }
+/* ==== fin ==== */
+
+/* ==== « Demande en cours » / « Mon bail » alignés à gauche comme les autres cartes (Steven, 27 nov. 2026 22:21) ====
+   La carte avait sa marge intérieure plus celle de chaque bloc (41 px du bord au lieu de 21; 37 au lieu de 17 au téléphone) : une seule marge, celle de la carte. */
+html[data-mix="vercel"] .acc-a .acc-a-principal > .acc-bloc { padding-left: 0; padding-right: 0; }
+/* ==== fin ==== */
+
+/* ==== Demandes (fiche) : retouches de Steven, 27 nov. 2026 22:23 ====
+   « Proposer un autre moment » devient un 3e bouton, filet marine seulement (sans fond); la zone « Répondre à Camille… » s'aligne sur le texte des messages, pas sur les initiales. */
+html[data-mix="vercel"] .bouton.bouton-filet-marine { background: transparent; color: var(--mix-marine); box-shadow: inset 0 0 0 1px var(--mix-marine); border-color: transparent; }
+@media (hover: hover) { html[data-mix="vercel"] .bouton.bouton-filet-marine:hover { background: var(--mix-tint); } }
+html[data-mix="vercel"] .lo-echanges .lo-repondre { margin-left: 44px; }
+/* ==== fin ==== */
+
+/* ==== Demandes (fiche) : Suivi / Échanges, +20 % d'espacement entre les éléments (Steven, 27 nov. 2026 22:30) ==== */
+html[data-mix="vercel"] .lo-detail-bas { gap: 29px; }                 /* 24 → 29 */
+html[data-mix="vercel"] .lo-suivi > li { gap: 14px; padding-bottom: 24px; }   /* 12 → 14, 20 → 24 */
+html[data-mix="vercel"] .lo-fil { gap: 19px; }                        /* 16 → 19 */
+html[data-mix="vercel"] .lo-fil > * { gap: 14px; }                    /* 12 → 14 */
+html[data-mix="vercel"] .lo-echanges { gap: 14px; }                   /* 12 → 14 */
+html[data-mix="vercel"] .lo-repondre { gap: 10px; }                   /* 8 → 10 */
+/* ==== fin ==== */
+
+/* ==== Paiements, colonne de droite (« Mode de paiement », « Relevé 31 ») : +20 % d'espacement entre les éléments (Steven, 27 nov. 2026 22:31) ====
+   Les écarts de 16 px passent à 19 px et deviennent un seul rythme (les paragraphes collés reçoivent le même écart); le titre et son sous-titre restent liés; 24 → 29 px entre les deux cartes. */
+html[data-mix="vercel"] .lo-colonne { gap: 29px; }
+html[data-mix="vercel"] .lo-colonne > .carte-l18 { display: flex; flex-direction: column; gap: 19px; }
+html[data-mix="vercel"] #racine .lo-colonne > .carte-l18 > * { margin-top: 0; margin-bottom: 0; }
+html[data-mix="vercel"] #racine .lo-colonne > .carte-l18 > .titre-carte + p { margin-top: -15px !important; margin-bottom: 0 !important; }  /* le sous-titre a une marge en ligne dans Paiements.tsx */
+html[data-mix="vercel"] .lo-colonne > .carte-l18 > .bouton { align-self: flex-start; }
+/* ==== fin ==== */
+
+/* ==== Bas du menu locataire : options A / B / C (TEMPORAIRE, 27 nov. 2026; Steven : « not aligned, not sized proportionally »; globals.css, même titre) ====
+   Une seule grille pour tout le groupe : rangées de 36 px comme les rubriques au-dessus, colonne des visuels de 18 px (centre à 47 px), libellés à 68 px, poids 520.
+   Cléo (photo 20 px ronde, point vert) et les initiales (carré 20 px, rayon 4) débordent d'un pixel de chaque côté de la colonne, centrés sur elle.
+   A « Liste alignée » : 4 rangées. B « Carte de compte » : carte blanc 6 % rayon 8 (compte, Cléo, pied FR | EN + icône Déconnexion). C « Barre d'icônes » : Cléo, Profil, puis FR | EN + Déconnexion sur une rangée. */
+html[data-mix="vercel"] .lo-rail .lo-bg { align-items: stretch; gap: 2px; }
+html[data-mix="vercel"] .lo-rail .lo-bg-ligne { position: relative; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; height: 36px; padding: 0 10px;
+  border: 0; border-radius: var(--mix-radius-control); background: transparent; color: var(--mix-rail-text); font-family: inherit; font-size: 14px; line-height: 20px; font-weight: 520; text-align: left; text-decoration: none; margin: 0; }
+@media (hover: hover) { html[data-mix="vercel"] .lo-rail :is(a, button).lo-bg-ligne:hover { background: var(--mix-rail-hover); color: #fff; } }
+html[data-mix="vercel"] .lo-rail .lo-bg-ligne.actif { background: var(--mix-rail-active); color: #fff; font-weight: 650; }
+html[data-mix="vercel"] .lo-rail :is(.lo-bg-a, .lo-bg-c) .lo-bg-ligne.actif::before { content: ''; position: absolute; left: -12px; top: 6px; bottom: 6px; width: 2px; border-radius: 0 1px 1px 0; background: var(--mix-rail-indicator); }
+html[data-mix="vercel"] .lo-rail .lo-bg-vis { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex: none; }
+html[data-mix="vercel"] .lo-rail .lo-bg-vis svg { width: 18px; height: 18px; flex: none; }
+html[data-mix="vercel"] .lo-rail .lo-bg .po-cleo-av { display: block; width: 20px; height: 20px; flex: none; }
+html[data-mix="vercel"] .lo-rail .lo-bg .po-cleo-av img { display: block; width: 20px; height: 20px; border-radius: 50%; }
+html[data-mix="vercel"] .lo-rail .lo-bg .po-cleo-av i { width: 8px; height: 8px; right: -2px; top: -2px; border: 2px solid var(--mix-marine); background: var(--mix-success-light); }
+html[data-mix="vercel"] .lo-rail .lo-bg-ini { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex: none; border-radius: 4px; background: rgba(255, 255, 255, .16); color: #fff; font-size: 10px; line-height: 20px; font-weight: 600; letter-spacing: .02em; }
+html[data-mix="vercel"] .lo-rail .lo-bg-ligne.actif .lo-bg-ini { background: #fff; color: var(--mix-marine); }
+html[data-mix="vercel"] .lo-rail .lo-bg-lib { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-mix="vercel"] .lo-rail .lo-bg-sortir-f { display: block; width: 100%; }
+/* Bascules de langue du groupe (FR | EN court; « Français | English » en A) : 28 px, rayon 6, segments rayon 4, texte 12 px */
+html[data-mix="vercel"] .lo-rail .lo-bg .toggle-langue { display: inline-flex; align-items: stretch; height: 28px; margin: 0; padding: 2px; gap: 2px; border-radius: var(--mix-radius-control); background: rgba(255, 255, 255, .10); }
+html[data-mix="vercel"] .lo-rail .lo-bg .toggle-langue button { min-width: 30px; height: 24px; padding: 0 6px; border-radius: 4px; color: var(--mix-rail-text); font-size: 12px; line-height: 24px; font-weight: 600; letter-spacing: .02em; }
+@media (hover: hover) { html[data-mix="vercel"] .lo-rail .lo-bg .toggle-langue button:hover:not(.actif) { background: var(--mix-rail-hover); color: #fff; } }
+html[data-mix="vercel"] .lo-rail .lo-bg .toggle-langue button.actif { background: #fff; color: var(--mix-marine); }
+/* A : rangée de la langue = globe dans la colonne, segments « Français | English » de la colonne des libellés jusqu'au bord des cases de survol */
+html[data-mix="vercel"] .lo-rail .lo-bg-a .lo-bg-langue { padding-right: 0; }
+html[data-mix="vercel"] .lo-rail .lo-bg-a .lo-bg-langue .toggle-langue { flex: 1; min-width: 0; }
+html[data-mix="vercel"] .lo-rail .lo-bg-a .lo-bg-langue .toggle-langue button { flex: 1; min-width: 0; padding: 0 4px; font-weight: 520; letter-spacing: 0; }
+html[data-mix="vercel"] .lo-rail .lo-bg-a .lo-bg-langue .toggle-langue button.actif { font-weight: 650; }
+/* B : carte de compte */
+html[data-mix="vercel"] .lo-rail .lo-bg-b { gap: 0; padding: 4px 0 0; border-radius: var(--mix-radius-card); background: rgba(255, 255, 255, .06); }
+html[data-mix="vercel"] .lo-rail .lo-bg-b .lo-bg-deux { display: flex; flex-direction: column; justify-content: center; text-align: left; line-height: 16px; }
+html[data-mix="vercel"] .lo-rail .lo-bg-b .lo-bg-deux strong { overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 600; color: #fff; }
+html[data-mix="vercel"] .lo-rail .lo-bg-b .lo-bg-deux small { font-size: 12px; font-weight: 520; color: var(--mix-rail-indicator); }
+html[data-mix="vercel"] .lo-rail .lo-bg-b .lo-bg-etat { display: inline; color: var(--mix-rail-indicator); font-weight: 520; }
+html[data-mix="vercel"] .lo-rail .lo-bg-pied { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; height: 41px; margin-top: 4px; padding: 4px 0 0 10px; border-top: 1px solid rgba(255, 255, 255, .10); }
+html[data-mix="vercel"] .lo-rail .lo-bg-pied .lo-bg-sortir-f { width: auto; }
+html[data-mix="vercel"] .lo-rail .lo-bg-sortir-ic { width: 36px; height: 36px; min-width: 36px; padding: 0; border-radius: var(--mix-radius-control); color: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .lo-rail .lo-bg-sortir-ic svg { width: 18px; height: 18px; }
+/* C : FR | EN à gauche (x = 38, colonne des visuels) + Déconnexion (icône + texte) à droite, même rangée de 36 px */
+html[data-mix="vercel"] .lo-rail .lo-bg-duo { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 4px; height: 36px; padding-left: 10px; }
+html[data-mix="vercel"] .lo-rail .lo-bg-duo .lo-bg-sortir-f { width: auto; }
+html[data-mix="vercel"] .lo-rail .lo-bg-sortir-txt { height: 28px; min-height: 28px; padding: 0 8px; gap: 6px; border-radius: var(--mix-radius-control); color: var(--mix-on-marine-2); font-size: 12px; font-weight: 520; }
+html[data-mix="vercel"] .lo-rail .lo-bg-sortir-txt svg { width: 14px; height: 14px; flex: none; }
+/* C : la rangée fait 158 px utiles; « Déconnexion » (12 px) en prend 73 : FR | EN en segments de 24 px, bouton serré (4 px) pour tenir sans déborder */
+html[data-mix="vercel"] .lo-rail .lo-bg-c .lo-bg-duo .toggle-langue button { min-width: 24px; padding: 0 4px; }
+html[data-mix="vercel"] .lo-rail .lo-bg-c .lo-bg-sortir-txt { padding: 0 4px; gap: 4px; }
+/* Commande temporaire « Menu : A · B · C » */
+html[data-mix="vercel"] .lo-rail > .lo-bg-choix { align-self: flex-start; margin: auto 0 0 10px; color: var(--mix-on-marine-2); }
+html[data-mix="vercel"] .lo-rail > .lo-bg-choix + .lo-sep { margin-top: 8px; }  /* la commande prend la marge automatique : elle colle au groupe */
+/* Menu en haut ou en bas (Profil › Affichage) : le groupe passe en rangée */
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail .lo-bg { flex-direction: row; align-items: center; width: auto; flex: none; padding: 0; background: none; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail .lo-bg-ligne { width: auto; padding: 0 8px; gap: 8px; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail :is(.lo-bg-pied, .lo-bg-duo) { height: auto; margin: 0; padding: 0; border: 0; gap: 4px; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail .lo-bg-sortir-f { width: auto; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail .lo-bg-a .lo-bg-langue .toggle-langue { flex: none; }
+html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail .lo-bg-ligne.actif::before, html[data-mix="vercel"] :is(.lo-haut, .lo-bas) .lo-rail > .lo-bg-choix { display: none; }
+/* Téléphone, « Plus » : photo de Cléo et initiales dans la colonne des icônes (20 px) */
+html[data-mix="vercel"] .lo-plus b.lo-bg-ini { width: 20px; height: 20px; min-width: 0; padding: 0; border-radius: 4px; background: var(--mix-surface-2, #ECF2F9); color: var(--mix-marine); font-size: 10px; font-weight: 600; }
+html[data-mix="vercel"] .lo-plus .po-cleo-av img { width: 20px; height: 20px; border-radius: 50%; }
+html[data-mix="vercel"] .lo-plus .po-cleo-av i { border-color: var(--mix-surface, #fff); }
+/* ==== fin Bas du menu locataire ==== */
+
+/* ==== En-tête des pages intérieures (Paiements, Demandes…) : commandes alignées sur la dernière ligne du texte (Steven, 27 nov. 2026 22:31 « align bottom line for the right section ») ==== */
+html[data-mix="vercel"] .lo-bandeau.court .lo-bandeau-haut { align-items: flex-end; }
+/* ==== fin ==== */
+/* ==== Demandes · « Intervention planifiée » (carte d'action, 2026-11-27) ====
+   Panneau bleuté du thème, coins de carte 8 px; tuile date marine; boutons 36 px (44 px au téléphone, pleine largeur);
+   espacement vertical +15 % : 18 px en haut et en bas, 23 px au-dessus et au-dessous du bloc. */
+html[data-mix="vercel"] .lo-interv.lo-rdv { gap: 16px; padding: 18px 20px; margin-block: 3px; background: var(--mix-tint); border-radius: var(--mix-radius-card); box-shadow: none; }
+html[data-mix="vercel"] .lo-rdv-date { background: var(--mix-marine, #0C2147); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .lo-rdv-titre { color: var(--mix-marine, #0C2147); letter-spacing: var(--mix-track-title, -0.01em); }
+html[data-mix="vercel"] .lo-rdv-quand { color: var(--mix-text-2); }
+html[data-mix="vercel"] .lo-interv .lo-rdv-quand strong { color: var(--mix-text); font-weight: 600; }
+html[data-mix="vercel"] .lo-rdv-quand span::before { color: var(--mix-text-3); }
+html[data-mix="vercel"] .lo-rdv-choix { color: var(--mix-text); }
+html[data-mix="vercel"] .lo-interv-actions.lo-rdv-actions .bouton { height: 36px; min-height: 36px; padding: 0 16px; }
+@media (max-width: 760px) {
+  html[data-mix="vercel"] .lo-interv.lo-rdv { padding: 18px 16px; }
+  html[data-mix="vercel"] .lo-interv-actions.lo-rdv-actions .bouton { width: 100%; height: 44px; min-height: 44px; }
+}
+/* ==== fin ==== */
+
+/* ==== Aide, colonne de droite (« Une question qui n'est pas ici ? », « Urgence 24/7 », « Suggérer une amélioration ») : marges et rythme (Steven, 27 nov. 2026 22:34 « make the spacing - padding perfect, increase it ») ====
+   Marge intérieure 24 → 28 px; titre et sous-titre liés (6 px); 20 px avant le bouton ou le paragraphe suivant; icône à 16 px du titre; 32 px entre les cartes. */
+html[data-mix="vercel"] #racine .lo-colonne:has(#urgence) { gap: 32px; }
+html[data-mix="vercel"] #racine .lo-colonne:has(#urgence) > .carte-l18 { padding: 28px; gap: 20px; }
+html[data-mix="vercel"] #racine .lo-colonne:has(#urgence) > .carte-l18 > .a-faire-ic + .titre-carte { margin-top: -4px !important; }
+html[data-mix="vercel"] #racine .lo-colonne:has(#urgence) > .carte-l18 > .titre-carte + p { margin-top: -14px !important; }
+html[data-mix="vercel"] #racine .lo-colonne:has(#urgence) > .carte-l18 > .ligne-ic.texte-12 { margin-top: -4px !important; }
+/* ==== fin ==== */
+html[data-mix="vercel"] #racine .lo-colonne:has(#urgence) > .carte-l18 > .titre-carte { margin-bottom: 0 !important; }
+/* ==== Polish locataire 2026-11-27 : cartes sommaires Paiements + table « Tous les fichiers » (mélange) ==== */
+html[data-mix="vercel"] .lo-grille.trois > .lo-kpi > b { font-family: var(--ll-police-titre, 'Poppins', sans-serif); font-weight: 600; line-height: 40px; letter-spacing: -0.5px; }
+html[data-mix="vercel"] .lo-grille.trois > .lo-kpi > b:not(.rouge) { color: #0C2147; }
+html[data-mix="vercel"] .lo-fichiers-table col:nth-child(1) { width: 27% !important; }
+html[data-mix="vercel"] .lo-fichiers-table col:nth-child(2) { width: 16% !important; }
+html[data-mix="vercel"] .lo-fichiers-table col:nth-child(3) { width: 25% !important; }
+html[data-mix="vercel"] .lo-fichiers-table col:nth-child(4) { width: 18% !important; }
+html[data-mix="vercel"] .lo-fichiers-table .lo-nom { padding: 0; }
+/* ==== fin ==== */
+
+/* ==== Profil · Coordonnées (carte de réglages) : champs 40 px (44 au téléphone), anneau unique au focus, pied teinté ==== */
+html[data-mix="vercel"] .lo-contenu form.lo-coord .champ :is(input:not([type=checkbox]):not([type=radio]), select) { height: 40px; min-height: 40px; padding: 0 12px; }
+html[data-mix="vercel"] .lo-contenu form.lo-coord .champ :is(input:not([type=checkbox]):not([type=radio]), select):focus { outline: 2px solid transparent; outline-offset: 0; box-shadow: 0 0 0 2px var(--mix-marine); }
+html[data-mix="vercel"] .lo-contenu form.lo-coord .champ > span.lo-verrou { min-height: 40px; padding: 0 12px; font-size: 14px; font-weight: 400; color: var(--mix-text-2); background: var(--mix-bg); box-shadow: 0 0 0 1px var(--mix-border); border-radius: var(--mix-radius-control); }
+html[data-mix="vercel"] .lo-coord-pied { border-top-color: var(--mix-border); background: #F8FAFC; border-radius: 0 0 var(--mix-radius-card) var(--mix-radius-card); }
+html[data-mix="vercel"] .lo-coord-etat { color: var(--mix-text-2); }
+@media (max-width: 760px) {
+  html[data-mix="vercel"] .lo-contenu form.lo-coord .champ :is(input:not([type=checkbox]):not([type=radio]), select) { height: 44px; min-height: 44px; }
+  html[data-mix="vercel"] .lo-contenu form.lo-coord .champ > span.lo-verrou { min-height: 44px; }
+  html[data-mix="vercel"] .lo-coord-boutons .bouton { height: 44px; }
+}
+/* ==== fin Coordonnées ==== */
+
+/* ==== Accueil : +20 % d'espace vertical (Steven, 27 nov. 2026 22:43) ====
+   En-tête « Bonjour Samuel, » : marge haut / bas 12 → 14 px, date sous le titre 4 → 5 px.
+   « À faire » (visite et prochain loyer) : marge haut 14 → 17 px, bas 18 → 22 px, écart entre les lignes de texte 4 → 5 px, entre le texte et les boutons 12 → 14 px. */
+html[data-mix="vercel"] .ent .acc-carte { padding-top: 14px; padding-bottom: 14px; }
+html[data-mix="vercel"] .ent .acc-meta { margin-top: 5px; }
+html[data-mix="vercel"] .acc-afaire .acc-ligne { padding-top: 17px; padding-bottom: 22px; gap: 14px; }
+html[data-mix="vercel"] .acc-afaire .acc-texte { gap: 5px; }
+/* ==== fin ==== */
+/* Correctif d'audit : pied du formulaire « Coordonnées » sur un fond de la palette (#F4F7FB) au lieu de #F8FAFC. */
+html[data-mix="vercel"] .lo-coord-pied { background: var(--mix-bg); }
+
+/* ==== « Mes indicateurs » : +25 % d'espace vertical entre les éléments (Steven, 27 nov. 2026 22:44) ====
+   Carte : marge haut / bas 16 → 20 px, écart entre les blocs 16 → 20 px; chiffres : 4 → 5 px entre libellé, valeur, texte et barre;
+   graphique du loyer : 16 → 20 px au-dessus, 8 → 10 px entre son en-tête et le graphique. */
+html[data-mix="vercel"] section.ind { padding-top: 20px; padding-bottom: 20px; gap: 20px; }
+html[data-mix="vercel"] section.ind .ind-tete { row-gap: 10px; }
+html[data-mix="vercel"] section.ind .ind-fig { gap: 5px; }
+html[data-mix="vercel"] section.ind .ind-graphe { padding-top: 20px; gap: 10px; }
+html[data-mix="vercel"] section.ind .ind-gtete { row-gap: 10px; }
+html[data-mix="vercel"] section.ind .ind-gt-chiffres { row-gap: 5px; }
+/* ==== fin ==== */
+
+/* ==== Bascule de langue : FR et EN, deux boutons de la même taille (Steven, 27 nov. 2026 22:45 « FR - EN - same size ») ==== */
+html[data-mix="vercel"] .lo-rail .toggle-langue { display: inline-grid; grid-template-columns: 1fr 1fr; width: auto; }
+html[data-mix="vercel"] .lo-rail .toggle-langue button { width: 36px; min-width: 36px; padding: 0; text-align: center; justify-content: center; }
+/* ==== fin ==== */
+
+/* Accueil : commandes de l en-tête alignées sur la ligne sous « Bonjour Samuel, » (Steven, 22:46) */
+html[data-mix="vercel"] .ent .acc-tete-haut { align-items: flex-end; }
+html[data-mix="vercel"] .ent .lo-bandeau-actions, html[data-mix="vercel"] .lo-bandeau.court .lo-bandeau-actions { align-items: flex-end; }
+
+/* « Mon loyer depuis 2024 » : +30 % d espace au-dessus (Steven, 22:47) : écart avant le filet 20 → 26 px, au-dessus du titre 20 → 26 px. */
+html[data-mix="vercel"] section.ind .ind-graphe { margin-top: 6px; padding-top: 26px; }
+
+/* En-tête « Bonjour Samuel, » : +30 % en haut et en bas (Steven, 22:48) : 14 → 18 px. */
+html[data-mix="vercel"] .ent .acc-carte { padding-top: 18px; padding-bottom: 18px; }
+
+/* ==== Cloche de l'en-tête à la hauteur d'Urgence 24/7 et de la recherche (Steven, 22:50) : 44 → 36 px sur ordinateur; 44 px au téléphone (cible tactile). ==== */
+@media (min-width: 761px) {
+  html[data-mix="vercel"] :is(.ent, .lo-bandeau) .cloche > button { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
+}
+/* ==== fin ==== */
+
+/* ==== Messages, liste « Fils » : +30 % d'espace vertical entre les éléments (Steven, 27 nov. 2026 22:52) ====
+   Carte 16 → 21 px (marge et écarts), fils 14 → 18 px en haut et en bas. */
+html[data-mix="vercel"] .lo-liste.lo-liste { gap: 21px; padding-top: 21px; padding-bottom: 21px; }
+html[data-mix="vercel"] .lo-liste .lo-msgs > li > a { padding-top: 18px; padding-bottom: 18px; }
+/* ==== fin ==== */
+
+/* ==== Messages, conversation ouverte : +30 % d'espace vertical entre les éléments (Steven, 27 nov. 2026 22:53) ====
+   Blocs 20 → 26 px; dans chaque message, auteur → texte 0 → 4 px, texte → pièce jointe 8 → 10 px. */
+html[data-mix="vercel"] .lo-msg-haut, html[data-mix="vercel"] .lo-msg-haut .po-msg-corps { gap: 26px; }
+html[data-mix="vercel"] .lo-msg-haut .po-msg-corps > article > .po-msg-texte { margin-top: 4px; }
+html[data-mix="vercel"] .lo-msg-haut .po-msg-corps > article > .po-piece { margin-top: 10px; }
+/* ==== fin ==== */
+
+/* ==== Bascule FR | EN (bas du menu, version A) : chaque côté 40 % plus étroit (Steven, 22:53) : 61 → 37 px; la bascule ne remplit plus la rangée. ==== */
+html[data-mix="vercel"] .lo-rail .lo-bg-langue .toggle-langue { width: auto; flex: none; justify-self: start; align-self: center; }
+html[data-mix="vercel"] .lo-rail .lo-bg-langue .toggle-langue button { width: 37px; min-width: 37px; flex: none; }
+/* ==== fin ==== */
+html[data-mix="vercel"] .lo-rail .lo-bg-a .lo-bg-langue .toggle-langue { flex: none; width: auto; }
+html[data-mix="vercel"] .lo-rail .lo-bg-a .lo-bg-langue .toggle-langue button { flex: none; width: 37px; min-width: 37px; }
+
+/* ==== Mon logement · refonte proportions (2026-11-27) : un seul rembourrage de carte, 20 px ordinateur / 16 px téléphone ==== */
+html[data-mix="vercel"] .lo-lg .carte-l18:not(.lo-fiche), html[data-mix="vercel"] .carte-l18.lo-lg-docs { padding: 20px; }
+html[data-mix="vercel"] .lo-lg .lo-fiche-corps { padding: 20px; }
+html[data-mix="vercel"] .lo-lg .lo-fiche-corps h2 { font-size: 17px; line-height: 24px; }
+html[data-mix="vercel"] .lo-lg .lo-lignes dd { font-feature-settings: "liga" 1, "tnum" 1; }
+html[data-mix="vercel"] .lo-lg-docs .lo-doc-txt strong { font-weight: 600; }
+@media (max-width: 760px) {
+  html[data-mix="vercel"] .lo-lg .carte-l18:not(.lo-fiche), html[data-mix="vercel"] .carte-l18.lo-lg-docs { padding: 16px; }
+  html[data-mix="vercel"] .lo-lg .lo-fiche-corps { padding: 16px; }
+}
+/* ==== fin Mon logement ==== */
+
+/* ==== Téléphone : la rangée Urgence 24/7 · recherche · cloche des en-têtes est cachée dans tout le portail locataire (Steven, 27 nov. 2026 22:56) ==== */
+@media (max-width: 760px) {
+  html[data-mix="vercel"] .lo :is(.lo-bandeau, .ent) .lo-bandeau-actions { display: none; }
+}
+/* ==== fin ==== */
+
+/* ==== +30 % d'espace entre les éléments (Steven, 27 nov. 2026 22:57) ====
+   En-tête « Bonjour Samuel » : titre / étiquette 4 → 5 px, titre → date 5 → 7 px.
+   « À faire » : titre de la carte 14 → 18 px en haut et en bas; chaque élément 17/22 → 22/29 px; lignes de texte 5 → 7 px; texte → boutons 14 → 18 px. */
+html[data-mix="vercel"] .ent .acc-tete-ligne { row-gap: 5px; }
+html[data-mix="vercel"] .ent .acc-meta { margin-top: 7px; }
+html[data-mix="vercel"] .acc-afaire > header, html[data-mix="vercel"] .acc-afaire > .acc-bloc-tete { padding-top: 18px; padding-bottom: 18px; }
+html[data-mix="vercel"] .acc-afaire .acc-ligne { padding-top: 22px; padding-bottom: 29px; gap: 18px; }
+html[data-mix="vercel"] .acc-afaire .acc-texte { gap: 7px; }
+/* ==== fin ==== */
+
+/* ==== +30 % d'espace vertical (Steven, 27 nov. 2026 22:57, « vertically ») : « Demande en cours », « Mon bail », titre de « À faire » ==== */
+html[data-mix="vercel"] .acc-afaire > .acc-afaire-titre { padding-top: 18px; padding-bottom: 13px; }                 /* 14 / 10 → 18 / 13 */
+html[data-mix="vercel"] .acc-a .acc-a-principal > .acc-bloc { padding-top: 21px; padding-bottom: 21px; }           /* 16 → 21 */
+html[data-mix="vercel"] .acc-a-principal .acc-bloc-tete { margin-bottom: 5px; }                                    /* 4 → 5 */
+html[data-mix="vercel"] .acc-a-principal .dmd-b .dmd-tete { margin-bottom: 16px; }                                 /* 12 → 16 */
+html[data-mix="vercel"] .acc-a-principal .dmd-b .dmd-ou { margin-top: 16px; row-gap: 5px; }                        /* 12 → 16, 4 → 5 */
+html[data-mix="vercel"] .acc-a-principal .acc-bloc-tete + .bl { margin-top: 16px; }                               /* 12 → 16 */
+html[data-mix="vercel"] .acc-a-principal .bl-b .bl-cases { margin-bottom: 18px; row-gap: 10px; }                  /* 14 → 18, 8 → 10 */
+/* ==== fin ==== */
+
+/* ==== Logement : la liste « Inclus au bail » démarre sur la même ligne que l'adresse de « Immeuble » (Steven, 27 nov. 2026 23:05) ==== */
+html[data-mix="vercel"] .lo-lg-carte > .lo-tete:has(+ .lo-inclus) { min-height: 0; }                              /* en-tête 48 px forcé → hauteur du titre (24 px) */
+html[data-mix="vercel"] .lo-lg-carte > .lo-tete + .lo-inclus { margin-top: 4px; }                                 /* titre 622–646 + 4 = 650, top de l'adresse */
+/* ==== fin ==== */
+
+/* ==== Documents : « Date » alignée à gauche sur le premier chiffre des dates (Steven, 27 nov. 2026 23:11) ==== */
+html[data-mix="vercel"] .lo-fichiers-table :is(th, td).droite { text-align: left; }
+/* ==== fin ==== */

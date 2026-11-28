@@ -7,6 +7,7 @@ import { Icone } from '@/composants/Icones';
 import { useT } from '@/composants/Langue';
 import { criteres, score, slugifier } from '@/lib/seo';
 import { CATS, STATUTS, revalider } from '../../Commun';
+import { ProgressBar } from '@/composants/dataviz';
 
 /* AR-03 à AR-05 · Éditeur : Contenu, Référencement, Publication; score recalculé à chaque frappe (même grille que la base); chaque critère place le curseur
    dans le bon champ; aperçu Google; Cléo en 5 étapes — ses sorties remplissent le formulaire comme des propositions, annulables, jamais enregistrées seules.
@@ -68,7 +69,7 @@ export function Editeur({ article: A, champ, maintenant }: { article: ArticleCom
             <div className="tete-action"><div><p className="surtitre" style={{ margin: 0 }}>{A.langue === 'en' ? t('Article (anglais)') : t('Article')} · <span className={`puce ${STATUTS[A.statut]?.[1] ?? ''}`}>{t(STATUTS[A.statut]?.[0] ?? '')}</span>{modifie && <span className="gris texte-12"> {t('· modifications non enregistrées')}</span>}</p>
               <h2 className="releve-titre" style={{ margin: '6px 0 0' }}>{f.titre || t('Nouvel article')}</h2></div>
               <div className="fiche-actions"><button className="bouton bouton-principal" disabled={envoi || !modifie || f.titre.trim().length < 3} onClick={enregistrer}>{t('Enregistrer')}</button></div></div>
-            <nav className="sous-onglets" style={{ marginTop: 16 }}>{[['contenu', t('Contenu')], ['seo', t('Référencement')], ['publication', t('Publication')]].map(([k, l]) => <button key={k} className="lien" style={{ padding: '8px 14px', borderRadius: 8, background: onglet === k ? '#EEF4FB' : 'none', textDecoration: 'none', fontWeight: onglet === k ? 600 : 400 }} onClick={() => setOnglet(k)}>{l}</button>)}</nav>
+            <nav className="sous-onglets" style={{ marginTop: 16 }}>{[['contenu', t('Contenu')], ['seo', t('Référencement')], ['publication', t('Publication')]].map(([k, l]) => <button key={k} className="lien" style={{ padding: '8px 14px', borderRadius: 4, background: onglet === k ? '#EEF4FB' : 'none', textDecoration: 'none', fontWeight: onglet === k ? 600 : 400 }} onClick={() => setOnglet(k)}>{l}</button>)}</nav>
           </section>
           {onglet === 'contenu' && <section className="carte-l18">
             {champTexte('titre', t('Titre'), { max: 60 })}
@@ -99,7 +100,7 @@ export function Editeur({ article: A, champ, maintenant }: { article: ArticleCom
         </div>
         <div className="po-colonne">
           <section className="carte-l18" aria-label={t('Score SEO')}><div className="tete-action"><h2 className="titre-carte" style={{ margin: 0 }}>{t('Score SEO')}</h2><b style={{ fontSize: 28, color: S >= 80 ? '#12694F' : S >= 50 ? '#2E5788' : '#9B2E28' }}>{S}</b></div>
-            <span className="jauge" style={{ display: 'block', margin: '8px 0 12px' }}><i style={{ width: `${S}%` }} /></span>
+            <ProgressBar value={S} style={{ display: 'block', margin: '8px 0 12px' }} />
             <ul className="lo-docs">{C.map((c) => <li key={c.id} className="texte-13">{c.ok ? <Icone nom="check" taille={16} couleur="#12694F" /> : <span className="gris" style={{ width: 16 }}>+{c.p}</span>}
               <div><button className="lien" style={{ textAlign: 'left', color: c.ok ? '#3E4A59' : undefined }} onClick={() => aller(c.champ)}>{c.t}</button>{c.d && <span className="gris">{c.d}</span>}</div></li>)}</ul></section>
           <section className="carte-l18" aria-label="Cléo"><div className="ligne-ic"><span className="av-agent" style={{ width: 32, height: 32 }}><Icone nom="spark" taille={18} couleur="#0C2147" /></span><h2 className="titre-carte" style={{ margin: 0 }}>{t('Demander à Cléo')}</h2></div>

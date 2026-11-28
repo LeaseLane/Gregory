@@ -1,11 +1,12 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { qc, argentL } from '@/lib/format';
 import { useT } from '@/composants/Langue';
 import type { T } from '@/lib/i18n/langue';
+import { ProgressBar, BarChart } from '@/composants/dataviz';
 
 type Proc = { id: string; code: string; nom: string; etapes: string[]; step: number; data: { debut_bail?: string; loyer_actuel?: number; nouveau_loyer?: number; type?: string; fin_bail?: string; fenetre?: string[]; autres_conditions?: string };
   due_at: string | null; logement: string | null; locataire: string | null; courriel: string | null; team_approved: boolean; team_par: string | null; owner_approved: boolean; owner_note: string | null;
@@ -23,6 +24,18 @@ const ROLES: Record<string, string> = { location: 'Location', gestionnaire: 'Ges
 const REPONSES: [string, string][] = [['accepte', 'Accepte'], ['refuse', 'Refuse la modification (reste, TAL)'], ['quitte', 'Quitte le logement'], ['reputee_acceptee', 'Sans réponse : réputée acceptée']];
 const delaiTexte = (p: DonneesProcessus['parametres'][number], t: T) => p.code.startsWith('renewal_notice') ? t('{a} à {b} mois avant la fin', { a: p.value.min_mois, b: p.value.max_mois }) : p.value.jours != null ? t('{n} jours', { n: p.value.jours }) : t('{n} mois', { n: p.value.mois });  // cession : 15 jours (art. 1871 C.c.Q.)
 
+// Diagramme d'étapes (dv-diag) : étapes reliées par des liens orthogonaux; une seule étape marine, nommée par une étiquette.
+type NoeudFlux = { cle: string; lib: string; val: string | number; sous?: string; part?: number; focal?: string | null; lien?: string | null };
+function Flux({ noeuds, label }: { noeuds: NoeudFlux[]; label: string }) {
+  return <div className="dg-bloc"><ol className={'dg-flux' + (noeuds.length > 4 ? ' long' : '')} aria-label={label} style={{ '--dg-n': noeuds.length } as CSSProperties}>
+    {noeuds.map((n, i) => <li key={n.cle} className={'dg-etape' + (n.focal ? ' focal' : '')}>
+      {i > 0 && <span className="dg-lien" aria-hidden="true">{n.lien && <span>{n.lien}</span>}</span>}
+      <span className="dg-num" aria-hidden="true">{i + 1}</span><span className="dg-lib">{n.lib}</span><b className="dg-val">{n.val}</b>
+      {n.sous && <span className="dg-sous">{n.sous}</span>}
+      {n.part != null && <span className="dg-barre" aria-hidden="true"><i style={{ width: `${n.part > 0 ? Math.max(2, Math.min(100, n.part)) : 0}%` }} /></span>}
+      {n.focal && <span className="dg-tag">{n.focal}</span>}</li>)}</ol></div>;
+}
+
 export function Processus({ donnees, erreurLecture }: { donnees: DonneesProcessus | null; erreurLecture: string | null }) {
   const router = useRouter();
   const { t, locale } = useT();
@@ -38,6 +51,10 @@ export function Processus({ donnees, erreurLecture }: { donnees: DonneesProcessu
   const ecart = (m: string) => { const [an, mo] = m.split('-').map(Number); const q = qc(auj); return (an - q.an) * 12 + mo - 1 - q.mois; };
   const ouverts = avis ? D.fins_par_mois.filter((m) => ecart(m.mois) >= avis.min_mois && ecart(m.mois) < avis.max_mois) : [];
   const nomMois = (m: string) => moisCourt(locale, Number(m.slice(5, 7)));
+  // Où en sont les dossiers : combien de processus à chaque étape, par modèle (lu dans D.processus, rien d'estimé).
+  const modelesEnCours = Object.values(D.processus.reduce<Record<string, { code: string; nom: string; etapes: string[]; compte: number[]; n: number }>>((acc, p) => {
+    const m = acc[p.code] ??= { code: p.code, nom: p.nom, etapes: p.etapes, compte: p.etapes.map(() => 0), n: 0 };
+    m.compte[Math.min(p.step, m.etapes.length - 1)] += 1; m.n += 1; return acc; }, {})).filter((m) => m.etapes.length > 0 && m.etapes.length <= 9);
   async function agir(f: () => PromiseLike<{ error: { message: string } | null }>, ok: string) {
     setEnvoi(true); setBandeau(null); const { error } = await f(); setEnvoi(false);
     if (error) { setBandeau(error.message); return false; } setToast(ok); router.refresh(); return true;
@@ -52,17 +69,20 @@ export function Processus({ donnees, erreurLecture }: { donnees: DonneesProcessu
         <div className="colonne-l18">
           <section className="studio-liste" aria-label={t('Fins de bail par mois')}>
             <header className="carte-tete"><h2>{t('{n} avis de renouvellement à envoyer maintenant', { n: D.a_envoyer })}</h2><p>{t('Fins de bail par mois')}{avis ? ` · ${t('avis {a} à {b} mois avant la fin', { a: avis.min_mois, b: avis.max_mois })}` : ''}{ouverts.length ? ` · ${t('fenêtre ouverte : {a} à {b}', { a: nomMois(ouverts[0].mois), b: nomMois(ouverts[ouverts.length - 1].mois) })}` : ''}</p></header>
-            <div className="col-chart">{D.fins_par_mois.map((m) => { const [an, mo] = m.mois.split('-').map(Number); return (
-              <div key={m.mois} className={ouverts.includes(m) ? 'em' : ''} title={t('{n} baux finissent en {mois} {an}', { n: m.n, mois: moisCourt(locale, mo), an })}><b>{m.n || ''}</b><i style={{ height: `${Math.max(2, (120 * m.n) / max)}px` }} /><span>{moisCourt(locale, mo)}</span></div>); })}</div>
+            <BarChart height={168} labels={D.fins_par_mois.map((m) => moisCourt(locale, Number(m.mois.split('-')[1])))} titles={D.fins_par_mois.map((m) => { const [an, mo] = m.mois.split('-').map(Number); return t('{n} baux finissent en {mois} {an}', { n: m.n, mois: moisCourt(locale, mo), an }); })}
+              series={[{ id: 'n', name: t('Fins de bail par mois'), values: D.fins_par_mois.map((m) => m.n) }]} emphasis={D.fins_par_mois.flatMap((m, i) => (ouverts.includes(m) ? [i] : []))} valueLabels="max" format={(n) => String(n)} label={t('Fins de bail par mois')} tableColumn={t('Mois')} />
           </section>
           <section className="studio-liste" aria-label={t('Processus en cours')}>
             <header className="carte-tete"><h2>{t('Processus en cours')}</h2><p>{t('{n} en cours · une tâche et un rappel à chaque échéance', { n: D.processus.length })}</p></header>
+            {modelesEnCours.length > 0 && <div className="dg-processus">{modelesEnCours.map((m) => { const haut = Math.max(...m.compte);
+              return <div key={m.code}><p className="dg-titre">{t(m.nom)} · {t('{n} en cours', { n: m.n })}</p>
+                <Flux label={t(m.nom)} noeuds={m.etapes.map((e, i) => ({ cle: e, lib: t(e), val: m.compte[i], part: (100 * m.compte[i]) / Math.max(1, haut), focal: haut > 0 && m.compte.filter((c) => c === haut).length === 1 && m.compte[i] === haut ? t('Le plus de dossiers') : null }))} /></div>; })}</div>}
             <table className="tableau">
               <thead><tr><th>{t('Processus')}</th><th>{t('Logement')}</th><th>{t('Étape')}</th><th>{t('Progression')}</th><th className="droite">{t('Échéance')}</th></tr></thead>
               <tbody>{D.processus.map((p) => (
                 <tr key={p.id} onClick={() => setOuvert(p)}>
                   <td className="fort">{t(p.nom)}</td><td>{p.logement}</td><td>{t(p.etapes[Math.min(p.step, p.etapes.length - 1)])}</td>
-                  <td><span className="progression"><span className="jauge"><i style={{ width: `${(100 * p.step) / p.etapes.length}%` }} /></span>{p.step} / {p.etapes.length}</span></td>
+                  <td><span className="progression"><ProgressBar value={(100 * p.step) / p.etapes.length} />{p.step} / {p.etapes.length}</span></td>
                   <td className="droite">{p.due_at ? d(p.due_at) : '—'}</td></tr>))}
                 {!D.processus.length && <tr><td colSpan={5} className="gris">{t('Aucun processus en cours.')}</td></tr>}</tbody>
             </table>
@@ -119,7 +139,7 @@ function Fiche({ p, erreur, peut, envoi, fermer, agir }: { p: Proc; erreur: stri
           {erreur && <div className="bandeau erreur" role="alert">{erreur}</div>}
           {p.code === 'emmenagement' ? <Emmenagement p={p} peut={peut} envoi={envoi} agir={agir} /> : <>
           <p className="gris" style={{ marginTop: 0 }}>{p.locataire} · {t('fin du bail le {d}', { d: p.data.fin_bail ? d(p.data.fin_bail) : '—' })} · {t('loyer actuel {m}', { m: argent(p.data.loyer_actuel) })}{p.data.fenetre ? ` · ${t('avis entre le {a} et le {b}', { a: d(p.data.fenetre[0]), b: d(p.data.fenetre[1]) })}` : ''} · {t('modèle v{n}', { n: p.version })}</p>
-          <ol className="etapes-proc">{p.etapes.map((e, i) => <li key={e} className={i < p.step ? 'fait' : i === p.step ? 'actuel' : ''}><i>{i < p.step && <Icone nom="check" taille={12} couleur="#fff" trait={2.6} />}</i>{t(e)}</li>)}</ol>
+          <ol className="dg-pas">{p.etapes.map((e, i) => <li key={e} className={i < p.step ? 'fait' : i === p.step ? 'actuel' : ''} aria-current={i === p.step ? 'step' : undefined}><i aria-hidden="true">{i < p.step ? <Icone nom="check" taille={12} couleur="#0C2147" trait={2.6} /> : i + 1}</i>{t(e)}{i === p.step && <span className="dg-tag">{t('En cours')}</span>}</li>)}</ol>
 
           {p.step <= 1 && peut && <section className="bloc-proc"><p className="surtitre gris">{t('1 · Conditions proposées')}</p>
             <fieldset className="durees">{[['augmentation', 'Augmentation du loyer'], ['memes_conditions', 'Mêmes conditions']].map(([k, l]) => <label key={k} className={type === k ? 'choisi' : ''}><input type="radio" checked={type === k} onChange={() => setType(k)} />{t(l)}</label>)}</fieldset>
@@ -167,7 +187,7 @@ function Emmenagement({ p, peut, envoi, agir }: { p: Proc; peut: boolean; envoi:
   return (
     <>
       <p className="gris" style={{ marginTop: 0 }}>{p.locataire} · {t('début du bail le {d}', { d: p.data.debut_bail ? d(p.data.debut_bail) : '—' })} · {t('loyer {m}', { m: argent(p.data.loyer_actuel) })} · {t('modèle v{n}', { n: p.version })}</p>
-      <ol className="etapes-proc">{p.etapes.map((e, i) => <li key={e} className={i < p.step ? 'fait' : i === p.step ? 'actuel' : ''}><i>{i < p.step && <Icone nom="check" taille={12} couleur="#fff" trait={2.6} />}</i>{t(e)}</li>)}</ol>
+      <ol className="dg-pas">{p.etapes.map((e, i) => <li key={e} className={i < p.step ? 'fait' : i === p.step ? 'actuel' : ''} aria-current={i === p.step ? 'step' : undefined}><i aria-hidden="true">{i < p.step ? <Icone nom="check" taille={12} couleur="#0C2147" trait={2.6} /> : i + 1}</i>{t(e)}{i === p.step && <span className="dg-tag">{t('En cours')}</span>}</li>)}</ol>
       <section className="bloc-proc"><p className="surtitre gris">{t('Étape en cours · {e}', { e: t(p.etapes[p.step]) })}</p>
         {p.tache && <p>{p.tache.titre}<span className="gris">{p.tache.role ? ` · ${ROLES[p.tache.role] ? t(ROLES[p.tache.role]) : p.tache.role}` : ''}{p.tache.due_at ? ` · ${t('avant le {d}', { d: d(p.tache.due_at) })}` : ''}</span></p>}
         {peut && <><input className="e70-raison" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('Précision (facultatif)')} aria-label={t('Précision')} />

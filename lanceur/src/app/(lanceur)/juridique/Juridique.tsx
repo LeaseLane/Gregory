@@ -9,6 +9,7 @@ import { initiales } from '@/lib/ventes';
 import { adresse } from '@/lib/format';
 import { useT } from '@/composants/Langue';
 import type { T } from '@/lib/i18n/langue';
+import { BarChart } from '@/composants/dataviz';
 
 export type Vue = 'dossiers' | 'rappels' | 'mises' | 'tal' | 'modeles';
 type MED = { id: string; statut: string; texte: string; montant: number; version: number; modele: string; revise_par: string | null; revise_le: string | null; proposition: string | null;
@@ -176,9 +177,8 @@ function VueDossier({ x, autres, D, envoi, rpc, ouvrirE50, texte, setTexte }: { 
       <div className="colonne-l18">
         <section className="carte-l18" aria-label={t('Historique des paiements')}>
           <header className="carte-tete sans-marge"><h2>{x.retards.filter((r) => r.jours > 0).length <= 2 ? t('D’habitude à l’heure') : t('Retards fréquents')}</h2><p>{t('Jours de retard par mois · 12 derniers mois')}</p></header>
-          <div className="col-chart retards">{x.retards.map((r, i) => { const dern = i === x.retards.length - 1; return (
-            <div key={r.mois} className={dern && r.jours ? 'rouge' : r.jours ? 'gris' : ''} title={t('{n} j', { n: r.jours })}><b>{r.jours ? t('{n} j', { n: r.jours }) : ''}</b><i style={{ height: `${r.jours ? Math.max(4, (100 * r.jours) / max) : 2}px` }} />
-              <span>{i === 0 || dern || r.jours ? moisC(Number(r.mois.slice(5)) - 1, locale) : ''}</span></div>); })}</div>
+          <BarChart height={132} labels={x.retards.map((r) => moisC(Number(r.mois.slice(5)) - 1, locale))} series={[{ id: 'j', name: t('Jours de retard par mois · 12 derniers mois'), values: x.retards.map((r) => r.jours) }]}
+            emphasis={x.retards.length - 1} valueLabels="last" format={(n) => t('{n} j', { n })} label={t('Jours de retard par mois · 12 derniers mois')} tableColumn={t('Mois')} />
         </section>
         <section className="carte-l18" aria-label={t('Pièces au dossier')}>
           <header className="carte-tete sans-marge"><h2>{t('Pièces au dossier')}</h2><p>{t('Prêtes pour le TAL si le loyer reste impayé')}</p></header>
@@ -346,16 +346,17 @@ function VueTal({ D, envoi, rpc }: { D: DonneesJur; envoi: boolean; rpc: (n: str
         <section className="carte-l18" aria-label={t('Dossiers au TAL')}>
           <h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Dossiers au TAL')}</h2>
           <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{t('{n} en cours', { n: tal.filter((y) => y.etape === 'tal').length })}{aDeposer.length ? ` · ${t('{n} à déposer', { n: aDeposer.length })}` : ''}{decisions ? ` · ${decisions > 1 ? t('{n} décisions rendues en {a}', { n: decisions, a: new Date().getFullYear() }) : t('{n} décision rendue en {a}', { n: decisions, a: new Date().getFullYear() })}` : ''}</p>
-          <table className="tableau tab-fixe tab-tal"><colgroup><col style={{ width: '16%' }} /><col style={{ width: '28%' }} /><col style={{ width: '22%' }} /><col style={{ width: '17%' }} /><col /></colgroup>
-            <thead><tr><th>{t('Dossier')}</th><th>{t('Partie')}</th><th>{t('Motif')}</th><th>{t('Étape')}</th><th>{t('Prochaine date')}</th></tr></thead>
-            <tbody>{liste.map((y) => { const e = etape(y), [p1, p2] = prochaine(y); return (
-              <tr key={y.id} className={'ligne-lien' + (y.id === sel ? ' sel' : '')} onClick={() => { setSel(y.id); setMaj(false); setF({}); }}>
-                <td><b className="fort">{y.numero}</b><span className="sous gris">{y.tal ? t('TAL n° {n}', { n: y.tal }) : t('à déposer')}</span></td>
-                <td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 11 }}>{initiales(y.locataire ?? '?')}</span><span><b className="fort">{y.locataire}</b><span className="sous gris">{adresse(y.logement)}</span></span></span></td>
-                <td>{t(X?.dossiers[y.id]?.motif ?? 'Non-paiement de loyer')}<span className="sous gris">{argent(y.montant)}{y.premiere ? ` · ${t('{n} mois', { n: Math.max(1, Math.round(joursDe(y.premiere) / 30)) })}` : ''}</span></td>
-                <td><b className="fort">{ETAPES[e]}</b><span className="segments" aria-hidden="true">{[1, 2, 3].map((k) => <i key={k} className={k <= e ? 'on' : ''} />)}</span></td>
-                <td><b className="fort">{p1}</b><span className="sous gris">{p2}</span></td></tr>); })}
-              {!liste.length && <tr><td colSpan={5} className="gris">{t('Aucun dossier au TAL.')}</td></tr>}</tbody></table>
+          {/* Liste plutôt que tableau (Steven, 28 nov. 2026) : rien de tronqué, numéros de dossier sous la partie, en-têtes en casse normale. */}
+          {liste.length > 0 && <div className="tal-tete" aria-hidden="true"><span>{t('Partie')}</span><span>{t('Motif')}</span><span>{t('Étape')}</span><span>{t('Prochaine date')}</span></div>}
+          <ul className="tal-liste">{liste.map((y) => { const e = etape(y), [p1, p2] = prochaine(y); return (
+            <li key={y.id}><button type="button" className={'tal-ligne' + (y.id === sel ? ' sel' : '')} aria-pressed={y.id === sel} onClick={() => { setSel(y.id); setMaj(false); setF({}); }}>
+              <span className="tal-partie"><span className="ini">{initiales(y.locataire ?? '?')}</span><span><b className="fort">{y.locataire}</b><span className="gris">{adresse(y.logement)}</span>
+                <span className="tal-num">{y.numero} · {y.tal ? t('TAL n° {n}', { n: y.tal }) : t('à déposer')}</span></span></span>
+              <span className="tal-motif"><span>{t(X?.dossiers[y.id]?.motif ?? 'Non-paiement de loyer')}</span><span className="gris">{argent(y.montant)}{y.premiere ? ` · ${t('{n} mois', { n: Math.max(1, Math.round(joursDe(y.premiere) / 30)) })}` : ''}</span></span>
+              <span className="tal-etape"><b className="fort">{ETAPES[e]}</b><span className="segments" aria-hidden="true">{[1, 2, 3].map((k) => <i key={k} className={k <= e ? 'on' : ''} />)}</span></span>
+              <span className="tal-date"><b className="fort">{p1}</b><span className="gris">{p2}</span></span>
+            </button></li>); })}
+            {!liste.length && <li className="gris texte-13">{t('Aucun dossier au TAL.')}</li>}</ul>
         </section>
         <section className="carte-l18" aria-label={t('Audiences à venir')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Audiences à venir')}</h2>
           <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{audiences.length ? t('{n} d’ici le {d}', { n: audiences.length, d: d(audiences[audiences.length - 1].audience!) }) : t('Aucune audience fixée')}</p>
@@ -365,14 +366,15 @@ function VueTal({ D, envoi, rpc }: { D: DonneesJur; envoi: boolean; rpc: (n: str
         </section>
       </div>
       {x && <div className="grille-2-1" style={{ marginTop: 24 }}>
-        <section className="carte-l18" aria-label={t('Dossier mis en avant')}>
-          <div className="tete-action"><div><p className="surtitre" style={{ margin: 0 }}>{x.numero} · {t(ex?.motif ?? 'Non-paiement de loyer').toLowerCase()}</p>
-            <h2 className="releve-titre" style={{ margin: '4px 0' }}>{x.locataire} · {adresse(x.logement)}</h2>
-            <p className="gris texte-13" style={{ margin: 0 }}>{t('Montant réclamé : {m}, intérêts et frais', { m: argent(x.montant) })}{x.premiere && joursDe(x.premiere) > 21 ? ` · ${t('résiliation du bail possible (art. 1971 C.c.Q.)')}` : ''}</p></div>
-            <div style={{ textAlign: 'right' }}><b className="gros-montant">{argent(x.montant)}</b><span className="sous gris">{t('réclamés au TAL')}</span></div></div>
-          <ol className="etapes-bt" style={{ margin: '24px 0' }}>{ligne.map(([lib, q], k) => { const passe = !!q && new Date(q) <= new Date(), actuel = k === fait;
+        <section className="carte-l18 tal-cas" aria-label={t('Dossier mis en avant')}>
+          {/* Refonte (Steven, 28 nov. 2026) : surtitre en casse normale, nom puis adresse, montant seul à droite, plus d'air entre les blocs. */}
+          <div className="tete-action tal-cas-tete"><div><p className="tal-cas-sur">{x.numero} · {t(ex?.motif ?? 'Non-paiement de loyer')}</p>
+            <h2 className="tal-cas-titre">{x.locataire}</h2>
+            <p className="gris texte-13" style={{ margin: 0 }}>{adresse(x.logement)}{x.premiere && joursDe(x.premiere) > 21 ? ` · ${t('résiliation du bail possible (art. 1971 C.c.Q.)')}` : ''}</p></div>
+            <div className="tal-cas-montant"><b className="gros-montant">{argent(x.montant)}</b><span className="sous gris">{t('réclamés au TAL, plus intérêts et frais')}</span></div></div>
+          <ol className="etapes-bt tal-cas-frise">{ligne.map(([lib, q], k) => { const passe = !!q && new Date(q) <= new Date(), actuel = k === fait;
             return <li key={lib} className={passe ? 'fait' : actuel ? 'actuel' : ''}><i>{passe ? <Icone nom="check" taille={14} couleur="#fff" trait={2.6} /> : k + 1}</i>{lib}<small>{q ? (k === 3 ? `${d(q)} · ${locale.startsWith('fr') ? new Date(q).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' }).replace(':', ' h ') : new Date(q).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' })}` : d(q)) : t('à venir')}</small></li>; })}</ol>
-          <div className="ligne-entre"><p className="ligne-ic texte-13" style={{ margin: 0 }}><img src="/img/cleo.png" alt="" className="avatar-cleo" style={{ width: 24, height: 24 }} />
+          <div className="ligne-entre tal-cas-pied"><p className="ligne-ic texte-13" style={{ margin: 0 }}><img src="/img/cleo.png" alt="" className="avatar-cleo" style={{ width: 24, height: 24 }} />
             {ex ? ex.en_retard_depuis ? (ex.en_retard_depuis > 1 ? t('{n} loyers en retard depuis le dépôt.', { n: ex.en_retard_depuis }) : t('{n} loyer en retard depuis le dépôt.', { n: ex.en_retard_depuis })) : ex.payes_depuis ? (ex.payes_depuis > 1 ? t('{n} loyers payés à temps depuis le dépôt · {m} toujours dus.', { n: ex.payes_depuis, m: argent(x.montant) }) : t('{n} loyer payé à temps depuis le dépôt · {m} toujours dus.', { n: ex.payes_depuis, m: argent(x.montant) })) : t('{m} toujours dus.', { m: argent(x.montant) }) : '…'}</p>
             {D.peut_ecrire && x.etape !== 'ferme' && x.etape !== 'regle' && <button className="bouton bouton-principal" onClick={() => setMaj(!maj)}><Icone nom="folder" taille={18} couleur="#fff" />{x.etape === 'tal' ? t('Préparer l’audience') : t('Déposer au TAL')}</button>}</div>
           {maj && <div className="tal-maj">

@@ -8,6 +8,7 @@ import { useT } from '@/composants/Langue';
 import { argentL } from '@/lib/format';
 import { BarresClassees, Colonnes, Courbe, JaugeSeuil } from '@/composants/Graphes';
 import { visites } from '../site/ActiviteSite';
+import { ProgressBar } from '@/composants/dataviz';
 
 type Campagne = { id: string; nom: string; canaux: string | null; statut: 'active' | 'pause' | 'terminee'; utm: string; page: string | null; budget_cents: number | null;
   cout_vise_cents: number | null; arret_cents: number | null; ciblage: string | null; source: string | null; semaines: number[]; leads: number; depense_cents: number };
@@ -66,7 +67,7 @@ export function Campagnes({ donnees: D, nouvelle: n0, demo }: { donnees: Donnees
         <div className="kpi"><span>{t('Leads ce mois')}</span><b>{L[n]}</b><span>{ecart(L[n], L[n - 1], String)}</span><Colonnes v={L} /></div>
         <div className="kpi"><span>{t('Coût par lead')}</span><b>{L[n] ? argent(cpl[n], true) : '—'}</b><span>{L[n] && cplAvant !== null ? ecart(cpl[n], cplAvant, (x) => argent(x, true)) : t('aucune dépense ou aucun lead ce mois')}</span><Courbe valeurs={cpl.filter((x, i) => L[i])} largeur={110} hauteur={26} /></div>
         <div className="kpi"><span>{t('Budget dépensé')}</span><b>{argent(S[n])}</b><span>{D.budget_mois ? t('sur {budget} · {mois}', { budget: argent(D.budget_mois), mois: nomMois(D.mois) }) : t('{mois} · aucun budget actif', { mois: nomMois(D.mois) })}</span>
-          {D.budget_mois > 0 && <span className="jauge"><i style={{ width: `${Math.min(100, (100 * S[n]) / D.budget_mois)}%` }} /></span>}</div>
+          {D.budget_mois > 0 && <ProgressBar value={Math.min(100, (100 * S[n]) / D.budget_mois)} />}</div>
         <div className="kpi"><span>{t('Visites du site')}</span><b>{visitesMois ? visitesMois[11].toLocaleString(locale).replace(/[  ]/g, ' ') : '—'}</b>
           <span>{visitesMois ? t('{pct} % sur {mois} · exemple, GA4 à brancher', { pct: Math.round((100 * (visitesMois[11] - visitesMois[10])) / Math.max(1, visitesMois[10])), mois: nomMois(D.mois, -1) }) : t('Google Analytics 4 à brancher')}</span>
           {visitesMois && <Courbe valeurs={visitesMois} largeur={110} hauteur={26} />}</div>

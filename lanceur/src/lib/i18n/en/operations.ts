@@ -705,5 +705,11 @@ const dico: Record<string, string> = {
   "Le 5 du mois · relevé et facture d’honoraires": "The 5th of the month · statement and fee invoice",
   "Lecture": "Reading",
   "Classement": "Filing",
+  // dv-diag (diagrammes d'étapes, 27 nov.)
+  "Dépensé": "Spent",
+  "Projection au rythme actuel": "Projection at the current pace",
+  "Confirmées": "Confirmed",
+  "{n} corrigées": "{n} corrected",
+  "seuil 80 %": "80% threshold",
 };
 export default dico;

@@ -11,7 +11,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const { t } = await tServeur();
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_incident', { p_id: id });
   return (
-    <CadreEspace icone="chart" nom="Rapports et réglages" sous={SOUS_REG} actif={6} onglets={ONGLETS_REG}>
+    <CadreEspace icone="chart" nom="Réglages" sous={SOUS_REG} actif={6} onglets={ONGLETS_REG}>
       <Incident donnees={(data as DonneesIncident | null) ?? null} erreurLecture={error ? (error.code === 'PT404' ? t('Incident introuvable.') : error.message) : null} />
     </CadreEspace>
   );

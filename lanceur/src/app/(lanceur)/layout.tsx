@@ -1,3 +1,4 @@
+import '../theme-mix/admin.css';   // thème « Mix » de Steven, après base.css
 import { redirect } from 'next/navigation';
 import { supabaseServeur } from '@/lib/supabase/serveur';
 import { destination } from '@/lib/acces';

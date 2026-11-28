@@ -39,7 +39,7 @@ export default async function Page() {
   };
   const actifs = (D?.comptes ?? []).filter((c) => c.statut === 'actif' || c.statut === 'active');
   return (
-    <CadreEspace icone="chart" nom="Rapports et réglages" sous={SOUS_REG} actif={2} onglets={ONGLETS_REG}>
+    <CadreEspace icone="chart" nom="Réglages" sous={SOUS_REG} actif={2} onglets={ONGLETS_REG}>
       <SousOnglets actif="/reglages/equipe" />
       {!D ? <div className="bandeau erreur" role="alert">{error?.code === 'PT403' ? t(error.message) : t('Les rôles n’ont pas pu être lus.')}</div> :
       <div className="grille-2-1">

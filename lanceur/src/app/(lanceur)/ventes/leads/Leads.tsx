@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
@@ -59,7 +59,7 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
               <tbody>
                 {donnees.leads.map((l) => (
                   <tr key={l.id} onClick={() => router.push(`/ventes/deals/${l.id}`)}>
-                    <td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 12 }}>{initiales(l.title)}</span><span title={[l.title, l.subtitle].filter(Boolean).join('\n')}><strong className="fort">{l.title}</strong><span className="sous gris">{l.subtitle}</span></span></span></td>
+                    <td><span className="cellule-ini"><span className="ini" style={{ width: 32, height: 32, fontSize: 12 }}>{initiales(l.title)}</span><span title={[l.title, l.subtitle].filter(Boolean).join('\n')}><Link href={`/ventes/deals/${l.id}`} className="fort" onClick={(e) => e.stopPropagation()}>{l.title}</Link><span className="sous gris">{l.subtitle}</span></span></span></td>
                     <td>{l.source ? t(l.source) : '—'}</td>
                     <td><span className={'puce' + (l.pipeline_code === 'location' ? ' neutral' : '')}>{l.pipeline_code === 'mandats' ? t('Mandats') : t('Location')}</span></td>
                     <td>{l.doublon ? <span className="puce">{t('Doublon possible')}</span> : l.owner ? <span className="cellule-ini"><span className="ini" style={{ width: 28, height: 28, fontSize: 11 }}>{initiales(l.owner)}</span>{court(l.owner)}</span> : <span className="gris">{t('Sans responsable')}</span>}</td>
@@ -74,13 +74,12 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
           <section className="carte-l18" aria-label={t('Routage')}>
             <h2 className="titre-carte">{t('Routage des nouveaux leads')}</h2>
             <div className="regles-routage">
-              {donnees.regles.map((r) => (
-                <div key={r.id}><div><strong>{r.kind === 'tour' ? t('À tour de rôle · {pipeline}', { pipeline: t(r.pipeline) }) : r.kind === 'source' ? t('Par source · {source}', { source: r.source ? t(r.source) : '' }) : t('Par territoire')}</strong>
+              {donnees.regles.map((r) => { const nomRegle = r.kind === 'tour' ? t('À tour de rôle · {pipeline}', { pipeline: t(r.pipeline) }) : r.kind === 'source' ? t('Par source · {source}', { source: r.source ? t(r.source) : '' }) : t('Par territoire'); return (
+                <div key={r.id}><div><strong>{nomRegle}</strong>
                   <span>{r.kind === 'tour' ? (r.membres ?? t('personne')) : r.user ? t('Toujours {nom}', { nom: court(r.user) }) : '—'}</span></div>
-                  <button role="switch" aria-checked={r.active} aria-label={t('Activer la règle')} className={'interrupteur' + (r.active ? ' on' : '')} disabled={envoi}
-                    onClick={() => agir(() => sb().rpc('lanceur_regle_routage', { p_id: r.id, p_active: !r.active }), r.active ? t('Règle désactivée.') : t('Règle activée.'))} /></div>
-              ))}
-              <div className="inactif"><div><strong>{t('Par territoire')}</strong><span>{t('Arrive avec les territoires (Immeubles)')}</span></div><span className="interrupteur" /></div>
+                  <button role="switch" aria-checked={r.active} aria-label={t('Règle : {nom}', { nom: nomRegle })} className={'interrupteur' + (r.active ? ' on' : '')} disabled={envoi}
+                    onClick={() => agir(() => sb().rpc('lanceur_regle_routage', { p_id: r.id, p_active: !r.active }), r.active ? t('Règle désactivée.') : t('Règle activée.'))} /></div>); })}
+              <div className="inactif"><div><strong>{t('Par territoire')}</strong><span>{t('Arrive avec les territoires (Immeubles)')}</span></div><button type="button" role="switch" aria-checked="false" disabled className="interrupteur" aria-label={t('Règle : {nom}', { nom: t('Par territoire') })} /></div>
             </div>
           </section>
         </div>
@@ -93,8 +92,8 @@ export function Leads({ donnees, erreurLecture }: { donnees: DonneesLeads | null
                 {([[t('Même courriel'), dbl.courriel, dbl.a.emails.find((e) => dbl.b.emails.includes(e))], [t('Même téléphone'), dbl.telephone, tel(dbl.a.phones.find((p) => dbl.b.phones.includes(p)))], [t('Même nom'), dbl.nom, dbl.a.nom]] as const)
                   .map(([l, ok, v]) => <li key={l}>{ok ? <span className="okdot"><Icone nom="check" taille={11} couleur="#fff" trait={2.4} /></span> : <i className="vide" />}<div><strong>{l}</strong><span>{ok ? v : t('non')}</span></div></li>)}
               </ul>
-              <p className="surtitre gris">{t('Garder comme fiche principale')}</p>
-              <fieldset className="durees">{(['a', 'b'] as const).map((k) => <label key={k} className={survivant === k ? 'choisi' : ''}><input type="radio" name="surv" checked={survivant === k} onChange={() => setSurvivant(k)} />{dbl[k].nom} · {dbl[k].detail}</label>)}</fieldset>
+              <p className="surtitre gris" id="dbl-garder">{t('Garder comme fiche principale')}</p>
+              <fieldset className="durees" aria-labelledby="dbl-garder">{(['a', 'b'] as const).map((k) => <label key={k} className={survivant === k ? 'choisi' : ''}><input type="radio" name="surv" checked={survivant === k} onChange={() => setSurvivant(k)} />{dbl[k].nom} · {dbl[k].detail}</label>)}</fieldset>
               <div className="studio-actions sans-marge" style={{ gridTemplateColumns: '140px 1fr' }}>
                 <button className="bouton bouton-principal" disabled={envoi} onClick={() => setFusion(true)}>{t('Fusionner')}</button>
                 <button className="bouton bouton-contour" disabled={envoi} onClick={() => agir(() => sb().rpc('lanceur_garder_les_deux', { p_a: dbl.a.id, p_b: dbl.b.id }), t('Les deux fiches sont gardées.'))}>{t('Garder les deux fiches')}</button>
@@ -128,6 +127,21 @@ export function NouveauLead({ donnees, fermer, cree, mien = false }: { donnees: 
     return () => clearTimeout(h);
   }, [f.courriel, f.telephone]);
   useEffect(() => { const k = (e: KeyboardEvent) => e.key === 'Escape' && fermer(); addEventListener('keydown', k); return () => removeEventListener('keydown', k); }, [fermer]);
+  // Accessibilité (WCAG 2.4.3) : Tab reste dans le tiroir; à la fermeture, le focus revient au bouton qui l'a ouvert.
+  const tiroir = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const ouvreur = document.activeElement as HTMLElement | null;
+    const k = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !tiroir.current) return;
+      const f = [...tiroir.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')].filter((x) => x.offsetParent !== null);
+      if (!f.length) return;
+      const premier = f[0], dernier = f[f.length - 1];
+      if (e.shiftKey && (document.activeElement === premier || !tiroir.current.contains(document.activeElement))) { e.preventDefault(); dernier.focus(); }
+      else if (!e.shiftKey && (document.activeElement === dernier || !tiroir.current.contains(document.activeElement))) { e.preventDefault(); premier.focus(); }
+    };
+    addEventListener('keydown', k);
+    return () => { removeEventListener('keydown', k); const cible = ouvreur && ouvreur !== document.body && ouvreur.isConnected ? ouvreur : document.querySelector<HTMLElement>('a[href*="nouveau"]'); cible?.focus(); }; // « Nouveau lead » est un lien (?nouveau=1) : la navigation perd le focus, on le rend au lien
+  }, []);
   async function creer() {
     setEnvoi(true); setErreur(null);
     const { data, error } = await supabaseNavigateur().rpc(mien ? 'lanceur_creer_mon_prospect' : 'lanceur_creer_lead', { p: { ...f, portes: f.portes || null, source_id: f.source_id || null } });
@@ -137,15 +151,15 @@ export function NouveauLead({ donnees, fermer, cree, mien = false }: { donnees: 
   const prochain = donnees.prochains?.[f.pipeline];
   return (
     <div className="voile tiroir-voile" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && fermer()}>
-      <aside className="tiroir" role="dialog" aria-modal="true" aria-labelledby="nl-t" style={{ width: 'min(600px, calc(100vw - 48px))' }}>
+      <aside ref={tiroir} className="tiroir" role="dialog" aria-modal="true" aria-labelledby="nl-t" style={{ width: 'min(600px, calc(100vw - 48px))' }}>
         <header className="tiroir-tete"><h2 id="nl-t">{mien ? t('Nouveau prospect') : t('Nouveau lead')}</h2><button className="haut-ibtn" onClick={fermer} aria-label={t('Fermer le tiroir')}><Icone nom="close" taille={20} couleur="#0C2147" /></button></header>
         <div className="tiroir-liste formulaire">
           {!mien && <><span className="fenetre-lib">{t('Pipeline')}</span>
-          <div className="segment large" role="tablist" style={{ width: '100%', marginBottom: 20 }}>
-            {(donnees.pipelines ?? []).map((p) => <button key={p.code} role="tab" aria-selected={f.pipeline === p.code} className={f.pipeline === p.code ? 'actif' : ''} onClick={() => setF({ ...f, pipeline: p.code })}>{t(p.name)}</button>)}
+          <div className="segment large" role="radiogroup" aria-label={t('Pipeline')} style={{ width: '100%', marginBottom: 20 }}>
+            {(donnees.pipelines ?? []).map((p) => <button key={p.code} type="button" role="radio" aria-checked={f.pipeline === p.code} className={f.pipeline === p.code ? 'actif' : ''} onClick={() => setF({ ...f, pipeline: p.code })}>{t(p.name)}</button>)}
           </div></>}
           <label className="fenetre-lib" htmlFor="nl-nom">{t('Nom')}<span>{t('obligatoire')}</span></label>
-          <input id="nl-nom" className="e70-raison" value={f.nom} onChange={maj('nom')} autoFocus />
+          <input id="nl-nom" className="e70-raison" value={f.nom} onChange={maj('nom')} required aria-required="true" autoFocus />
           <label className="fenetre-lib" htmlFor="nl-c">{t('Courriel')}</label>
           <input id="nl-c" type="email" className="e70-raison" value={f.courriel} onChange={maj('courriel')} style={doublons.length ? { marginBottom: 8 } : undefined} />
           {doublons.map((d) => <div key={d.id} className="doublon-saisie"><img src="/img/cleo.png" alt="" width={24} height={24} className="av-cleo" />

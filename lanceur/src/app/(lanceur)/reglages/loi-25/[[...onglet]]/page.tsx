@@ -10,7 +10,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const { t } = await tServeur();
   const { data, error } = await (await supabaseServeur()).rpc('lanceur_loi25');
   return (
-    <CadreEspace icone="chart" nom="Rapports et réglages" sous={SOUS_REG} actif={3} onglets={ONGLETS_REG}>
+    <CadreEspace icone="chart" nom="Réglages" sous={SOUS_REG} actif={3} onglets={ONGLETS_REG}>
       <Loi25 onglet={onglet?.[0] ?? 'vue'} choisie={d} donnees={(data as DonneesLoi25 | null) ?? null} maintenant={new Date().toISOString()}
         erreurLecture={error ? (error.code === 'PT403' ? error.message : t('La conformité n’a pas pu être lue.')) : null} />
     </CadreEspace>

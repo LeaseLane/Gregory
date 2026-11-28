@@ -6,6 +6,7 @@ import { supabaseNavigateur } from '@/lib/supabase/client';
 import { Icone } from '@/composants/Icones';
 import { useT } from '@/composants/Langue';
 import type { T } from '@/lib/i18n/langue';
+import { Sparkline } from '@/composants/dataviz';
 
 export type Etat = {
   coupe_circuit: { active: boolean; reason: string | null; par: string | null; depuis: string | null; until: string | null };
@@ -24,8 +25,7 @@ const depuis = (iso: string, t: T) => { const m = Math.round((Date.now() - new D
 
 function Colonnes({ v }: { v: number[] }) {
   const { t } = useT();
-  const max = Math.max(1, ...v);
-  return <span className="micro" aria-label={t('7 jours : {liste}', { liste: v.join(', ') })}>{v.map((x, i) => <i key={i} className={i === v.length - 1 ? 'auj' : ''} style={{ height: `${Math.max(2, (24 * x) / max)}px` }} />)}</span>;
+  return <Sparkline kind="bars" values={v} width={Math.max(10, v.length * 10 - 3)} height={24} label={t('7 jours : {liste}', { liste: v.join(', ') })} />;
 }
 
 export type Regle = { code: string; nom: string; declencheur: string; lien: string | null; pilotable: boolean; active: boolean; existe: boolean;

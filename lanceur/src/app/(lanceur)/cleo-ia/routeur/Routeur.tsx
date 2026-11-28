@@ -52,9 +52,11 @@ export function Routeur({ donnees: D, erreurLecture }: { donnees: DonneesRouteur
         <section className="carte-l18" aria-label={t('Budget')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{depasse ? t('Dépassement du budget prévu vers le {jour} {mois}', { jour: jourDepasse, mois: moisL() }) : t('Dans le budget en {mois}', { mois: moisL() })}</h2>
           <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{t('{mois} · dépenses au {jour} et projection au rythme actuel', { mois: moisL().charAt(0).toUpperCase() + moisL().slice(1), jour: D.jour })}</p>
           <p className="cleo-gros"><b>{argent(D.depense)}</b> {t('dépensés sur {budget} · {pct} %', { budget: argent(D.budget), pct: Math.round(ratio * 100) })}</p>
-          <div className="budget-barre"><i style={{ width: `${(100 * ratio) / echelle}%` }} /><s style={{ left: `${(100 * ratio) / echelle}%`, width: `${(100 * Math.max(0, projR - ratio)) / echelle}%` }} />
-            <b style={{ left: `${80 / echelle}%` }}><span>{t('Alerte 80 %')}</span></b><b className="fort" style={{ left: `${100 / echelle}%` }}><span>{t('Budget {montant}', { montant: argent(D.budget) })}</span></b></div>
+          <div className="dg-budget" role="img" aria-label={t('Projection {montant} au {jour} {mois}', { montant: argent(D.projection), jour: D.jours_mois, mois: moisL() })}>
+            <span className="piste" /><i className="dep" style={{ width: `${(100 * ratio) / echelle}%` }} /><s className="proj" style={{ left: `${(100 * ratio) / echelle}%`, width: `${(100 * Math.max(0, projR - ratio)) / echelle}%` }} />
+            <b className="seuil bas" style={{ left: `${80 / echelle}%` }}><span>{t('Alerte 80 %')}</span></b><b className="seuil fort" style={{ left: `${100 / echelle}%` }}><span>{t('Budget {montant}', { montant: argent(D.budget) })}</span></b></div>
           <p className="ligne-entre texte-12" style={{ marginTop: 8 }}><span className="gris">{argent(0)}</span><b>{t('Projection {montant} au {jour} {mois}', { montant: argent(D.projection), jour: D.jours_mois, mois: moisL() })}</b></p>
+          <ul className="dg-legende"><li><i className="m-dep" />{t('Dépensé')}</li><li><i className="m-proj" />{t('Projection au rythme actuel')}</li></ul>
         </section>
         {cand ? <section className="carte-l18 e2" aria-label={t('Proposition')}><p className="ligne-ic surtitre" style={{ margin: 0 }}><img src="/img/cleo.png" alt="" className="avatar-cleo" style={{ width: 32, height: 32 }} />{t('Proposition de Cléo')}</p>
           <h2 className="titre-carte" style={{ margin: '8px 0 2px' }}>{t('Passer {agent} au modèle léger', { agent: cand.agent.toLowerCase() })}</h2>
@@ -78,13 +80,14 @@ export function Routeur({ donnees: D, erreurLecture }: { donnees: DonneesRouteur
                 : BRANCHES.has(a.cle) ? <button className="lien-texte modele-bouton" onClick={() => setEdit(a.cle)} title={t('Changer le modèle')}>{nom(a.modele)}<Icone nom="pencil" taille={14} couleur="#58697F" /></button>
                 : <span title={t('Cet agent ne lit pas encore son modèle dans le routeur')}>{nom(a.modele)}</span>}</td>
               <td className="gris">{a.repli ? nom(a.repli) : '—'}</td><td className="droite">{a.delai !== null ? delaiTxt(a.delai, locale) : '—'}</td>
-              <td><span className="barre-cout"><i style={{ width: `${(100 * a.cout) / max}%` }} /><b>{argent(a.cout)}</b></span></td></tr>)}
+              <td><span className="barre-cout"><i style={{ width: `${(100 * a.cout) / max}%`, background: a === premier ? '#0C2147' : '#8FA3BC' }} /><b>{argent(a.cout)}</b></span></td></tr>)}
               {!D.agents.length && <tr><td colSpan={5} className="gris">{t('Aucun appel d’IA ce mois-ci.')}</td></tr>}</tbody></table>
           <p className="ligne-ic gris texte-13" style={{ margin: '12px 24px 0' }}><Icone nom="shieldc" taille={16} couleur="#58697F" />{t('Métadonnées de chaque appel : modèle, jetons, temps, coût, agent. Jamais le contenu des conversations (Loi 25).')}</p>
         </section>
         <section className="carte-l18" aria-label={t('Coût par porte')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('{montant} par porte en moyenne', { montant: argent(parPorte) })}</h2>
           <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{t('{mois}, au {jour} · {portes} portes, {clients} clients', { mois: moisL().charAt(0).toUpperCase() + moisL().slice(1), jour: D.jour, portes: D.portes, clients: D.clients })}</p>
-          <ul className="lo-docs">{D.agents.slice(0, 4).map((a) => <li key={a.cle}><div><strong>{t(a.agent)}</strong><span className="gris texte-13">{t('{montant} par porte', { montant: argent(D.portes ? a.cout / D.portes : 0) })}</span></div></li>)}</ul>
+          <ul className="dg-rang">{D.agents.slice(0, 4).map((a) => <li key={a.cle}><strong>{t(a.agent)}</strong><span className="v">{t('{montant} par porte', { montant: argent(D.portes ? a.cout / D.portes : 0) })}</span>
+            <span className="piste" aria-hidden="true"><i style={{ width: `${Math.max(2, (100 * a.cout) / max)}%` }} /></span></li>)}</ul>
         </section>
       </div>
     </>

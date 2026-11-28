@@ -563,6 +563,7 @@ const dico: Record<string, string> = {
   'Supprimer l’enregistrement': 'Delete the recording',
   'Supprimer mes renseignements': 'Delete my information',
   'sur {montant} prévus · suivis par Lease Lane': 'of {montant} expected · tracked by Lease Lane',
+  'sur {montant} prévus': 'of {montant} expected',
   'sur {n} logements occupés': 'out of {n} occupied units',
   'Système': 'System',
   'Sécurité': 'Security',
@@ -749,5 +750,15 @@ const dico: Record<string, string> = {
   'Étapes des demandes et des projets': 'Request and project milestones',
   'État': 'Status',
   'États des lieux': 'Move-in/move-out inspections',
+  // Tableau de bord et finance, données éditoriales (27 nov. 2026)
+  'Logement occupé': 'Occupied unit',
+  'Logement en arriéré': 'Unit in arrears',
+  'Logement vacant': 'Vacant unit',
+  'Logements : occupés, en arriéré et vacants': 'Units: occupied, in arrears and vacant',
+  'payés sur {n} mois': 'paid over {n} months',
+  '{secteur}, votre premier secteur': '{secteur}, your top sector',
+  'Ce que vous coûtent la gestion et les travaux': 'What management and work cost you',
+  'Examiner': 'Review',
+  'Examiner la cession de bail': 'Review the lease assignment',
 };
 export default dico;

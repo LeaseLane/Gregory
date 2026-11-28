@@ -6,6 +6,7 @@ import { Icone } from '@/composants/Icones';
 import { jourCourt } from '@/lib/format';
 import { useT } from '@/composants/Langue';
 import { argent } from '../../onglets';
+import { BarChart } from '@/composants/dataviz';
 
 /* e45 · Relevé mensuel tel que reçu par le propriétaire. Adapté au 13 oct. : les loyers sont payés chez lui; le total du relevé est la
    facture d'honoraires (aucun « versé »). En-tête (état d'envoi), revenus et dépenses, honoraires des 6 derniers mois, factures du mois. */
@@ -58,8 +59,8 @@ export function Releve({ donnees: D, erreurLecture }: { donnees: DonneesReleve |
         <div className="po-colonne">
           <section className="carte-l18" aria-label={t('Honoraires des 6 derniers mois')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Honoraires de {mois} : {montant}', { mois: moisLib(D.mois, locale, false), montant: argent(dernier?.honoraires ?? 0, false, locale) })}</h2>
             <p className="gris texte-13" style={{ margin: '0 0 16px' }}>{t('Honoraires avant taxes · 6 derniers mois')}</p>
-            <div className="releve-barres" role="img" aria-label={t('Honoraires des 6 derniers mois')}>{D.historique.map((h, i) => <div key={h.mois}><i className={i === D.historique.length - 1 ? 'accent' : ''} style={{ height: `${Math.max(2, (100 * h.honoraires) / max)}%` }} title={argent(h.honoraires, false, locale)} />
-              <small>{moisLib(`${h.mois}-01`, locale, false)}</small></div>)}</div>
+            <BarChart height={168} labels={D.historique.map((h) => moisLib(`${h.mois}-01`, locale, false))} series={[{ id: 'h', name: t('Honoraires des 6 derniers mois'), values: D.historique.map((h) => h.honoraires) }]}
+              emphasis={D.historique.length - 1} valueLabels="last" format={(n) => argent(n, false, locale)} label={t('Honoraires des 6 derniers mois')} tableColumn={t('Mois')} />
             <p className="gris texte-12">{t('Moyenne de 6 mois : {montant}', { montant: argent(D.historique.reduce((s, h) => s + h.honoraires, 0) / Math.max(1, D.historique.length), false, locale) })}</p></section>
           <section className="carte-l18" aria-label={t('Factures du mois')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{t('Factures de travaux')}</h2><p className="gris texte-13" style={{ margin: '0 0 12px' }}>{travaux.length > 1 ? t('{n} pièces du mois', { n: travaux.length }) : t('{n} pièce du mois', { n: travaux.length })}</p>
             <ul className="lo-docs">{travaux.map((tr, i) => <li key={i}><span className="a-faire-ic"><Icone nom="receipt" taille={18} couleur="#0C2147" /></span><div><strong>{tr.libelle}</strong><span className="gris texte-13">{jour(tr.le, locale)} · {t('{montant} TTC', { montant: argent(-tr.montant, true, locale) })}</span></div></li>)}

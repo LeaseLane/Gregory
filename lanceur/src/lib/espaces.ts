@@ -12,7 +12,7 @@ export const ESPACES_ADMIN: EspaceAdmin[] = [
   { nom: 'Juridique', icone: 'scale', href: '/juridique', racine: '/juridique', droit: 'juridique.lire' },
   { nom: 'Studio', icone: 'globe', href: '/studio/site', racine: '/studio', droit: 'studio.lire' },
   { nom: 'Cléo et IA', icone: 'spark', href: '/cleo-ia', racine: '/cleo-ia', droit: 'ia.lire' },
-  { nom: 'Rapports et réglages', icone: 'chart', href: '/reglages', racine: '/reglages', droit: 'rapports.lire' },
+  { nom: 'Réglages', icone: 'chart', href: '/reglages', racine: '/reglages', droit: 'rapports.lire' },
 ];
 
 /* Ce qu'un rôle voit (2026-11-24) : un onglet, un bouton ou un lien de la palette n'apparaît que si la base l'accepterait (crm.can,

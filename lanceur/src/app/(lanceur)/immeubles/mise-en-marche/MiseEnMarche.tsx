@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseNavigateur } from '@/lib/supabase/client';
@@ -16,6 +16,18 @@ type Annonce = { id: string; libelle: string; type: string | null; loyer: number
   genere_le: string | null; photos: string[]; relue_par: string | null; relue_le: string | null; publiee_le: string | null; jours: number | null; libre: string | null;
   canaux: Record<string, Canal>; demandes_canal: Record<string, number> | null; entonnoir: { demandes: number; visites: number; candidatures: number }; location: string | null };
 export type DonneesMarche = { a_louer: ALouer[]; objectif: number; annonce: Annonce | null };
+
+// Diagramme d'étapes (dv-diag) : étapes reliées par des liens orthogonaux; une seule étape marine, nommée par une étiquette.
+type NoeudFlux = { cle: string; lib: string; val: string | number; sous?: string; part?: number; focal?: string | null; lien?: string | null };
+function Flux({ noeuds, label }: { noeuds: NoeudFlux[]; label: string }) {
+  return <div className="dg-bloc"><ol className={'dg-flux' + (noeuds.length > 4 ? ' long' : '')} aria-label={label} style={{ '--dg-n': noeuds.length } as CSSProperties}>
+    {noeuds.map((n, i) => <li key={n.cle} className={'dg-etape' + (n.focal ? ' focal' : '')}>
+      {i > 0 && <span className="dg-lien" aria-hidden="true">{n.lien && <span>{n.lien}</span>}</span>}
+      <span className="dg-num" aria-hidden="true">{i + 1}</span><span className="dg-lib">{n.lib}</span><b className="dg-val">{n.val}</b>
+      {n.sous && <span className="dg-sous">{n.sous}</span>}
+      {n.part != null && <span className="dg-barre" aria-hidden="true"><i style={{ width: `${n.part > 0 ? Math.max(2, Math.min(100, n.part)) : 0}%` }} /></span>}
+      {n.focal && <span className="dg-tag">{n.focal}</span>}</li>)}</ol></div>;
+}
 
 export function MiseEnMarche({ donnees: D, erreurLecture }: { donnees: DonneesMarche | null; erreurLecture: string | null }) {
   const router = useRouter();
@@ -52,6 +64,8 @@ export function MiseEnMarche({ donnees: D, erreurLecture }: { donnees: DonneesMa
     [!!A.relue_le, A.relue_le ? t('Texte relu par {p} le {d}', { p: A.relue_par, d: dc(A.relue_le) }) : t('Texte à relire par une personne')]] as [boolean, string][] : [];
   const vues = A ? Object.entries(A.canaux).filter(([, c]) => c?.statut === 'en_ligne').map(([k, c]) => ({ libelle: CANAUX[k], valeur: c!.vues, k })) : [], totVues = vues.reduce((s, v) => s + v.valeur, 0);
   const E = A?.entonnoir, etapes: [string, number][] = E ? [[t('Demandes'), E.demandes], [t('Visites'), E.visites], [t('Candidatures'), E.candidatures]] : [];
+  // Passage le plus faible d'une étape à la suivante (seulement s'il y a des demandes) : la seule étape marine de l'entonnoir.
+  const tauxE = etapes.map(([, n], i) => (i && etapes[i - 1][1] ? n / etapes[i - 1][1] : Infinity)), faible = E && E.demandes ? tauxE.indexOf(Math.min(...tauxE)) : -1;
   return (
     <>
       {bandeau && <div className="bandeau erreur" role="alert">{bandeau}</div>}
@@ -92,8 +106,8 @@ export function MiseEnMarche({ donnees: D, erreurLecture }: { donnees: DonneesMa
                   : k !== 'site' && <button className="lien" onClick={() => setCanalEdit({ canal: k, url: c.url ?? '', vues: String(c.vues || '') })}>{c.statut === 'a_publier' ? t('Marquer en ligne') : t('Mettre à jour')}</button>}</li>)}</ul></section>
             <section className="carte-l18" aria-label={t('Entonnoir de location')}><h2 className="titre-carte" style={{ marginBottom: 2 }}>{E && E.visites ? t('{a} pour {b}', { a: E.candidatures > 1 ? t('{n} candidatures', { n: E.candidatures }) : t('{n} candidature', { n: E.candidatures }), b: E.visites > 1 ? t('{n} visites', { n: E.visites }) : t('{n} visite', { n: E.visites }) }) : t('Entonnoir de location')}</h2>
               <p className="gris texte-13" style={{ margin: '0 0 12px' }}>{t('Depuis la publication · passage d’une étape à la suivante')}</p>
-              <ul className="entonnoir">{etapes.map(([l, n], i) => <li key={l}><span className="lib">{l}</span><span className="piste"><i className={`r${i}`} style={{ width: `${Math.max(2, (100 * n) / Math.max(1, etapes[0][1]))}%` }} /></span><b>{n}</b>
-                <span className="gris texte-12">{i && etapes[i - 1][1] ? `${Math.round((100 * n) / etapes[i - 1][1])} %` : ''}</span></li>)}</ul></section>
+              {etapes.length > 0 && <Flux label={t('Entonnoir de location')} noeuds={etapes.map(([l, n], i) => { const taux = i && etapes[i - 1][1] ? Math.round((100 * n) / etapes[i - 1][1]) : null;
+                return { cle: l, lib: l, val: n, part: (100 * n) / Math.max(1, etapes[0][1]), lien: taux != null ? `${taux} %` : null, focal: i === faible ? t('Plus faible passage') : null }; })} />}</section>
           </div>
         </div> : <section className="carte-l18"><p className="gris" style={{ margin: 0 }}>{t('Aucun logement à louer.')}</p></section>}
       </div>
